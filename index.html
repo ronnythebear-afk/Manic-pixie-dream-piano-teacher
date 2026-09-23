@@ -1,0 +1,852 @@
+<title>Pixie Chords</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Nunito:wght@500;700;800;900&family=DM+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --bg: #fdeef4;
+    --dot: #f8d3e2;
+    --paper: #ffffff;
+    --ink: #2b1e4a;
+    --muted: #76688f;
+    --line: #2b1e4a;
+    --rh: #ff5c9d;
+    --lh: #2ec4a6;
+    --stay: #ffc53d;
+    --spark: #8a6cff;
+    --key-w: #fffdf9;
+    --key-b: #2b1e4a;
+    --key-edge: #2b1e4a;
+    --tint: #fff5d6;
+    --field: #ffffff;
+    --display: "Bagel Fat One", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif;
+    --body: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #1d1533;
+      --dot: #2c2250;
+      --paper: #2a2047;
+      --ink: #fff0f6;
+      --muted: #b6a8d4;
+      --line: #0c0818;
+      --rh: #ff6fa9;
+      --lh: #3fd9b9;
+      --stay: #ffd166;
+      --spark: #a996ff;
+      --key-w: #f5efff;
+      --key-b: #150e2a;
+      --key-edge: #0c0818;
+      --tint: #3a2c5f;
+      --field: #221a3c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1d1533;
+    --dot: #2c2250;
+    --paper: #2a2047;
+    --ink: #fff0f6;
+    --muted: #b6a8d4;
+    --line: #0c0818;
+    --rh: #ff6fa9;
+    --lh: #3fd9b9;
+    --stay: #ffd166;
+    --spark: #a996ff;
+    --key-w: #f5efff;
+    --key-b: #150e2a;
+    --key-edge: #0c0818;
+    --tint: #3a2c5f;
+    --field: #221a3c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 36px 64px;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--spark); outline-offset: 2px; }
+
+  /* ---------- header ---------- */
+  .top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 22px; margin-bottom: 26px; }
+  h1 {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: clamp(48px, 9vw, 92px);
+    line-height: .9;
+    margin: 0;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    text-shadow: 4px 4px 0 var(--rh);
+  }
+  h1 .dot { color: var(--lh); text-shadow: 4px 4px 0 var(--ink); }
+  .sticker {
+    display: inline-block;
+    transform: rotate(-4deg);
+    background: var(--stay);
+    color: #2b1e4a;
+    border: 2.5px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-weight: 900;
+    font-size: 13px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0 var(--line);
+    margin-bottom: 10px;
+  }
+  .lede { flex-basis: 100%; margin: 6px 0 0; color: var(--muted); font-weight: 700; font-size: 18px; max-width: 60ch; }
+
+  /* ---------- composer ---------- */
+  .composer { display: grid; gap: 16px; margin-bottom: 30px; }
+  .field {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--field);
+    border: 3px solid var(--line);
+    border-radius: 22px;
+    padding: 8px 8px 8px 22px;
+    box-shadow: 5px 5px 0 var(--line);
+  }
+  .field label { font-weight: 900; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  #prog {
+    flex: 1; min-width: 0;
+    border: 0; background: transparent; outline: none;
+    font-family: var(--display); font-size: clamp(22px, 4vw, 34px);
+    padding: 6px 0;
+  }
+  .play {
+    flex: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--rh); color: #2b1e4a;
+    border: 3px solid var(--line); border-radius: 16px;
+    padding: 12px 20px;
+    font-weight: 900; font-size: 17px;
+    box-shadow: 3px 3px 0 var(--line);
+    transition: transform .08s, box-shadow .08s;
+  }
+  .play:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--line); }
+  .play svg { width: 16px; height: 16px; }
+
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+  .label { font-weight: 900; font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .chip {
+    border: 2px solid var(--line);
+    background: var(--paper);
+    border-radius: 999px;
+    padding: 5px 13px;
+    font-weight: 800; font-size: 14px;
+    transition: transform .1s, background .15s;
+  }
+  .chip:hover { transform: translateY(-2px); }
+  .chip small { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 6px; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: center; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 2.5px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--paper); }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label { padding: 7px 15px; font-weight: 900; font-size: 15px; cursor: pointer; border-right: 2px solid var(--line); }
+  .seg label:last-of-type { border-right: 0; }
+  .seg input:checked + label { background: var(--lh); color: #2b1e4a; }
+  .seg input:focus-visible + label { outline: 3px solid var(--spark); outline-offset: -3px; }
+  .mode-note { margin: 0; color: var(--muted); font-weight: 700; max-width: 62ch; }
+
+  .mini { display: inline-flex; align-items: center; gap: 8px; }
+  .round {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2.5px solid var(--line); background: var(--paper);
+    font-weight: 900; font-size: 18px; line-height: 1;
+    display: inline-grid; place-items: center;
+  }
+  .round:active { transform: scale(.92); }
+  input[type="range"] { accent-color: var(--rh); width: 120px; }
+  .tabnum { font-family: var(--mono); font-size: 14px; min-width: 3ch; font-variant-numeric: tabular-nums; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; cursor: pointer; }
+  .toggle input { accent-color: var(--rh); width: 18px; height: 18px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .sw { width: 14px; height: 14px; border-radius: 4px; border: 2px solid var(--line); display: inline-block; }
+  .sw.lh { background: var(--lh); } .sw.rh { background: var(--rh); }
+  .sw.stay { background: var(--stay); border-radius: 50%; }
+  .sw.spark { border: 0; width: auto; height: auto; color: var(--spark); font-size: 16px; line-height: 1; }
+
+  /* ---------- cards ---------- */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 24px; }
+  .card {
+    position: relative;
+    background: var(--paper);
+    border: 3px solid var(--line);
+    border-radius: 24px;
+    padding: 16px 16px 14px;
+    box-shadow: 6px 6px 0 var(--line);
+    display: grid; gap: 12px;
+    transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s, background .2s;
+  }
+  .card.on { transform: translate(-3px, -5px) rotate(-.6deg); box-shadow: 10px 12px 0 var(--line); background: var(--tint); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .num { font-family: var(--mono); font-size: 12px; color: var(--muted); display: block; margin-bottom: 2px; }
+  .sym { font-family: var(--display); font-size: 44px; line-height: 1; overflow-wrap: anywhere; }
+  .sym .q { font-size: .62em; margin-left: 1px; color: var(--muted); }
+  .sym .sl { font-size: .62em; color: var(--muted); }
+  .play-one {
+    flex: none; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--stay); color: #2b1e4a;
+    border: 3px solid var(--line); box-shadow: 2px 2px 0 var(--line);
+    display: grid; place-items: center;
+  }
+  .play-one svg { width: 16px; height: 16px; margin-left: 2px; }
+  .play-one:active { transform: translate(2px, 2px); box-shadow: none; }
+
+  .shape { display: flex; align-items: center; gap: 8px; }
+  .nudge {
+    flex: none; width: 34px; height: 34px; border-radius: 12px;
+    border: 2.5px solid var(--line); background: var(--paper);
+    font-weight: 900; font-size: 20px; line-height: 1;
+    display: grid; place-items: center;
+  }
+  .nudge:hover { background: var(--lh); color: #2b1e4a; }
+  .shape-name { flex: 1; min-width: 0; text-align: center; line-height: 1.2; }
+  .shape-name b { display: block; font-weight: 900; font-size: 16px; }
+  .shape-name span { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .reset {
+    border: 0; background: none; padding: 0; margin-left: 4px;
+    color: var(--spark); font-weight: 900; font-size: 13px; text-decoration: underline;
+  }
+
+  .kbd { cursor: pointer; }
+  .kbd svg { display: block; width: 100%; height: auto; }
+  .kw { fill: var(--key-w); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
+  .kb { fill: var(--key-b); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
+  .kw.lh, .kb.lh { fill: var(--lh); }
+  .kw.rh, .kb.rh { fill: var(--rh); }
+  .stay { fill: var(--stay); stroke: var(--key-edge); stroke-width: .8; }
+  .oct { fill: var(--muted); font-family: var(--mono); font-size: 5.2px; text-anchor: middle; }
+
+  .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .hand { font-weight: 900; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
+  .hand + .n { margin-left: 0; }
+  .n {
+    font-family: var(--mono); font-size: 13px;
+    border: 2px solid var(--line); border-radius: 8px;
+    padding: 1px 7px; color: #2b1e4a;
+  }
+  .n.lh { background: var(--lh); } .n.rh { background: var(--rh); }
+  .n.spk::before { content: "✦ "; }
+  .gap { width: 10px; }
+  .moves { font-size: 14px; font-weight: 800; color: var(--muted); border-top: 2px dashed var(--dot); padding-top: 10px; }
+  .moves b { color: var(--ink); }
+
+  .card.bad { background: var(--bg); border-style: dashed; box-shadow: none; align-content: start; }
+  .card.bad p { margin: 0; color: var(--muted); font-weight: 700; }
+  .empty { grid-column: 1 / -1; text-align: center; padding: 48px 16px; font-weight: 800; color: var(--muted); font-size: 18px; }
+
+  footer { margin-top: 44px; color: var(--muted); font-size: 14px; font-weight: 700; max-width: 70ch; }
+  footer code { font-family: var(--mono); font-size: 13px; background: var(--paper); border: 1.5px solid var(--dot); border-radius: 6px; padding: 0 5px; }
+
+  @media (max-width: 560px) {
+    .field { flex-wrap: wrap; padding: 12px 12px 12px 16px; }
+    .field label { flex-basis: 100%; }
+    #prog { flex-basis: 100%; }
+    .play { width: 100%; justify-content: center; }
+    .sym { font-size: 38px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .card.on { transform: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Pixie Chords<span class="dot">.</span></h1>
+    <span class="sticker">your dream piano teacher</span>
+    <p class="lede">Type a chord progression and see where your hands could go. Tap the arrows on any chord to try another shape.</p>
+  </header>
+
+  <section class="composer" aria-label="Progression">
+    <div class="field">
+      <label for="prog">Chords</label>
+      <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" value="C Am F G" aria-describedby="help">
+      <button class="play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play it</span></button>
+    </div>
+
+    <div class="row" id="presets">
+      <span class="label">Try</span>
+    </div>
+
+    <div class="controls">
+      <div class="seg" role="radiogroup" aria-label="Voicing style">
+        <input type="radio" name="mode" id="m-smooth" value="smooth" checked><label for="m-smooth">Smooth</label>
+        <input type="radio" name="mode" id="m-simple" value="simple"><label for="m-simple">Simple</label>
+        <input type="radio" name="mode" id="m-open" value="open"><label for="m-open">Open</label>
+        <input type="radio" name="mode" id="m-jazzy" value="jazzy"><label for="m-jazzy">Jazzy</label>
+      </div>
+      <div class="mini">
+        <span class="label">Key</span>
+        <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
+        <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
+      </div>
+      <div class="mini">
+        <label class="label" for="bpm">Tempo</label>
+        <input type="range" id="bpm" min="50" max="150" value="88">
+        <span class="tabnum" id="bpmVal">88</span>
+      </div>
+      <label class="toggle"><input type="checkbox" id="loop"> Loop</label>
+    </div>
+    <p class="mode-note" id="modeNote"></p>
+  </section>
+
+  <div class="legend" aria-hidden="true">
+    <span><i class="sw lh"></i>Left hand</span>
+    <span><i class="sw rh"></i>Right hand</span>
+    <span><i class="sw stay"></i>Same key as the chord before</span>
+    <span><i class="sw spark">✦</i>Extra color note</span>
+  </div>
+
+  <main class="cards" id="cards" aria-live="polite"></main>
+
+  <footer id="help">
+    Separate chords with spaces. It reads <code>C</code> <code>Cm</code> <code>C7</code> <code>Cmaj7</code> <code>Cm7</code> <code>Cm7b5</code> <code>Cdim</code> <code>Cdim7</code> <code>Caug</code> <code>Csus2</code> <code>Csus4</code> <code>C6</code> <code>Cadd9</code> <code>C9</code> <code>Cmaj9</code> <code>C13</code>, sharps and flats like <code>F#m</code> or <code>Bb7</code>, and slash chords like <code>C/E</code>. Tap a keyboard to hear that chord.
+  </footer>
+</div>
+
+<script>
+(() => {
+  // ---------- music theory ----------
+  const NAT = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+  const LETTERS = "CDEFGAB";
+  const Q = {};
+  const def = (keys, ivs) => keys.forEach(k => (Q[k] = ivs));
+  def(["", "M", "maj", "major"], [0, 4, 7]);
+  def(["m", "min", "mi", "-", "minor"], [0, 3, 7]);
+  def(["dim", "°", "o"], [0, 3, 6]);
+  def(["aug", "+", "#5"], [0, 4, 8]);
+  def(["sus2"], [0, 2, 7]);
+  def(["sus4", "sus"], [0, 5, 7]);
+  def(["5"], [0, 7]);
+  def(["6", "maj6", "M6"], [0, 4, 7, 9]);
+  def(["m6", "min6", "-6"], [0, 3, 7, 9]);
+  def(["7", "dom7"], [0, 4, 7, 10]);
+  def(["maj7", "Maj7", "M7", "Δ", "Δ7", "ma7", "j7"], [0, 4, 7, 11]);
+  def(["m7", "min7", "mi7", "-7"], [0, 3, 7, 10]);
+  def(["m7b5", "min7b5", "-7b5", "ø", "ø7"], [0, 3, 6, 10]);
+  def(["dim7", "°7", "o7"], [0, 3, 6, 9]);
+  def(["mmaj7", "mMaj7", "mM7", "minmaj7", "-maj7"], [0, 3, 7, 11]);
+  def(["7sus4", "7sus"], [0, 5, 7, 10]);
+  def(["add9", "add2", "2"], [0, 4, 7, 14]);
+  def(["madd9", "madd2", "m2"], [0, 3, 7, 14]);
+  def(["9"], [0, 4, 7, 10, 14]);
+  def(["maj9", "M9", "Δ9"], [0, 4, 7, 11, 14]);
+  def(["m9", "min9", "-9"], [0, 3, 7, 10, 14]);
+  def(["6/9", "69"], [0, 4, 7, 9, 14]);
+  def(["7b9"], [0, 4, 7, 10, 13]);
+  def(["7#9"], [0, 4, 7, 10, 15]);
+  def(["11"], [0, 7, 10, 14, 17]);
+  def(["m11", "min11"], [0, 3, 7, 10, 14, 17]);
+  def(["13"], [0, 4, 7, 10, 14, 21]);
+  def(["maj13"], [0, 4, 7, 11, 14, 21]);
+
+  const DEG = { 0: 1, 1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 5, 7: 5, 8: 5, 9: 6, 10: 7, 11: 7, 12: 1, 13: 2, 14: 2, 15: 2, 17: 4, 18: 4, 19: 5, 21: 6 };
+  const FALLBACK = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  const mod = (n, m = 12) => ((n % m) + m) % m;
+  const accOf = s => (s === "#" ? 1 : s === "b" ? -1 : 0);
+  const pretty = s => s.replace(/#/g, "♯").replace(/(?<=[A-G])b/g, "♭");
+
+  function spell(letterIdx, rootPc, iv) {
+    const deg = DEG[iv] ?? 1;
+    const letter = LETTERS[(letterIdx + deg - 1) % 7];
+    let diff = mod(rootPc + iv - NAT[letter]);
+    if (diff > 6) diff -= 12;
+    if (Math.abs(diff) > 2) return FALLBACK[mod(rootPc + iv)];
+    return letter + (diff > 0 ? "#".repeat(diff) : "b".repeat(-diff));
+  }
+
+  function parseChord(tok) {
+    const t = tok.replace(/♯/g, "#").replace(/♭/g, "b").replace(/[()]/g, "");
+    const m = t.match(/^([A-Ga-g])([#b]?)(.*?)(?:\/([A-Ga-g])([#b]?))?$/);
+    if (!m) return null;
+    const qual = m[3];
+    if (!(qual in Q)) return null;
+    const L = m[1].toUpperCase();
+    const rootPc = mod(NAT[L] + accOf(m[2]));
+    const letterIdx = LETTERS.indexOf(L);
+    const ivs = Q[qual];
+    const names = new Map();
+    for (const iv of ivs) names.set(mod(rootPc + iv), spell(letterIdx, rootPc, iv));
+    let bassPc = rootPc, bassName = L + m[2];
+    if (m[4]) {
+      const BL = m[4].toUpperCase();
+      bassPc = mod(NAT[BL] + accOf(m[5]));
+      bassName = BL + m[5];
+    }
+    return { tok, qual, rootPc, letterIdx, rootName: L + m[2], bassPc, bassName, slash: !!m[4], ivs, names };
+  }
+
+  function noteName(ch, midi) {
+    const pc = mod(midi);
+    if (ch.names.has(pc)) return pretty(ch.names.get(pc));
+    if (pc === ch.bassPc) return pretty(ch.bassName);
+    let iv = mod(pc - ch.rootPc);
+    if (iv === 2 || iv === 5) iv += 12;
+    return pretty(spell(ch.letterIdx, ch.rootPc, iv));
+  }
+
+  // ---------- voicings ----------
+  const avg = a => a.reduce((s, x) => s + x, 0) / a.length;
+  function stack(pcs, start) {
+    const out = [];
+    let prev = start - 1;
+    for (const pc of pcs) {
+      let n = prev + 1;
+      while (mod(n) !== pc) n++;
+      out.push(n);
+      prev = n;
+    }
+    return out;
+  }
+  function placeNear(pcs, center) {
+    let best = null, bd = Infinity;
+    for (let s = center - 14; s <= center + 2; s++) {
+      const v = stack(pcs, s);
+      const d = Math.abs(avg(v) - center);
+      if (d < bd) { bd = d; best = v; }
+    }
+    return best;
+  }
+  const bassMidi = pc => 41 + mod(pc - 5); // F2 .. E3
+
+  function rhTones(ivs) {
+    let t = ivs.slice();
+    if (t.length > 4) t = t.filter(iv => iv !== 7);
+    if (t.length > 4) t = t.filter(iv => iv !== 0);
+    return t;
+  }
+  const INV = ["Root position", "1st inversion", "2nd inversion", "3rd inversion"];
+
+  function options(ch) {
+    const bass = bassMidi(ch.bassPc);
+    const tones = rhTones(ch.ivs);
+    const out = [];
+    tones.forEach((_, r) => {
+      const rot = tones.slice(r).concat(tones.slice(0, r));
+      const pcs = rot.map(iv => mod(ch.rootPc + iv));
+      out.push({ kind: "inv", r, pcs, name: INV[r], lh: [bass], rh: placeNear(pcs, 65), spark: [] });
+    });
+
+    const fifth = ch.ivs.find(iv => iv === 7) ?? ch.ivs.find(iv => iv === 6 || iv === 8);
+    const onRoot = ch.bassPc === ch.rootPc;
+
+    // open
+    let upper = ch.ivs.filter(iv => iv !== 0 && ![6, 7, 8].includes(iv)).sort((a, b) => a - b);
+    if (upper.length < 3) upper.push(12);
+    if (upper.length < 3 && fifth != null) upper.push(fifth + 12);
+    if (upper.length < 3) upper.push(24);
+    upper = upper.slice(0, 4);
+    out.push({
+      kind: "open", name: "Open & wide", blurb: "Wide left hand, right hand up high",
+      lh: onRoot && fifth != null ? [bass, bass + fifth] : [bass, bass + 12],
+      rh: placeNear(upper.map(iv => mod(ch.rootPc + iv)), 69), spark: []
+    });
+
+    // shell + sparkle
+    const third = ch.ivs.find(iv => iv === 3 || iv === 4) ?? ch.ivs.find(iv => iv === 2 || iv === 5);
+    const sev = ch.ivs.find(iv => iv === 10 || iv === 11) ?? ch.ivs.find(iv => iv === 9);
+    const exts = ch.ivs.filter(iv => iv > 12);
+    let lh = [bass];
+    if (onRoot) lh = sev != null ? [bass, bass + sev] : fifth != null ? [bass, bass + fifth] : [bass];
+    const rh = [];
+    if (third != null) rh.push(third); else rh.push(12);
+    if (sev != null && fifth != null) rh.push(fifth);
+    if (!onRoot && sev != null) rh.push(sev);
+    const spark = [];
+    if (exts.length) rh.push(...exts);
+    else if (!ch.ivs.includes(8)) {
+      const color = ch.ivs.includes(6) && ch.ivs.includes(3) ? 17 : 14;
+      rh.push(color);
+      spark.push(mod(ch.rootPc + color));
+    }
+    if (sev == null && fifth != null) rh.push(fifth + 12);
+    const shellIvs = [...new Set(rh)].sort((a, b) => a - b).slice(0, 4);
+    out.push({
+      kind: "shell", name: spark.length ? "Shell + sparkle" : "Shell",
+      blurb: sev != null ? "Root and 7th below, color on top" : "Root and 5th below, a 9th for shimmer",
+      lh, rh: placeNear(shellIvs.map(iv => mod(ch.rootPc + iv)), 66), spark
+    });
+    return out;
+  }
+
+  const allNotes = v => v.lh.concat(v.rh);
+  function travel(a, b) {
+    let s = 0;
+    for (const x of b) s += Math.min(...a.map(y => Math.abs(x - y)));
+    for (const y of a) s += Math.min(...b.map(x => Math.abs(x - y)));
+    return s / 2;
+  }
+
+  function choose(opts, mode, ovr) {
+    if (mode !== "smooth") {
+      return opts.map((o, i) => {
+        const idx = ovr[i] ?? (mode === "simple" ? 0 : mode === "open" ? o.length - 2 : o.length - 1);
+        return { opt: idx, v: o[idx] };
+      });
+    }
+    // Smooth: Viterbi over inversions and octave placements
+    const cands = opts.map((o, i) => {
+      if (ovr[i] != null) return [{ opt: ovr[i], v: o[ovr[i]] }];
+      const list = [];
+      o.forEach((opt, idx) => {
+        if (opt.kind !== "inv") return;
+        const seen = new Set();
+        for (let s = 50; s <= 76; s++) {
+          const rh = stack(opt.pcs, s);
+          const a = avg(rh);
+          if (a < 56 || a > 75 || rh[0] < 52 || seen.has(rh[0])) continue;
+          seen.add(rh[0]);
+          list.push({ opt: idx, v: { ...opt, rh } });
+        }
+      });
+      return list;
+    });
+    const here = c => 0.12 * Math.abs(avg(c.v.rh) - 65);
+    let cost = cands[0].map(here), back = [];
+    for (let i = 1; i < cands.length; i++) {
+      const nc = [], nb = [];
+      cands[i].forEach(c => {
+        let best = Infinity, bi = 0;
+        cands[i - 1].forEach((p, j) => {
+          const t = cost[j] + travel(allNotes(p.v), allNotes(c.v));
+          if (t < best) { best = t; bi = j; }
+        });
+        nc.push(best + here(c));
+        nb.push(bi);
+      });
+      cost = nc;
+      back.push(nb);
+    }
+    let k = cost.indexOf(Math.min(...cost));
+    const out = new Array(cands.length);
+    for (let i = cands.length - 1; i >= 0; i--) {
+      out[i] = cands[i][k];
+      if (i > 0) k = back[i - 1][k];
+    }
+    return out;
+  }
+
+  // ---------- keyboard drawing ----------
+  const BLACK = new Set([1, 3, 6, 8, 10]);
+  const isBlack = m => BLACK.has(mod(m));
+  function keyboard(v, lo, hi, stay) {
+    const lh = new Set(v.lh), rh = new Set(v.rh);
+    const W = 10, H = 44, BW = 6, BH = 27;
+    const whites = [];
+    for (let m = lo; m <= hi; m++) if (!isBlack(m)) whites.push(m);
+    const pos = new Map(whites.map((m, i) => [m, i]));
+    const cls = m => (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
+    let s = `<svg viewBox="0 0 ${whites.length * W + 1} ${H + 10}" role="img" aria-hidden="true">`;
+    whites.forEach((m, i) => {
+      s += `<rect class="kw${cls(m)}" x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.8"/>`;
+      if (stay.has(m)) s += `<circle class="stay" cx="${i * W + .5 + W / 2}" cy="${H - 6}" r="2.4"/>`;
+      if (mod(m) === 0) s += `<text class="oct" x="${i * W + .5 + W / 2}" y="${H + 8}">C${m / 12 - 1}</text>`;
+    });
+    for (let m = lo; m <= hi; m++) {
+      if (!isBlack(m) || !pos.has(m - 1)) continue;
+      const x = (pos.get(m - 1) + 1) * W + .5 - BW / 2;
+      s += `<rect class="kb${cls(m)}" x="${x}" y=".5" width="${BW}" height="${BH}" rx="1.2"/>`;
+      if (stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${BH - 5}" r="2.1"/>`;
+    }
+    return s + "</svg>";
+  }
+
+  // ---------- state ----------
+  const $ = id => document.getElementById(id);
+  const input = $("prog"), cardsEl = $("cards");
+  const store = {
+    get(k) { try { return localStorage.getItem("pixie:" + k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem("pixie:" + k, v); } catch {} }
+  };
+  const overrides = new Map();
+  let current = []; // [{ch, v, opt, len, i}]
+  let mode = "smooth";
+
+  const MODE_NOTES = {
+    smooth: "Each chord picks the shape closest to the one before, so your hands barely travel.",
+    simple: "Every chord in root position. Easy to read, but your hand hops around.",
+    open: "Left hand spreads out, right hand floats up high. Big and airy.",
+    jazzy: "Root and 7th in the left hand, color up top. Plain triads get a 9th."
+  };
+
+  const PRESETS = [
+    ["Pop four", "C G Am F"],
+    ["Doo-wop", "C Am F G"],
+    ["Sad hours", "Am F C G"],
+    ["ii V I", "Dm7 G7 Cmaj7"],
+    ["Dreamy", "Fmaj9 Em7 Am7 Dm9 G13"],
+    ["Heartache", "G B C Cm"],
+    ["Canon", "D A Bm F#m G D G A"],
+    ["Bossa", "Cmaj7 C6 Dm7 G7 Em7 A7 Dm7 G7"]
+  ];
+
+  const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const tokenize = s => s.split(/[\s,|]+/).filter(Boolean).slice(0, 32);
+
+  function symbolHTML(ch) {
+    const q = ch.qual.replace(/b(?=\d)/g, "♭").replace(/#/g, "♯");
+    return `${esc(pretty(ch.rootName))}${q ? `<span class="q">${esc(q)}</span>` : ""}${ch.slash ? `<span class="sl">/${esc(pretty(ch.bassName))}</span>` : ""}`;
+  }
+
+  function render() {
+    const items = tokenize(input.value).map((tok, i) => ({ tok, i, key: i + ":" + tok, ch: parseChord(tok) }));
+    const valid = items.filter(x => x.ch);
+    const opts = valid.map(x => options(x.ch));
+    const ovr = valid.map(x => overrides.get(x.key));
+    const picked = valid.length ? choose(opts, mode, ovr) : [];
+
+    current = valid.map((x, j) => ({ ...x, v: picked[j].v, opt: picked[j].opt, len: opts[j].length, j }));
+
+    let lo = Infinity, hi = -Infinity;
+    current.forEach(c => allNotes(c.v).forEach(n => { lo = Math.min(lo, n); hi = Math.max(hi, n); }));
+    lo -= 1; hi += 1;
+    while (isBlack(lo)) lo--;
+    while (isBlack(hi)) hi++;
+    while (hi - lo < 24) { hi++; if (hi - lo < 24) lo--; }
+    while (isBlack(lo)) lo--;
+    while (isBlack(hi)) hi++;
+
+    if (!items.length) {
+      cardsEl.innerHTML = `<div class="empty">Type some chords up there, like C Am F G.</div>`;
+      return;
+    }
+
+    const byIndex = new Map(current.map(c => [c.i, c]));
+    let prev = null, html = "";
+    items.forEach((it, n) => {
+      const c = byIndex.get(it.i);
+      if (!c) {
+        html += `<article class="card bad"><div><span class="num">${n + 1}</span><div class="sym">${esc(it.tok)}</div></div><p>I don't know this one yet. Try something like Cm7, F#dim or Bb/D.</p></article>`;
+        return;
+      }
+      const notes = allNotes(c.v);
+      const stay = new Set(prev ? notes.filter(x => prev.includes(x)) : []);
+      const spark = new Set(c.v.spark);
+      const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
+      const low = noteName(c.ch, c.v.rh[0]);
+      const blurb = c.v.blurb || `${low} on the bottom`;
+      let moves;
+      if (!prev) moves = "Starting shape";
+      else {
+        const moved = notes.length - stay.size;
+        const steps = Math.round(travel(prev, notes));
+        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"} · ${steps} half-step${steps === 1 ? "" : "s"} apart`;
+      }
+      const isOvr = overrides.has(it.key);
+      html += `<article class="card" data-j="${c.j}">
+        <div class="card-top">
+          <div><span class="num">${n + 1}</span><div class="sym">${symbolHTML(c.ch)}</div></div>
+          <button class="play-one" type="button" data-act="play" aria-label="Play ${esc(it.tok)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg></button>
+        </div>
+        <div class="shape">
+          <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
+          <div class="shape-name"><b>${c.v.name}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${isOvr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
+          <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
+        </div>
+        <div class="kbd" data-act="play">${keyboard(c.v, lo, hi, stay)}</div>
+        <div class="notes"><span class="hand">Left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}<span class="gap"></span><span class="hand">Right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}</div>
+        <div class="moves">${moves}</div>
+      </article>`;
+      prev = notes;
+    });
+    cardsEl.innerHTML = html;
+    if (playingIdx != null) highlight(playingIdx);
+  }
+
+  // ---------- audio ----------
+  let ac = null, master = null;
+  function ensureAudio() {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      freshMaster();
+    }
+    if (ac.state === "suspended") ac.resume();
+    return true;
+  }
+  function freshMaster() {
+    const comp = ac.createDynamicsCompressor();
+    master = ac.createGain();
+    master.gain.value = 0.55;
+    master.connect(comp);
+    comp.connect(ac.destination);
+  }
+  function tone(midi, t, dur, vel) {
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vel, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(vel * 0.35, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.9);
+    const lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(f * 8, 12000), t);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + dur + 0.6);
+    const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
+    const g2 = ac.createGain(); g2.gain.value = 0.22;
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    const end = t + dur + 1;
+    o1.start(t); o2.start(t); o1.stop(end); o2.stop(end);
+  }
+  function strum(v, t, dur) {
+    v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2));
+    v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15));
+  }
+
+  let timers = [], playingIdx = null, playing = false;
+  const playBtn = $("playAll");
+  function highlight(j) {
+    cardsEl.querySelectorAll(".card.on").forEach(el => el.classList.remove("on"));
+    if (j == null) return;
+    const el = cardsEl.querySelector(`.card[data-j="${j}"]`);
+    if (el) el.classList.add("on");
+  }
+  function setPlaying(on) {
+    playing = on;
+    playBtn.querySelector("span").textContent = on ? "Stop" : "Play it";
+    playBtn.querySelector("svg").innerHTML = on
+      ? '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/>'
+      : '<path d="M3 1.5v13l11-6.5z" fill="currentColor"/>';
+  }
+  function stop() {
+    timers.forEach(clearTimeout);
+    timers = [];
+    playingIdx = null;
+    highlight(null);
+    setPlaying(false);
+    if (ac && master) {
+      const old = master;
+      old.gain.setTargetAtTime(0.0001, ac.currentTime, 0.05);
+      setTimeout(() => old.disconnect(), 400);
+      freshMaster();
+    }
+  }
+  function playAll() {
+    if (playing) { stop(); return; }
+    if (!current.length || !ensureAudio()) return;
+    setPlaying(true);
+    const run = () => {
+      const dur = (60 / +$("bpm").value) * 2;
+      const t0 = ac.currentTime + 0.08;
+      current.forEach((c, k) => {
+        strum(c.v, t0 + k * dur, dur);
+        timers.push(setTimeout(() => { playingIdx = c.j; highlight(c.j); }, (0.08 + k * dur) * 1000));
+      });
+      timers.push(setTimeout(() => {
+        if ($("loop").checked && current.length) run();
+        else { playingIdx = null; highlight(null); setPlaying(false); }
+      }, (0.08 + current.length * dur) * 1000));
+    };
+    run();
+  }
+  function playOne(j) {
+    const c = current[j];
+    if (!c || !ensureAudio()) return;
+    strum(c.v, ac.currentTime + 0.02, 1.4);
+    if (!playing) {
+      highlight(j);
+      timers.push(setTimeout(() => { if (!playing) highlight(null); }, 700));
+    }
+  }
+
+  // ---------- transpose ----------
+  const NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  function shiftTok(tok, n) {
+    const ch = parseChord(tok);
+    if (!ch) return tok;
+    let out = NAMES[mod(ch.rootPc + n)] + ch.qual;
+    if (ch.slash) out += "/" + NAMES[mod(ch.bassPc + n)];
+    return out;
+  }
+  function transpose(n) {
+    input.value = input.value.replace(/[^\s,|]+/g, t => shiftTok(t, n));
+    overrides.clear();
+    changed();
+  }
+
+  // ---------- wiring ----------
+  function changed() {
+    store.set("prog", input.value);
+    render();
+  }
+
+  const presetsEl = $("presets");
+  PRESETS.forEach(([name, prog]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.innerHTML = `${esc(name)}<small>${esc(prog.split(" ").slice(0, 3).join(" "))}${prog.split(" ").length > 3 ? "…" : ""}</small>`;
+    b.addEventListener("click", () => { input.value = prog; overrides.clear(); changed(); });
+    presetsEl.appendChild(b);
+  });
+
+  input.addEventListener("input", changed);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); playAll(); } });
+  playBtn.addEventListener("click", playAll);
+  $("up").addEventListener("click", () => transpose(1));
+  $("down").addEventListener("click", () => transpose(-1));
+  $("bpm").addEventListener("input", e => { $("bpmVal").textContent = e.target.value; store.set("bpm", e.target.value); });
+  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener("change", () => {
+    mode = r.value;
+    store.set("mode", mode);
+    overrides.clear();
+    $("modeNote").textContent = MODE_NOTES[mode];
+    render();
+  }));
+
+  cardsEl.addEventListener("click", e => {
+    const el = e.target.closest("[data-act]");
+    const card = e.target.closest(".card[data-j]");
+    if (!el || !card) return;
+    const j = +card.dataset.j;
+    const c = current[j];
+    if (!c) return;
+    if (el.dataset.act === "play") playOne(j);
+    else if (el.dataset.act === "nudge") {
+      overrides.set(c.key, mod(c.opt + +el.dataset.dir, c.len));
+      render();
+      playOne(j);
+    } else if (el.dataset.act === "reset") {
+      overrides.delete(c.key);
+      render();
+      playOne(j);
+    }
+  });
+
+  // restore per-viewer conveniences
+  const savedProg = store.get("prog");
+  if (savedProg) input.value = savedProg;
+  const savedMode = store.get("mode");
+  if (savedMode && MODE_NOTES[savedMode]) {
+    mode = savedMode;
+    const r = document.getElementById("m-" + mode);
+    if (r) r.checked = true;
+  }
+  const savedBpm = store.get("bpm");
+  if (savedBpm) { $("bpm").value = savedBpm; $("bpmVal").textContent = savedBpm; }
+  $("modeNote").textContent = MODE_NOTES[mode];
+  render();
+})();
+</script>
