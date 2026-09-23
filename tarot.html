@@ -1,0 +1,1707 @@
+<title>Tin Pan Tarot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Courier+Prime:wght@400;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Kalam:wght@400;700&display=swap">
+<style>
+  /* One deliberate look in both themes: cards under a lamp on a velvet table. */
+  :root {
+    color-scheme: dark;
+    --table: #1c1829;
+    --table-2: #2b2340;
+    --on-table: #efe3c6;
+    --on-table-muted: #a99fbd;
+    --card: #f1e5c9;
+    --card-2: #e7d7b2;
+    --card-3: #f7eedb;
+    --edge: #221a12;
+    --ink: #2a2118;
+    --ink-soft: #6a5844;
+    --gold: #d6a943;
+    --gold-hi: #f1cf78;
+    --rule: #cdb98f;
+    --longing: #2e5a8c;
+    --mischief: #c48a14;
+    --ache: #74406a;
+    --devotion: #b3303e;
+    --wonder: #2b7a5d;
+    --none: #6a5844;
+    --display: "Berkshire Swash", "Palatino", "Georgia", serif;
+    --serif: "IM Fell English", "Iowan Old Style", "Palatino", "Georgia", serif;
+    --caps: "IM Fell English SC", "IM Fell English", "Palatino", "Georgia", serif;
+    --type: "Courier Prime", "Courier New", ui-monospace, monospace;
+    --hand: "Kalam", "Bradley Hand", "Segoe Print", cursive;
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .12 0 0 0 0 .08 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background-color: var(--table);
+    background-image:
+      var(--grain),
+      radial-gradient(ellipse 90% 60% at 50% 0%, var(--table-2), transparent 70%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,.012) 0 2px, transparent 2px 6px);
+    color: var(--on-table);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; touch-action: manipulation; }
+  :focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
+  .m-longing { --m: var(--longing); }
+  .m-mischief { --m: var(--mischief); }
+  .m-ache { --m: var(--ache); }
+  .m-devotion { --m: var(--devotion); }
+  .m-wonder { --m: var(--wonder); }
+  .m-none { --m: var(--none); }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: var(--caps); font-size: 17px; letter-spacing: .03em; line-height: 1.1;
+    padding: 9px 16px; border-radius: 7px;
+    background: var(--gold); color: var(--ink);
+    border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: none; }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 0 3px 0 var(--ink); }
+  .btn.ghost { background: transparent; color: var(--on-table); border-color: var(--on-table-muted); box-shadow: none; }
+  .btn.ghost:active { transform: none; background: rgba(255,255,255,.06); }
+  .on-paper .btn.ghost { color: var(--ink); border-color: var(--ink-soft); }
+  .btn.sm { font-size: 15px; padding: 5px 11px; }
+  .link {
+    background: none; border: 0; padding: 4px 2px;
+    font-family: var(--caps); font-size: 15px; color: var(--on-table-muted);
+    text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px;
+  }
+  .on-paper .link { color: var(--ink-soft); }
+
+  /* ---------- app shell ---------- */
+  .app {
+    min-height: 100%;
+    max-width: 640px; margin: 0 auto;
+    padding-inline: 16px; padding-block: 10px 18px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .top { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+  .brand {
+    font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1; margin: 0;
+    color: var(--gold-hi); text-shadow: 2px 2px 0 var(--devotion);
+    margin-right: auto;
+  }
+  .inkpot {
+    display: inline-flex; align-items: center; gap: 5px; position: relative;
+    font-family: var(--type); font-weight: 700; font-size: 16px;
+    padding: 3px 10px 3px 7px; border-radius: 999px;
+    border: 1.5px solid var(--on-table-muted);
+  }
+  .inkpot svg { width: 14px; height: 18px; fill: var(--on-table); }
+  .inkpot .plus {
+    position: absolute; right: -4px; top: -6px;
+    font-family: var(--type); font-size: 13px; color: var(--gold-hi);
+    animation: plus 1.1s ease-out forwards; pointer-events: none;
+  }
+  @keyframes plus { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 -22px; } }
+
+  /* ---------- the card ---------- */
+  .card {
+    --w: 220px;
+    container-type: inline-size;
+    position: relative; flex: none;
+    width: var(--w); max-width: 100%; aspect-ratio: 63 / 88;
+    padding: calc(var(--w) * .035);
+    border-radius: calc(var(--w) * .055);
+    background: var(--edge);
+    box-shadow: 0 8px 18px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.08) inset;
+    color: var(--ink);
+    text-align: left;
+  }
+  .c-face {
+    height: 100%;
+    display: flex; flex-direction: column; gap: 1.8cqw;
+    padding: 2.4cqw;
+    border-radius: 3.4cqw;
+    background-color: var(--card);
+    background-image: var(--grain), linear-gradient(color-mix(in srgb, var(--m) 16%, transparent), color-mix(in srgb, var(--m) 30%, transparent));
+    border: 1.2cqw solid var(--m);
+    overflow: hidden;
+  }
+  .c-title, .c-type {
+    display: flex; align-items: center; justify-content: space-between; gap: 2cqw;
+    background: var(--card-3); border: .8cqw solid var(--ink); border-radius: 2.2cqw;
+    padding: .9cqw 2.6cqw;
+  }
+  .c-title { min-height: 11.5cqw; }
+  .c-name {
+    font-family: var(--display); font-size: 6.6cqw; line-height: 1.08;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .c-cost { display: inline-flex; gap: .6cqw; flex: none; }
+  .c-cost svg { width: 4.6cqw; height: 6cqw; fill: var(--ink); }
+  .c-art {
+    position: relative; flex: none; aspect-ratio: 1.5;
+    border: .8cqw solid var(--ink); border-radius: 1.6cqw;
+    background-color: var(--m);
+    background-image:
+      radial-gradient(rgba(255,244,220,.2) 22%, transparent 24%),
+      repeating-conic-gradient(from 0deg at 50% 60%, rgba(255,244,220,.09) 0 6deg, transparent 6deg 18deg);
+    background-size: 3.6cqw 3.6cqw, 100% 100%;
+    display: grid; place-items: center; overflow: hidden;
+    color: var(--card-3);
+  }
+  .c-art .icon {
+    width: 42%; height: auto;
+    fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+    filter: url(#rough) drop-shadow(1.2cqw 1.2cqw 0 rgba(34,26,18,.55));
+  }
+  .c-art .portrait { height: 94%; width: auto; filter: url(#rough); }
+  .c-type { font-family: var(--caps); font-size: 4.8cqw; line-height: 1.1; padding-block: .6cqw; }
+  .c-type svg { width: 5.4cqw; height: 5.4cqw; fill: var(--m); flex: none; }
+  .c-text {
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column; gap: 1.6cqw;
+    background: color-mix(in srgb, var(--card-3) 88%, transparent);
+    border: .6cqw solid color-mix(in srgb, var(--ink) 45%, transparent); border-radius: 1.6cqw;
+    padding: 2.2cqw 3cqw;
+    font-size: 5.1cqw; line-height: 1.22;
+    overflow: hidden;
+  }
+  .c-text p { margin: 0; }
+  .c-charm { font-family: var(--caps); font-size: 4.5cqw; color: color-mix(in srgb, var(--m) 80%, var(--ink)); }
+  .c-flavor {
+    margin-top: auto !important; padding-top: 1.4cqw;
+    border-top: .4cqw solid color-mix(in srgb, var(--ink) 25%, transparent);
+    font-style: italic; font-size: 4.6cqw; color: var(--ink-soft);
+  }
+  .c-foot {
+    display: flex; justify-content: space-between;
+    font-family: var(--type); font-size: 3.3cqw; line-height: 1; color: var(--ink-soft);
+    padding-inline: 1cqw;
+  }
+  /* In the hand and on the draw screen: art and name only */
+  .card.mini .c-text, .card.mini .c-foot, .card.mini .c-type span { display: none; }
+  .card.mini .c-name { font-size: 10.5cqw; }
+  .card.mini .c-title { min-height: 17cqw; padding-inline: 3cqw; }
+  .card.mini .c-cost svg { width: 7cqw; height: 9cqw; }
+  .card.mini .c-art { flex: 1; aspect-ratio: auto; }
+  .card.mini .c-art .icon { width: 58%; }
+  .card.mini .c-type { justify-content: center; padding-block: 1.4cqw; }
+  .card.mini .c-type svg { width: 10cqw; height: 10cqw; }
+
+  .portrait .p-paper { fill: var(--card-3); stroke: var(--ink); stroke-width: 2.5; }
+  .portrait .p-ink { fill: var(--ink); stroke: var(--ink); stroke-width: 2.5; }
+  .portrait .p-mood { fill: var(--m); stroke: var(--ink); stroke-width: 2; }
+  .portrait .p-line { fill: none; stroke: var(--ink); stroke-width: 2.5; stroke-linecap: round; }
+  .portrait .p-blush { fill: var(--devotion); opacity: .55; }
+  .portrait .p-dev { fill: var(--devotion); stroke: var(--ink); stroke-width: 1.5; }
+  .portrait .p-gold { fill: var(--gold); stroke: var(--ink); stroke-width: 2; }
+  .portrait .p-pearl { fill: #fffaf0; stroke: var(--ink); stroke-width: 1; }
+
+  .card-back {
+    width: 100%; height: 100%;
+    border-radius: 3.4cqw; border: 1.2cqw solid var(--gold);
+    background-color: #3a1830;
+    background-image:
+      radial-gradient(circle at 50% 50%, transparent 30%, rgba(0,0,0,.35) 100%),
+      repeating-conic-gradient(from 45deg, rgba(214,169,67,.18) 0 25%, transparent 0 50%);
+    background-size: 100% 100%, 9cqw 9cqw;
+    display: grid; place-items: center;
+  }
+  .card-back span {
+    display: grid; place-items: center;
+    width: 42cqw; height: 42cqw; border-radius: 50%;
+    background: #3a1830; border: 1cqw solid var(--gold);
+    font-family: var(--display); font-size: 12cqw; color: var(--gold-hi);
+  }
+
+  /* ---------- draw screen ---------- */
+  .intro-copy { text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .intro-copy h1 {
+    font-family: var(--display); font-weight: 400; margin: 0;
+    font-size: clamp(38px, 11vw, 56px); line-height: 1;
+    color: var(--gold-hi); text-shadow: 3px 3px 0 var(--devotion);
+  }
+  .intro-copy p { margin: 0; max-width: 34ch; color: var(--on-table-muted); font-style: italic; text-wrap: balance; }
+  .eyebrow { font-family: var(--caps); font-size: 14px; letter-spacing: .12em; color: var(--gold); text-transform: lowercase; }
+  .tonight { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .tonight .card { --w: min(230px, 62vw); cursor: pointer; }
+  .singers { display: flex; justify-content: center; gap: 10px; }
+  .flip {
+    --w: min(118px, calc((100vw - 52px) / 3));
+    width: var(--w); aspect-ratio: 63 / 88; perspective: 900px;
+    background: none; border: 0; padding: 0;
+  }
+  .flip-inner { position: relative; width: 100%; height: 100%; transition: transform .6s cubic-bezier(.3,.7,.3,1); transform-style: preserve-3d; }
+  .flip.up .flip-inner { transform: rotateY(180deg); }
+  .flip .face, .flip .back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .flip .face { transform: rotateY(180deg); }
+  .flip .back .card { --w: 100%; }
+  .flip .card { width: 100%; padding: 4%; border-radius: 6%; }
+  .hint { text-align: center; color: var(--on-table-muted); font-size: 15px; margin: 0; min-height: 1.4em; }
+
+  /* ---------- the table ---------- */
+  .spread { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile {
+    display: flex; align-items: center; gap: 9px; min-width: 0;
+    padding: 7px 9px; border-radius: 10px;
+    background: rgba(255,255,255,.04); border: 1.5px solid rgba(239,227,198,.18);
+    text-align: left;
+  }
+  .tile .swatch {
+    flex: none; width: 42px; height: 42px; border-radius: 8px;
+    background: var(--m); border: 2px solid var(--edge);
+    display: grid; place-items: center; color: var(--card-3);
+  }
+  .tile .swatch svg { width: 70%; height: 70%; }
+  .tile .swatch .icon { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .tile .swatch .portrait { width: 88%; height: 88%; }
+  .tile b { display: block; font-family: var(--display); font-weight: 400; font-size: 15px; line-height: 1.1; color: var(--on-table); }
+  .tile small { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-family: var(--caps); font-size: 13px; color: var(--on-table-muted); line-height: 1.2; margin-top: 2px; }
+  .tally { display: inline-flex; align-items: center; gap: 2px; }
+  .tally svg { width: 12px; height: 12px; fill: var(--m); }
+  .tile-text { min-width: 0; }
+
+  .page {
+    position: relative;
+    background-color: var(--card-3);
+    background-image: var(--grain);
+    color: var(--ink);
+    border-radius: 4px 4px 10px 10px;
+    padding: 14px 18px 14px 22px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.45);
+    rotate: -.4deg;
+  }
+  .page::before {
+    content: ""; position: absolute; left: 10px; top: 0; bottom: 0; width: 1.5px;
+    background: color-mix(in srgb, var(--devotion) 45%, transparent);
+  }
+  .staff {
+    height: 22px; margin-bottom: 6px;
+    background: repeating-linear-gradient(transparent 0 4px, color-mix(in srgb, var(--ink) 35%, transparent) 4px 5px);
+    mask-image: linear-gradient(90deg, #000 70%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, #000 70%, transparent);
+  }
+  .page-title { margin: 0 0 4px; font-style: italic; color: var(--ink-soft); font-size: 15px; }
+  .page-title em { font-style: normal; font-family: var(--caps); color: var(--ink); }
+  .lyrics { list-style: none; margin: 0; padding: 0; }
+  .lyrics .sec {
+    font-family: var(--caps); font-size: 13px; letter-spacing: .1em; color: var(--ink-soft);
+    margin-top: 8px;
+  }
+  .lyrics .sec:first-child { margin-top: 0; }
+  .ly {
+    display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px;
+    border-bottom: 1px solid var(--rule);
+    padding: 4px 2px 2px; cursor: text;
+  }
+  .ly-text { font-family: var(--hand); font-size: 20px; line-height: 1.3; overflow-wrap: anywhere; }
+  .ly-note { font-family: var(--type); font-size: 11px; color: var(--ink-soft); margin-left: auto; white-space: nowrap; }
+  .ly-note .star { color: var(--mischief); }
+  .ly.refrain .ly-text { text-decoration: underline wavy color-mix(in srgb, var(--devotion) 60%, transparent) 1.5px; text-underline-offset: 5px; }
+  .ly.fresh .ly-text { animation: ink 1s steps(16, end) both; }
+  @keyframes ink { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .picking .ly { cursor: pointer; background: color-mix(in srgb, var(--gold) 22%, transparent); }
+  .picking .ly:hover { background: color-mix(in srgb, var(--gold) 45%, transparent); }
+  .ly.editing { display: flex; gap: 6px; padding-block: 6px; }
+  .ly.editing input {
+    flex: 1 1 200px; min-width: 0; border: 0; border-bottom: 2px solid var(--ink);
+    background: transparent; font-family: var(--hand); font-size: 20px; outline: none; color: var(--ink);
+  }
+  .empty { font-family: var(--hand); font-size: 18px; color: var(--ink-soft); padding: 4px 0 8px; line-height: 1.35; }
+  .page-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .page-foot p { margin: 0; font-style: italic; color: var(--ink-soft); font-size: 15px; }
+
+  /* the writing desk */
+  .desk {
+    position: relative;
+    background-color: var(--card);
+    background-image: var(--grain), linear-gradient(color-mix(in srgb, var(--m) 14%, transparent), transparent 60%);
+    color: var(--ink);
+    border-radius: 10px;
+    border-top: 8px solid var(--m);
+    padding: 12px 16px 14px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.45);
+    display: flex; flex-direction: column; gap: 8px;
+    rotate: .3deg;
+  }
+  .desk-head { display: flex; align-items: flex-start; gap: 10px; }
+  .desk-head b { display: block; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.1; }
+  .desk-head span { display: block; font-family: var(--caps); font-size: 14px; color: var(--ink-soft); }
+  .desk-head .link { margin-left: auto; white-space: nowrap; }
+  .desk-prompt { margin: 0; font-size: 19px; line-height: 1.3; text-wrap: pretty; }
+  .charms { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--caps); font-size: 14px; color: var(--ink-soft); }
+  .charm {
+    font-family: var(--type); font-size: 14px;
+    padding: 1px 8px; border-radius: 999px; border: 1.5px dashed var(--ink-soft);
+    transition: background .2s, color .2s;
+  }
+  .charm.hit { background: var(--mischief); border-style: solid; border-color: var(--ink); color: var(--ink); }
+  .desk textarea {
+    width: 100%; resize: none; border: 0; outline: none;
+    background: repeating-linear-gradient(transparent 0 29px, var(--rule) 29px 30px);
+    font-family: var(--type); font-size: 18px; line-height: 30px; color: var(--ink);
+    padding: 0 2px; min-height: 60px;
+  }
+  .desk-foot { display: flex; align-items: center; gap: 10px; }
+  .check { flex: 1; font-style: italic; font-size: 15px; color: var(--ink-soft); line-height: 1.25; }
+  .check.good { color: var(--wonder); }
+  .check.bad { color: var(--devotion); }
+
+  /* the hand */
+  .hand-bar { display: flex; align-items: center; gap: 10px; font-family: var(--caps); font-size: 14px; color: var(--on-table-muted); }
+  .hand-bar .link { margin-left: auto; }
+  .hand { position: relative; height: calc(var(--hw) * 1.4 + 22px); --hw: min(116px, 30vw); }
+  .hand .slot {
+    position: absolute; bottom: 0; left: 50%;
+    background: none; border: 0; padding: 0;
+    transform-origin: 50% 120%;
+    transform: var(--t);
+    transition: transform .25s cubic-bezier(.3,.7,.3,1);
+  }
+  .hand .slot .card { --w: var(--hw); }
+  .hand .slot:hover { z-index: 9; }
+  .hand .slot:hover, .hand .slot:focus-visible { transform: var(--t) translateY(-12px); }
+  .hand .slot.cant .c-cost svg { fill: var(--devotion); }
+  .hand .slot.enter { animation: deal .45s cubic-bezier(.3,.7,.3,1) both; }
+  @keyframes deal { from { opacity: 0; translate: 60px 40px; rotate: 12deg; } }
+
+  /* overlays */
+  .overlay {
+    position: fixed; inset: 0; z-index: 30;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    padding: 20px 16px;
+    background: rgba(14, 11, 22, .82);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+    overflow-y: auto;
+    animation: fadein .2s ease-out;
+  }
+  @keyframes fadein { from { opacity: 0; } }
+  .overlay .card { --w: min(300px, 78vw, calc((100vh - 170px) * .716)); animation: lift .3s cubic-bezier(.3,1.3,.5,1); }
+  @keyframes lift { from { scale: .8; opacity: 0; } }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .sheet {
+    width: 100%; max-width: 460px; max-height: calc(100vh - 40px); overflow-y: auto;
+    background-color: var(--card-3); background-image: var(--grain);
+    color: var(--ink); border-radius: 12px; padding: 18px;
+    box-shadow: 0 14px 30px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .sheet h2 { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 0; }
+  .sheet p { margin: 0; }
+  .sheet input[type="text"] {
+    border: 0; border-bottom: 2px solid var(--ink); background: transparent; outline: none;
+    font-family: var(--hand); font-size: 24px; padding: 2px 0; width: 100%; color: var(--ink);
+  }
+  .song-row { border-top: 1px solid var(--rule); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .song-row h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 19px; }
+  .song-row .meta { font-family: var(--caps); font-size: 14px; color: var(--ink-soft); }
+  .song-row pre { margin: 0; white-space: pre-wrap; font-family: var(--hand); font-size: 17px; line-height: 1.35; }
+  .copybox { width: 100%; min-height: 160px; font-family: var(--type); font-size: 14px; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 60;
+    transform: translateX(-50%); max-width: calc(100% - 32px);
+    padding: 8px 16px; border-radius: 8px;
+    background: var(--ink); color: var(--card-3); border: 1.5px solid var(--gold);
+    font-family: var(--caps); font-size: 16px; text-align: center;
+    opacity: 0; transition: opacity .25s, translate .25s; translate: 0 8px; pointer-events: none;
+  }
+  .toast.show { opacity: 1; translate: 0 0; }
+  .shake { animation: shake .35s; }
+  @keyframes shake { 20%, 60% { translate: -6px 0; } 40%, 80% { translate: 6px 0; } }
+
+  /* ---------- the stage ---------- */
+  .stage {
+    position: fixed; inset: 0; z-index: 40; overflow: hidden;
+    background:
+      radial-gradient(ellipse 60% 45% at 50% 38%, rgba(255, 226, 160, .22), transparent 70%),
+      linear-gradient(#2b0f1d, #120710 80%);
+    color: var(--on-table);
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(62px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+  .drape { position: absolute; top: 0; bottom: 0; width: 15%; z-index: 2; background: repeating-linear-gradient(90deg, #7a1d2e 0 10px, #4c0f1c 10px 22px, #6a1827 22px 30px); box-shadow: 0 0 30px rgba(0,0,0,.6); }
+  .drape.l { left: 0; border-bottom-right-radius: 60% 18%; }
+  .drape.r { right: 0; border-bottom-left-radius: 60% 18%; }
+  .valance {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 3;
+    background: radial-gradient(circle at 50% 0, #8a2335 68%, var(--gold) 69% 74%, transparent 75%) 0 0 / 52px 54px repeat-x;
+  }
+  .spot {
+    position: absolute; top: 0; left: 50%; width: min(560px, 110vw); height: 100%; translate: -50% 0;
+    background: linear-gradient(rgba(255, 240, 200, .2), rgba(255, 240, 200, .02) 80%);
+    clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+  }
+  .stage-close { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 14px; z-index: 5; }
+  .perf { position: relative; z-index: 4; width: 100%; max-width: 560px; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; min-height: 0; }
+  .perf-title { font-family: var(--caps); font-size: 15px; letter-spacing: .06em; color: var(--gold-hi); text-align: center; margin: 0; }
+  .perf-singer { width: min(170px, 40vw); animation: sway 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
+  .perf-singer .portrait { width: 100%; height: auto; overflow: visible; filter: url(#rough) drop-shadow(0 0 18px rgba(255, 226, 160, .35)); }
+  @keyframes sway { 0%, 100% { rotate: -2deg; } 50% { rotate: 2deg; translate: 0 -4px; } }
+  .perf-lines { text-align: center; display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .perf-prev, .perf-next { font-family: var(--hand); font-size: 17px; color: var(--on-table-muted); opacity: .6; min-height: 1.4em; margin: 0; }
+  .perf-now { font-family: var(--hand); font-size: clamp(24px, 6.4vw, 32px); line-height: 1.25; margin: 0; min-height: 2.5em; text-wrap: balance; }
+  .perf-now span { transition: color .12s; }
+  .perf-now span.on { color: var(--gold-hi); text-shadow: 0 0 12px rgba(241, 207, 120, .6); }
+  .perf-now span.sung { color: var(--card-2); }
+  .perf-now .again { display: block; font-family: var(--caps); font-size: 13px; letter-spacing: .1em; color: var(--gold); }
+  .crowd { position: absolute; left: 0; right: 0; bottom: 0; height: 70px; z-index: 3; display: flex; justify-content: center; gap: 2px; pointer-events: none; }
+  .crowd i {
+    width: 48px; height: 70px; flex: none;
+    background:
+      radial-gradient(circle at 50% 30%, #0b0509 13px, transparent 14px),
+      radial-gradient(ellipse 24px 30px at 50% 100%, #0b0509 98%, transparent 100%);
+    animation: bob 1.8s ease-in-out infinite;
+  }
+  .crowd.cheer i { animation: cheer .45s ease-in-out infinite alternate; }
+  @keyframes bob { 50% { translate: 0 -3px; } }
+  @keyframes cheer { to { translate: 0 -12px; } }
+  .note {
+    position: absolute; z-index: 4; width: 22px; height: 22px; color: var(--gold-hi);
+    fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round;
+    animation: float 2.4s ease-out forwards; pointer-events: none;
+  }
+  @keyframes float { to { translate: var(--dx) -160px; rotate: var(--r); opacity: 0; } }
+
+  .verdict {
+    position: relative; z-index: 4; width: 100%; max-width: 440px;
+    max-height: 100%; overflow-y: auto;
+    background-color: var(--card-3); background-image: var(--grain);
+    color: var(--ink); border-radius: 12px;
+    border: 3px solid var(--edge); outline: 2px solid var(--gold); outline-offset: -8px;
+    padding: 20px 20px 18px;
+    display: flex; flex-direction: column; gap: 12px;
+    animation: lift .45s cubic-bezier(.3,1.3,.5,1);
+  }
+  .verdict h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.05; text-align: center; }
+  .verdict .sub { margin: 0; text-align: center; font-family: var(--caps); color: var(--ink-soft); }
+  .candles { display: flex; justify-content: center; gap: 10px; }
+  .candles svg { width: 26px; height: 46px; }
+  .candles .wax { fill: var(--card-2); stroke: var(--ink); stroke-width: 2; }
+  .candles .flame { fill: var(--mischief); stroke: var(--ink); stroke-width: 1.5; transform-origin: 13px 14px; animation: flicker .5s ease-in-out infinite alternate; }
+  .candles .out .flame { display: none; }
+  .candles .out .wax { opacity: .5; }
+  @keyframes flicker { to { scale: .85 1.1; } }
+  .score { width: 100%; border-collapse: collapse; font-size: 16px; }
+  .score td { padding: 3px 0; border-bottom: 1px dotted var(--rule); }
+  .score td:last-child { text-align: right; font-family: var(--type); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .score tr.total td { border-bottom: 0; font-family: var(--caps); font-size: 18px; padding-top: 6px; }
+  .reaction { margin: 0; font-style: italic; font-size: 17px; line-height: 1.35; text-wrap: pretty; }
+  .room { border-left: 3px solid var(--gold); padding: 2px 0 2px 12px; }
+  .room p { margin: 0; }
+  .room .who { font-family: var(--caps); font-size: 13px; color: var(--ink-soft); letter-spacing: .06em; }
+  .unlock { display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--rule); padding-top: 12px; }
+  .unlock .card { --w: 92px; }
+  .unlock p { margin: 0; font-size: 15px; }
+  .unlock b { font-family: var(--display); font-weight: 400; font-size: 18px; display: block; }
+
+  @media (min-width: 700px) {
+    .app { max-width: 680px; }
+    .hand { --hw: 128px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+  }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="rough" x="-10%" y="-10%" width="120%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency=".055" numOctaves="2" seed="7"/>
+    <feDisplacementMap in="SourceGraphic" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
+
+<div class="app" id="app">
+  <header class="top">
+    <p class="brand">Tin Pan Tarot</p>
+    <span class="inkpot" id="inkpot" hidden title="Ink: earned by writing lines, spent on tricks">
+      <svg viewBox="0 0 14 18" aria-hidden="true"><path d="M7 1c2.4 4 5.5 7 5.5 10.2A5.5 5.5 0 0 1 1.5 11.2C1.5 8 4.6 5 7 1z"/></svg>
+      <span id="inkN">1</span><span class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"> ink</span>
+    </span>
+    <button class="btn ghost sm" id="bookBtn">Songbook</button>
+  </header>
+  <main id="screen" style="display:flex;flex-direction:column;gap:12px"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const rand = n => Math.floor(Math.random() * n);
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+  // ================= the deck =================
+  const MOODS = {
+    longing:  { name: "Longing",  sym: '<path d="M13 3a7 7 0 1 0 4 12A6 6 0 0 1 13 3z"/>' },
+    mischief: { name: "Mischief", sym: '<path d="M10 1l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/>' },
+    ache:     { name: "Ache",     sym: '<path d="M10 2c3 5 6 8 6 11a6 6 0 0 1-12 0c0-3 3-6 6-11z"/>' },
+    devotion: { name: "Devotion", sym: '<path d="M10 17S2 12 2 7a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 5-8 10-8 10z"/>' },
+    wonder:   { name: "Wonder",   sym: '<circle cx="10" cy="10" r="4"/><path d="M10 1v3M10 16v3M1 10h3M16 10h3M3.6 3.6l2 2M14.4 14.4l2 2M16.4 3.6l-2 2M5.6 14.4l-2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="stroke:var(--m)"/>' },
+  };
+  const moodSym = m => MOODS[m] ? `<svg viewBox="0 0 20 20" aria-label="${MOODS[m].name}" role="img">${MOODS[m].sym}</svg>` : "";
+  const PIP = '<svg viewBox="0 0 14 18" aria-hidden="true"><path d="M7 1c2.4 4 5.5 7 5.5 10.2A5.5 5.5 0 0 1 1.5 11.2C1.5 8 4.6 5 7 1z"/></svg>';
+
+  const ICON = {
+    bee: '<ellipse cx="24" cy="29" rx="10" ry="7"/><path d="M21 22.5v13M27 22.5v13M34 29h5"/><ellipse cx="19" cy="18" rx="5" ry="4"/><ellipse cx="28" cy="17" rx="5" ry="4"/>',
+    map: '<path d="M8 12l10-4 12 4 10-4v28l-10 4-12-4-10 4zM18 8v28M30 12v28"/><path d="M11 30c4-6 9 2 13-4s8 0 12-8" stroke-dasharray="2 3"/>',
+    cup: '<path d="M10 20h22v7a10 10 0 0 1-10 10h-2a10 10 0 0 1-10-10zM32 23h3a4 4 0 0 1 0 8h-4M8 41h28M17 8c-2 3 2 5 0 8M24 8c-2 3 2 5 0 8"/>',
+    hat: '<path d="M15 34V13h18v21M8 34h32M15 28h18"/>',
+    candle: '<path d="M18 22h12v19H18zM24 22v-4M24 18c-4-4 0-10 0-10s4 6 0 10zM13 41h22"/>',
+    lighthouse: '<path d="M18 41l3-24h6l3 24zM20 17h8M22 17v-6h4v6M24 8V5M7 12l11 3M41 12l-11 3M19.5 29h9M9 41h30"/>',
+    clock: '<circle cx="24" cy="26" r="14"/><path d="M24 17v9l6 4M24 12V7M20 7h8"/>',
+    ticket: '<path d="M7 15h34v6a3 3 0 0 0 0 6v6H7v-6a3 3 0 0 0 0-6z"/><path d="M31 15v18" stroke-dasharray="2 3"/><path d="M15 24h9"/>',
+    flower: '<path d="M22 41V26c0-5 4-8 9-9M22 33c-4-3-8-3-11 0 3 3 8 3 11 0z"/><circle cx="33" cy="17" r="5"/><path d="M33 22c-1 3-3 5-5 5"/>',
+    note: '<path d="M18 34V13l17-5v22M18 19l17-5"/><ellipse cx="13" cy="34" rx="5" ry="4"/><ellipse cx="30" cy="30" rx="5" ry="4"/>',
+    watch: '<circle cx="24" cy="28" r="12"/><path d="M24 16v-4M21 12h6M24 28l-4-5M24 28h5M27 12c6-5 13-1 13 6" /><circle cx="24" cy="28" r="1.5"/>',
+    envelope: '<path d="M7 14h34v22H7zM7 14l17 13 17-13"/><circle cx="24" cy="30" r="3.5"/>',
+    key: '<circle cx="14" cy="24" r="6.5"/><path d="M20.5 24H41M35 24v6M41 24v5"/>',
+    umbrella: '<path d="M8 24a16 16 0 0 1 32 0c-2.7-3-5.3-3-8 0-2.7-3-5.3-3-8 0-2.7-3-5.3-3-8 0-2.7-3-5.3-3-8 0zM24 24v13a4 4 0 0 1-8 0M24 8V6"/>',
+    jar: '<path d="M16 11h16v5c4 2 5 6 5 10v12a3 3 0 0 1-3 3H14a3 3 0 0 1-3-3V26c0-4 1-8 5-10zM16 16h16M20 11v-2M28 11v-2"/><path d="M19 28h.1M28 24h.1M25 34h.1" stroke-width="4"/>',
+    bolt: '<path d="M27 6L14 26h9l-3 16 14-22h-9z"/>',
+    snow: '<path d="M24 7v34M9 15.5l30 17M9 32.5l30-17M20 9l4 4 4-4M20 39l4-4 4 4"/>',
+    bell: '<path d="M14 33V23a10 10 0 0 1 20 0v10l3 3H11zM21 39a3 3 0 0 0 6 0M24 13V9"/>',
+    spark: '<path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l6 6M31 31l6 6M37 11l-6 6M17 31l-6 6"/><circle cx="24" cy="24" r="4"/>',
+    sun: '<path d="M14 36a10 10 0 0 1 20 0M6 36h36M24 17v5M12 23l3 3M36 23l-3 3M12 42h24"/>',
+    rings: '<circle cx="19" cy="28" r="9"/><circle cx="29" cy="28" r="9"/><path d="M26 13l3-5 3 5-3 3z"/>',
+    feather: '<path d="M37 8C22 10 12 22 12 38v3M12 38c11 0 21-8 25-30M17 31h8M15 25h11M19 19h9"/>',
+    little: '<circle cx="22" cy="30" r="7"/><path d="M29 22v15M12 14h6M30 12l4 4"/>',
+    loop: '<path d="M35 18a12 12 0 1 0 2 11M35 9v9h-9"/>',
+    spiral: '<path d="M24 24a2 2 0 1 1 2 2 5 5 0 1 1-5-5 8 8 0 1 1 8 8 11 11 0 1 1-11-11 14 14 0 0 1 14 14"/>',
+    mask: '<path d="M10 13c8 3 20 3 28 0 0 14-4 25-14 25S10 27 10 13zM16 21c2-2 4-2 6 0M26 21c2-2 4-2 6 0M18 29c4 3 8 3 12 0"/>',
+    tag: '<path d="M8 22V9h13l18 18-13 13z"/><circle cx="15" cy="16" r="2.5"/>',
+    hourglass: '<path d="M13 7h22M13 41h22M16 7c0 10 16 10 16 17s-16 7-16 17M32 7c0 10-16 10-16 17s16 7 16 17"/>',
+    fish: '<path d="M7 24c6-8 18-10 26 0-8 10-20 8-26 0zM33 24l7-6v12z"/><circle cx="15" cy="22" r="1.4"/>',
+    tent: '<path d="M6 39L24 10l18 29zM24 10V4l7 2-7 2M18 39l6-10 6 10"/>',
+    pie: '<path d="M7 28h34l-4 11H11zM7 28c4-10 30-10 34 0M16 22l2 2M24 20v3M32 22l-2 2"/>',
+    cake: '<path d="M10 41V27h28v14zM10 33c5 3 9-3 14 0s9 3 14 0M18 27v-6M24 27v-6M30 27v-6M18 17v-2M24 17v-2M30 17v-2"/>',
+    train: '<path d="M12 9h24v23H12zM12 21h24M18 32l-4 7M30 32l4 7M10 39h28"/><circle cx="18" cy="27" r="1.5"/><circle cx="30" cy="27" r="1.5"/>',
+    pen: '<path d="M33 7l8 8-22 22-10 2 2-10zM29 11l8 8"/>',
+  };
+  const icon = k => `<svg class="icon" viewBox="0 0 48 48" aria-hidden="true">${ICON[k] || ICON.pen}</svg>`;
+
+  const PORTRAIT = {
+    ghost: `<path class="p-paper" d="M60 12C36 12 24 32 24 56v52q8-8 15 0t14 0q7-8 14 0t14 0q8-8 15 0V56C96 32 84 12 60 12Z"/>
+      <ellipse class="p-blush" cx="42" cy="68" rx="6.5" ry="3.8"/><ellipse class="p-blush" cx="78" cy="68" rx="6.5" ry="3.8"/>
+      <ellipse class="p-ink" cx="50" cy="55" rx="4.6" ry="6.6"/><ellipse class="p-ink" cx="70" cy="55" rx="4.6" ry="6.6"/>
+      <path class="p-line" d="M54 72q6 5 12 0"/>`,
+    moth: `<path class="p-paper" d="M60 62C34 20 6 34 13 60c5 16 31 16 47 4z"/><path class="p-paper" d="M60 62C86 20 114 34 107 60c-5 16-31 16-47 4z"/>
+      <path class="p-paper" d="M60 70C42 78 29 102 41 111c12 6 19-18 19-39z"/><path class="p-paper" d="M60 70C78 78 91 102 79 111c-12 6-19-18-19-39z"/>
+      <circle class="p-mood" cx="32" cy="49" r="6.5"/><circle class="p-mood" cx="88" cy="49" r="6.5"/><circle class="p-mood" cx="44" cy="96" r="4"/><circle class="p-mood" cx="76" cy="96" r="4"/>
+      <ellipse class="p-ink" cx="60" cy="84" rx="8" ry="25"/>
+      <path class="p-line" d="M55 38c-3-12-12-17-18-11M65 38c3-12 12-17 18-11"/>
+      <circle class="p-paper" cx="60" cy="49" r="12.5"/>
+      <path class="p-line" d="M52.5 49q2.8 2.8 5.6 0M62 49q2.8 2.8 5.6 0M51 47l-2-2M69 47l2-2"/>
+      <circle class="p-dev" cx="60" cy="56" r="2"/>
+      <circle class="p-pearl" cx="51" cy="64" r="2.2"/><circle class="p-pearl" cx="55.5" cy="66" r="2.2"/><circle class="p-pearl" cx="60" cy="66.8" r="2.2"/><circle class="p-pearl" cx="64.5" cy="66" r="2.2"/><circle class="p-pearl" cx="69" cy="64" r="2.2"/>`,
+    tin: `<path class="p-line" d="M60 22V11"/><circle class="p-mood" cx="60" cy="8" r="4.5"/>
+      <rect class="p-paper" x="37" y="22" width="46" height="35" rx="7"/>
+      <circle class="p-ink" cx="50.5" cy="37" r="4.5"/><circle class="p-ink" cx="69.5" cy="37" r="4.5"/>
+      <rect class="p-paper" x="50" y="47" width="20" height="6" rx="2"/><path class="p-line" d="M55 47v6M60 47v6M65 47v6M54 57v6M66 57v6"/>
+      <rect class="p-paper" x="31" y="63" width="58" height="50" rx="10"/>
+      <circle class="p-mood" cx="60" cy="86" r="11"/><path class="p-line" d="M60 86l6-6"/>
+      <circle class="p-ink" cx="39" cy="71" r="2"/><circle class="p-ink" cx="81" cy="71" r="2"/><circle class="p-ink" cx="39" cy="105" r="2"/><circle class="p-ink" cx="81" cy="105" r="2"/>
+      <path class="p-line" d="M89 88h9"/><circle class="p-paper" cx="104" cy="82" r="6"/><circle class="p-paper" cx="104" cy="94" r="6"/>`,
+    crow: `<path class="p-ink" d="M22 130c0-38 17-58 38-58s38 20 38 58z"/>
+      <path class="p-paper" d="M50 74l10 46 10-46z"/>
+      <path class="p-dev" d="M49 78l11 5 11-5v11l-11-5-11 5z"/>
+      <circle class="p-ink" cx="58" cy="48" r="21"/>
+      <path class="p-gold" d="M76 43l28 8-28 7z"/>
+      <circle class="p-paper" cx="67" cy="42" r="6.5"/><circle class="p-ink" cx="68.5" cy="42" r="2.8"/>
+      <path class="p-ink" d="M43 30l-3-21 23-5 5 20z"/><path class="p-dev" d="M42.5 25.5l23.5-4.8.9 4.3-23.6 4.8z"/>
+      <path class="p-line" style="stroke-width:4" d="M35 32l40-8"/>`,
+  };
+  const portrait = (k, cls = "portrait") => `<svg class="${cls}" viewBox="0 0 120 130" aria-hidden="true">${PORTRAIT[k]}</svg>`;
+
+  // kind: story | craft | singer | occasion
+  const CARDS = [
+    // ---- story: characters ----
+    { id: "bees", kind: "story", type: "Character — Neighbor", mood: "devotion", art: "bee", name: "The Widow Who Keeps Bees",
+      prompt: "Write a line about something she does with her hands.", charm: ["honey", "gloves", "hum"],
+      flavor: "She talks to them every morning. They listen better than he did." },
+    { id: "maps", kind: "story", type: "Character — Peddler", mood: "wonder", art: "map", name: "The Boy Who Sells Maps",
+      prompt: "Write a line about a place he's never been.", charm: ["north", "paper", "road"],
+      flavor: "Every map is a penny. The ones with dragons are two." },
+    { id: "friend", kind: "story", type: "Character — Visitor", mood: "longing", art: "cup", name: "Your Mother's Oldest Friend",
+      prompt: "Write a line she said once that you still think about.", charm: ["dear", "kitchen", "remember"],
+      flavor: "She arrives with a cake and leaves with a secret." },
+    { id: "rival", kind: "story", type: "Character — Rival", mood: "mischief", art: "hat", name: "A Rival in a Better Coat", locked: true,
+      prompt: "Write a line that's a little bit jealous.", charm: ["button", "velvet", "smile"],
+      flavor: "His coat has a coat." },
+    { id: "nurse", kind: "story", type: "Character — Keeper", mood: "ache", art: "candle", name: "The Night Nurse",
+      prompt: "Write a line about someone keeping watch.", charm: ["lamp", "quiet", "hands"],
+      flavor: "She knows which floorboards to skip." },
+    // ---- story: places ----
+    { id: "lighthouse", kind: "story", type: "Place — Coast", mood: "wonder", art: "lighthouse", name: "The Lighthouse Kitchen",
+      prompt: "Write a line with a smell in it.", charm: ["salt", "bread", "smoke"],
+      flavor: "The kettle is older than the lamp upstairs." },
+    { id: "platform", kind: "story", type: "Place — Station", mood: "longing", art: "clock", name: "Platform Nine",
+      prompt: "Write a line about waiting for someone.", charm: ["ticket", "clock", "whistle"],
+      flavor: "The 6:40 has been late since 1931." },
+    { id: "pictures", kind: "story", type: "Place — Picture House", mood: "mischief", art: "ticket", name: "The Back Row of the Pictures",
+      prompt: "Write a line about something that happened while nobody was looking.", charm: ["dark", "popcorn", "screen"],
+      flavor: "Nobody in the back row has ever seen an ending." },
+    { id: "garden", kind: "story", type: "Place — Garden", mood: "ache", art: "flower", name: "A Garden After Frost",
+      prompt: "Write a line about something that didn't make it.", charm: ["roses", "cold", "white"],
+      flavor: "Nobody told the tomatoes." },
+    { id: "dancehall", kind: "story", type: "Place — Hall", mood: "devotion", art: "note", name: "The Dance Hall at 1 a.m.",
+      prompt: "Write a line about the last song of the night.", charm: ["shoes", "floor", "band"],
+      flavor: "The band plays slower when they like you." },
+    // ---- story: relics ----
+    { id: "watch", kind: "story", type: "Relic — Keepsake", mood: "longing", art: "watch", name: "A Stopped Pocket Watch",
+      prompt: "Write a line where this watch is the only honest thing in the room.", charm: ["time", "tick", "chain"],
+      flavor: "Stopped at 4:12. Nobody will say why." },
+    { id: "letter", kind: "story", type: "Relic — Paper", mood: "ache", art: "envelope", name: "A Letter Never Sent",
+      prompt: "Write one line from the letter.", charm: ["ink", "sorry", "yours"],
+      flavor: "Stamped, addressed, and kept in a drawer for eleven years." },
+    { id: "key", kind: "story", type: "Relic — Keepsake", mood: "longing", art: "key", name: "A Key to a House That's Gone",
+      prompt: "Write a line about what the key still opens.", charm: ["door", "rust", "home"],
+      flavor: "The house is a car park now. The key still comes on every trip." },
+    { id: "umbrella", kind: "story", type: "Relic — Borrowed", mood: "mischief", art: "umbrella", name: "A Borrowed Umbrella",
+      prompt: "Write a line about something you meant to give back.", charm: ["rain", "return", "keep"],
+      flavor: "Three winters now. It has stopped feeling borrowed." },
+    { id: "fireflies", kind: "story", type: "Relic — Glass", mood: "wonder", art: "jar", name: "A Jar of Fireflies", locked: true,
+      prompt: "Write a line about letting something go.", charm: ["glass", "glow", "lid"],
+      flavor: "Holes in the lid, as if that makes it fair." },
+    // ---- story: moments ----
+    { id: "powercut", kind: "story", type: "Moment — Dark", mood: "devotion", art: "bolt", name: "The Power Goes Out",
+      prompt: "Write a line someone says in the dark that they couldn't say with the lights on.", charm: ["candle", "whisper", "finally"],
+      flavor: "Somebody finds the matches. Nobody lights them." },
+    { id: "snow", kind: "story", type: "Moment — Weather", mood: "wonder", art: "snow", name: "First Snow",
+      prompt: "Write a line about seeing something for the first time.", charm: ["white", "window", "breath"],
+      flavor: "The dog has questions." },
+    { id: "phone", kind: "story", type: "Moment — Call", mood: "ache", art: "bell", name: "The Telephone Rings Once",
+      prompt: "Write a line about who you hoped it was.", charm: ["ring", "voice", "maybe"],
+      flavor: "Then nothing. Then the kettle." },
+    { id: "laugh", kind: "story", type: "Moment — Scandal", mood: "mischief", art: "spark", name: "Someone Laughs at the Wrong Moment", locked: true,
+      prompt: "Write a line that breaks the tension.", charm: ["grin", "spill", "church"],
+      flavor: "It was the vicar." },
+    { id: "dawn", kind: "story", type: "Moment — Morning", mood: "devotion", art: "sun", name: "Dawn Over the Harbor", locked: true,
+      prompt: "Write a line that makes a promise.", charm: ["sun", "boats", "stay"],
+      flavor: "Every boat in the harbor points the same way at dawn." },
+    // ---- craft: tricks that cost ink ----
+    { id: "rhyme", kind: "craft", type: "Craft — Trick", mood: "mischief", art: "rings", name: "Rhyme With Me", cost: 1,
+      rule: "Your line should rhyme with the line above it. Pull it off for +2 applause.",
+      flavor: "Moon, June, spoon. You can do better." },
+    { id: "breath", kind: "craft", type: "Craft — Trick", mood: "ache", art: "feather", name: "Hold Your Breath", cost: 1,
+      rule: "Write a line of four words or fewer. +2 applause.",
+      flavor: "Say less. Mean all of it." },
+    { id: "small", kind: "craft", type: "Craft — Trick", mood: "wonder", art: "little", name: "Small Words Only", cost: 1,
+      rule: "No word in your line may be longer than five letters. +2 applause.",
+      flavor: "Love has four letters. So does rain." },
+    { id: "again", kind: "craft", type: "Craft — Refrain", mood: "devotion", art: "loop", name: "Say It Again", cost: 1,
+      rule: "Pick a line you've already written. The singer sings it again after every verse. +2 applause.",
+      flavor: "If they aren't humming it on the way home, sing it again." },
+    { id: "turn", kind: "craft", type: "Craft — Bridge", mood: "longing", art: "spiral", name: "The Turn", cost: 2, locked: true,
+      rule: "Write a line that changes the meaning of everything above it. It starts the bridge. +2 applause.",
+      flavor: "The key change. Hold on to something." },
+    { id: "lie", kind: "craft", type: "Craft — Trick", mood: "mischief", art: "mask", name: "Lie a Little", cost: 1, locked: true,
+      rule: "Write a line the singer doesn't believe. +2 applause.",
+      flavor: "I'm fine. It's fine. Everything is fine." },
+    { id: "name", kind: "craft", type: "Craft — Trick", mood: "devotion", art: "tag", name: "Name Names", cost: 0, locked: true,
+      rule: "Your line must include a real name: a person, a street, a town. +2 applause.",
+      flavor: "A song about everyone is about no one." },
+    { id: "count", kind: "craft", type: "Craft — Trick", mood: "longing", art: "hourglass", name: "Count the Seconds", cost: 1, locked: true,
+      rule: "Your line must include a number. +2 applause.",
+      flavor: "Forty-one steps to her door. He counted twice." },
+  ];
+  CARDS.forEach((c, i) => { c.no = `No. ${String(i + 1).padStart(2, "0")}/${CARDS.length}`; c.cost = c.cost || 0; });
+
+  const LIGHT = /\b(light|lights|lamp|lamps|candle|candles|moon|moonlight|star|stars|match|matches|lantern|glow|glowing|fire|flame|sun|sunlight|spark|sparks|firefly|fireflies|neon|bulb)\b/i;
+  const SINGERS = [
+    { id: "ghost", kind: "singer", type: "Singer — Spirit", mood: "longing", art: "ghost", name: "The Piano Ghost", short: "The ghost",
+      rule: "Loves a line sung straight to someone. +1 applause for each line with “you” in it.",
+      flavor: "It can only sing words that someone living wrote.",
+      quirk: lines => lines.filter(l => /\byou(r|rs|'re|'ll|'d)?\b/i.test(l.text)).length,
+      voice: { wave: "sine", wave2: "sine", base: 69, scale: [0, 2, 3, 5, 7, 8, 10], harm: [0, 2, 3, 5, 7, 8, 10], bpm: 88, meter: 3, vib: .014, lp: 2200, att: .07, gate: .95, vol: .13 } },
+    { id: "moth", kind: "singer", type: "Singer — Moth, Cabaret", mood: "wonder", art: "moth", name: "Madame Lune", short: "Madame Lune",
+      rule: "Drawn to anything that glows. +2 applause for each line with a light in it: a lamp, a star, a match.",
+      flavor: "She has eaten three velvet curtains and regrets nothing.",
+      quirk: lines => 2 * lines.filter(l => LIGHT.test(l.text)).length,
+      voice: { wave: "triangle", wave2: "sine", base: 64, scale: [0, 2, 3, 5, 7, 9, 10], harm: [0, 2, 3, 5, 7, 9, 10], bpm: 100, meter: 4, swing: true, vib: .012, lp: 2600, att: .04, gate: .92, vol: .15 } },
+    { id: "tin", kind: "singer", type: "Singer — Automaton", mood: "mischief", art: "tin", name: "The Tin Troubadour", short: "The Troubadour",
+      rule: "Wound tight. +1 applause for each line of six words or fewer.",
+      flavor: "Wind him twice for a ballad, once for a jig.",
+      quirk: lines => lines.filter(l => words(l.text).length <= 6).length,
+      voice: { wave: "square", base: 67, scale: [0, 2, 4, 5, 7, 9, 11], harm: [0, 2, 4, 5, 7, 9, 11], bpm: 126, meter: 2, vib: 0, lp: 1700, att: .01, gate: .5, vol: .07 } },
+    { id: "crow", kind: "singer", type: "Singer — Crow, Crooner", mood: "ache", art: "crow", name: "Mister Corvid", short: "Mister Corvid",
+      rule: "A crooner needs a hook. +3 applause if any line gets sung again.",
+      flavor: "He collects shiny things and other people's heartbreak.",
+      quirk: lines => lines.some(l => l.refrain) ? 3 : 0,
+      voice: { wave: "sawtooth", base: 55, scale: [0, 3, 5, 6, 7, 10], harm: [0, 2, 3, 5, 7, 8, 10], bpm: 74, meter: 4, swing: true, vib: .01, lp: 1100, att: .05, gate: .95, vol: .1, glide: true } },
+  ];
+  SINGERS.forEach((c, i) => { c.no = `Singer ${i + 1}/${SINGERS.length}`; c.cost = 0; });
+
+  const OCCASIONS = [
+    { id: "wedding", name: "A Wedding in a Rainstorm", art: "umbrella", wants: ["devotion", "mischief"], aud: "the soaked wedding guests",
+      flavor: "The tent is leaking. Nobody is leaving." },
+    { id: "goldfish", name: "A Funeral for a Goldfish", art: "fish", wants: ["ache", "mischief"], aud: "three children and a solemn cat",
+      flavor: "His name was Admiral. He was very brave." },
+    { id: "circus", name: "The Last Night of the Circus", art: "tent", wants: ["longing", "wonder"], aud: "the clowns, out of makeup",
+      flavor: "The elephant already knows." },
+    { id: "apology", name: "An Apology Left on a Doorstep", art: "pie", wants: ["devotion", "ache"], aud: "the neighbor behind the curtain",
+      flavor: "It came with a pie. The pie is also sorry." },
+    { id: "keeper", name: "The Lighthouse Keeper's Birthday", art: "cake", wants: ["wonder", "longing"], aud: "the lighthouse keeper, alone and delighted",
+      flavor: "Sixty candles. The wind blows them out for him." },
+    { id: "train", name: "Waiting for the Last Train", art: "train", wants: ["longing", "ache"], aud: "the passengers on platform nine",
+      flavor: "It is either very late or not coming." },
+  ];
+  OCCASIONS.forEach((o, i) => {
+    Object.assign(o, { kind: "occasion", type: "Occasion — Tonight", mood: o.wants[0], cost: 0, no: `Occasion ${i + 1}/${OCCASIONS.length}`,
+      rule: `The room wants ${MOODS[o.wants[0]].name} and ${MOODS[o.wants[1]].name}. +1 applause for each card of those moods you play.` });
+  });
+  const FREE = { id: "free", kind: "free", type: "No card", mood: "none", art: "pen", name: "Freehand", cost: 0,
+    prompt: "Write whatever line comes next. No card, so no ink and no applause for tricks." };
+
+  const BY = {};
+  [...CARDS, ...SINGERS, ...OCCASIONS, FREE].forEach(c => { BY[c.id] = c; });
+
+  function cardHTML(c, { mini = false } = {}) {
+    const cost = c.cost ? `<span class="c-cost" aria-label="Costs ${c.cost} ink">${PIP.repeat(c.cost)}</span>` : "";
+    const art = c.kind === "singer" ? portrait(c.art) : icon(c.art);
+    const text = c.kind === "story" ? c.prompt : c.rule;
+    const charm = c.charm ? `<p class="c-charm">Charm · ${c.charm.join(" · ")}</p>` : "";
+    return `<div class="card m-${c.mood}${mini ? " mini" : ""}"><div class="c-face">
+      <div class="c-title"><span class="c-name">${esc(c.name)}</span>${cost}</div>
+      <div class="c-art">${art}</div>
+      <div class="c-type"><span>${esc(c.type)}</span>${moodSym(c.mood)}</div>
+      <div class="c-text"><p class="c-rule">${esc(text)}</p>${charm}<p class="c-flavor">${esc(c.flavor || "")}</p></div>
+      <div class="c-foot"><span>${c.no}</span><span>Tin Pan Tarot</span></div>
+    </div></div>`;
+  }
+
+  // ================= words & checks =================
+  function words(t) { return t.split(/\s+/).map(w => w.replace(/^[^\w']+|[^\w']+$/g, "")).filter(Boolean); }
+  const letters = w => w.replace(/[^a-z]/gi, "");
+  function lastWord(t) { const w = words(t); return w.length ? w[w.length - 1].toLowerCase() : ""; }
+  function rhymeKey(w) {
+    w = letters(w).toLowerCase();
+    if (w.length > 3) w = w.replace(/e$/, "");
+    const m = w.match(/[aeiouy]+[^aeiouy]*$/);
+    return m ? m[0] : w;
+  }
+  function rhymes(a, b) {
+    a = lastWord(a); b = lastWord(b);
+    if (!a || !b) return false;
+    const la = letters(a).toLowerCase(), lb = letters(b).toLowerCase();
+    return rhymeKey(la) === rhymeKey(lb) || (la.length > 2 && lb.length > 2 && la.slice(-3) === lb.slice(-3)) || (la.slice(-2) === lb.slice(-2) && /[aeiouy]/.test(la.slice(-2)));
+  }
+  const NUM = /\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fifteen|twenty|thirty|forty|fifty|sixty|hundred|thousand|million|once|twice|first|second|third|dozen|half)\b/i;
+  function hasName(t) {
+    return words(t).some((w, i) => i > 0 && /^[A-Z][a-z]/.test(w) && !/^I('|$)/.test(w));
+  }
+  function charmHit(card, t) {
+    if (!card.charm) return null;
+    const ws = words(t).map(w => w.toLowerCase());
+    return card.charm.find(c => ws.some(w => w === c || w === c + "s" || w === c + "es" || w === c + "ed" || w === c + "y")) || null;
+  }
+  const syllables = w => {
+    w = letters(w).toLowerCase();
+    if (!w) return 0;
+    if (w.length <= 3) return 1;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+    const m = w.match(/[aeiouy]{1,2}/g);
+    return Math.max(1, m ? m.length : 1);
+  };
+
+  // What the active card asks for, checked against the draft.
+  function check(id, text) {
+    const t = text.trim();
+    const c = BY[id];
+    const res = { ok: !!t, msg: "", tone: "", craftOk: false, charm: null };
+    if (!t) return res;
+    const ws = words(t);
+    if (c.kind === "story") {
+      res.charm = charmHit(c, t);
+      if (res.charm) { res.msg = `Charm word “${res.charm}”. +1 extra ink.`; res.tone = "good"; }
+      return res;
+    }
+    switch (id) {
+      case "breath":
+        res.ok = ws.length <= 4; res.craftOk = res.ok;
+        res.msg = res.ok ? "Four words or fewer. It counts." : `${ws.length} words. Cut ${ws.length - 4}.`;
+        res.tone = res.ok ? "good" : "bad"; break;
+      case "small": {
+        const long = ws.filter(w => letters(w).length > 5);
+        res.ok = !long.length; res.craftOk = res.ok;
+        res.msg = res.ok ? "All small words. It counts." : `Too long: ${long.join(", ")}.`;
+        res.tone = res.ok ? "good" : "bad"; break;
+      }
+      case "name":
+        res.ok = hasName(t); res.craftOk = res.ok;
+        res.msg = res.ok ? "A name. It counts." : "Needs a capitalized name after the first word, like Rosa or Ellery Street.";
+        res.tone = res.ok ? "good" : "bad"; break;
+      case "count":
+        res.ok = NUM.test(t); res.craftOk = res.ok;
+        res.msg = res.ok ? "A number. It counts." : "Needs a number, in digits or words.";
+        res.tone = res.ok ? "good" : "bad"; break;
+      case "rhyme": {
+        const prev = S.lines[S.lines.length - 1];
+        if (!prev) { res.msg = "Nothing above to rhyme with yet. The trick won't count."; break; }
+        res.craftOk = rhymes(prev.text, t);
+        res.msg = res.craftOk ? `Rhymes with “${lastWord(prev.text)}”. It counts.` : `Doesn't rhyme with “${lastWord(prev.text)}” yet. You can ink it anyway, but the trick won't count.`;
+        res.tone = res.craftOk ? "good" : "bad"; break;
+      }
+      case "turn": case "lie":
+        res.craftOk = true; res.msg = "On your honor."; break;
+    }
+    return res;
+  }
+
+  // ================= storage (per viewer, optional) =================
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  const EXAMPLE = {
+    id: "example", title: "Letter in the Rain", singer: "ghost", occasion: "train", candles: 4, example: true,
+    lines: [
+      { text: "I keep your letter in the rain", card: "letter" },
+      { text: "so the ink runs back to you", card: "rhyme", refrain: true },
+      { text: "The 6:40 never came", card: "platform" },
+      { text: "and neither, darling, did you", card: "rhyme" },
+    ],
+  };
+  let unlocked = store.get("tpt.unlocked", []);
+  let songbook = store.get("tpt.songs", null) || [EXAMPLE];
+
+  // ================= game state =================
+  const S = {
+    phase: "draw", occasion: null, choices: [], flipped: [], singer: null, rerolled: false,
+    deck: [], hand: [], discard: [], ink: 1, lines: [], played: [], active: null, draft: "",
+    songId: null, title: "", performedOnce: false,
+  };
+  const pool = () => CARDS.filter(c => !c.locked || unlocked.includes(c.id)).map(c => c.id);
+
+  function newSong() {
+    S.phase = "draw";
+    S.occasion = OCCASIONS[rand(OCCASIONS.length)].id;
+    S.choices = shuffle(SINGERS.map(s => s.id)).slice(0, 3);
+    S.flipped = [false, false, false];
+    S.singer = null; S.rerolled = false;
+    S.lines = []; S.played = []; S.active = null; S.draft = ""; S.ink = 1;
+    S.songId = "s" + Date.now().toString(36); S.title = ""; S.performedOnce = false;
+    render();
+  }
+  function hire(id) {
+    S.singer = id;
+    S.deck = shuffle(pool()); S.hand = []; S.discard = [];
+    draw(5);
+    S.phase = "table";
+    closeOverlay();
+    render();
+    toast(`${BY[id].name} will sing tonight.`);
+  }
+  function draw(n) {
+    for (let i = 0; i < n; i++) {
+      if (!S.deck.length) { S.deck = shuffle(S.discard); S.discard = []; }
+      if (!S.deck.length) return;
+      S.hand.push(S.deck.pop());
+      dealt = S.hand.length - 1;
+    }
+  }
+  let dealt = -1;
+
+  // ================= rendering =================
+  const screen = $("screen");
+  function render() {
+    $("inkpot").hidden = S.phase !== "table";
+    document.querySelector(".brand").style.visibility = S.phase === "draw" ? "hidden" : "";
+    if (S.phase === "draw") renderDraw();
+    else renderTable();
+  }
+
+  function renderDraw() {
+    const occ = BY[S.occasion];
+    screen.innerHTML = `
+      <div class="intro-copy">
+        <span class="eyebrow">a card game for songwriters</span>
+        <h1>Tin Pan Tarot</h1>
+        <p>The cards tell you what kind of line to write. Every word is yours. When the song is done, a singer from the deck performs it.</p>
+      </div>
+      <div class="tonight">
+        <span class="eyebrow">tonight's occasion</span>
+        <button class="card-btn" id="occCard" style="background:none;border:0;padding:0" aria-label="${esc(occ.name)}. Tap to read it.">${cardHTML(occ)}</button>
+        ${S.rerolled ? "" : `<button class="link" id="reroll">Draw a different occasion</button>`}
+      </div>
+      <span class="eyebrow" style="text-align:center">pick a singer</span>
+      <div class="singers">${S.choices.map((id, i) => `
+        <button class="flip${S.flipped[i] ? " up" : ""}" data-i="${i}" aria-label="${S.flipped[i] ? esc(BY[id].name) : "Face-down singer card"}">
+          <div class="flip-inner">
+            <div class="back"><div class="card"><div class="card-back"><span>♪</span></div></div></div>
+            <div class="face">${cardHTML(BY[id], { mini: true })}</div>
+          </div>
+        </button>`).join("")}
+      </div>
+      <p class="hint" id="drawHint">${S.flipped.some(Boolean) ? "Tap a singer again to read their card and hire them." : "Turn the singers over."}</p>`;
+    $("occCard").onclick = () => preview(occ, [{ label: "Close", ghost: true }]);
+    const rr = $("reroll");
+    if (rr) rr.onclick = () => {
+      S.rerolled = true;
+      S.occasion = shuffle(OCCASIONS.filter(o => o.id !== S.occasion))[0].id;
+      renderDraw();
+    };
+    screen.querySelectorAll(".flip").forEach(b => b.onclick = () => {
+      const i = +b.dataset.i;
+      if (!S.flipped[i]) {
+        S.flipped[i] = true;
+        b.classList.add("up");
+        b.setAttribute("aria-label", BY[S.choices[i]].name);
+        $("drawHint").textContent = "Tap a singer again to read their card and hire them.";
+        chime(S.choices[i]);
+        return;
+      }
+      const s = BY[S.choices[i]];
+      preview(s, [
+        { label: `Hire ${s.short}`, onClick: () => hire(s.id) },
+        { label: "Keep looking", ghost: true },
+      ]);
+    });
+  }
+
+  function renderTable() {
+    screen.innerHTML = `
+      <div class="spread" id="spread"></div>
+      <section id="book" aria-label="Your song"></section>
+      <section id="desk" hidden></section>
+      <section id="handWrap" aria-label="Your hand">
+        <div class="hand-bar"><span id="handInfo"></span><button class="link" id="freeBtn">Write without a card</button></div>
+        <div class="hand" id="hand"></div>
+      </section>`;
+    $("freeBtn").onclick = () => activate("free");
+    renderSpread(); renderBook(); renderDesk(); renderHand(); renderInk();
+  }
+
+  function renderSpread() {
+    const s = BY[S.singer], o = BY[S.occasion];
+    const tally = o.wants.map(m => `<span class="tally m-${m}">${moodSym(m)}${S.played.filter(id => BY[id].mood === m).length}</span>`).join(" ");
+    const el = $("spread");
+    el.innerHTML = `
+      <button class="tile m-${s.mood}" id="tileSinger"><span class="swatch">${portrait(s.art)}</span>
+        <span class="tile-text"><b>${esc(s.name)}</b><small>sings tonight</small></span></button>
+      <button class="tile m-${o.mood}" id="tileOcc"><span class="swatch">${icon(o.art)}</span>
+        <span class="tile-text"><b>${esc(o.name)}</b><small>wants ${tally}</small></span></button>`;
+    $("tileSinger").onclick = () => preview(s, [{ label: "Close", ghost: true }]);
+    $("tileOcc").onclick = () => preview(o, [{ label: "Close", ghost: true }]);
+  }
+
+  let freshLine = -1;
+  function renderBook() {
+    const o = BY[S.occasion], s = BY[S.singer];
+    const el = $("book");
+    el.innerHTML = `<div class="page on-paper${S.active === "again" ? " picking" : ""}">
+      <div class="staff" aria-hidden="true"></div>
+      <p class="page-title">A song for <em>${esc(o.name)}</em></p>
+      <ol class="lyrics" id="lyrics"></ol>
+      <div class="page-foot" id="pageFoot"></div></div>`;
+    const ol = $("lyrics");
+    if (!S.lines.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Play a card from your hand. It tells you what kind of line to write. The words are up to you.";
+      ol.appendChild(li);
+    }
+    let since = 4, verse = 0;
+    S.lines.forEach((l, i) => {
+      if (l.bridge || since >= 4) {
+        const h = document.createElement("li");
+        h.className = "sec";
+        h.textContent = l.bridge ? "Bridge" : `Verse ${++verse}`;
+        ol.appendChild(h);
+        since = 0;
+      }
+      since++;
+      const li = document.createElement("li");
+      li.className = "ly" + (l.refrain ? " refrain" : "") + (i === freshLine ? " fresh" : "");
+      li.tabIndex = 0;
+      const tx = document.createElement("span");
+      tx.className = "ly-text"; tx.textContent = l.text;
+      const note = document.createElement("span");
+      note.className = "ly-note";
+      note.innerHTML = `${esc(BY[l.card].name)}${l.charm ? ' <span class="star">★</span>' : ""}${l.craftOk ? " ✓" : ""}${l.refrain ? " · ♪ again" : ""}`;
+      li.append(tx, note);
+      li.onclick = () => lineTapped(i, li);
+      li.onkeydown = e => { if (e.key === "Enter") lineTapped(i, li); };
+      ol.appendChild(li);
+    });
+    freshLine = -1;
+    const foot = $("pageFoot");
+    if (S.lines.length >= 4) {
+      foot.innerHTML = `<p>${S.lines.length} lines${S.lines.length >= 12 ? ". The page is full." : ""}</p><button class="btn" id="handIt">Hand it to ${esc(s.short)}</button>`;
+      $("handIt").onclick = nameSong;
+    } else {
+      foot.innerHTML = `<p>${4 - S.lines.length} more line${S.lines.length === 3 ? "" : "s"} before ${esc(s.short.replace(/^The /, "the "))} will sing it.</p>`;
+    }
+  }
+
+  function lineTapped(i, li) {
+    if (S.active === "again") {
+      const l = S.lines[i];
+      l.refrain = true;
+      S.played.push("again"); S.discard.push("again");
+      S.active = null;
+      draw(1);
+      renderAll();
+      toast("That line comes back after every verse.");
+      return;
+    }
+    if (li.classList.contains("editing")) return;
+    li.classList.add("editing");
+    li.innerHTML = "";
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.value = S.lines[i].text; inp.id = "edit" + i;
+    inp.setAttribute("aria-label", "Edit this line");
+    const save = document.createElement("button");
+    save.className = "btn sm"; save.textContent = "Save";
+    const del = document.createElement("button");
+    del.className = "btn ghost sm"; del.textContent = "Cross out";
+    li.append(inp, save, del);
+    inp.focus();
+    const commit = () => {
+      const v = inp.value.trim().replace(/\s+/g, " ");
+      if (v) S.lines[i].text = v;
+      renderBook();
+    };
+    save.onclick = e => { e.stopPropagation(); commit(); };
+    del.onclick = e => { e.stopPropagation(); S.lines.splice(i, 1); renderBook(); toast("Crossed out."); };
+    inp.onkeydown = e => { if (e.key === "Enter") commit(); if (e.key === "Escape") renderBook(); };
+  }
+
+  function renderHand() {
+    const el = $("hand");
+    const n = S.hand.length;
+    const w = el.clientWidth || 358;
+    const hw = parseFloat(getComputedStyle(el).getPropertyValue("--hw")) || Math.min(116, innerWidth * .3);
+    const step = n > 1 ? Math.min(hw + 8, (w - hw - 28) / (n - 1)) : 0;
+    const total = hw + step * (n - 1);
+    el.innerHTML = "";
+    S.hand.forEach((id, i) => {
+      const c = BY[id];
+      const b = document.createElement("button");
+      b.className = "slot" + (c.cost > S.ink ? " cant" : "") + (i === dealt ? " enter" : "");
+      const mid = (n - 1) / 2, off = i - mid;
+      const t = `translateX(${-total / 2 + i * step}px) rotate(${off * 3.5}deg) translateY(${Math.abs(off) * Math.abs(off) * 3}px)`;
+      b.style.setProperty("--t", t);
+      b.setAttribute("aria-label", `${c.name}. ${c.cost ? `Costs ${c.cost} ink.` : ""} ${c.kind === "story" ? c.prompt : c.rule}`);
+      b.innerHTML = cardHTML(c, { mini: true });
+      b.onclick = () => handTapped(i);
+      el.appendChild(b);
+    });
+    dealt = -1;
+    $("handInfo").textContent = `Your hand · ${S.deck.length} in the deck`;
+    $("handWrap").hidden = !!S.active;
+  }
+
+  function renderInk() { $("inkN").textContent = S.ink; }
+  function bumpInk(n) {
+    renderInk();
+    if (!n) return;
+    const p = document.createElement("span");
+    p.className = "plus"; p.textContent = (n > 0 ? "+" : "") + n;
+    $("inkpot").appendChild(p);
+    setTimeout(() => p.remove(), 1200);
+  }
+  function renderAll() { renderSpread(); renderBook(); renderDesk(); renderHand(); renderInk(); }
+
+  function handTapped(i) {
+    const id = S.hand[i], c = BY[id];
+    const full = S.lines.length >= 12;
+    const needsLine = id === "again" && !S.lines.length;
+    const canPlay = c.cost <= S.ink && !full && !needsLine;
+    const why = full ? "The page is full" : needsLine ? "Write a line first" : c.cost > S.ink ? `Needs ${c.cost} ink` : "";
+    preview(c, [
+      { label: canPlay ? (c.cost ? `Play it · ${c.cost} ink` : "Play it") : why, disabled: !canPlay, onClick: () => play(i) },
+      { label: "Swap it · 1 ink", ghost: true, disabled: S.ink < 1 || (!S.deck.length && !S.discard.length), onClick: () => swap(i) },
+      { label: "Keep it", ghost: true },
+    ]);
+  }
+  function play(i) {
+    const id = S.hand[i], c = BY[id];
+    S.ink -= c.cost;
+    bumpInk(-c.cost);
+    S.hand.splice(i, 1);
+    closeOverlay();
+    activate(id);
+  }
+  function swap(i) {
+    S.ink -= 1;
+    S.discard.push(S.hand.splice(i, 1)[0]);
+    draw(1);
+    closeOverlay();
+    renderHand(); bumpInk(-1);
+  }
+  function activate(id) {
+    S.active = id; S.draft = "";
+    renderAll();
+    const ta = $("lineInput");
+    if (ta) ta.focus({ preventScroll: true });
+    $("desk").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function putBack() {
+    const id = S.active;
+    if (id !== "free") { S.hand.push(id); S.ink += BY[id].cost; }
+    S.active = null; S.draft = "";
+    renderAll();
+  }
+
+  function renderDesk() {
+    const el = $("desk");
+    const id = S.active;
+    el.hidden = !id;
+    if (!id) { el.innerHTML = ""; return; }
+    const c = BY[id];
+    el.className = `desk on-paper m-${c.mood}`;
+    if (id === "again") {
+      el.innerHTML = `<div class="desk-head"><div><b>${esc(c.name)}</b><span>${esc(c.type)}</span></div><button class="link" id="putBack">Put it back</button></div>
+        <p class="desk-prompt">Tap the line in your song that the singer should sing again.</p>`;
+      $("putBack").onclick = putBack;
+      return;
+    }
+    const ask = c.kind === "story" || c.kind === "free" ? c.prompt : c.rule;
+    el.innerHTML = `
+      <div class="desk-head"><div><b>${esc(c.name)}</b><span>${esc(c.type)}</span></div><button class="link" id="putBack">Put it back</button></div>
+      <p class="desk-prompt">${esc(ask)}</p>
+      ${c.charm ? `<div class="charms">Charm words, for extra ink: ${c.charm.map(w => `<span class="charm" data-w="${w}">${w}</span>`).join("")}</div>` : ""}
+      <textarea id="lineInput" rows="2" maxlength="140" placeholder="Write your line…" aria-label="Your line" autocapitalize="sentences"></textarea>
+      <div class="desk-foot"><span class="check" id="check" aria-live="polite"></span><button class="btn" id="inkIt" disabled>Ink it</button></div>`;
+    const ta = $("lineInput");
+    ta.value = S.draft;
+    const update = () => {
+      S.draft = ta.value;
+      const r = check(id, ta.value);
+      const ck = $("check");
+      ck.textContent = r.msg;
+      ck.className = "check" + (r.tone ? " " + r.tone : "");
+      $("inkIt").disabled = !r.ok;
+      el.querySelectorAll(".charm").forEach(ch => ch.classList.toggle("hit", ch.dataset.w === r.charm));
+    };
+    ta.oninput = update;
+    ta.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); inkLine(); } };
+    $("inkIt").onclick = inkLine;
+    $("putBack").onclick = putBack;
+    update();
+  }
+
+  function inkLine() {
+    const id = S.active;
+    const text = $("lineInput").value.trim().replace(/\s+/g, " ");
+    const r = check(id, text);
+    if (!r.ok) { $("desk").classList.add("shake"); setTimeout(() => $("desk").classList.remove("shake"), 400); return; }
+    S.lines.push({ text, card: id, charm: !!r.charm, craftOk: r.craftOk, bridge: id === "turn", refrain: false });
+    freshLine = S.lines.length - 1;
+    let gain = 0;
+    if (id !== "free") {
+      S.played.push(id); S.discard.push(id);
+      gain = 1 + (r.charm ? 1 : 0);
+      S.ink += gain;
+      draw(1);
+    }
+    S.active = null; S.draft = "";
+    renderAll(); bumpInk(gain);
+    penScratch();
+    if (r.charm) toast("Charm found. +2 ink.");
+    else if (r.craftOk) toast("Trick pulled off.");
+    else if (gain) toast("+1 ink.");
+    if (S.lines.length === 4) setTimeout(() => toast(`${BY[S.singer].short} will sing it whenever you're ready.`), 1400);
+  }
+
+  // ================= overlays =================
+  let overlay = null;
+  function closeOverlay() { if (overlay) { overlay.remove(); overlay = null; } }
+  function openOverlay(inner) {
+    closeOverlay();
+    overlay = document.createElement("div");
+    overlay.className = "overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.appendChild(inner);
+    overlay.addEventListener("click", e => { if (e.target === overlay) closeOverlay(); });
+    document.body.appendChild(overlay);
+    return overlay;
+  }
+  function preview(c, actions) {
+    const wrap = document.createElement("div");
+    wrap.style.cssText = "display:contents";
+    wrap.innerHTML = cardHTML(c) + `<div class="actions"></div>`;
+    const bar = wrap.querySelector(".actions");
+    actions.forEach(a => {
+      const b = document.createElement("button");
+      b.className = "btn" + (a.ghost ? " ghost" : "");
+      b.textContent = a.label;
+      b.disabled = !!a.disabled;
+      b.onclick = () => { if (a.onClick) a.onClick(); else closeOverlay(); };
+      bar.appendChild(b);
+    });
+    openOverlay(wrap);
+    (bar.querySelector("button:not(:disabled)") || bar.querySelector("button")).focus({ preventScroll: true });
+  }
+  function sheet(html) {
+    const d = document.createElement("div");
+    d.className = "sheet on-paper";
+    d.innerHTML = html;
+    openOverlay(d);
+    return d;
+  }
+  addEventListener("keydown", e => { if (e.key === "Escape" && overlay) closeOverlay(); });
+
+  function nameSong() {
+    const s = BY[S.singer];
+    const d = sheet(`<h2>Name the song</h2>
+      <p>${esc(s.name)} wants to know what to call it before going on.</p>
+      <input type="text" id="songTitle" maxlength="60" placeholder="Untitled" aria-label="Song title">
+      <div class="actions" style="justify-content:flex-start"><button class="btn" id="curtain">Raise the curtain</button><button class="btn ghost" id="notYet">Not yet</button></div>`);
+    const inp = d.querySelector("#songTitle");
+    inp.value = S.title;
+    inp.focus();
+    const go = () => {
+      S.title = inp.value.trim() || "Untitled";
+      closeOverlay();
+      ensureAudio();
+      perform(currentSong(), true);
+    };
+    d.querySelector("#curtain").onclick = go;
+    d.querySelector("#notYet").onclick = closeOverlay;
+    inp.onkeydown = e => { if (e.key === "Enter") go(); };
+  }
+  const currentSong = () => ({
+    id: S.songId, title: S.title, singer: S.singer, occasion: S.occasion,
+    lines: S.lines.map(l => ({ ...l })), played: S.played.slice(),
+  });
+
+  $("bookBtn").onclick = openSongbook;
+  function openSongbook() {
+    const rows = songbook.map((s, i) => `
+      <div class="song-row">
+        <h3>${esc(s.title)}</h3>
+        <span class="meta">${esc(BY[s.singer].name)} · ${esc(BY[s.occasion].name)} · ${"♦".repeat(s.candles || 0)}${s.example ? " · an example" : ""}</span>
+        <pre>${esc(lyricsText(s, false))}</pre>
+        <div class="actions" style="justify-content:flex-start"><button class="btn sm" data-sing="${i}">Hear it</button><button class="btn ghost sm" data-copy="${i}">Copy the words</button></div>
+      </div>`).join("");
+    const d = sheet(`<h2>Your songbook</h2><p>Every song you finish is kept here, in this browser.</p>${rows}
+      <div class="actions" style="justify-content:flex-start"><button class="btn ghost" id="closeBook">Close</button>${S.phase === "table" ? '<button class="link" id="restart">Tear up this song and start over</button>' : ""}</div>`);
+    d.querySelector("#closeBook").onclick = closeOverlay;
+    const rs = d.querySelector("#restart");
+    if (rs) rs.onclick = () => { closeOverlay(); newSong(); };
+    d.querySelectorAll("[data-sing]").forEach(b => b.onclick = () => { closeOverlay(); ensureAudio(); perform(songbook[+b.dataset.sing], false); });
+    d.querySelectorAll("[data-copy]").forEach(b => b.onclick = () => copyLyrics(songbook[+b.dataset.copy], b));
+  }
+
+  function lyricsText(song, withTitle = true) {
+    let out = withTitle ? song.title + "\n\n" : "";
+    let since = 4, verse = 0;
+    song.lines.forEach((l, i) => {
+      if (l.bridge || since >= 4) { if (i) out += "\n"; out += (l.bridge ? "[Bridge]" : `[Verse ${++verse}]`) + "\n"; since = 0; }
+      since++;
+      out += l.text + (l.refrain ? "  (again)" : "") + "\n";
+    });
+    return out.trim();
+  }
+  function copyLyrics(song, btn) {
+    const txt = lyricsText(song);
+    const done = () => { if (btn) btn.textContent = "Copied"; };
+    const fallback = () => {
+      const d = sheet(`<h2>The words</h2><p>Select and copy them.</p><textarea class="copybox" readonly></textarea><div class="actions" style="justify-content:flex-start"><button class="btn ghost">Close</button></div>`);
+      const ta = d.querySelector("textarea"); ta.value = txt; ta.select();
+      d.querySelector("button").onclick = closeOverlay;
+    };
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch { fallback(); }
+  }
+
+  let toastT = 0;
+  function toast(m) {
+    const t = $("toast");
+    t.textContent = m; t.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  // ================= audio =================
+  let ac = null, master = null, silentEl = null;
+  function silentWavURL() {
+    const n = 4410, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+  // Must run inside a tap or click, before any await.
+  function ensureAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+    if (!silentEl) {
+      try { silentEl = new Audio(silentWavURL()); silentEl.loop = true; silentEl.setAttribute("playsinline", ""); } catch { silentEl = false; }
+    }
+    if (silentEl && silentEl.paused) silentEl.play().catch(() => {});
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      freshMaster();
+    }
+    if (ac.state !== "running") {
+      ac.resume().catch(() => {});
+      const src = ac.createBufferSource();
+      src.buffer = ac.createBuffer(1, 1, 22050);
+      src.connect(ac.destination); src.start(0);
+    }
+    return true;
+  }
+  function freshMaster() {
+    const comp = ac.createDynamicsCompressor();
+    master = ac.createGain(); master.gain.value = .85;
+    master.connect(comp); comp.connect(ac.destination);
+  }
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function tone(midi, t, dur, vel) {
+    const f = hz(midi), g = ac.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vel, t + .008);
+    g.gain.exponentialRampToValueAtTime(vel * .35, t + .3);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur + .6);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(f * 7, 9000), t);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + dur + .4);
+    const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
+    const g2 = ac.createGain(); g2.gain.value = .2;
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    o1.start(t); o2.start(t); o1.stop(t + dur + .7); o2.stop(t + dur + .7);
+  }
+  let lastF = 0;
+  function voiceNote(v, midi, t, dur) {
+    const f = hz(midi), g = ac.createGain();
+    const len = dur * v.gate;
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(v.vol, t + v.att);
+    g.gain.setValueAtTime(v.vol * .85, t + Math.max(v.att, len));
+    g.gain.exponentialRampToValueAtTime(.0001, t + len + .14);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = v.lp; lp.Q.value = .7;
+    const o = ac.createOscillator(); o.type = v.wave;
+    if (v.glide && lastF) { o.frequency.setValueAtTime(lastF, t); o.frequency.setTargetAtTime(f, t, .045); }
+    else o.frequency.setValueAtTime(f, t);
+    lastF = f;
+    o.connect(lp);
+    const oscs = [o];
+    if (v.wave2) {
+      const o2 = ac.createOscillator(); o2.type = v.wave2; o2.frequency.value = f * 2;
+      const g2 = ac.createGain(); g2.gain.value = .14;
+      o2.connect(g2); g2.connect(lp); oscs.push(o2);
+    }
+    if (v.vib) {
+      const lfo = ac.createOscillator(); lfo.frequency.value = 5.2;
+      const d = ac.createGain();
+      d.gain.setValueAtTime(0, t); d.gain.linearRampToValueAtTime(f * v.vib, t + Math.min(.25, len));
+      lfo.connect(d); oscs.forEach(x => d.connect(x.frequency)); oscs.push(lfo);
+    }
+    lp.connect(g); g.connect(master);
+    oscs.forEach(x => { x.start(t); x.stop(t + len + .2); });
+  }
+  function chime(singerId) {
+    if (!ensureAudio()) return;
+    const v = BY[singerId].voice, t = ac.currentTime + .03;
+    [0, 2, 4].forEach((d, i) => voiceNote(v, v.base + v.harm[d], t + i * .12, .22));
+  }
+  function penScratch() {
+    if (!ac) return;
+    const n = ac.sampleRate * .35, b = ac.createBuffer(1, n, ac.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (.4 + .6 * Math.abs(Math.sin(i / 900)));
+    const src = ac.createBufferSource(); src.buffer = b;
+    const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 3200; bp.Q.value = 1.2;
+    const g = ac.createGain(); g.gain.value = .05;
+    src.connect(bp); bp.connect(g); g.connect(master); src.start();
+  }
+
+  // A tune for a line: one note per syllable, from a walk seeded by the words,
+  // so the same line always gets the same tune.
+  function hash(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function tuneFor(text, v, lineNo) {
+    const ws = text.split(/\s+/).filter(Boolean);
+    const syl = [];
+    ws.forEach((w, wi) => { const n = syllables(w) || 1; for (let k = 0; k < n; k++) syl.push(wi); });
+    const r = rng(hash(text)), L = v.scale.length;
+    let d = 2 + Math.floor(r() * 3);
+    return syl.map((wi, i) => {
+      const last = i === syl.length - 1;
+      if (last) {
+        const home = lineNo % 2 ? 0 : 4;
+        d = [home, home + L].reduce((a, b) => Math.abs(b - d) < Math.abs(a - d) ? b : a);
+      } else if (i) {
+        const up = i < syl.length * .45 ? .6 : .3;
+        const step = r() < up ? 1 + Math.floor(r() * 2) : -(1 + Math.floor(r() * 2));
+        d = Math.max(0, Math.min(L + 4, d + (r() < .2 ? 0 : step)));
+      }
+      return { wi, midi: v.base + v.scale[d % L] + 12 * Math.floor(d / L) };
+    });
+  }
+
+  // ================= the performance =================
+  let timers = [], stageEl = null;
+  const later = (fn, ms) => timers.push(setTimeout(fn, Math.max(0, ms)));
+  function stopAudio() {
+    timers.forEach(clearTimeout); timers = [];
+    if (ac && master) {
+      const old = master;
+      old.gain.setTargetAtTime(.0001, ac.currentTime, .05);
+      setTimeout(() => old.disconnect(), 400);
+      freshMaster();
+    }
+  }
+
+  function perform(song, scoreIt) {
+    const s = BY[song.singer], o = BY[song.occasion], v = s.voice;
+    closeOverlay();
+    stageEl && stageEl.remove();
+    stageEl = document.createElement("div");
+    stageEl.className = `stage m-${s.mood}`;
+    stageEl.setAttribute("role", "dialog");
+    stageEl.setAttribute("aria-label", `${s.name} performs ${song.title}`);
+    stageEl.innerHTML = `
+      <div class="spot"></div><div class="drape l"></div><div class="drape r"></div><div class="valance"></div>
+      <button class="btn ghost sm stage-close" id="stageClose">Stop</button>
+      <div class="perf" id="perf">
+        <p class="perf-title">${esc(s.name)} sings “${esc(song.title)}”<br>for ${esc(o.name.replace(/^(A|An|The) /, m => m.toLowerCase()))}</p>
+        <div class="perf-singer">${portrait(s.art)}</div>
+        <div class="perf-lines" aria-live="polite">
+          <p class="perf-prev" id="pPrev"></p>
+          <p class="perf-now" id="pNow"></p>
+          <p class="perf-next" id="pNext"></p>
+        </div>
+      </div>
+      <div class="crowd" id="crowd">${"<i></i>".repeat(14)}</div>`;
+    document.body.appendChild(stageEl);
+    stageEl.querySelectorAll(".crowd i").forEach((h, i) => { h.style.animationDelay = `${(i * 137) % 900}ms`; h.style.scale = String(.85 + ((i * 7) % 5) * .06); });
+    const closeStage = () => { stopAudio(); stageEl.remove(); stageEl = null; };
+    $("stageClose").onclick = () => {
+      closeStage();
+      if (scoreIt) toast("The singer will try again when you're ready.");
+    };
+
+    // Order: the lines, with any "again" lines after each verse and at the end.
+    const refr = song.lines.filter(l => l.refrain);
+    const seq = [];
+    song.lines.forEach((l, i) => {
+      seq.push({ text: l.text });
+      if (refr.length && i % 4 === 3 && i !== song.lines.length - 1) refr.forEach(r => seq.push({ text: r.text, again: true }));
+    });
+    refr.forEach(r => seq.push({ text: r.text, again: true }));
+
+    if (!ac) ensureAudio();
+    const beat = 60 / v.bpm;
+    let t = ac.currentTime + 1.2;
+    const prog = [0, 5, 3, 4];
+    lastF = 0;
+    seq.forEach((line, li) => {
+      const tune = tuneFor(line.text, v, li);
+      let unit = beat / 2;
+      if (tune.length > 12) unit *= Math.max(.62, 12 / tune.length);
+      const starts = [];
+      let tt = t;
+      tune.forEach((n, i) => {
+        const swingLen = v.swing ? unit * (i % 2 ? .8 : 1.2) : unit;
+        const d = i === tune.length - 1 ? beat * 2 : swingLen;
+        starts.push(tt);
+        voiceNote(v, n.midi, tt, d);
+        tt += d;
+      });
+      const lineEnd = tt;
+      // accompaniment: oom-pah under the line
+      const deg = prog[li % 4], L = v.harm.length;
+      const chord = [0, 2, 4].map(k => v.base - 12 + v.harm[(deg + k) % L] + 12 * Math.floor((deg + k) / L));
+      const bass = v.base - 24 + v.harm[deg];
+      for (let b = 0, bt = t; bt < lineEnd + beat * .5; b++, bt += beat) {
+        const pos = b % v.meter;
+        if (pos === 0) tone(bass, bt, beat * .9, .12);
+        else if (v.meter === 4 && pos === 2) tone(bass + 7, bt, beat * .9, .09);
+        else chord.forEach(m => tone(m, bt, beat * .35, .05));
+      }
+      // what the audience sees
+      const at = ms => (ms - ac.currentTime) * 1000;
+      later(() => showLine(seq, li), at(t) - 150);
+      let lastW = -1;
+      tune.forEach((n, i) => {
+        if (n.wi !== lastW) { const wi = n.wi; later(() => lightWord(wi), at(starts[i])); lastW = n.wi; }
+      });
+      if (li % 2 === 0) later(() => noteFloat(), at(t + beat));
+      t = lineEnd + beat;
+    });
+    const ending = (t - ac.currentTime) * 1000 + 600;
+    later(() => {
+      $("pNow").innerHTML = "";
+      $("pPrev").textContent = ""; $("pNext").textContent = "";
+      finish(song, scoreIt);
+    }, ending);
+  }
+
+  function showLine(seq, li) {
+    const now = $("pNow"); if (!now) return;
+    const line = seq[li];
+    now.innerHTML = "";
+    if (line.again) { const a = document.createElement("span"); a.className = "again"; a.textContent = "once more"; now.appendChild(a); }
+    line.text.split(/\s+/).filter(Boolean).forEach((w, i) => {
+      if (i) now.appendChild(document.createTextNode(" "));
+      const sp = document.createElement("span"); sp.textContent = w; sp.dataset.i = i; now.appendChild(sp);
+    });
+    $("pPrev").textContent = li ? seq[li - 1].text : "";
+    $("pNext").textContent = seq[li + 1] ? seq[li + 1].text : "";
+  }
+  function lightWord(wi) {
+    const now = $("pNow"); if (!now) return;
+    now.querySelectorAll("span[data-i]").forEach(sp => {
+      const i = +sp.dataset.i;
+      sp.classList.toggle("on", i === wi);
+      sp.classList.toggle("sung", i < wi);
+    });
+  }
+  function noteFloat() {
+    const perf = $("perf"); if (!perf) return;
+    const n = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    n.setAttribute("viewBox", "0 0 48 48"); n.setAttribute("class", "note");
+    n.innerHTML = ICON.note;
+    n.style.left = `calc(50% + ${Math.random() * 120 - 60}px)`;
+    n.style.top = "150px";
+    n.style.setProperty("--dx", `${Math.random() * 80 - 40}px`);
+    n.style.setProperty("--r", `${Math.random() * 40 - 20}deg`);
+    perf.appendChild(n);
+    setTimeout(() => n.remove(), 2500);
+  }
+
+  // ================= the verdict =================
+  function tally(song) {
+    const s = BY[song.singer], o = BY[song.occasion], L = song.lines;
+    const played = song.played || [];
+    const rows = [
+      ["Lines written", L.length],
+      ["Charm words found", 2 * L.filter(l => l.charm).length],
+      ["Tricks pulled off", 2 * (L.filter(l => l.craftOk).length + L.filter(l => l.refrain).length)],
+      [`Moods the room wanted`, played.filter(id => o.wants.includes(BY[id].mood)).length],
+      [`${s.short}'s delight`, s.quirk(L)],
+    ];
+    const total = rows.reduce((a, r) => a + r[1], 0);
+    const per = total / Math.max(4, L.length);
+    const candles = per < 1.5 ? 1 : per < 2.2 ? 2 : per < 3 ? 3 : per < 3.8 ? 4 : 5;
+    return { rows, total, candles };
+  }
+  const REACT = [
+    a => `Somebody coughs. ${cap(a)} are very polite about it.`,
+    a => `A scatter of applause from ${a}. One of them hums the tune on the way out.`,
+    a => `Warm applause from ${a}. Somebody asks for the words.`,
+    a => `${cap(a)} won't stop clapping. The singer takes a second bow.`,
+    a => `A standing ovation. ${cap(a)} carry the singer out on their shoulders.`,
+  ];
+  const VERDICT = ["A polite cough", "Scattered applause", "Warm applause", "An encore", "A standing ovation"];
+
+  function candleRow(n) {
+    let h = "";
+    for (let i = 0; i < 5; i++) h += `<svg viewBox="0 0 26 46" class="${i < n ? "" : "out"}" aria-hidden="true"><path class="flame" d="M13 2c4 5 5 8 5 10a5 5 0 0 1-10 0c0-2 1-5 5-10z"/><rect class="wax" x="7" y="18" width="12" height="26" rx="2"/></svg>`;
+    return `<div class="candles" role="img" aria-label="${n} of 5 candles">${h}</div>`;
+  }
+
+  function finish(song, scoreIt) {
+    if (!stageEl) return;
+    const s = BY[song.singer], o = BY[song.occasion];
+    const perf = $("perf");
+    let v = song.scored;
+    if (scoreIt || !v) v = tally(song);
+    $("crowd").classList.toggle("cheer", v.candles >= 3);
+    let unlockedCard = null;
+    if (scoreIt) {
+      const firstTime = !S.performedOnce;
+      S.performedOnce = true;
+      const saved = { id: song.id, title: song.title, singer: song.singer, occasion: song.occasion, candles: v.candles, lines: song.lines, played: song.played, scored: v };
+      songbook = [saved, ...songbook.filter(x => x.id !== song.id && !x.example)];
+      store.set("tpt.songs", songbook);
+      if (firstTime) {
+        const locked = CARDS.filter(c => c.locked && !unlocked.includes(c.id));
+        if (locked.length) {
+          unlockedCard = locked[rand(locked.length)];
+          unlocked.push(unlockedCard.id);
+          store.set("tpt.unlocked", unlocked);
+        }
+      }
+    }
+    $("stageClose").textContent = "Leave the theater";
+    $("stageClose").onclick = () => { stopAudio(); stageEl.remove(); stageEl = null; render(); };
+    perf.innerHTML = `
+      <div class="verdict on-paper">
+        <h2>${VERDICT[v.candles - 1]}</h2>
+        <p class="sub">“${esc(song.title)}” · ${esc(s.name)}</p>
+        ${candleRow(v.candles)}
+        <table class="score"><tbody>
+          ${v.rows.map(r => `<tr><td>${esc(r[0])}</td><td>${r[1]}</td></tr>`).join("")}
+          <tr class="total"><td>Applause</td><td>${v.total}</td></tr>
+        </tbody></table>
+        <p class="reaction">${esc(REACT[v.candles - 1](o.aud))}</p>
+        <div class="room" id="room" hidden><span class="who">${esc(cap(o.aud))}</span><p id="roomText"></p></div>
+        <div class="actions" id="roomActions" style="justify-content:flex-start" hidden>
+          <button class="btn ghost sm" id="askRoom">Ask the room what they thought</button>
+        </div>
+        ${unlockedCard ? `<div class="unlock">${cardHTML(unlockedCard, { mini: true })}<p><span class="eyebrow">new card for your deck</span><b>${esc(unlockedCard.name)}</b>It will turn up in your next song.</p></div>` : ""}
+        <div class="actions">
+          <button class="btn" id="another">Write another song</button>
+          <button class="btn ghost" id="copyW">Copy the words</button>
+          <button class="btn ghost" id="again">Hear it again</button>
+          ${scoreIt ? '<button class="link" id="keep">Keep working on this one</button>' : ""}
+        </div>
+      </div>`;
+    $("another").onclick = () => { stopAudio(); stageEl.remove(); stageEl = null; newSong(); };
+    $("copyW").onclick = e => copyLyrics(song, e.currentTarget);
+    $("again").onclick = () => { ensureAudio(); song.scored = v; perform(song, false); };
+    const keep = $("keep");
+    if (keep) keep.onclick = () => { stopAudio(); stageEl.remove(); stageEl = null; render(); };
+    if (sampleFn) {
+      const btn = $("askRoom");
+      $("roomActions").hidden = false;
+      btn.onclick = () => askRoom(song, v, btn);
+    }
+  }
+
+  // ================= the room talks back (Claude, optional) =================
+  let sampleFn = null;
+  try {
+    window.claude?.use?.("sample").then(s => { sampleFn = s || null; }).catch(() => {});
+  } catch {}
+  async function askRoom(song, v, btn) {
+    const s = BY[song.singer], o = BY[song.occasion];
+    const box = $("room"), out = $("roomText");
+    box.hidden = false; btn.disabled = true;
+    out.textContent = "They're whispering among themselves…";
+    const prompt = `You are ${o.aud}, the audience at "${o.name}" in a whimsical, vintage card game about songwriting. ${s.name} (${s.type.replace("Singer — ", "")}) just performed a song called "${song.title}". A human player wrote every word:
+
+${lyricsText(song, false)}
+
+The song earned ${v.candles} of 5 candles. React in 2 or 3 short sentences, speaking as this audience, in character. Be warm, specific and a little funny. Point to one line you loved by quoting a few of its words. Do not rewrite the lyrics, suggest new lines, or give writing advice. Reply with plain text only.`;
+    try {
+      await sampleFn(prompt, { modelTier: "quick", onText: ({ text }) => { out.textContent = text; } });
+      btn.hidden = true;
+    } catch (e) {
+      const c = e && e.code;
+      if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(c)) {
+        box.hidden = true; btn.hidden = true; sampleFn = null;
+      } else if (c === "rate_limited") {
+        out.textContent = "The room needs a minute. Ask again shortly."; btn.disabled = false;
+      } else if (c !== "cancelled") {
+        out.textContent = e && e.text ? e.text : "The room went quiet. Ask again?"; btn.disabled = false;
+      }
+    }
+  }
+
+  // ================= boot =================
+  addEventListener("resize", () => { if (S.phase === "table" && $("hand")) renderHand(); });
+  function start(data) {
+    if (data && data.S) { Object.assign(S, data.S); if (S.phase === "stage") S.phase = "table"; render(); }
+    else newSong();
+  }
+  window.claude?.hot?.snapshot?.(() => ({ S: JSON.parse(JSON.stringify(S)) }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
