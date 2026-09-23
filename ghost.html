@@ -1,0 +1,910 @@
+<title>Ghost Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Caveat:wght@600&family=Nunito:wght@500;700;800;900&family=DM+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --bg: #fdeef4;
+    --dot: #f8d3e2;
+    --paper: #ffffff;
+    --ink: #2b1e4a;
+    --on-k: #2b1e4a;
+    --muted: #76688f;
+    --line: #2b1e4a;
+    --rh: #ff5c9d;
+    --lh: #2ec4a6;
+    --stay: #ffc53d;
+    --k4: #b9a6ff;
+    --key-w: #fffdf9;
+    --key-b: #2b1e4a;
+    --key-edge: #2b1e4a;
+    --tint: #fff5d6;
+    --field: #ffffff;
+    --rule: #e6d9f0;
+    --sky-top: #9c86f0;
+    --sky-bot: #ffbdd6;
+    --star: #ffffff;
+    --moon: #fff5d6;
+    --ghost: #fffdf9;
+    --glow: rgba(255, 255, 255, 0);
+    --display: "Bagel Fat One", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif;
+    --body: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
+    --hand: "Caveat", "Bradley Hand", "Segoe Print", cursive;
+    --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #1d1533;
+      --dot: #2c2250;
+      --paper: #2a2047;
+      --ink: #fff0f6;
+      --muted: #b6a8d4;
+      --line: #0c0818;
+      --rh: #ff6fa9;
+      --lh: #3fd9b9;
+      --stay: #ffd166;
+      --k4: #b3a0ff;
+      --key-w: #f5efff;
+      --key-b: #150e2a;
+      --key-edge: #0c0818;
+      --tint: #3a2c5f;
+      --field: #221a3c;
+      --rule: #43356b;
+      --sky-top: #0e0922;
+      --sky-bot: #3b2468;
+      --star: #fff5d6;
+      --moon: #ffe7a3;
+      --ghost: #f5efff;
+      --glow: rgba(200, 180, 255, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #1d1533;
+    --dot: #2c2250;
+    --paper: #2a2047;
+    --ink: #fff0f6;
+    --muted: #b6a8d4;
+    --line: #0c0818;
+    --rh: #ff6fa9;
+    --lh: #3fd9b9;
+    --stay: #ffd166;
+    --k4: #b3a0ff;
+    --key-w: #f5efff;
+    --key-b: #150e2a;
+    --key-edge: #0c0818;
+    --tint: #3a2c5f;
+    --field: #221a3c;
+    --rule: #43356b;
+    --sky-top: #0e0922;
+    --sky-bot: #3b2468;
+    --star: #fff5d6;
+    --moon: #ffe7a3;
+    --ghost: #f5efff;
+    --glow: rgba(200, 180, 255, .6);
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+  :focus-visible { outline: 3px solid var(--k4); outline-offset: 2px; }
+
+  .game {
+    height: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+
+  /* ---------- top bar ---------- */
+  .bar { display: flex; align-items: center; gap: 12px; }
+  h1 {
+    font-family: var(--display); font-weight: 400;
+    font-size: 28px; line-height: 1; margin: 0;
+    text-shadow: 2px 2px 0 var(--rh);
+  }
+  h1 .dot { color: var(--lh); text-shadow: 2px 2px 0 var(--line); }
+  .mood {
+    margin-left: auto;
+    font-weight: 900; font-size: 12px; letter-spacing: .04em;
+    padding: 4px 11px; border-radius: 999px;
+    border: 2px solid var(--line); background: var(--paper);
+    transition: background .2s;
+  }
+  .mood[data-m="out"] { background: var(--lh); color: var(--on-k); }
+  .mood[data-m="singing"] { background: var(--rh); color: var(--on-k); }
+  .mood[data-m="scared"], .mood[data-m="nervous"] { background: var(--stay); color: var(--on-k); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 2.5px solid var(--line); border-radius: 14px;
+    padding: 8px 14px; font-weight: 900; font-size: 15px;
+    background: var(--paper);
+    box-shadow: 3px 3px 0 var(--line);
+    white-space: nowrap;
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+  }
+  .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 3px 3px 0 var(--line); }
+  .btn.play { background: var(--rh); color: var(--on-k); }
+  .btn.sm { padding: 4px 10px; font-size: 13px; border-radius: 11px; box-shadow: 2px 2px 0 var(--line); }
+  .btn.sm:active { transform: translate(2px, 2px); box-shadow: none; }
+
+  /* ---------- the song sheet ---------- */
+  .sheet {
+    background: var(--paper);
+    border: 2.5px solid var(--line); border-radius: 18px;
+    box-shadow: 3px 3px 0 var(--line);
+    padding: 8px 16px 10px;
+  }
+  .sheet-head { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+  .label { font-weight: 900; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin-right: auto; }
+  .lyrics { list-style: none; margin: 0; padding: 0; }
+  .lyrics li {
+    font-family: var(--hand); font-weight: 600;
+    font-size: clamp(20px, 5.4vw, 25px); line-height: 1.2;
+    min-height: 32px; padding-top: 3px;
+    border-bottom: 1.5px dashed var(--rule);
+    overflow-wrap: anywhere;
+    transition: color .2s;
+  }
+  .lyrics li:last-child { border-bottom: 0; }
+  .lyrics li.now { color: var(--rh); }
+  .lyrics li.write { animation: write 1.1s steps(18, end) both; }
+  @keyframes write { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+  /* ---------- the night sky ---------- */
+  .stage {
+    position: relative; flex: 1; min-height: 210px;
+    border: 2.5px solid var(--line); border-radius: 22px;
+    box-shadow: 3px 3px 0 var(--line);
+    background: linear-gradient(var(--sky-top), var(--sky-bot));
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .star {
+    position: absolute; border-radius: 50%; background: var(--star);
+    animation: twinkle 3.2s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%, 100% { opacity: .25; } 50% { opacity: .95; } }
+  .moon {
+    position: absolute; top: 14px; right: 22px;
+    width: 30px; height: 30px; border-radius: 50%;
+    box-shadow: 8px -5px 0 0 var(--moon);
+  }
+  .words { position: absolute; inset: 0; z-index: 3; }
+  .word {
+    position: absolute; left: 0; top: 0; margin: 0;
+    padding: 7px 13px; white-space: nowrap;
+    font-weight: 900; font-size: 16px; line-height: 1.1;
+    color: var(--on-k); background: var(--k);
+    border: 2.5px solid var(--line); border-radius: 999px;
+    box-shadow: 2px 2px 0 var(--line);
+    will-change: transform;
+  }
+  .k1 { --k: var(--rh); }
+  .k2 { --k: var(--lh); }
+  .k3 { --k: var(--stay); }
+  .k4 { --k: var(--k4); }
+  .word.born { animation: born .35s cubic-bezier(.3, 1.6, .5, 1); }
+  .word.pop { animation: pop .3s ease-out forwards; pointer-events: none; }
+  .word.fade { animation: fade .5s ease-out forwards; pointer-events: none; }
+  @keyframes born { from { scale: .3; opacity: 0; } to { scale: 1; opacity: 1; } }
+  @keyframes pop { to { scale: 1.6; opacity: 0; } }
+  @keyframes fade { to { opacity: 0; } }
+  .fly { position: fixed; z-index: 50; pointer-events: none; transform-origin: 0 0; }
+
+  .ghost {
+    position: absolute; left: 0; bottom: -4px; z-index: 2;
+    width: 84px; height: 92px; pointer-events: none;
+    transition: transform .55s cubic-bezier(.3, .7, .3, 1);
+  }
+  .ghost-in {
+    width: 100%; height: 100%;
+    transform: translateY(64%);
+    transition: transform .5s cubic-bezier(.3, 1.3, .5, 1), opacity .4s;
+  }
+  .ghost[data-state="out"] .ghost-in,
+  .ghost[data-state="singing"] .ghost-in { transform: translateY(0); }
+  .ghost[data-state="scared"] .ghost-in {
+    transform: translateY(120%) scale(.7);
+    transition-duration: .22s; transition-timing-function: ease-in;
+  }
+  .ghost svg {
+    width: 100%; height: 100%; overflow: visible;
+    filter: drop-shadow(0 0 14px var(--glow));
+    animation: bob 2.8s ease-in-out infinite;
+  }
+  .ghost.nervous svg { animation: tremble .09s linear infinite; }
+  .ghost[data-state="singing"] svg { animation-duration: 1.2s; }
+  .ghost.spin svg { animation: spin 1.1s cubic-bezier(.5, 0, .3, 1); }
+  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+  @keyframes tremble { 0% { translate: -2px 0; } 50% { translate: 2px -1px; } 100% { translate: -2px 0; } }
+  @keyframes spin { 50% { translate: 0 -40px; } to { rotate: 360deg; } }
+  .g-body { fill: var(--ghost); stroke: var(--line); stroke-width: 3.5; stroke-linejoin: round; }
+  .g-eye { fill: #2b1e4a; }
+  .g-blush { fill: var(--rh); opacity: .3; transition: opacity .4s; }
+  .ghost.blush .g-blush { opacity: .95; }
+  .g-mouth { fill: none; stroke: #2b1e4a; stroke-width: 3; stroke-linecap: round; }
+  .g-o { fill: #2b1e4a; opacity: 0; }
+  .ghost.o .g-o { opacity: 1; }
+  .ghost.o .g-mouth { opacity: 0; }
+
+  .heart {
+    position: absolute; bottom: 70px; z-index: 2;
+    color: var(--rh); font-size: 20px; line-height: 1;
+    text-shadow: 1px 1px 0 var(--line);
+    pointer-events: none;
+    animation: rise 1.7s ease-out forwards;
+  }
+  @keyframes rise { to { translate: var(--dx) -150px; opacity: 0; scale: 1.4; } }
+
+  .toast {
+    position: absolute; top: 12px; left: 50%; z-index: 4;
+    transform: translateX(-50%); max-width: calc(100% - 90px);
+    margin: 0; padding: 5px 13px; text-align: center;
+    font-weight: 900; font-size: 13px;
+    background: var(--paper); border: 2px solid var(--line); border-radius: 999px;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ---------- the line being written ---------- */
+  .line {
+    display: flex; align-items: center; gap: 8px;
+    min-height: 54px; padding: 6px 7px 6px 10px;
+    background: var(--field);
+    border: 2.5px dashed var(--line); border-radius: 16px;
+  }
+  .chips { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .chip {
+    padding: 3px 9px; font-weight: 900; font-size: 14px;
+    color: var(--on-k); background: var(--k);
+    border: 2px solid var(--line); border-radius: 999px;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .chip.lit { transform: translateY(-3px) scale(1.1); box-shadow: 2px 3px 0 var(--line); }
+  .chip.in { animation: born .3s cubic-bezier(.3, 1.6, .5, 1); }
+  .placeholder { color: var(--muted); font-size: 13px; font-weight: 700; }
+
+  /* ---------- piano ---------- */
+  .piano {
+    position: relative;
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    height: clamp(96px, 17vh, 140px);
+    border: 2.5px solid var(--line); border-radius: 16px;
+    box-shadow: 3px 3px 0 var(--line);
+    overflow: hidden; background: var(--key-b);
+    user-select: none; -webkit-user-select: none;
+  }
+  .key {
+    border: 0; border-right: 2px solid var(--key-edge); border-radius: 0;
+    background: var(--key-w); color: #2b1e4a;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    gap: 4px; padding: 0 2px 9px;
+    transition: background .1s;
+  }
+  .key:last-of-type { border-right: 0; }
+  .key.down { background: var(--tint); }
+  .key .tab { width: 58%; height: 7px; border-radius: 4px; background: var(--k); border: 1.5px solid #2b1e4a; }
+  .key .kl { font-weight: 900; font-size: 11px; line-height: 1; }
+  .key .kb { font-family: var(--mono); font-size: 10px; line-height: 1; color: #76688f; }
+  .black {
+    position: absolute; top: 0; height: 52%; width: 7.5%;
+    background: var(--key-b); border: 2px solid var(--key-edge); border-top: 0;
+    border-radius: 0 0 6px 6px; pointer-events: none;
+  }
+  @media (hover: none) { .key .kb, .kbd-hint { display: none; } }
+
+  /* ---------- intro card ---------- */
+  .intro {
+    position: fixed; inset: 0; z-index: 20;
+    display: grid; place-items: center; padding: 16px;
+    background: color-mix(in srgb, var(--bg) 55%, transparent);
+    backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  }
+  .card {
+    max-width: 400px; width: 100%;
+    background: var(--paper);
+    border: 2.5px solid var(--line); border-radius: 22px;
+    box-shadow: 5px 5px 0 var(--line);
+    padding: 22px; display: flex; flex-direction: column; gap: 12px;
+  }
+  .card h2 { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.05; margin: 0; text-wrap: balance; }
+  .card p { margin: 0; text-wrap: pretty; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; }
+  .legend .chip { cursor: default; font-size: 13px; }
+  .kbd-hint { font-size: 13px; color: var(--muted); }
+  .kbd-hint kbd { font-family: var(--mono); font-size: 12px; border: 1.5px solid var(--muted); border-radius: 5px; padding: 0 4px; }
+  .card .btn { align-self: flex-start; font-size: 17px; padding: 10px 18px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star, .ghost svg, .ghost.nervous svg { animation: none; }
+    .lyrics li.write { animation: none; }
+  }
+</style>
+
+<div class="game">
+  <header class="bar">
+    <h1>Ghost Notes<span class="dot">.</span></h1>
+    <span class="mood" id="mood" data-m="hidden">Hiding</span>
+  </header>
+
+  <section class="sheet" aria-label="The ghost's song">
+    <div class="sheet-head">
+      <span class="label" id="pageLabel">Page 1 · a love song</span>
+      <button class="btn sm" id="singVerse">Sing it all</button>
+      <button class="btn sm play" id="newPage" hidden>New page</button>
+    </div>
+    <ol class="lyrics" id="lyrics"><li></li><li></li><li></li><li></li></ol>
+  </section>
+
+  <section class="stage" id="stage" aria-label="Night sky">
+    <div id="stars"></div>
+    <div class="moon"></div>
+    <div class="ghost" id="ghost" data-state="hidden">
+      <div class="ghost-in">
+        <svg viewBox="0 0 100 110" aria-hidden="true">
+          <path class="g-body" d="M50 6C24 6 12 26 12 50v46q8-8 15 0t14 0q9-8 18 0t14 0q7-8 15 0V50C88 26 76 6 50 6Z"/>
+          <ellipse class="g-blush" cx="29" cy="60" rx="7" ry="4"/>
+          <ellipse class="g-blush" cx="71" cy="60" rx="7" ry="4"/>
+          <ellipse class="g-eye" cx="38" cy="47" rx="4.5" ry="6.5"/>
+          <ellipse class="g-eye" cx="62" cy="47" rx="4.5" ry="6.5"/>
+          <path class="g-mouth" d="M44 61q6 5 12 0"/>
+          <ellipse class="g-o" cx="50" cy="63" rx="4.5" ry="5.5"/>
+        </svg>
+      </div>
+    </div>
+    <div class="words" id="words"></div>
+    <p class="toast" id="toast" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="line" aria-label="The line you're writing">
+    <div class="chips" id="chips"></div>
+    <button class="btn sm" id="clearLine" aria-label="Clear this line">Clear</button>
+    <button class="btn play" id="sing" disabled>Sing</button>
+  </section>
+
+  <div class="piano" id="piano" role="group" aria-label="Piano"></div>
+</div>
+
+<div class="intro" id="intro">
+  <div class="card">
+    <h2>There's a ghost in the piano.</h2>
+    <p>It's trying to write a love song, but it can't find the words by itself. It can only hear them.</p>
+    <p>Play softly and it comes out. Each key shakes loose a different kind of word. Catch the ones you want, then press Sing, and the ghost sings your line with the notes the words came from.</p>
+    <div class="legend" aria-label="What the keys give you">
+      <span class="chip k1">feelings</span>
+      <span class="chip k2">people &amp; time</span>
+      <span class="chip k3">little words</span>
+      <span class="chip k4">things &amp; colors</span>
+    </div>
+    <p>Play too fast and it hides.</p>
+    <p class="kbd-hint">Keys <kbd>A</kbd>–<kbd>K</kbd> play. <kbd>Space</kbd> catches. <kbd>Enter</kbd> sings.</p>
+    <button class="btn play" id="wake">Wake the ghost</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Each key gives one kind of word. Low C is heavy, high C is about time.
+  const KEYS = [
+    { midi: 60, name: "C", label: "sigh",  kind: "k1", kb: "A", words: ["ache", "rain", "stay", "hold", "fall", "burn", "wait", "breathe", "dance", "sink"] },
+    { midi: 62, name: "D", label: "who",   kind: "k2", kb: "S", words: ["I", "you", "we", "me", "your", "my", "us", "they", "her", "him"] },
+    { midi: 64, name: "E", label: "feel",  kind: "k1", kb: "D", words: ["love", "miss", "need", "want", "keep", "find", "kiss", "dream", "know", "lose"] },
+    { midi: 65, name: "F", label: "link",  kind: "k3", kb: "F", words: ["in", "like", "under", "with", "for", "until", "and", "but", "through", "when"] },
+    { midi: 67, name: "G", label: "a/the", kind: "k3", kb: "G", words: ["the", "a", "this", "every", "one", "our", "no", "all", "that"] },
+    { midi: 69, name: "A", label: "thing", kind: "k4", kb: "H", words: ["moon", "kitchen", "letter", "song", "window", "summer", "heart", "night", "sea", "porch light", "coffee"] },
+    { midi: 71, name: "B", label: "shade", kind: "k4", kb: "J", words: ["blue", "golden", "tender", "wild", "quiet", "burning", "slow", "lucky", "strange", "sweet"] },
+    { midi: 72, name: "C", label: "when",  kind: "k2", kb: "K", words: ["forever", "tonight", "again", "softly", "always", "yes", "now", "still", "goodbye"] },
+  ];
+  const kindOf = midi => KEYS.find(k => k.midi === midi)?.kind || "k1";
+
+  const stage = $("stage"), wordsEl = $("words"), ghost = $("ghost"), chipsEl = $("chips");
+  const singBtn = $("sing"), clearBtn = $("clearLine"), verseBtn = $("singVerse"), newPageBtn = $("newPage");
+  const moodEl = $("mood"), toastEl = $("toast"), lyricsEl = $("lyrics");
+
+  // ---------- state ----------
+  // The ghost had managed one line before you arrived.
+  let lines = [[
+    { w: "I", m: 62 }, { w: "keep", m: 64 }, { w: "your", m: 62 }, { w: "letter", m: 69 },
+    { w: "in", m: 65 }, { w: "the", m: 67 }, { w: "rain", m: 60 },
+  ]];
+  let line = [];
+  let page = 1;
+  let mood = "hidden";
+  let started = false, singing = false, greeted = false;
+  let presses = [], hideUntil = 0;
+  let ghostX = 0;
+  const floating = [];
+  const recent = new Map();
+  const MAX_LINE = 7, LINES_PER_PAGE = 4;
+
+  // ---------- audio (same iPhone-safe setup as Pixie Chords) ----------
+  let ac = null, master = null, silentEl = null;
+  function silentWavURL() {
+    const n = 4410, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+  // Must run inside a tap or click, before any await.
+  function ensureAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+    if (!silentEl) {
+      try {
+        silentEl = new Audio(silentWavURL());
+        silentEl.loop = true;
+        silentEl.setAttribute("playsinline", "");
+      } catch { silentEl = false; }
+    }
+    if (silentEl && silentEl.paused) silentEl.play().catch(() => {});
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      const comp = ac.createDynamicsCompressor();
+      master = ac.createGain();
+      master.gain.value = 0.8;
+      master.connect(comp);
+      comp.connect(ac.destination);
+    }
+    if (ac.state !== "running") {
+      ac.resume().catch(() => {});
+      const src = ac.createBufferSource();
+      src.buffer = ac.createBuffer(1, 1, 22050);
+      src.connect(ac.destination);
+      src.start(0);
+    }
+    return true;
+  }
+  const hz = midi => 440 * Math.pow(2, (midi - 69) / 12);
+  function tone(midi, t, dur, vel) {
+    const f = hz(midi);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vel, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(vel * 0.35, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.9);
+    const lp = ac.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(f * 8, 12000), t);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + dur + 0.6);
+    const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
+    const g2 = ac.createGain(); g2.gain.value = 0.22;
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    const end = t + dur + 1;
+    o1.start(t); o2.start(t); o1.stop(end); o2.stop(end);
+  }
+  // The ghost's voice: an airy "ooh" an octave above the piano, with a slow wobble.
+  function voice(midi, t, dur) {
+    const f = hz(midi + 12);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.1, t + 0.09);
+    g.gain.setValueAtTime(0.085, t + dur);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2000;
+    const o1 = ac.createOscillator(); o1.type = "sine"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "triangle"; o2.frequency.value = f * 1.004;
+    const g2 = ac.createGain(); g2.gain.value = 0.3;
+    const lfo = ac.createOscillator(); lfo.frequency.value = 5.2;
+    const depth = ac.createGain(); depth.gain.value = f * 0.012;
+    lfo.connect(depth); depth.connect(o1.frequency); depth.connect(o2.frequency);
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    const end = t + dur + 0.5;
+    [o1, o2, lfo].forEach(o => { o.start(t); o.stop(end); });
+  }
+
+  // ---------- small helpers ----------
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  let toastTimer = 0;
+  function toast(msg, ms = 2400) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), ms);
+  }
+  const MOOD_TEXT = { hidden: "Hiding", out: "Listening", scared: "Hid! Too loud", singing: "Singing" };
+  function setMood(m) {
+    mood = m;
+    ghost.dataset.state = m;
+    moodEl.dataset.m = m;
+    moodEl.textContent = MOOD_TEXT[m];
+  }
+  let nervousTimer = 0;
+  function nervous() {
+    ghost.classList.add("nervous");
+    moodEl.dataset.m = "nervous";
+    moodEl.textContent = "Easy…";
+    clearTimeout(nervousTimer);
+    nervousTimer = setTimeout(() => {
+      ghost.classList.remove("nervous");
+      if (mood !== "scared") setMood(mood);
+    }, 700);
+  }
+  function flashClass(el, cls, ms) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), ms);
+  }
+
+  // ---------- ghost movement ----------
+  const GHOST_W = 84;
+  function keyCenter(i) { return stage.clientWidth * (i + 0.5) / KEYS.length; }
+  function moveGhost(cx) {
+    ghostX = clamp(cx - GHOST_W / 2, 4, stage.clientWidth - GHOST_W - 4);
+    ghost.style.transform = `translateX(${ghostX}px)`;
+  }
+  moveGhost(stage.clientWidth / 2);
+  addEventListener("resize", () => moveGhost(ghostX + GHOST_W / 2));
+
+  function hearts(n = 7) {
+    for (let i = 0; i < n; i++) {
+      const h = document.createElement("span");
+      h.className = "heart";
+      h.textContent = "♥";
+      h.style.left = `${ghostX + GHOST_W / 2 - 10 + rand(-26, 26)}px`;
+      h.style.setProperty("--dx", `${rand(-50, 50)}px`);
+      h.style.animationDelay = `${i * 90}ms`;
+      h.addEventListener("animationend", () => h.remove());
+      stage.appendChild(h);
+    }
+  }
+
+  // ---------- floating words ----------
+  function pickWord(k) {
+    const used = recent.get(k.midi) || [];
+    const pool = k.words.filter(w => !used.includes(w));
+    const w = pool[Math.floor(Math.random() * pool.length)];
+    used.push(w);
+    if (used.length > 4) used.shift();
+    recent.set(k.midi, used);
+    return w;
+  }
+  function spawnWord(i) {
+    const k = KEYS[i];
+    const word = pickWord(k);
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = `word ${k.kind} born`;
+    el.textContent = word;
+    el.setAttribute("aria-label", `Catch “${word}”`);
+    wordsEl.appendChild(el);
+    const w = el.offsetWidth, h = el.offsetHeight;
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const obj = {
+      el, word, midi: k.midi, kind: k.kind, w, h,
+      x0: clamp(keyCenter(i) - w / 2, 6, W - w - 6),
+      y: H - 96 - h * 0.3,
+      vy: rand(28, 38), amp: reduceMotion ? 0 : rand(8, 20),
+      freq: rand(0.8, 1.4), phase: rand(0, 6.28), age: 0,
+    };
+    obj.x = obj.x0;
+    el.style.transform = `translate(${obj.x}px, ${obj.y}px)`;
+    el.addEventListener("animationend", () => el.classList.remove("born"), { once: true });
+    el.addEventListener("pointerdown", e => { e.preventDefault(); catchWord(obj); });
+    el.addEventListener("click", e => { if (e.detail === 0) catchWord(obj); });
+    floating.push(obj);
+    while (floating.length > 12) removeWord(floating[0], "fade");
+  }
+  function removeWord(obj, how) {
+    const i = floating.indexOf(obj);
+    if (i < 0) return;
+    floating.splice(i, 1);
+    if (!how) { obj.el.remove(); return; }
+    obj.el.classList.remove("born");
+    obj.el.classList.add(how);
+    setTimeout(() => obj.el.remove(), 520);
+  }
+
+  let last = performance.now(), ambientT = 0;
+  function frame(t) {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    for (const w of floating.slice()) {
+      w.age += dt;
+      w.y -= w.vy * dt;
+      w.x = w.x0 + Math.sin(w.age * w.freq + w.phase) * w.amp;
+      w.el.style.transform = `translate(${w.x}px, ${w.y}px)`;
+      if (w.y < 30) w.el.style.opacity = clamp((w.y + w.h) / (30 + w.h), 0, 1);
+      if (w.y < -w.h - 4) removeWord(w);
+    }
+    // Before you arrive, the ghost mumbles to itself.
+    if (!started) {
+      ambientT -= dt;
+      if (ambientT <= 0) {
+        ambientT = 2.2;
+        const i = Math.floor(Math.random() * KEYS.length);
+        moveGhost(keyCenter(i));
+        spawnWord(i);
+      }
+    }
+    if (mood === "scared" && performance.now() > hideUntil) {
+      setMood("hidden");
+      toast("Play one soft note to bring it back.");
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ---------- playing ----------
+  function press(i) {
+    if (!started) return;
+    ensureAudio();
+    if (ac) tone(KEYS[i].midi, ac.currentTime + 0.005, 0.35, 0.17);
+    flashClass(keyEls[i], "down", 170);
+    const t = performance.now();
+    presses = presses.filter(p => t - p < 1200);
+    presses.push(t);
+    if (singing) return;
+    if (mood === "scared") {
+      hideUntil = t + 2500;
+      toast("Shh. It's still hiding.");
+      return;
+    }
+    if (presses.length >= 5) { scare(); return; }
+    if (presses.length >= 3) nervous();
+    if (mood === "hidden") {
+      setMood("out");
+      if (!greeted) { greeted = true; toast("It's listening. Tap a word to catch it."); }
+    }
+    moveGhost(keyCenter(i));
+    setTimeout(() => spawnWord(i), 120);
+  }
+  function scare() {
+    setMood("scared");
+    ghost.classList.remove("nervous");
+    hideUntil = performance.now() + 2500;
+    floating.slice().forEach(w => removeWord(w, "pop"));
+    toast("Too loud! It hid in the piano.");
+  }
+
+  function catchWord(obj) {
+    if (!started || singing || !floating.includes(obj)) return;
+    if (line.length >= MAX_LINE) { toast("This line is full. Press Sing."); return; }
+    ensureAudio();
+    if (ac) tone(obj.midi, ac.currentTime + 0.005, 0.3, 0.13);
+    const from = obj.el.getBoundingClientRect();
+    removeWord(obj);
+    line.push({ w: obj.word, m: obj.midi });
+    renderLine();
+    const chip = chipsEl.lastElementChild;
+    if (reduceMotion || !chip.animate) { chip.classList.add("in"); return; }
+    chip.style.visibility = "hidden";
+    const to = chip.getBoundingClientRect();
+    const fly = document.createElement("span");
+    fly.className = `word ${obj.kind} fly`;
+    fly.textContent = obj.word;
+    fly.style.left = `${from.left}px`;
+    fly.style.top = `${from.top}px`;
+    document.body.appendChild(fly);
+    fly.animate([
+      { transform: "translate(0, 0) scale(1)" },
+      { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})` },
+    ], { duration: 380, easing: "cubic-bezier(.5, 0, .3, 1)" }).onfinish = () => {
+      fly.remove();
+      chip.style.visibility = "";
+      chip.classList.add("in");
+    };
+  }
+
+  function renderLine() {
+    chipsEl.innerHTML = "";
+    if (!line.length) {
+      const p = document.createElement("span");
+      p.className = "placeholder";
+      p.textContent = lines.length >= LINES_PER_PAGE
+        ? "This page is full. Sing it, or start a new one."
+        : "Catch floating words to write a line";
+      chipsEl.appendChild(p);
+    }
+    line.forEach((n, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = `chip ${kindOf(n.m)}`;
+      b.textContent = n.w;
+      b.setAttribute("aria-label", `Remove “${n.w}”`);
+      b.addEventListener("click", () => {
+        if (singing) return;
+        line.splice(i, 1);
+        renderLine();
+      });
+      chipsEl.appendChild(b);
+    });
+    singBtn.disabled = singing || line.length < 2 || lines.length >= LINES_PER_PAGE;
+    clearBtn.disabled = singing || !line.length;
+  }
+
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  function renderSheet(fresh = -1) {
+    $("pageLabel").textContent = `Page ${page} · a love song`;
+    [...lyricsEl.children].forEach((li, i) => {
+      const l = lines[i];
+      li.textContent = l ? l.map((n, j) => (j === 0 ? cap(n.w) : n.w)).join(" ") : "";
+      li.classList.toggle("write", i === fresh && !reduceMotion);
+    });
+    verseBtn.disabled = singing || !lines.length;
+    newPageBtn.hidden = lines.length < LINES_PER_PAGE;
+  }
+
+  // ---------- singing ----------
+  const STEP = 0.44;
+  function mouth() { flashClass(ghost, "o", 300); }
+  function lockUI(on) {
+    singing = on;
+    setMood(on ? "singing" : "out");
+    renderLine();
+    verseBtn.disabled = on || !lines.length;
+    newPageBtn.disabled = on;
+  }
+  // Schedules a sung line and returns how long it lasts, in seconds.
+  function singNotes(notes, t0, onNote) {
+    notes.forEach((n, i) => {
+      const t = t0 + i * STEP;
+      const d = i === notes.length - 1 ? 0.9 : STEP * 0.92;
+      tone(n.m, t, d, 0.1);
+      voice(n.m, t, d);
+      setTimeout(() => { mouth(); onNote && onNote(i); }, (t - ac.currentTime) * 1000);
+    });
+    return (notes.length - 1) * STEP + 0.9;
+  }
+
+  function sing() {
+    if (singing || line.length < 2 || lines.length >= LINES_PER_PAGE) return;
+    ensureAudio();
+    if (!ac) return;
+    lockUI(true);
+    moveGhost(stage.clientWidth / 2);
+    const chips = [...chipsEl.children];
+    const len = singNotes(line, ac.currentTime + 0.15, i => {
+      chips.forEach(c => c.classList.remove("lit"));
+      chips[i] && chips[i].classList.add("lit");
+    });
+    setTimeout(() => {
+      lines.push(line);
+      line = [];
+      lockUI(false);
+      renderSheet(lines.length - 1);
+      ghost.classList.add("blush");
+      setTimeout(() => ghost.classList.remove("blush"), 2600);
+      hearts();
+      if (lines.length >= LINES_PER_PAGE) {
+        flashClass(ghost, "spin", 1200);
+        hearts(12);
+        toast("A whole verse! Press Sing it all.", 3400);
+      } else {
+        toast("It wrote that down.");
+      }
+    }, (len + 0.35) * 1000);
+  }
+
+  function singVerse() {
+    if (singing || !lines.length) return;
+    ensureAudio();
+    if (!ac) return;
+    lockUI(true);
+    moveGhost(stage.clientWidth / 2);
+    const lis = [...lyricsEl.children];
+    let t = ac.currentTime + 0.15;
+    lines.forEach((l, li) => {
+      setTimeout(() => {
+        lis.forEach(x => x.classList.remove("now"));
+        lis[li].classList.add("now");
+      }, (t - ac.currentTime) * 1000);
+      t += singNotes(l, t) + 0.5;
+    });
+    setTimeout(() => {
+      lis.forEach(x => x.classList.remove("now"));
+      lockUI(false);
+      ghost.classList.add("blush");
+      setTimeout(() => ghost.classList.remove("blush"), 2600);
+      hearts(10);
+    }, (t - ac.currentTime) * 1000);
+  }
+
+  function newPage() {
+    if (singing) return;
+    page++;
+    lines = [];
+    renderSheet();
+    renderLine();
+    toast("Fresh page. What's the next verse about?");
+  }
+
+  // ---------- build the piano ----------
+  const piano = $("piano");
+  const keyEls = KEYS.map((k, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `key ${k.kind}`;
+    b.setAttribute("aria-label", `${k.name}: ${k.label} words`);
+    b.innerHTML = `<span class="tab"></span><span class="kl">${k.label}</span><span class="kb">${k.kb}</span>`;
+    b.addEventListener("pointerdown", e => { e.preventDefault(); press(i); });
+    b.addEventListener("click", e => { if (e.detail === 0) press(i); });
+    piano.appendChild(b);
+    return b;
+  });
+  // Black keys are scenery here: taps fall through to the white key beneath.
+  [1, 2, 4, 5, 6].forEach(n => {
+    const d = document.createElement("div");
+    d.className = "black";
+    d.style.left = `calc(${(n / 8) * 100}% - 3.75%)`;
+    piano.appendChild(d);
+  });
+
+  // ---------- stars ----------
+  const stars = $("stars");
+  for (let i = 0; i < 38; i++) {
+    const s = document.createElement("span");
+    s.className = "star";
+    const size = rand(1.5, 3.2);
+    s.style.cssText = `left:${rand(2, 98)}%;top:${rand(2, 70)}%;width:${size}px;height:${size}px;animation-delay:${rand(0, 3.2)}s`;
+    stars.appendChild(s);
+  }
+
+  // ---------- controls ----------
+  singBtn.addEventListener("click", sing);
+  clearBtn.addEventListener("click", () => { if (!singing) { line = []; renderLine(); } });
+  verseBtn.addEventListener("click", singVerse);
+  newPageBtn.addEventListener("click", newPage);
+  $("wake").addEventListener("click", () => {
+    ensureAudio();
+    started = true;
+    $("intro").hidden = true;
+    floating.slice().forEach(w => removeWord(w, "fade"));
+    moveGhost(stage.clientWidth / 2);
+    if (ac) [72, 76, 79].forEach((m, i) => tone(m, ac.currentTime + 0.05 + i * 0.12, 0.5, 0.08));
+    toast("Play one soft note.");
+  });
+
+  const KB = { a: 0, s: 1, d: 2, f: 3, g: 4, h: 5, j: 6, k: 7 };
+  addEventListener("keydown", e => {
+    if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || !started) return;
+    const k = e.key.toLowerCase();
+    if (k in KB) { e.preventDefault(); press(KB[k]); }
+    else if (e.key === " " && e.target === document.body) {
+      e.preventDefault();
+      // Catch the word that's been drifting longest.
+      const w = floating[0];
+      if (w) catchWord(w);
+    }
+    else if (e.key === "Enter" && e.target === document.body) { e.preventDefault(); sing(); }
+    else if (e.key === "Backspace" && line.length && !singing) { line.pop(); renderLine(); }
+  });
+
+  // ---------- boot ----------
+  function start(data) {
+    if (Array.isArray(data.lines)) lines = data.lines;
+    if (Array.isArray(data.line)) line = data.line;
+    if (data.page) page = data.page;
+    renderSheet();
+    renderLine();
+  }
+  window.claude?.hot?.snapshot?.(() => ({ lines, line, page }));
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+})();
+</script>
