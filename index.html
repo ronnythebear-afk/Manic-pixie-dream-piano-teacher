@@ -162,6 +162,7 @@
   .seg label:last-of-type { border-right: 0; }
   .seg input:checked + label { background: var(--lh); color: #2b1e4a; }
   .seg input:focus-visible + label { outline: 3px solid var(--spark); outline-offset: -3px; }
+  .sound-hint { margin: 0; justify-self: start; background: var(--stay); color: #2b1e4a; border: 2.5px solid var(--line); border-radius: 14px; padding: 8px 14px; font-weight: 800; }
   .mode-note { margin: 0; color: var(--muted); font-weight: 700; max-width: 62ch; }
 
   .mini { display: inline-flex; align-items: center; gap: 8px; }
@@ -308,6 +309,7 @@
       <label class="toggle"><input type="checkbox" id="loop"> Loop</label>
     </div>
     <p class="mode-note" id="modeNote"></p>
+    <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap Play again, turn your volume up, and on an iPhone flip the silent switch off.</p>
   </section>
 
   <div class="legend" aria-hidden="true">
@@ -674,21 +676,65 @@
   }
 
   // ---------- audio ----------
-  let ac = null, master = null;
+  let ac = null, master = null, silentEl = null;
+
+  // A short silent WAV. Playing it through an <audio> element moves iOS into
+  // "playback" mode, so Web Audio is heard even with the silent switch on.
+  function silentWavURL() {
+    const n = 4410, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+
+  // Must run inside a tap or click, before any await.
   function ensureAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+    if (!silentEl) {
+      try {
+        silentEl = new Audio(silentWavURL());
+        silentEl.loop = true;
+        silentEl.setAttribute("playsinline", "");
+      } catch { silentEl = false; }
+    }
+    if (silentEl && silentEl.paused) silentEl.play().catch(() => {});
     if (!ac) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return false;
       ac = new AC();
       freshMaster();
     }
-    if (ac.state === "suspended") ac.resume();
+    if (ac.state !== "running") {
+      ac.resume().catch(() => {});
+      // Older iOS also wants a buffer started from the gesture itself
+      const src = ac.createBufferSource();
+      src.buffer = ac.createBuffer(1, 1, 22050);
+      src.connect(ac.destination);
+      src.start(0);
+    }
     return true;
   }
+
+  // Resolves true once the audio clock is actually running.
+  async function audioReady() {
+    if (!ensureAudio()) { soundHint(true); return false; }
+    for (let i = 0; i < 20 && ac.state !== "running"; i++) {
+      try { await ac.resume(); } catch {}
+      if (ac.state !== "running") await new Promise(r => setTimeout(r, 25));
+    }
+    const ok = ac.state === "running";
+    soundHint(!ok);
+    return ok;
+  }
+  function soundHint(show) { $("soundHint").hidden = !show; }
+
   function freshMaster() {
     const comp = ac.createDynamicsCompressor();
     master = ac.createGain();
-    master.gain.value = 0.55;
+    master.gain.value = 0.8;
     master.connect(comp);
     comp.connect(ac.destination);
   }
@@ -743,10 +789,11 @@
       freshMaster();
     }
   }
-  function playAll() {
+  async function playAll() {
     if (playing) { stop(); return; }
-    if (!current.length || !ensureAudio()) return;
+    if (!current.length) return;
     setPlaying(true);
+    if (!(await audioReady())) { setPlaying(false); return; }
     const run = () => {
       const dur = (60 / +$("bpm").value) * 2;
       const t0 = ac.currentTime + 0.08;
@@ -761,9 +808,9 @@
     };
     run();
   }
-  function playOne(j) {
+  async function playOne(j) {
     const c = current[j];
-    if (!c || !ensureAudio()) return;
+    if (!c || !(await audioReady())) return;
     strum(c.v, ac.currentTime + 0.02, 1.4);
     if (!playing) {
       highlight(j);
