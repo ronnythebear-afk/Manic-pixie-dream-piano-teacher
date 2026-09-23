@@ -63,155 +63,132 @@
   }
 
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     background-color: var(--bg);
     background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
     background-size: 22px 22px;
     color: var(--ink);
     font-family: var(--body);
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.45;
   }
-  .wrap {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding-inline: 20px;
-    padding-block: 36px 64px;
-  }
-  button, input { font: inherit; color: inherit; }
+  button, input, select { font: inherit; color: inherit; }
   button { cursor: pointer; }
   :focus-visible { outline: 3px solid var(--spark); outline-offset: 2px; }
 
-  /* ---------- header ---------- */
-  .top { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 22px; margin-bottom: 26px; }
+  .app {
+    min-height: 100%;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding-inline: 18px;
+    padding-block: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ---------- top bar ---------- */
+  .bar { display: flex; align-items: center; gap: 12px; }
   h1 {
-    font-family: var(--display);
-    font-weight: 400;
-    font-size: clamp(48px, 9vw, 92px);
-    line-height: .9;
-    margin: 0;
-    letter-spacing: -.01em;
-    color: var(--ink);
-    text-shadow: 4px 4px 0 var(--rh);
-  }
-  h1 .dot { color: var(--lh); text-shadow: 4px 4px 0 var(--ink); }
-  .sticker {
-    display: inline-block;
-    transform: rotate(-4deg);
-    background: var(--stay);
-    color: #2b1e4a;
-    border: 2.5px solid var(--line);
-    border-radius: 999px;
-    padding: 4px 14px;
-    font-weight: 900;
-    font-size: 13px;
-    letter-spacing: .06em;
-    text-transform: uppercase;
-    box-shadow: 3px 3px 0 var(--line);
-    margin-bottom: 10px;
-  }
-  .lede { flex-basis: 100%; margin: 6px 0 0; color: var(--muted); font-weight: 700; font-size: 18px; max-width: 60ch; }
-
-  /* ---------- composer ---------- */
-  .composer { display: grid; gap: 16px; margin-bottom: 30px; }
-  .field {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--field);
-    border: 3px solid var(--line);
-    border-radius: 22px;
-    padding: 8px 8px 8px 22px;
-    box-shadow: 5px 5px 0 var(--line);
-  }
-  .field label { font-weight: 900; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-  #prog {
-    flex: 1; min-width: 0;
-    border: 0; background: transparent; outline: none;
-    font-family: var(--display); font-size: clamp(22px, 4vw, 34px);
-    padding: 6px 0;
-  }
-  .play {
     flex: none;
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--rh); color: #2b1e4a;
-    border: 3px solid var(--line); border-radius: 16px;
-    padding: 12px 20px;
-    font-weight: 900; font-size: 17px;
+    font-family: var(--display); font-weight: 400;
+    font-size: 30px; line-height: 1; margin: 0;
+    text-shadow: 2px 2px 0 var(--rh);
+  }
+  h1 .dot { color: var(--lh); text-shadow: 2px 2px 0 var(--ink); }
+  .field {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center;
+    background: var(--field);
+    border: 2.5px solid var(--line); border-radius: 16px;
     box-shadow: 3px 3px 0 var(--line);
-    transition: transform .08s, box-shadow .08s;
+    padding: 0 14px;
   }
-  .play:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--line); }
-  .play svg { width: 16px; height: 16px; }
-
-  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
-  .label { font-weight: 900; font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-  .chip {
-    border: 2px solid var(--line);
+  #prog {
+    flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+    font-family: var(--display); font-size: 22px; padding: 7px 0;
+  }
+  .btn {
+    flex: none;
+    display: inline-flex; align-items: center; gap: 7px;
+    border: 2.5px solid var(--line); border-radius: 14px;
+    padding: 8px 14px; font-weight: 900; font-size: 15px;
     background: var(--paper);
-    border-radius: 999px;
-    padding: 5px 13px;
-    font-weight: 800; font-size: 14px;
-    transition: transform .1s, background .15s;
+    box-shadow: 3px 3px 0 var(--line);
+    transition: transform .08s, box-shadow .08s, background .15s;
   }
-  .chip:hover { transform: translateY(-2px); }
-  .chip small { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .btn:active { transform: translate(3px, 3px); box-shadow: none; }
+  .btn svg { width: 14px; height: 14px; }
+  .btn.play { background: var(--rh); color: #2b1e4a; min-width: 96px; justify-content: center; }
+  .btn.loop[aria-pressed="true"] { background: var(--lh); color: #2b1e4a; }
 
-  .controls { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: center; }
-  .seg { display: inline-flex; flex-wrap: wrap; border: 2.5px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--paper); }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+  .label { font-weight: 900; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .seg { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg label { padding: 7px 15px; font-weight: 900; font-size: 15px; cursor: pointer; border-right: 2px solid var(--line); }
+  .seg label { padding: 4px 11px; font-weight: 900; font-size: 14px; cursor: pointer; border-right: 2px solid var(--line); }
   .seg label:last-of-type { border-right: 0; }
   .seg input:checked + label { background: var(--lh); color: #2b1e4a; }
   .seg input:focus-visible + label { outline: 3px solid var(--spark); outline-offset: -3px; }
-  .sound-hint { margin: 0; justify-self: start; background: var(--stay); color: #2b1e4a; border: 2.5px solid var(--line); border-radius: 14px; padding: 8px 14px; font-weight: 800; }
-  .mode-note { margin: 0; color: var(--muted); font-weight: 700; max-width: 62ch; }
-
-  .mini { display: inline-flex; align-items: center; gap: 8px; }
+  .mini { display: inline-flex; align-items: center; gap: 6px; }
   .round {
-    width: 34px; height: 34px; border-radius: 50%;
-    border: 2.5px solid var(--line); background: var(--paper);
-    font-weight: 900; font-size: 18px; line-height: 1;
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--line); background: var(--paper);
+    font-weight: 900; font-size: 16px; line-height: 1;
     display: inline-grid; place-items: center;
   }
   .round:active { transform: scale(.92); }
-  input[type="range"] { accent-color: var(--rh); width: 120px; }
-  .tabnum { font-family: var(--mono); font-size: 14px; min-width: 3ch; font-variant-numeric: tabular-nums; }
-  .toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; cursor: pointer; }
-  .toggle input { accent-color: var(--rh); width: 18px; height: 18px; }
+  input[type="range"] { accent-color: var(--rh); width: 100px; }
+  .tabnum { font-family: var(--mono); font-size: 13px; min-width: 3ch; font-variant-numeric: tabular-nums; }
+  select {
+    border: 2px solid var(--line); border-radius: 12px; background: var(--paper);
+    padding: 4px 8px; font-weight: 800; font-size: 14px; max-width: 190px;
+  }
+  .mode-note { margin: 0; color: var(--muted); font-weight: 700; font-size: 14px; }
+  .sound-hint { margin: 0; align-self: flex-start; background: var(--stay); color: #2b1e4a; border: 2px solid var(--line); border-radius: 12px; padding: 5px 12px; font-weight: 800; font-size: 14px; }
 
-  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; font-size: 14px; color: var(--muted); margin-bottom: 18px; }
-  .legend span { display: inline-flex; align-items: center; gap: 7px; }
-  .sw { width: 14px; height: 14px; border-radius: 4px; border: 2px solid var(--line); display: inline-block; }
-  .sw.lh { background: var(--lh); } .sw.rh { background: var(--rh); }
-  .sw.stay { background: var(--stay); border-radius: 50%; }
-  .sw.spark { border: 0; width: auto; height: auto; color: var(--spark); font-size: 16px; line-height: 1; }
-
-  /* ---------- cards ---------- */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 24px; }
-  .card {
-    position: relative;
+  /* ---------- chord strip ---------- */
+  .strip {
+    display: flex; gap: 10px;
+    overflow-x: auto; padding: 2px 6px 8px 2px;
+    scroll-snap-type: x proximity;
+  }
+  .tile {
+    flex: 1 0 118px; max-width: 190px;
+    scroll-snap-align: start;
+    text-align: left;
     background: var(--paper);
-    border: 3px solid var(--line);
-    border-radius: 24px;
-    padding: 16px 16px 14px;
-    box-shadow: 6px 6px 0 var(--line);
-    display: grid; gap: 12px;
-    transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s, background .2s;
+    border: 2.5px solid var(--line); border-radius: 16px;
+    box-shadow: 3px 3px 0 var(--line);
+    padding: 7px 9px 8px;
+    display: grid; gap: 4px;
+    transition: transform .15s cubic-bezier(.3,1.6,.5,1), box-shadow .15s, background .15s;
   }
-  .card.on { transform: translate(-3px, -5px) rotate(-.6deg); box-shadow: 10px 12px 0 var(--line); background: var(--tint); }
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-  .num { font-family: var(--mono); font-size: 12px; color: var(--muted); display: block; margin-bottom: 2px; }
-  .sym { font-family: var(--display); font-size: 44px; line-height: 1; overflow-wrap: anywhere; }
-  .sym .q { font-size: .62em; margin-left: 1px; color: var(--muted); }
-  .sym .sl { font-size: .62em; color: var(--muted); }
-  .play-one {
-    flex: none; width: 46px; height: 46px; border-radius: 50%;
-    background: var(--stay); color: #2b1e4a;
-    border: 3px solid var(--line); box-shadow: 2px 2px 0 var(--line);
-    display: grid; place-items: center;
-  }
-  .play-one svg { width: 16px; height: 16px; margin-left: 2px; }
-  .play-one:active { transform: translate(2px, 2px); box-shadow: none; }
+  .tile:hover { transform: translateY(-2px); }
+  .tile.sel { background: var(--tint); transform: translateY(-3px); box-shadow: 4px 6px 0 var(--line); }
+  .tile.sel .t-sym { color: var(--ink); }
+  .t-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+  .t-sym { font-family: var(--display); font-size: 22px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-sym .q, .t-sym .sl { font-size: .68em; color: var(--muted); }
+  .t-num { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .t-shape { font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-shape.ovr { color: var(--spark); }
+  .tile svg { display: block; width: 100%; height: auto; }
+  .tile.bad { border-style: dashed; box-shadow: none; background: var(--bg); cursor: default; }
+  .tile.bad .t-shape { white-space: normal; }
 
+  /* ---------- stage ---------- */
+  .stage {
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--paper);
+    border: 3px solid var(--line); border-radius: 22px;
+    box-shadow: 5px 5px 0 var(--line);
+    padding: 14px 16px;
+    min-height: 0;
+  }
+  .stage-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+  .big-sym { font-family: var(--display); font-size: 46px; line-height: 1; min-width: 2.4ch; }
+  .big-sym .q, .big-sym .sl { font-size: .6em; color: var(--muted); }
   .shape { display: flex; align-items: center; gap: 8px; }
   .nudge {
     flex: none; width: 34px; height: 34px; border-radius: 12px;
@@ -220,110 +197,102 @@
     display: grid; place-items: center;
   }
   .nudge:hover { background: var(--lh); color: #2b1e4a; }
-  .shape-name { flex: 1; min-width: 0; text-align: center; line-height: 1.2; }
+  .shape-name { min-width: 150px; text-align: center; line-height: 1.2; }
   .shape-name b { display: block; font-weight: 900; font-size: 16px; }
-  .shape-name span { font-size: 13px; color: var(--muted); font-weight: 700; }
-  .reset {
-    border: 0; background: none; padding: 0; margin-left: 4px;
-    color: var(--spark); font-weight: 900; font-size: 13px; text-decoration: underline;
-  }
+  .shape-name span { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+  .reset { border: 0; background: none; padding: 0; margin-left: 4px; color: var(--spark); font-weight: 900; font-size: 12.5px; text-decoration: underline; }
+  .moves { margin-left: auto; font-size: 14px; font-weight: 800; color: var(--muted); }
+  .moves b { color: var(--ink); }
+  .big-kbd { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 120px; cursor: pointer; }
+  .big-kbd svg { display: block; width: 100%; height: auto; max-height: min(38vh, 290px); }
 
-  .kbd { cursor: pointer; }
-  .kbd svg { display: block; width: 100%; height: auto; }
   .kw { fill: var(--key-w); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
   .kb { fill: var(--key-b); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
   .kw.lh, .kb.lh { fill: var(--lh); }
   .kw.rh, .kb.rh { fill: var(--rh); }
   .stay { fill: var(--stay); stroke: var(--key-edge); stroke-width: .8; }
-  .oct { fill: var(--muted); font-family: var(--mono); font-size: 5.2px; text-anchor: middle; }
+  .oct { fill: var(--muted); font-family: var(--mono); font-size: 4.6px; text-anchor: middle; }
+  .kl { fill: #2b1e4a; font-family: var(--body); font-weight: 900; font-size: 4.2px; text-anchor: middle; }
+  .kl.onb { font-size: 3.4px; }
 
-  .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-  .hand { font-weight: 900; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-right: 2px; }
-  .hand + .n { margin-left: 0; }
-  .n {
-    font-family: var(--mono); font-size: 13px;
-    border: 2px solid var(--line); border-radius: 8px;
-    padding: 1px 7px; color: #2b1e4a;
-  }
+  .stage-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 18px; }
+  .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  .hand { font-weight: 900; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .n { font-family: var(--mono); font-size: 13px; border: 2px solid var(--line); border-radius: 8px; padding: 0 6px; color: #2b1e4a; }
   .n.lh { background: var(--lh); } .n.rh { background: var(--rh); }
   .n.spk::before { content: "✦ "; }
-  .gap { width: 10px; }
-  .moves { font-size: 14px; font-weight: 800; color: var(--muted); border-top: 2px dashed var(--dot); padding-top: 10px; }
-  .moves b { color: var(--ink); }
+  .gap { width: 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 700; font-size: 12.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw { width: 11px; height: 11px; border-radius: 3px; border: 2px solid var(--line); display: inline-block; }
+  .sw.lh { background: var(--lh); } .sw.rh { background: var(--rh); }
+  .sw.stay { background: var(--stay); border-radius: 50%; }
+  .sw.spark { border: 0; width: auto; height: auto; color: var(--spark); font-size: 13px; line-height: 1; }
+  .empty { margin: auto; font-weight: 800; color: var(--muted); font-size: 17px; text-align: center; }
 
-  .card.bad { background: var(--bg); border-style: dashed; box-shadow: none; align-content: start; }
-  .card.bad p { margin: 0; color: var(--muted); font-weight: 700; }
-  .empty { grid-column: 1 / -1; text-align: center; padding: 48px 16px; font-weight: 800; color: var(--muted); font-size: 18px; }
+  .help { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 0; }
+  .help kbd { font-family: var(--mono); font-size: 11.5px; border: 1.5px solid var(--dot); background: var(--paper); border-radius: 5px; padding: 0 4px; }
+  @media (hover: none) { .keys-hint { display: none; } }
 
-  footer { margin-top: 44px; color: var(--muted); font-size: 14px; font-weight: 700; max-width: 70ch; }
-  footer code { font-family: var(--mono); font-size: 13px; background: var(--paper); border: 1.5px solid var(--dot); border-radius: 6px; padding: 0 5px; }
-
-  @media (max-width: 560px) {
-    .field { flex-wrap: wrap; padding: 12px 12px 12px 16px; }
-    .field label { flex-basis: 100%; }
-    #prog { flex-basis: 100%; }
-    .play { width: 100%; justify-content: center; }
-    .sym { font-size: 38px; }
+  @media (max-width: 640px) {
+    .app { padding-inline: 16px; gap: 10px; }
+    .bar { flex-wrap: wrap; gap: 10px 8px; }
+    h1 { font-size: 24px; flex: 1; }
+    .field { flex-basis: 100%; order: 5; }
+    .btn { padding: 6px 11px; }
+    .btn.play { min-width: 80px; }
+    .help { display: none; }
+    .stage { padding: 12px; gap: 8px; }
+    .controls { gap: 8px 12px; }
+    .big-sym { font-size: 38px; }
+    .moves { margin-left: 0; flex-basis: 100%; }
+    .shape { flex: 1; }
+    .shape-name { flex: 1; min-width: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
-    .card.on { transform: none; }
   }
 </style>
 
-<div class="wrap">
-  <header class="top">
+<div class="app">
+  <header class="bar">
     <h1>Pixie Chords<span class="dot">.</span></h1>
-    <span class="sticker">your dream piano teacher</span>
-    <p class="lede">Type a chord progression and see where your hands could go. Tap the arrows on any chord to try another shape.</p>
+    <div class="field">
+      <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" value="C Am F G" aria-label="Chord progression" placeholder="Type chords, like C Am F G">
+    </div>
+    <button class="btn play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play</span></button>
+    <button class="btn loop" id="loop" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7l-2-2M12 11H5l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Loop</button>
   </header>
 
-  <section class="composer" aria-label="Progression">
-    <div class="field">
-      <label for="prog">Chords</label>
-      <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" value="C Am F G" aria-describedby="help">
-      <button class="play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play it</span></button>
+  <div class="controls">
+    <div class="seg" role="radiogroup" aria-label="Voicing style">
+      <input type="radio" name="mode" id="m-smooth" value="smooth" checked><label for="m-smooth">Smooth</label>
+      <input type="radio" name="mode" id="m-simple" value="simple"><label for="m-simple">Simple</label>
+      <input type="radio" name="mode" id="m-open" value="open"><label for="m-open">Open</label>
+      <input type="radio" name="mode" id="m-jazzy" value="jazzy"><label for="m-jazzy">Jazzy</label>
     </div>
-
-    <div class="row" id="presets">
-      <span class="label">Try</span>
+    <div class="mini">
+      <span class="label">Key</span>
+      <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
+      <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
     </div>
-
-    <div class="controls">
-      <div class="seg" role="radiogroup" aria-label="Voicing style">
-        <input type="radio" name="mode" id="m-smooth" value="smooth" checked><label for="m-smooth">Smooth</label>
-        <input type="radio" name="mode" id="m-simple" value="simple"><label for="m-simple">Simple</label>
-        <input type="radio" name="mode" id="m-open" value="open"><label for="m-open">Open</label>
-        <input type="radio" name="mode" id="m-jazzy" value="jazzy"><label for="m-jazzy">Jazzy</label>
-      </div>
-      <div class="mini">
-        <span class="label">Key</span>
-        <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
-        <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
-      </div>
-      <div class="mini">
-        <label class="label" for="bpm">Tempo</label>
-        <input type="range" id="bpm" min="50" max="150" value="88">
-        <span class="tabnum" id="bpmVal">88</span>
-      </div>
-      <label class="toggle"><input type="checkbox" id="loop"> Loop</label>
+    <div class="mini">
+      <label class="label" for="bpm">Tempo</label>
+      <input type="range" id="bpm" min="50" max="150" value="88">
+      <span class="tabnum" id="bpmVal">88</span>
     </div>
-    <p class="mode-note" id="modeNote"></p>
-    <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap Play again, turn your volume up, and on an iPhone flip the silent switch off.</p>
-  </section>
-
-  <div class="legend" aria-hidden="true">
-    <span><i class="sw lh"></i>Left hand</span>
-    <span><i class="sw rh"></i>Right hand</span>
-    <span><i class="sw stay"></i>Same key as the chord before</span>
-    <span><i class="sw spark">✦</i>Extra color note</span>
+    <select id="presets" aria-label="Try a progression">
+      <option value="">Try a progression…</option>
+    </select>
   </div>
+  <p class="mode-note" id="modeNote"></p>
+  <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap Play again, turn your volume up, and on an iPhone flip the silent switch off.</p>
 
-  <main class="cards" id="cards" aria-live="polite"></main>
+  <nav class="strip" id="strip" aria-label="Chords in the progression"></nav>
 
-  <footer id="help">
-    Separate chords with spaces. It reads <code>C</code> <code>Cm</code> <code>C7</code> <code>Cmaj7</code> <code>Cm7</code> <code>Cm7b5</code> <code>Cdim</code> <code>Cdim7</code> <code>Caug</code> <code>Csus2</code> <code>Csus4</code> <code>C6</code> <code>Cadd9</code> <code>C9</code> <code>Cmaj9</code> <code>C13</code>, sharps and flats like <code>F#m</code> or <code>Bb7</code>, and slash chords like <code>C/E</code>. Tap a keyboard to hear that chord.
-  </footer>
+  <main class="stage" id="stage" aria-live="polite"></main>
+
+  <p class="help">Reads C, Cm, C7, Cmaj7, Cm7, Cm7b5, Cdim7, Caug, Csus4, C6, Cadd9, C9, C13, F#m, Bb7 and C/E.<span class="keys-hint"> Keys: <kbd>space</kbd> play, <kbd>←</kbd><kbd>→</kbd> pick a chord, <kbd>↑</kbd><kbd>↓</kbd> change its shape.</span></p>
 </div>
 
 <script>
@@ -551,44 +520,51 @@
   // ---------- keyboard drawing ----------
   const BLACK = new Set([1, 3, 6, 8, 10]);
   const isBlack = m => BLACK.has(mod(m));
-  function keyboard(v, lo, hi, stay) {
+  function keyboard(v, lo, hi, stay, label) {
     const lh = new Set(v.lh), rh = new Set(v.rh);
-    const W = 10, H = 44, BW = 6, BH = 27;
+    const W = 10, H = label ? 46 : 36, BW = 6, BH = label ? 28 : 22;
     const whites = [];
     for (let m = lo; m <= hi; m++) if (!isBlack(m)) whites.push(m);
     const pos = new Map(whites.map((m, i) => [m, i]));
     const cls = m => (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
-    let s = `<svg viewBox="0 0 ${whites.length * W + 1} ${H + 10}" role="img" aria-hidden="true">`;
+    let s = `<svg viewBox="0 0 ${whites.length * W + 1} ${H + (label ? 9 : 1)}" aria-hidden="true">`;
     whites.forEach((m, i) => {
+      const cx = i * W + .5 + W / 2;
       s += `<rect class="kw${cls(m)}" x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.8"/>`;
-      if (stay.has(m)) s += `<circle class="stay" cx="${i * W + .5 + W / 2}" cy="${H - 6}" r="2.4"/>`;
-      if (mod(m) === 0) s += `<text class="oct" x="${i * W + .5 + W / 2}" y="${H + 8}">C${m / 12 - 1}</text>`;
+      if (stay.has(m)) s += `<circle class="stay" cx="${cx}" cy="${label ? H - 14 : H - 6}" r="${label ? 2.4 : 2.8}"/>`;
+      if (label && cls(m)) s += `<text class="kl" x="${cx}" y="${H - 4}">${label(m)}</text>`;
+      if (label && mod(m) === 0) s += `<text class="oct" x="${cx}" y="${H + 7.5}">C${m / 12 - 1}</text>`;
     });
     for (let m = lo; m <= hi; m++) {
       if (!isBlack(m) || !pos.has(m - 1)) continue;
       const x = (pos.get(m - 1) + 1) * W + .5 - BW / 2;
       s += `<rect class="kb${cls(m)}" x="${x}" y=".5" width="${BW}" height="${BH}" rx="1.2"/>`;
-      if (stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${BH - 5}" r="2.1"/>`;
+      if (stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${label ? BH - 11 : BH - 5}" r="${label ? 2.1 : 2.4}"/>`;
+      if (label && cls(m)) s += `<text class="kl onb" x="${x + BW / 2}" y="${BH - 3.5}">${label(m)}</text>`;
     }
     return s + "</svg>";
   }
 
   // ---------- state ----------
   const $ = id => document.getElementById(id);
-  const input = $("prog"), cardsEl = $("cards");
+  const input = $("prog"), stripEl = $("strip"), stageEl = $("stage");
   const store = {
     get(k) { try { return localStorage.getItem("pixie:" + k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem("pixie:" + k, v); } catch {} }
   };
   const overrides = new Map();
-  let current = []; // [{ch, v, opt, len, i}]
+  let items = [];   // every typed token, valid or not
+  let current = []; // the valid chords with their chosen shape
+  let range = [48, 72];
+  let sel = 0;      // index into current
   let mode = "smooth";
+  let loopOn = true;
 
   const MODE_NOTES = {
-    smooth: "Each chord picks the shape closest to the one before, so your hands barely travel.",
-    simple: "Every chord in root position. Easy to read, but your hand hops around.",
-    open: "Left hand spreads out, right hand floats up high. Big and airy.",
-    jazzy: "Root and 7th in the left hand, color up top. Plain triads get a 9th."
+    smooth: "Smooth: each chord takes the shape closest to the one before, so your hands barely travel.",
+    simple: "Simple: every chord in root position. Easy to read, but your hand hops around.",
+    open: "Open: left hand spreads out, right hand floats up high. Big and airy.",
+    jazzy: "Jazzy: root and 7th in the left hand, color up top. Plain triads get a 9th."
   };
 
   const PRESETS = [
@@ -610,69 +586,100 @@
     return `${esc(pretty(ch.rootName))}${q ? `<span class="q">${esc(q)}</span>` : ""}${ch.slash ? `<span class="sl">/${esc(pretty(ch.bassName))}</span>` : ""}`;
   }
 
+  // Work out every chord's shape, then draw the strip and the stage
   function render() {
-    const items = tokenize(input.value).map((tok, i) => ({ tok, i, key: i + ":" + tok, ch: parseChord(tok) }));
+    items = tokenize(input.value).map((tok, i) => ({ tok, i, key: i + ":" + tok, ch: parseChord(tok) }));
     const valid = items.filter(x => x.ch);
     const opts = valid.map(x => options(x.ch));
     const ovr = valid.map(x => overrides.get(x.key));
     const picked = valid.length ? choose(opts, mode, ovr) : [];
 
-    current = valid.map((x, j) => ({ ...x, v: picked[j].v, opt: picked[j].opt, len: opts[j].length, j }));
+    let prev = null;
+    current = valid.map((x, j) => {
+      const v = picked[j].v, notes = allNotes(v);
+      const stay = new Set(prev ? notes.filter(n => prev.includes(n)) : []);
+      let moves = "Starting shape";
+      if (prev) {
+        const moved = notes.length - stay.size;
+        const steps = Math.round(travel(prev, notes));
+        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"} · ${steps} half-step${steps === 1 ? "" : "s"} apart`;
+      }
+      prev = notes;
+      return { ...x, v, opt: picked[j].opt, len: opts[j].length, j, stay, moves };
+    });
+    // the first chord's gold dots compare against the last one when looping
+    if (current.length > 1 && loopOn) {
+      const last = allNotes(current[current.length - 1].v);
+      current[0].stay = new Set(allNotes(current[0].v).filter(n => last.includes(n)));
+    }
 
     let lo = Infinity, hi = -Infinity;
     current.forEach(c => allNotes(c.v).forEach(n => { lo = Math.min(lo, n); hi = Math.max(hi, n); }));
+    if (!current.length) { lo = 48; hi = 72; }
     lo -= 1; hi += 1;
     while (isBlack(lo)) lo--;
     while (isBlack(hi)) hi++;
     while (hi - lo < 24) { hi++; if (hi - lo < 24) lo--; }
     while (isBlack(lo)) lo--;
     while (isBlack(hi)) hi++;
+    range = [lo, hi];
 
-    if (!items.length) {
-      cardsEl.innerHTML = `<div class="empty">Type some chords up there, like C Am F G.</div>`;
+    if (sel >= current.length) sel = Math.max(0, current.length - 1);
+    renderStrip();
+    renderStage();
+  }
+
+  function renderStrip() {
+    const byIndex = new Map(current.map(c => [c.i, c]));
+    stripEl.innerHTML = items.map((it, n) => {
+      const c = byIndex.get(it.i);
+      if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.tok)}</span><span class="t-num">${n + 1}</span></div><span class="t-shape">Not a chord I know</span></div>`;
+      const ovr = overrides.has(it.key);
+      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" aria-label="${esc(it.tok)}, ${c.v.name}">
+        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${n + 1}</span></span>
+        ${keyboard(c.v, range[0], range[1], c.stay)}
+        <span class="t-shape${ovr ? " ovr" : ""}">${c.v.name}</span>
+      </button>`;
+    }).join("");
+  }
+
+  function renderStage() {
+    stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
+    const tile = stripEl.querySelector(`.tile[data-j="${sel}"]`);
+    if (tile) {
+      tile.classList.add("sel");
+      const r = tile.getBoundingClientRect(), s = stripEl.getBoundingClientRect();
+      if (r.left < s.left || r.right > s.right) stripEl.scrollLeft += r.left - s.left - 8;
+    }
+    const c = current[sel];
+    if (!c) {
+      stageEl.innerHTML = `<p class="empty">Type some chords up top, like C Am F G.</p>`;
       return;
     }
-
-    const byIndex = new Map(current.map(c => [c.i, c]));
-    let prev = null, html = "";
-    items.forEach((it, n) => {
-      const c = byIndex.get(it.i);
-      if (!c) {
-        html += `<article class="card bad"><div><span class="num">${n + 1}</span><div class="sym">${esc(it.tok)}</div></div><p>I don't know this one yet. Try something like Cm7, F#dim or Bb/D.</p></article>`;
-        return;
-      }
-      const notes = allNotes(c.v);
-      const stay = new Set(prev ? notes.filter(x => prev.includes(x)) : []);
-      const spark = new Set(c.v.spark);
-      const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
-      const low = noteName(c.ch, c.v.rh[0]);
-      const blurb = c.v.blurb || `${low} on the bottom`;
-      let moves;
-      if (!prev) moves = "Starting shape";
-      else {
-        const moved = notes.length - stay.size;
-        const steps = Math.round(travel(prev, notes));
-        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"} · ${steps} half-step${steps === 1 ? "" : "s"} apart`;
-      }
-      const isOvr = overrides.has(it.key);
-      html += `<article class="card" data-j="${c.j}">
-        <div class="card-top">
-          <div><span class="num">${n + 1}</span><div class="sym">${symbolHTML(c.ch)}</div></div>
-          <button class="play-one" type="button" data-act="play" aria-label="Play ${esc(it.tok)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg></button>
-        </div>
+    const spark = new Set(c.v.spark);
+    const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
+    const blurb = c.v.blurb || `${noteName(c.ch, c.v.rh[0])} on the bottom`;
+    const ovr = overrides.has(c.key);
+    stageEl.innerHTML = `
+      <div class="stage-head">
+        <div class="big-sym">${symbolHTML(c.ch)}</div>
         <div class="shape">
           <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
-          <div class="shape-name"><b>${c.v.name}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${isOvr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
+          <div class="shape-name"><b>${c.v.name}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
           <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
         </div>
-        <div class="kbd" data-act="play">${keyboard(c.v, lo, hi, stay)}</div>
+        <div class="moves">${c.moves}</div>
+      </div>
+      <div class="big-kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], c.stay, m => noteName(c.ch, m))}</div>
+      <div class="stage-foot">
         <div class="notes"><span class="hand">Left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}<span class="gap"></span><span class="hand">Right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}</div>
-        <div class="moves">${moves}</div>
-      </article>`;
-      prev = notes;
-    });
-    cardsEl.innerHTML = html;
-    if (playingIdx != null) highlight(playingIdx);
+        <div class="legend" aria-hidden="true">
+          <span><i class="sw lh"></i>Left</span>
+          <span><i class="sw rh"></i>Right</span>
+          <span><i class="sw stay"></i>Stays from last chord</span>
+          <span><i class="sw spark">✦</i>Color note</span>
+        </div>
+      </div>`;
   }
 
   // ---------- audio ----------
@@ -761,26 +768,25 @@
     v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15));
   }
 
-  let timers = [], playingIdx = null, playing = false;
+
+  // ---------- playback ----------
+  // Chords are scheduled one at a time, a moment ahead, so edits made
+  // while it plays (shape, style, tempo, key) land on the next chord.
+  let playing = false, step = 0, nextT = 0;
+  const timers = new Set();
+  const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, Math.max(0, ms)); timers.add(id); };
   const playBtn = $("playAll");
-  function highlight(j) {
-    cardsEl.querySelectorAll(".card.on").forEach(el => el.classList.remove("on"));
-    if (j == null) return;
-    const el = cardsEl.querySelector(`.card[data-j="${j}"]`);
-    if (el) el.classList.add("on");
-  }
+
   function setPlaying(on) {
     playing = on;
-    playBtn.querySelector("span").textContent = on ? "Stop" : "Play it";
+    playBtn.querySelector("span").textContent = on ? "Stop" : "Play";
     playBtn.querySelector("svg").innerHTML = on
       ? '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/>'
       : '<path d="M3 1.5v13l11-6.5z" fill="currentColor"/>';
   }
   function stop() {
     timers.forEach(clearTimeout);
-    timers = [];
-    playingIdx = null;
-    highlight(null);
+    timers.clear();
     setPlaying(false);
     if (ac && master) {
       const old = master;
@@ -789,33 +795,35 @@
       freshMaster();
     }
   }
+  function tick() {
+    if (!playing) return;
+    if (!current.length) { stop(); return; }
+    if (step >= current.length) {
+      if (!loopOn) { later(() => setPlaying(false), (nextT - ac.currentTime) * 1000); return; }
+      step = 0;
+    }
+    const c = current[step];
+    const dur = (60 / +$("bpm").value) * 2;
+    const at = nextT, j = c.j;
+    strum(c.v, at, dur);
+    later(() => { if (playing) { sel = j; renderStage(); } }, (at - ac.currentTime) * 1000);
+    nextT += dur;
+    step++;
+    later(tick, (nextT - ac.currentTime - 0.12) * 1000);
+  }
   async function playAll() {
     if (playing) { stop(); return; }
     if (!current.length) return;
     setPlaying(true);
     if (!(await audioReady())) { setPlaying(false); return; }
-    const run = () => {
-      const dur = (60 / +$("bpm").value) * 2;
-      const t0 = ac.currentTime + 0.08;
-      current.forEach((c, k) => {
-        strum(c.v, t0 + k * dur, dur);
-        timers.push(setTimeout(() => { playingIdx = c.j; highlight(c.j); }, (0.08 + k * dur) * 1000));
-      });
-      timers.push(setTimeout(() => {
-        if ($("loop").checked && current.length) run();
-        else { playingIdx = null; highlight(null); setPlaying(false); }
-      }, (0.08 + current.length * dur) * 1000));
-    };
-    run();
+    step = sel;
+    nextT = ac.currentTime + 0.08;
+    tick();
   }
   async function playOne(j) {
     const c = current[j];
-    if (!c || !(await audioReady())) return;
+    if (!c || playing || !(await audioReady())) return;
     strum(c.v, ac.currentTime + 0.02, 1.4);
-    if (!playing) {
-      highlight(j);
-      timers.push(setTimeout(() => { if (!playing) highlight(null); }, 700));
-    }
   }
 
   // ---------- transpose ----------
@@ -829,7 +837,6 @@
   }
   function transpose(n) {
     input.value = input.value.replace(/[^\s,|]+/g, t => shiftTok(t, n));
-    overrides.clear();
     changed();
   }
 
@@ -838,20 +845,45 @@
     store.set("prog", input.value);
     render();
   }
+  function nudge(dir) {
+    const c = current[sel];
+    if (!c) return;
+    overrides.set(c.key, mod(c.opt + dir, c.len));
+    render();
+    playOne(sel);
+  }
+  function pick(j) {
+    if (j < 0 || j >= current.length) return;
+    sel = j;
+    renderStage();
+    playOne(j);
+  }
 
   const presetsEl = $("presets");
   PRESETS.forEach(([name, prog]) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip";
-    b.innerHTML = `${esc(name)}<small>${esc(prog.split(" ").slice(0, 3).join(" "))}${prog.split(" ").length > 3 ? "…" : ""}</small>`;
-    b.addEventListener("click", () => { input.value = prog; overrides.clear(); changed(); });
-    presetsEl.appendChild(b);
+    const o = document.createElement("option");
+    o.value = prog;
+    o.textContent = `${name} · ${prog}`;
+    presetsEl.appendChild(o);
+  });
+  presetsEl.addEventListener("change", () => {
+    if (!presetsEl.value) return;
+    input.value = presetsEl.value;
+    presetsEl.value = "";
+    overrides.clear();
+    sel = 0;
+    changed();
   });
 
   input.addEventListener("input", changed);
-  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); playAll(); } });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
   playBtn.addEventListener("click", playAll);
+  $("loop").addEventListener("click", e => {
+    loopOn = !loopOn;
+    e.currentTarget.setAttribute("aria-pressed", loopOn);
+    store.set("loop", loopOn ? "1" : "0");
+    render();
+  });
   $("up").addEventListener("click", () => transpose(1));
   $("down").addEventListener("click", () => transpose(-1));
   $("bpm").addEventListener("input", e => { $("bpmVal").textContent = e.target.value; store.set("bpm", e.target.value); });
@@ -863,23 +895,35 @@
     render();
   }));
 
-  cardsEl.addEventListener("click", e => {
+  stripEl.addEventListener("click", e => {
+    const t = e.target.closest(".tile[data-j]");
+    if (t) pick(+t.dataset.j);
+  });
+  stageEl.addEventListener("click", e => {
     const el = e.target.closest("[data-act]");
-    const card = e.target.closest(".card[data-j]");
-    if (!el || !card) return;
-    const j = +card.dataset.j;
-    const c = current[j];
-    if (!c) return;
-    if (el.dataset.act === "play") playOne(j);
-    else if (el.dataset.act === "nudge") {
-      overrides.set(c.key, mod(c.opt + +el.dataset.dir, c.len));
+    if (!el) return;
+    const act = el.dataset.act;
+    if (act === "play") playOne(sel);
+    else if (act === "nudge") {
+      const dir = +el.dataset.dir;
+      nudge(dir);
+      const again = stageEl.querySelector(`.nudge[data-dir="${dir}"]`);
+      if (again) again.focus();
+    } else if (act === "reset") {
+      overrides.delete(current[sel].key);
       render();
-      playOne(j);
-    } else if (el.dataset.act === "reset") {
-      overrides.delete(c.key);
-      render();
-      playOne(j);
+      playOne(sel);
     }
+  });
+
+  document.addEventListener("keydown", e => {
+    const tag = e.target.tagName;
+    if (tag === "INPUT" || tag === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === " " && tag !== "BUTTON") { e.preventDefault(); playAll(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); pick(sel + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); pick(sel - 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); nudge(1); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); nudge(-1); }
   });
 
   // restore per-viewer conveniences
@@ -888,11 +932,12 @@
   const savedMode = store.get("mode");
   if (savedMode && MODE_NOTES[savedMode]) {
     mode = savedMode;
-    const r = document.getElementById("m-" + mode);
+    const r = $("m-" + mode);
     if (r) r.checked = true;
   }
   const savedBpm = store.get("bpm");
   if (savedBpm) { $("bpm").value = savedBpm; $("bpmVal").textContent = savedBpm; }
+  if (store.get("loop") === "0") { loopOn = false; $("loop").setAttribute("aria-pressed", "false"); }
   $("modeNote").textContent = MODE_NOTES[mode];
   render();
 })();
