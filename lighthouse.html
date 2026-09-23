@@ -1,0 +1,1378 @@
+<title>The Long Way to the Lighthouse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Berkshire+Swash&family=Courier+Prime:wght@400;700&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Kalam:wght@400;700&display=swap">
+<style>
+  /* One look in both themes: a paper-cut night. */
+  :root {
+    color-scheme: dark;
+    --night: #120f22;
+    --on-night: #efe3c6;
+    --on-night-muted: #a99fbd;
+    --paper: #f1e5c9;
+    --paper-hi: #f7eedb;
+    --ink: #2a2118;
+    --ink-soft: #6a5844;
+    --rule: #cdb98f;
+    --gold: #d6a943;
+    --gold-hi: #f1cf78;
+    --rose: #b3303e;
+    --sea: #2e5a8c;
+    --moss: #2b7a5d;
+    --display: "Berkshire Swash", "Palatino", "Georgia", serif;
+    --serif: "IM Fell English", "Iowan Old Style", "Palatino", "Georgia", serif;
+    --caps: "IM Fell English SC", "IM Fell English", "Palatino", "Georgia", serif;
+    --type: "Courier Prime", "Courier New", ui-monospace, monospace;
+    --hand: "Kalam", "Bradley Hand", "Segoe Print", cursive;
+    --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .16 0 0 0 0 .12 0 0 0 0 .08 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+    --kb: 0px;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; overflow: hidden;
+    background: var(--night); color: var(--on-night);
+    font-family: var(--serif); font-size: 16px; line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+  }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; touch-action: manipulation; }
+  :focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
+  canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: var(--caps); font-size: 17px; letter-spacing: .03em; line-height: 1.1;
+    padding: 9px 16px; border-radius: 7px;
+    background: var(--gold); color: var(--ink);
+    border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink);
+    white-space: nowrap;
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: none; }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; box-shadow: 0 3px 0 var(--ink); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--ink-soft); box-shadow: none; }
+  .btn.ghost:active { transform: none; }
+  .btn.sm { font-size: 15px; padding: 5px 11px; }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    position: fixed; left: 0; right: 0; top: 0; z-index: 5;
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 0;
+    pointer-events: none;
+  }
+  .scene { margin-right: auto; }
+  .scene b { display: block; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.1; color: var(--gold-hi); text-shadow: 2px 2px 0 rgba(0,0,0,.5); }
+  .scene small { font-family: var(--caps); font-size: 14px; color: var(--on-night-muted); }
+  .pocket { display: flex; gap: 4px; align-items: center; pointer-events: auto; }
+  .pocket .item {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--paper); border: 2px solid var(--ink);
+    display: grid; place-items: center; color: var(--ink);
+  }
+  .pocket .item svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+  .hud .btn { pointer-events: auto; }
+  .hud .songbtn { background: rgba(18,15,34,.6); color: var(--on-night); border-color: var(--on-night-muted); box-shadow: none; }
+
+  .caption {
+    position: fixed; left: 50%; z-index: 4;
+    bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+    translate: -50% 0; width: min(420px, calc(100% - 32px));
+    padding: 8px 14px;
+    background-color: var(--paper); background-image: var(--grain);
+    color: var(--ink); font-style: italic; font-size: 17px; line-height: 1.3; text-align: center;
+    box-shadow: 3px 4px 0 rgba(0,0,0,.45);
+    rotate: -.6deg;
+    opacity: 0; transition: opacity .6s;
+    pointer-events: none;
+  }
+  .caption.show { opacity: 1; }
+
+  .title-card {
+    position: fixed; left: 50%; top: 22%; z-index: 4; translate: -50% 0;
+    text-align: center; pointer-events: none;
+    opacity: 0; transition: opacity 1s;
+  }
+  .title-card.show { opacity: 1; }
+  .title-card span { font-family: var(--caps); letter-spacing: .14em; color: var(--gold); font-size: 15px; }
+  .title-card b { display: block; font-family: var(--display); font-weight: 400; font-size: clamp(30px, 8vw, 44px); line-height: 1.05; color: var(--on-night); text-shadow: 3px 3px 0 rgba(0,0,0,.6); }
+
+  /* ---------- touch controls ---------- */
+  .pad {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    display: flex; align-items: flex-end; gap: 12px;
+    padding: 0 16px calc(18px + env(safe-area-inset-bottom, 0px));
+    pointer-events: none;
+  }
+  .pad button {
+    pointer-events: auto;
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(241, 229, 201, .12); border: 2px solid rgba(241, 229, 201, .5);
+    color: var(--on-night); display: grid; place-items: center;
+    touch-action: none;
+  }
+  .pad button.on { background: rgba(241, 229, 201, .3); }
+  .pad svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+  .pad .jump { margin-left: auto; width: 84px; height: 84px; }
+  .keys-hint { position: fixed; left: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 5; font-family: var(--caps); font-size: 14px; color: var(--on-night-muted); }
+  .keys-hint kbd { font-family: var(--type); font-size: 12px; border: 1.5px solid var(--on-night-muted); border-radius: 5px; padding: 0 5px; }
+  @media (hover: hover) and (pointer: fine) { .pad { display: none; } }
+  @media (hover: none), (pointer: coarse) { .keys-hint { display: none; } }
+
+  /* ---------- the writing slip ---------- */
+  .slip {
+    position: fixed; left: 50%; z-index: 8;
+    bottom: calc(var(--kb) + 12px + env(safe-area-inset-bottom, 0px));
+    translate: -50% 0; width: min(520px, calc(100% - 24px));
+    max-height: 60vh; overflow-y: auto;
+    background-color: var(--paper); background-image: var(--grain);
+    color: var(--ink); border-radius: 10px; border-top: 8px solid var(--gold);
+    padding: 12px 16px 14px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.55);
+    display: flex; flex-direction: column; gap: 8px;
+    user-select: text; -webkit-user-select: text;
+    animation: up .35s cubic-bezier(.3,1.2,.5,1);
+  }
+  @keyframes up { from { translate: -50% 40px; opacity: 0; } }
+  /* Short landscape screens: the slip sits to the right so the gap stays in view. */
+  @media (orientation: landscape) and (max-height: 560px) {
+    .slip { left: auto; right: 12px; translate: none; width: min(400px, 48%); max-height: calc(100% - 24px - var(--kb)); animation-name: side; }
+    .slip .ask { font-size: 17px; }
+    @keyframes side { from { translate: 40px 0; opacity: 0; } }
+  }
+  .slip h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 21px; line-height: 1.1; }
+  .slip .ask { margin: 0; font-size: 19px; line-height: 1.3; text-wrap: pretty; }
+  .slip .rule { margin: 0; font-family: var(--caps); font-size: 15px; color: var(--ink-soft); line-height: 1.3; }
+  .slip .pocket-line { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--caps); font-size: 14px; color: var(--ink-soft); }
+  .chip { font-family: var(--type); font-size: 14px; padding: 1px 8px; border-radius: 999px; border: 1.5px dashed var(--ink-soft); color: var(--ink); }
+  .chip.hit { background: var(--gold); border-style: solid; border-color: var(--ink); }
+  .slip input {
+    width: 100%; border: 0; outline: none; border-bottom: 2px solid var(--ink);
+    background: transparent; font-family: var(--type); font-size: 18px; padding: 6px 2px; color: var(--ink);
+  }
+  .slip .foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .status { flex: 1 1 160px; font-style: italic; font-size: 15px; color: var(--ink-soft); line-height: 1.25; }
+  .status.good { color: var(--moss); }
+  .status.bad { color: var(--rose); }
+
+  /* ---------- sheets: start, song, end ---------- */
+  .veil {
+    position: fixed; inset: 0; z-index: 10;
+    display: grid; place-items: center; padding: 16px;
+    background: rgba(12, 9, 22, .72);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+    overflow-y: auto;
+  }
+  .sheet {
+    width: 100%; max-width: 460px;
+    background-color: var(--paper-hi); background-image: var(--grain);
+    color: var(--ink); border-radius: 12px; padding: 22px 20px 18px;
+    border: 3px solid #221a12; outline: 2px solid var(--gold); outline-offset: -9px;
+    box-shadow: 0 14px 30px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 12px;
+    user-select: text; -webkit-user-select: text;
+  }
+  .sheet h1, .sheet h2 { margin: 0; font-family: var(--display); font-weight: 400; line-height: 1.05; text-wrap: balance; }
+  .sheet h1 { font-size: clamp(30px, 8.5vw, 40px); color: var(--ink); }
+  .sheet h2 { font-size: 26px; }
+  .sheet p { margin: 0; text-wrap: pretty; }
+  .eyebrow { font-family: var(--caps); letter-spacing: .12em; font-size: 14px; color: var(--rose); }
+  .lyrics { list-style: none; margin: 0; padding: 0; }
+  .lyrics li { font-family: var(--hand); font-size: 20px; line-height: 1.3; border-bottom: 1px solid var(--rule); padding: 4px 0 2px; }
+  .lyrics li.empty { color: var(--ink-soft); font-size: 17px; }
+  .sheet input[type="text"] {
+    border: 0; border-bottom: 2px solid var(--ink); background: transparent; outline: none;
+    font-family: var(--hand); font-size: 24px; padding: 2px 0; width: 100%; color: var(--ink);
+  }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .room { border-left: 3px solid var(--gold); padding: 2px 0 2px 12px; }
+  .room .who { font-family: var(--caps); font-size: 13px; color: var(--ink-soft); letter-spacing: .06em; }
+  .room p { font-style: italic; font-size: 17px; }
+  .kept { font-size: 15px; color: var(--ink-soft); }
+  .kept summary { cursor: pointer; font-family: var(--caps); }
+  .kept pre { white-space: pre-wrap; font-family: var(--hand); font-size: 16px; margin: 6px 0 10px; color: var(--ink); }
+  .toast {
+    position: fixed; left: 50%; top: calc(64px + env(safe-area-inset-top, 0px)); z-index: 20;
+    translate: -50% 0; max-width: calc(100% - 32px);
+    padding: 7px 14px; border-radius: 8px;
+    background: var(--ink); color: var(--paper-hi); border: 1.5px solid var(--gold);
+    font-family: var(--caps); font-size: 16px; text-align: center;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001s !important; transition-duration: .001s !important; }
+  }
+</style>
+
+<canvas id="c" aria-label="The world: a paper-cut night between a boarding house and a lighthouse"></canvas>
+
+<div class="hud">
+  <div class="scene" id="scene"><b></b><small></small></div>
+  <div class="pocket" id="pocket" aria-label="Keepsakes you've found"></div>
+  <button class="btn sm songbtn" id="songBtn">The song</button>
+</div>
+<div class="title-card" id="titleCard"><span></span><b></b></div>
+<p class="caption" id="caption" aria-live="polite"></p>
+<div class="pad" id="pad">
+  <button id="bLeft" aria-label="Walk left"><svg viewBox="0 0 30 30"><path d="M19 6l-9 9 9 9"/></svg></button>
+  <button id="bRight" aria-label="Walk right"><svg viewBox="0 0 30 30"><path d="M11 6l9 9-9 9"/></svg></button>
+  <button class="jump" id="bJump" aria-label="Jump"><svg viewBox="0 0 30 30"><path d="M6 19l9-9 9 9"/></svg></button>
+</div>
+<p class="keys-hint"><kbd>←</kbd> <kbd>→</kbd> to walk · <kbd>Space</kbd> to jump</p>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  // ================= words =================
+  const words = t => t.split(/\s+/).map(w => w.replace(/^[^\w']+|[^\w']+$/g, "")).filter(Boolean);
+  const letters = w => w.replace(/[^a-z]/gi, "");
+  const lastWord = t => { const w = words(t); return w.length ? w[w.length - 1].toLowerCase() : ""; };
+  // The sound at the end of a word, roughly: long vowels spelled different ways
+  // (home/roam, rain/lane, night/white, blue/you) collapse to the same key.
+  function rhymeKey(w) {
+    w = letters(w).toLowerCase();
+    if (/^[^aeiouy]*e$/.test(w)) w += ":";
+    w = w.replace(/([aeiou])([^aeiouy])e$/, "$1:$2")
+      .replace(/igh/g, "i:")
+      .replace(/oa|oe$/g, "o:")
+      .replace(/oor$|our$/, "o:r")
+      .replace(/ai|ay$|ei/g, "a:")
+      .replace(/ee|ea/g, "e:")
+      .replace(/ue$|ew$|oo|ou$/g, "u:")
+      .replace(/([^aeiou])y$/, w.length <= 4 ? "$1i:" : "$1e:")
+      .replace(/::/g, ":");
+    const m = w.match(/[aeiou:]+[^aeiou:]*$/);
+    return m ? m[0] : w;
+  }
+  function rhymes(a, b) {
+    const la = letters(lastWord(a)).toLowerCase(), lb = letters(lastWord(b)).toLowerCase();
+    if (!la || !lb) return false;
+    return rhymeKey(la) === rhymeKey(lb) || (la.length > 2 && lb.length > 2 && la.slice(-3) === lb.slice(-3)) || (la.slice(-2) === lb.slice(-2) && /[aeiouy]/.test(la.slice(-2)));
+  }
+  const syllables = w => {
+    w = letters(w).toLowerCase();
+    if (!w) return 0;
+    if (w.length <= 3) return 1;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+    const m = w.match(/[aeiouy]{1,2}/g);
+    return Math.max(1, m ? m.length : 1);
+  };
+
+  // ================= the world =================
+  // World units: y grows downward. The ghost jumps about 70 high and 105 across.
+  const GRAV = 760, JUMP = 330, SPEED = 125, MAXFALL = 320, GW = 18, GH = 22;
+
+  const SCENES = [
+    { x: -9999, n: "I", title: "The Roof", sub: "Mrs. Abernathy's Boarding House" },
+    { x: 1250, n: "II", title: "The Frozen Garden", sub: "behind the chapel" },
+    { x: 2300, n: "III", title: "Platform Nine", sub: "the night train" },
+    { x: 3200, n: "IV", title: "The Harbor", sub: "low tide" },
+    { x: 4100, n: "V", title: "The Lighthouse", sub: "at the end of the pier" },
+  ];
+  const CAPTIONS = [
+    { x: 30, t: "For forty years the ghost lived inside the piano at Mrs. Abernathy's boarding house." },
+    { x: 230, t: "The man who played it every night moved to the lighthouse. Tonight is his birthday." },
+    { x: 520, t: "Ghosts can't make up words. They can only sing what the living write." },
+    { x: 1300, t: "Everything in this garden stopped in the same week." },
+    { x: 2330, t: "The 6:40 has been late since 1931. People still wait for it." },
+    { x: 3230, t: "His boat is still tied up here. He never learned to leave it." },
+    { x: 4130, t: "The lamp hasn't turned in years. He says there's nothing left to guide in." },
+  ];
+
+  // Solids: kind picks how it's drawn.
+  const BASE_SOLIDS = [
+    { x: -300, y: 240, w: 680, h: 460, k: "house" },
+    { x: 250, y: 180, w: 40, h: 60, k: "chimney" },
+    { x: 450, y: 240, w: 250, h: 460, k: "house" },
+    { x: 880, y: 240, w: 370, h: 460, k: "house" },
+    { x: 1250, y: 280, w: 500, h: 420, k: "garden" },
+    { x: 1440, y: 222, w: 80, h: 58, k: "fountain" },
+    { x: 1700, y: 150, w: 250, h: 86, k: "ice" },
+    { x: 1890, y: 280, w: 410, h: 420, k: "garden" },
+    { x: 2050, y: 224, w: 70, h: 56, k: "hedge" },
+    { x: 2300, y: 280, w: 900, h: 420, k: "platform" },
+    { x: 2450, y: 244, w: 56, h: 36, k: "case" },
+    { x: 2470, y: 212, w: 40, h: 32, k: "case2" },
+    { x: 2800, y: 150, w: 16, h: 130, k: "gate", gate: true },
+    { x: 3200, y: 290, w: 250, h: 30, k: "pier" },
+    { x: 3380, y: 244, w: 22, h: 46, k: "post" },
+    { x: 3680, y: 290, w: 420, h: 30, k: "pier" },
+    { x: 3790, y: 252, w: 52, h: 38, k: "crate" },
+    { x: 4100, y: 290, w: 600, h: 410, k: "rock" },
+    { x: 4450, y: 70, w: 260, h: 220, k: "tower" },
+  ];
+  const WATER = { x0: 3180, x1: 4120, y: 318 };
+
+  const KEEPSAKES = [
+    { id: "match", x: 270, y: 160, name: "a spent match", kw: ["match", "matches"],
+      d: "M14 38L34 12M31 9a4 4 0 1 1 6 5" },
+    { id: "moth", x: 575, y: 172, name: "a moth that followed you", kw: ["moth", "moths", "wings"],
+      d: "M24 16v18M24 20c-6-9-16-8-14 1 1 5 8 6 14 1M24 20c6-9 16-8 14 1-1 5-8 6-14 1M24 26c-5 3-8 9-4 11M24 26c5 3 8 9 4 11" },
+    { id: "rose", x: 1480, y: 198, name: "a frozen rose", kw: ["rose", "roses", "frost", "frozen"],
+      d: "M24 40V22M24 30c-4-3-9-2-11 1 3 3 8 2 11-1zM24 22c-6 0-8-6-6-10 3 2 5 1 6-2 1 3 3 4 6 2 2 4 0 10-6 10z" },
+    { id: "glove", x: 2085, y: 200, name: "one lost glove", kw: ["glove", "gloves", "hand", "hands"],
+      d: "M16 40V22l-4-7M16 22V10M22 20V8M28 20V9M34 22V13M16 40h18V22" },
+    { id: "ticket", x: 2490, y: 188, name: "a ticket to nowhere", kw: ["ticket", "tickets", "train"],
+      d: "M8 16h32v6a3 3 0 0 0 0 6v6H8v-6a3 3 0 0 0 0-6zM30 16v18" },
+    { id: "feather", x: 3391, y: 220, name: "a gull feather", kw: ["feather", "feathers", "gull", "gulls", "wing"],
+      d: "M37 8C22 10 12 22 12 38v3M12 38c11 0 21-8 25-30M17 31h8M15 25h11" },
+    { id: "bottle", x: 3816, y: 228, name: "a letter in a bottle", kw: ["bottle", "letter", "letters", "message"],
+      d: "M20 8h8v8l4 6v18H16V22l4-6zM20 28h8M20 33h6" },
+  ];
+
+  // The obstacles. Each one is crossed with a line of the song.
+  const OBS = [
+    { id: "roof", type: "bridge", x0: 700, x1: 880, gy: 240, lamp: 664, check: { x: 905, y: 210 },
+      h: "The gap between the roofs",
+      ask: "What would the ghost say first, if someone could finally hear it?",
+      rule: () => "Your words become the bridge. Keep writing until it reaches the far roof." },
+    { id: "garden", type: "tunnel", x0: 1750, x1: 1890, gy: 280, ceil: 236, lamp: 1680, check: { x: 1915, y: 250 },
+      h: "Under the ice",
+      ask: "Write a line about something that didn't make it through the winter.",
+      rule: () => "Only small words fit under the ice: five letters or fewer. The line still has to reach the other side." },
+    { id: "gate", type: "gate", x0: 2800, x1: 2816, gy: 280, lamp: 2758, check: { x: 2850, y: 250 },
+      h: "The ticket gate",
+      ask: "Write a line about waiting for someone.",
+      rule: () => { const w = prevWord(2); return w ? `The gate only opens for a line that rhymes with “${w}”.` : "The gate only opens for a line that rhymes with the one before it."; } },
+    { id: "harbor", type: "water", x0: 3450, x1: 3680, gy: 290, sea: 306, lamp: 3420, check: { x: 3705, y: 260 },
+      h: "The water",
+      ask: "Write a line about the water between two people.",
+      rule: () => "Each word floats out as its own little boat. Write enough of them to reach the far pier." },
+    { id: "tower", type: "stairs", x0: 4450, x1: 4450, gy: 290, top: 70, need: 6, lamp: 4210, check: { x: 4480, y: 40 },
+      h: "The lighthouse wall",
+      ask: "Write a line that makes a promise.",
+      rule: o => `Each word is one step up the wall. You need at least ${o.need}.` },
+  ];
+  const FINALE_X = 4540;
+  const prevWord = i => { const p = OBS[i - 1]; return p && p.line ? lastWord(p.line) : ""; };
+
+  // ================= state =================
+  let solids = [];
+  const G = { x: 40, y: 210, vx: 0, vy: 0, ground: false, on: null, face: 1, coyote: 0, jumpHeld: false, cut: false };
+  let check = { x: 40, y: 210 };
+  let mode = "start"; // start | play | write | finale | sing | end
+  let writing = null, dismissed = new Set();
+  let captionsSeen = new Set(), sceneIdx = -1;
+  let lampOn = 0, keeperHearts = [], lit = null, spark = null;
+  const got = new Set();
+
+  function resetWorld() {
+    solids = BASE_SOLIDS.map(s => ({ ...s }));
+    OBS.forEach(o => { o.solved = false; o.line = null; o.rects = []; o.preview = null; o.shown = 0; o.open = 0; });
+    got.clear();
+    G.x = 40; G.y = 210; G.vx = G.vy = 0;
+    check = { x: 40, y: 210 };
+    lampOn = 0; lit = null; spark = null; keeperHearts = [];
+    captionsSeen = new Set(); sceneIdx = -1; dismissed = new Set();
+  }
+
+  // ================= laying out a line =================
+  const mctx = document.createElement("canvas").getContext("2d");
+  const PLANK_FONT = '700 13px Kalam, "Bradley Hand", cursive';
+  const wordW = w => { mctx.font = PLANK_FONT; return Math.max(24, Math.ceil(mctx.measureText(w).width) + 12); };
+
+  function layout(o, text) {
+    const ws = words(text);
+    const rects = [];
+    let reach = o.x0;
+    if (o.type === "bridge" || o.type === "tunnel") {
+      let x = o.x0 - 6;
+      ws.forEach(w => {
+        const width = wordW(w);
+        const bad = o.type === "tunnel" && letters(w).length > 5;
+        rects.push({ x, y: bad ? o.ceil : o.gy, w: width, h: bad ? o.gy + 16 - o.ceil : 16, word: w, bad });
+        x += width + 3;
+      });
+      reach = x - 3;
+    } else if (o.type === "water") {
+      let x = o.x0 + 4;
+      ws.forEach(w => { const width = wordW(w); rects.push({ x, y: o.sea, w: width, h: 12, word: w, base: o.sea }); x += width + 7; });
+      reach = x - 7;
+    } else if (o.type === "stairs") {
+      const total = ws.reduce((a, w) => a + wordW(w), 0);
+      let x = o.x0 - total;
+      ws.forEach((w, i) => {
+        const width = wordW(w), rise = 30 * (i + 1);
+        rects.push({ x, y: o.gy - rise, w: width, h: rise, word: w });
+        x += width;
+      });
+    } else if (o.type === "gate") {
+      // a garland of words strung above the gate
+      const total = ws.reduce((a, w) => a + wordW(w) + 4, 0);
+      let x = o.x0 + 8 - total / 2;
+      ws.forEach((w, i) => { const width = wordW(w); rects.push({ x, y: 112 + Math.sin(i / Math.max(1, ws.length - 1) * Math.PI) * 10, w: width, h: 16, word: w, deco: true }); x += width + 4; });
+    }
+    return { rects, reach, ws };
+  }
+
+  function judge(o, text) {
+    const t = text.trim();
+    const L = layout(o, t);
+    const out = { ok: false, msg: "", tone: "", L };
+    if (!t) return out;
+    const n = L.ws.length;
+    if (o.type === "bridge" || o.type === "water") {
+      const short = Math.ceil(o.x1 + 2 - L.reach);
+      out.ok = short <= 0;
+      out.msg = out.ok ? (o.type === "water" ? "The boats reach the pier." : "It reaches.") : `Keep going. About ${Math.max(1, Math.round(short / 34))} more word${short > 40 ? "s" : ""} to reach.`;
+      out.tone = out.ok ? "good" : "";
+    } else if (o.type === "tunnel") {
+      const long = L.ws.filter(w => letters(w).length > 5);
+      const short = Math.ceil(o.x1 + 2 - L.reach);
+      out.ok = !long.length && short <= 0;
+      out.msg = long.length ? `Too tall for the ice: ${long.join(", ")}.` : short > 0 ? "Small words, good. Keep going until it reaches." : "It fits, and it reaches.";
+      out.tone = long.length ? "bad" : out.ok ? "good" : "";
+    } else if (o.type === "gate") {
+      const pw = prevWord(OBS.indexOf(o));
+      const r = pw ? rhymes(OBS[OBS.indexOf(o) - 1].line, t) : true;
+      out.ok = r && n >= 3;
+      out.msg = n < 3 ? "A few more words." : !pw ? "The latch lifts." : r ? `Rhymes with “${pw}”. The latch lifts.` : `Doesn't rhyme with “${pw}” yet.`;
+      out.tone = out.ok ? "good" : n >= 3 ? "bad" : "";
+    } else if (o.type === "stairs") {
+      out.ok = n >= o.need;
+      out.msg = out.ok ? `${n} steps. Enough to climb.` : `${n} step${n === 1 ? "" : "s"}. You need ${o.need}.`;
+      out.tone = out.ok ? "good" : "";
+    }
+    return out;
+  }
+
+  // ================= audio =================
+  let ac = null, master = null, silentEl = null;
+  function silentWavURL() {
+    const n = 4410, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+    const w = (o, str) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt ");
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true);
+    v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+  }
+  // Must run inside a tap or key press, before any await.
+  function ensureAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+    if (!silentEl) { try { silentEl = new Audio(silentWavURL()); silentEl.loop = true; silentEl.setAttribute("playsinline", ""); } catch { silentEl = false; } }
+    if (silentEl && silentEl.paused) silentEl.play().catch(() => {});
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      ac = new AC();
+      const comp = ac.createDynamicsCompressor();
+      master = ac.createGain(); master.gain.value = .85;
+      master.connect(comp); comp.connect(ac.destination);
+    }
+    if (ac.state !== "running") {
+      ac.resume().catch(() => {});
+      const src = ac.createBufferSource(); src.buffer = ac.createBuffer(1, 1, 22050); src.connect(ac.destination); src.start(0);
+    }
+    return true;
+  }
+  const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+  function tone(midi, t, dur, vel) {
+    if (!ac) return;
+    const f = hz(midi), g = ac.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vel, t + .008);
+    g.gain.exponentialRampToValueAtTime(vel * .35, t + .3);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur + .6);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(f * 7, 9000), t);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + dur + .4);
+    const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
+    const g2 = ac.createGain(); g2.gain.value = .2;
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    o1.start(t); o2.start(t); o1.stop(t + dur + .7); o2.stop(t + dur + .7);
+  }
+  // The ghost's voice: an airy "ooh" with a slow wobble.
+  const VOICE = { base: 69, scale: [0, 2, 3, 5, 7, 8, 10], harm: [0, 2, 3, 5, 7, 8, 10], bpm: 86 };
+  function sing(midi, t, dur, vol = .13) {
+    if (!ac) return;
+    const f = hz(midi), g = ac.createGain();
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + .07);
+    g.gain.setValueAtTime(vol * .85, t + Math.max(.07, dur));
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur + .3);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2200;
+    const o1 = ac.createOscillator(); o1.type = "sine"; o1.frequency.value = f;
+    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
+    const g2 = ac.createGain(); g2.gain.value = .12;
+    const lfo = ac.createOscillator(); lfo.frequency.value = 5.2;
+    const d = ac.createGain(); d.gain.setValueAtTime(0, t); d.gain.linearRampToValueAtTime(f * .014, t + Math.min(.25, dur));
+    lfo.connect(d); d.connect(o1.frequency); d.connect(o2.frequency);
+    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    [o1, o2, lfo].forEach(o => { o.start(t); o.stop(t + dur + .4); });
+  }
+  function hash(s) { let h = 2166136261; for (const ch of s) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  // One note per syllable, from a walk seeded by the words, so a line always gets the same tune.
+  function tuneFor(text, lineNo) {
+    const ws = text.split(/\s+/).filter(Boolean);
+    const syl = [];
+    ws.forEach((w, wi) => { const n = syllables(w) || 1; for (let k = 0; k < n; k++) syl.push(wi); });
+    const r = rng(hash(text)), L = VOICE.scale.length;
+    let d = 2 + Math.floor(r() * 3);
+    return syl.map((wi, i) => {
+      if (i === syl.length - 1) {
+        const home = lineNo % 2 ? 0 : 4;
+        d = [home, home + L].reduce((a, b) => Math.abs(b - d) < Math.abs(a - d) ? b : a);
+      } else if (i) {
+        const up = i < syl.length * .45 ? .6 : .3;
+        const step = r() < up ? 1 + Math.floor(r() * 2) : -(1 + Math.floor(r() * 2));
+        d = clamp(d + (r() < .2 ? 0 : step), 0, L + 4);
+      }
+      return { wi, midi: VOICE.base + VOICE.scale[d % L] + 12 * Math.floor(d / L) };
+    });
+  }
+  const wordNote = (text, wi, lineNo) => { const t = tuneFor(text, lineNo).find(n => n.wi === wi); return t ? t.midi : VOICE.base; };
+  function blip(midi, vel = .05) { if (ac) tone(midi, ac.currentTime + .01, .15, vel); }
+
+  // ================= canvas & camera =================
+  const cv = $("c"), ctx = cv.getContext("2d");
+  let W = 0, H = 0, DPR = 1, SCALE = 1;
+  const cam = { x: 200, y: 200, tx: 200, ty: 200 };
+  function resize() {
+    DPR = Math.min(2, devicePixelRatio || 1);
+    W = innerWidth; H = innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    SCALE = Math.min(H / 300, W / 320);
+  }
+  addEventListener("resize", resize);
+  resize();
+  const vv = window.visualViewport;
+  if (vv) vv.addEventListener("resize", () => {
+    const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop);
+    document.documentElement.style.setProperty("--kb", kb + "px");
+  });
+  // Where the camera's center sits on screen: in the open space beside or above the slip.
+  function slipBox() { return slip ? slip.getBoundingClientRect() : null; }
+  const centerX = () => { const b = mode === "write" && slipBox(); return b && b.left > W * .35 ? b.left / 2 : W / 2; };
+  const centerY = () => { const b = mode === "write" && slipBox(); if (!b) return H * .46; return b.left > W * .35 ? H * .5 : Math.max(60, b.top * .55); };
+
+  // Paper grain, drawn over everything.
+  const grain = (() => {
+    const g = document.createElement("canvas"); g.width = g.height = 128;
+    const x = g.getContext("2d"), img = x.createImageData(128, 128);
+    for (let i = 0; i < img.data.length; i += 4) { const v = Math.random() * 255; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 28; }
+    x.putImageData(img, 0, 0);
+    return ctx.createPattern(g, "repeat");
+  })();
+  const STARS = Array.from({ length: 70 }, (_, i) => { const r = rng(i * 97 + 3); return { x: r(), y: r() * .6, s: .6 + r() * 1.4, p: r() * 6 }; });
+
+  // Jittered top edges make the solids look cut with scissors.
+  function edge(s) {
+    if (s.edge) return s.edge;
+    const r = rng(Math.round(s.x * 13 + s.y * 7)), pts = [];
+    for (let x = 0; x <= s.w; x += 10) pts.push([s.x + Math.min(x, s.w), s.y + (x && x < s.w ? (r() - .5) * 2.4 : 0)]);
+    if (pts[pts.length - 1][0] < s.x + s.w) pts.push([s.x + s.w, s.y]);
+    return (s.edge = pts);
+  }
+  function paperRect(s, fill, top) {
+    const pts = edge(s), bottom = s.y + s.h;
+    const path = () => { ctx.beginPath(); ctx.moveTo(pts[0][0], bottom); pts.forEach(p => ctx.lineTo(p[0], p[1])); ctx.lineTo(s.x + s.w, bottom); ctx.closePath(); };
+    ctx.save(); ctx.translate(3, 4); path(); ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fill(); ctx.restore();
+    path(); ctx.fillStyle = fill; ctx.fill();
+    if (top) { ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.strokeStyle = top; ctx.lineWidth = 1.6; ctx.stroke(); }
+  }
+
+  // ================= drawing =================
+  let T = 0;
+  function draw() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    // sky
+    const sky = ctx.createLinearGradient(0, 0, 0, H);
+    sky.addColorStop(0, "#0f0c1f"); sky.addColorStop(.6, "#241c3d"); sky.addColorStop(1, "#33264a");
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+    STARS.forEach(s => {
+      const x = ((s.x * W * 1.4 - cam.x * .03 * SCALE) % (W * 1.4) + W * 1.4) % (W * 1.4) - W * .2;
+      ctx.globalAlpha = .35 + .5 * (0.5 + 0.5 * Math.sin(T * 1.3 + s.p));
+      ctx.fillStyle = "#fff5d6"; ctx.fillRect(x, s.y * H, s.s, s.s);
+    });
+    ctx.globalAlpha = 1;
+    // moon
+    const mx = W - 60, my = 70;
+    ctx.fillStyle = "#f1e5c9"; ctx.beginPath(); ctx.arc(mx, my, 22, 0, 7); ctx.fill();
+    ctx.fillStyle = "#1a1530"; ctx.beginPath(); ctx.arc(mx - 9, my - 5, 20, 0, 7); ctx.fill();
+
+    const cy = centerY();
+    const toSY = (wy, p) => cy + (wy - cam.y) * SCALE * p;
+    // far hills, with the lighthouse on the horizon the whole way
+    layer(.12, "#1d1834", toSY(300, .12) - 30 * SCALE, (px) => 18 * Math.sin(px / 120) + 10 * Math.sin(px / 47));
+    const lhx = W / 2 + (4580 - cam.x) * SCALE * .12, lhy = toSY(300, .12) - 30 * SCALE;
+    drawFarLighthouse(lhx, lhy);
+    // the town skyline
+    skyline(.35, toSY(300, .35) - 10 * SCALE);
+
+    // world space
+    ctx.setTransform(DPR * SCALE, 0, 0, DPR * SCALE, DPR * (centerX() - cam.x * SCALE), DPR * (cy - cam.y * SCALE));
+    drawWater();
+    drawDecorBack();
+    solids.forEach(drawSolid);
+    OBS.forEach(drawPlanks);
+    OBS.forEach(drawLamp);
+    drawKeeper();
+    KEEPSAKES.forEach(k => { if (!got.has(k.id)) drawKeepsake(k); });
+    drawGhost();
+    if (spark) drawSpark();
+    drawBeam();
+
+    // grain
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.fillStyle = grain; ctx.globalAlpha = .9; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+  }
+
+  function layer(p, color, baseY, f) {
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, H);
+    for (let sx = 0; sx <= W + 8; sx += 8) {
+      const px = (sx - W / 2) / SCALE + cam.x * p;
+      ctx.lineTo(sx, baseY - f(px) * SCALE * .6);
+    }
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+  }
+  function skyline(p, baseY) {
+    const unit = 46;
+    const left = cam.x * p - (W / 2) / SCALE, right = cam.x * p + (W / 2) / SCALE;
+    for (let i = Math.floor(left / unit) - 1; i <= Math.ceil(right / unit) + 1; i++) {
+      const r = rng(i * 7919 + 11);
+      const px = i * unit, sx = W / 2 + (px - cam.x * p) * SCALE;
+      const wx = px / p; // rough world x for this block
+      let hgt = 30 + r() * 60, kind = "house";
+      if (wx > 1250 && wx < 2300) { kind = "tree"; hgt = 40 + r() * 50; }
+      else if (wx > 3100) { kind = "sea"; }
+      const w = unit * SCALE * (.7 + r() * .3), h = hgt * SCALE * .7;
+      ctx.fillStyle = "#2a2242";
+      if (kind === "house") {
+        ctx.fillRect(sx, baseY - h, w, h + H);
+        ctx.beginPath(); ctx.moveTo(sx - 2, baseY - h); ctx.lineTo(sx + w / 2, baseY - h - 12 * SCALE * .7); ctx.lineTo(sx + w + 2, baseY - h); ctx.fill();
+        ctx.fillStyle = "rgba(241, 207, 120, .55)";
+        for (let k = 0; k < 3; k++) if (r() < .35) ctx.fillRect(sx + 5 + k * w / 3, baseY - h + 8 + r() * (h - 16), 4 * SCALE * .7, 5 * SCALE * .7);
+      } else if (kind === "tree") {
+        ctx.fillRect(sx + w / 2 - 2, baseY - h * .5, 4, h * .5 + H);
+        ctx.beginPath(); ctx.ellipse(sx + w / 2, baseY - h * .6, w * .45, h * .45, 0, 0, 7); ctx.fill();
+      } else {
+        ctx.fillRect(sx, baseY + 6 * SCALE, w + 2, H);
+        if (r() < .4) { // a moored boat
+          ctx.beginPath(); ctx.moveTo(sx + 4, baseY); ctx.lineTo(sx + w - 4, baseY); ctx.lineTo(sx + w - 10, baseY + 8); ctx.lineTo(sx + 10, baseY + 8); ctx.fill();
+          ctx.fillRect(sx + w / 2 - 1, baseY - 26, 2, 26);
+        }
+      }
+    }
+  }
+  function drawFarLighthouse(x, y) {
+    const s = SCALE * .5;
+    ctx.fillStyle = "#2a2242";
+    ctx.beginPath(); ctx.moveTo(x - 9 * s, y); ctx.lineTo(x - 6 * s, y - 60 * s); ctx.lineTo(x + 6 * s, y - 60 * s); ctx.lineTo(x + 9 * s, y); ctx.fill();
+    ctx.fillRect(x - 7 * s, y - 70 * s, 14 * s, 10 * s);
+    ctx.fillStyle = lampOn ? "#f1cf78" : "#3a3055";
+    ctx.fillRect(x - 5 * s, y - 68 * s, 10 * s, 6 * s);
+    if (lampOn) {
+      ctx.save(); ctx.translate(x, y - 65 * s); ctx.rotate(Math.sin(T * .8) * 1.2);
+      const g = ctx.createLinearGradient(0, 0, 260, 0); g.addColorStop(0, "rgba(241,207,120,.35)"); g.addColorStop(1, "rgba(241,207,120,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(260, -30); ctx.lineTo(260, 30); ctx.fill(); ctx.restore();
+    }
+  }
+
+  function drawWater() {
+    ctx.fillStyle = "#1a2744";
+    ctx.fillRect(WATER.x0, WATER.y, WATER.x1 - WATER.x0, 400);
+    ctx.strokeStyle = "rgba(160, 190, 235, .35)"; ctx.lineWidth = 1.4;
+    for (let row = 0; row < 5; row++) {
+      ctx.beginPath();
+      for (let x = WATER.x0; x <= WATER.x1; x += 8) {
+        const y = WATER.y + 4 + row * 14 + Math.sin(x / 22 + T * 1.6 + row) * 2;
+        x === WATER.x0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawDecorBack() {
+    // clothesline over the roofs
+    ctx.strokeStyle = "rgba(239,227,198,.6)"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(470, 196); ctx.quadraticCurveTo(575, 214, 680, 196); ctx.stroke();
+    ctx.fillStyle = "#3b2f5c"; ctx.fillRect(468, 196, 4, 44); ctx.fillRect(678, 196, 4, 44);
+    [[505, 18, 22], [540, 14, 26], [615, 20, 18]].forEach(([x, w, h], i) => {
+      ctx.save(); ctx.translate(x, 204); ctx.rotate(Math.sin(T * 1.4 + i) * .06);
+      ctx.fillStyle = i === 1 ? "#b3303e" : "#e7d7b2"; ctx.fillRect(0, 0, w, h); ctx.restore();
+    });
+    // station canopy and clock
+    ctx.fillStyle = "#2a2340";
+    ctx.fillRect(2330, 150, 440, 10);
+    for (let x = 2360; x < 2770; x += 120) ctx.fillRect(x, 160, 5, 120);
+    ctx.fillStyle = "#e7d7b2"; ctx.beginPath(); ctx.arc(2620, 180, 12, 0, 7); ctx.fill();
+    ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(2620, 180); ctx.lineTo(2620, 172); ctx.moveTo(2620, 180); ctx.lineTo(2626, 183); ctx.stroke();
+    // bench
+    ctx.fillStyle = "#5a4632"; ctx.fillRect(2600, 262, 60, 5); ctx.fillRect(2604, 267, 4, 13); ctx.fillRect(2652, 267, 4, 13); ctx.fillRect(2600, 250, 60, 4);
+    // dead trees in the garden
+    ctx.strokeStyle = "#1f2a3a"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    [[1330, 280, 70], [1620, 280, 60], [2200, 280, 80]].forEach(([x, y, h]) => {
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - h); ctx.moveTo(x, y - h * .6); ctx.lineTo(x - 16, y - h * .9); ctx.moveTo(x, y - h * .75); ctx.lineTo(x + 14, y - h); ctx.stroke();
+    });
+    ctx.lineCap = "butt";
+    // lighthouse tower above its wall
+    const tx = 4450, tw = 260;
+    ctx.fillStyle = "#e7d7b2";
+    ctx.beginPath(); ctx.moveTo(tx + 40, 70); ctx.lineTo(tx + 70, -170); ctx.lineTo(tx + tw - 70, -170); ctx.lineTo(tx + tw - 40, 70); ctx.fill();
+    ctx.fillStyle = "#b3303e";
+    [[-10, 30], [-100, 26]].forEach(([y, h]) => {
+      const f = y2 => tx + 40 + (70 - y2) / 240 * 30;
+      ctx.beginPath(); ctx.moveTo(f(y), y); ctx.lineTo(f(y - h), y - h); ctx.lineTo(tx + tw - (f(y - h) - tx), y - h); ctx.lineTo(tx + tw - (f(y) - tx), y); ctx.fill();
+    });
+    ctx.fillStyle = "#2a2118"; ctx.fillRect(tx + 60, -178, tw - 120, 8);
+    ctx.fillStyle = lampOn ? "#f1cf78" : "#3a3055"; ctx.fillRect(tx + 80, -214, tw - 160, 36);
+    ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 2; ctx.strokeRect(tx + 80, -214, tw - 160, 36);
+    ctx.fillStyle = "#2a2118"; ctx.beginPath(); ctx.moveTo(tx + 72, -214); ctx.lineTo(tx + tw / 2, -240); ctx.lineTo(tx + tw - 72, -214); ctx.fill();
+    // railing on the gallery
+    ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(tx, 52); ctx.lineTo(tx + tw, 52); for (let x = tx; x <= tx + tw; x += 12) { ctx.moveTo(x, 52); ctx.lineTo(x, 70); } ctx.stroke();
+  }
+
+  const FILL = { house: "#3b2f5c", chimney: "#4a3a6e", garden: "#2c3a4d", fountain: "#3a4c61", hedge: "#27463c", ice: "rgba(191,227,240,.85)", platform: "#3a3350", case: "#7a4a33", case2: "#5a6b3a", gate: "#1b1626", pier: "#5a4632", post: "#4a3a2a", crate: "#6b5238", rock: "#2a2638", tower: "#e7d7b2", plank: "#f1e5c9" };
+  const TOP = { house: "#efe3c6", chimney: "#efe3c6", garden: "#cfe8f2", fountain: "#cfe8f2", hedge: "#cfe8f2", platform: "#d6a943", case: "#2a2118", case2: "#2a2118", pier: "#2a2118", post: "#2a2118", crate: "#2a2118", rock: "#a99fbd", tower: "#2a2118" };
+  function drawSolid(s) {
+    if (s.k === "plank") return;
+    if (s.k === "gate") return drawGate(s);
+    if (s.k === "ice") {
+      ctx.fillStyle = FILL.ice; ctx.fillRect(s.x, s.y, s.w, s.h);
+      ctx.beginPath();
+      for (let x = s.x; x < s.x + s.w; x += 14) { ctx.moveTo(x, s.y + s.h); ctx.lineTo(x + 5, s.y + s.h + 6 + (x % 3) * 2); ctx.lineTo(x + 10, s.y + s.h); }
+      ctx.fill();
+      return;
+    }
+    if (s.k === "pier") {
+      ctx.fillStyle = "#3a2e22";
+      for (let x = s.x + 10; x < s.x + s.w; x += 60) ctx.fillRect(x, s.y, 7, 90);
+    }
+    paperRect(s, FILL[s.k], TOP[s.k]);
+    if (s.k === "house") {
+      const r = rng(Math.round(s.x));
+      for (let y = s.y + 30; y < s.y + 200; y += 44) for (let x = s.x + 24; x < s.x + s.w - 20; x += 58) {
+        if (r() < .5) { ctx.fillStyle = r() < .5 ? "rgba(241,207,120,.8)" : "rgba(20,15,34,.6)"; ctx.fillRect(x, y, 14, 18); }
+      }
+    }
+    if (s.k === "platform") { ctx.strokeStyle = "#d6a943"; ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(s.x, s.y + 6); ctx.lineTo(s.x + s.w, s.y + 6); ctx.stroke(); ctx.setLineDash([]); }
+    if (s.k === "pier") { ctx.strokeStyle = "rgba(42,33,24,.6)"; ctx.lineWidth = 1; for (let x = s.x + 16; x < s.x + s.w; x += 16) { ctx.beginPath(); ctx.moveTo(x, s.y); ctx.lineTo(x, s.y + s.h); ctx.stroke(); } }
+    if (s.k === "tower") {
+      ctx.fillStyle = "#b3303e"; ctx.fillRect(s.x, s.y + 70, s.w, 30); ctx.fillRect(s.x, s.y + 150, s.w, 30);
+      ctx.fillStyle = "#2a2118"; ctx.fillRect(s.x + 120, s.y + 110, 20, 28);
+    }
+    if (s.k === "case" || s.k === "case2") { ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 2; ctx.strokeRect(s.x + s.w / 2 - 7, s.y - 5, 14, 6); }
+  }
+  function drawGate(s) {
+    const o = OBS.find(q => q.type === "gate");
+    const open = o.open;
+    ctx.save(); ctx.translate(s.x, s.y);
+    ctx.fillStyle = "#1b1626";
+    ctx.fillRect(-4, -8, 24, 8);
+    ctx.save(); ctx.translate(0, 0); ctx.transform(1 - open * .85, -open * .15, 0, 1, 0, 0);
+    ctx.strokeStyle = "#0e0b16"; ctx.lineWidth = 3;
+    for (let x = 1; x < 16; x += 5) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 130); ctx.stroke(); }
+    ctx.strokeStyle = "#d6a943"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 30); ctx.lineTo(16, 30); ctx.moveTo(0, 100); ctx.lineTo(16, 100); ctx.stroke();
+    ctx.restore(); ctx.restore();
+    // the word it's waiting to rhyme with
+    const pw = prevWord(2);
+    if (pw && !o.solved) {
+      ctx.save(); ctx.translate(s.x + 8, s.y - 20);
+      ctx.fillStyle = "#f1e5c9"; ctx.font = PLANK_FONT;
+      const w = ctx.measureText("…" + pw).width + 14;
+      ctx.fillRect(-w / 2, -9, w, 18); ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.2; ctx.strokeRect(-w / 2, -9, w, 18);
+      ctx.fillStyle = "#b3303e"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("…" + pw, 0, 1);
+      ctx.restore();
+    }
+  }
+
+  function drawPlanks(o) {
+    const list = o.solved || o.shown ? o.rects.slice(0, o.shown || o.rects.length) : [];
+    const showPreview = mode === "write" && writing === o && o.preview;
+    ctx.font = PLANK_FONT; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    if (showPreview) {
+      o.preview.rects.forEach(r => {
+        ctx.setLineDash([4, 3]); ctx.lineWidth = 1.2;
+        ctx.strokeStyle = r.bad ? "#e2596a" : "rgba(239,227,198,.85)";
+        ctx.fillStyle = r.bad ? "rgba(179,48,62,.25)" : "rgba(239,227,198,.12)";
+        ctx.fillRect(r.x, r.y, r.w, r.h); ctx.strokeRect(r.x, r.y, r.w, r.h);
+        ctx.setLineDash([]);
+        ctx.fillStyle = r.bad ? "#f3a2ad" : "rgba(239,227,198,.9)";
+        ctx.fillText(r.word, r.x + r.w / 2, r.y + (o.type === "stairs" ? 9 : r.h / 2 + 1));
+      });
+      if (o.type === "bridge" || o.type === "water" || o.type === "tunnel") {
+        ctx.strokeStyle = "rgba(241,207,120,.8)"; ctx.setLineDash([2, 4]); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(o.x1 + 2, o.gy - 34); ctx.lineTo(o.x1 + 2, o.gy + 4); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(241,207,120,.9)"; ctx.beginPath(); ctx.moveTo(o.x1 + 2, o.gy - 34); ctx.lineTo(o.x1 + 14, o.gy - 29); ctx.lineTo(o.x1 + 2, o.gy - 24); ctx.fill();
+      }
+      if (o.type === "stairs") {
+        ctx.strokeStyle = "rgba(241,207,120,.8)"; ctx.setLineDash([2, 4]);
+        ctx.beginPath(); ctx.moveTo(o.x0 - 200, o.gy - o.need * 30); ctx.lineTo(o.x0, o.gy - o.need * 30); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    list.forEach((r, i) => {
+      const litNow = lit && lit.o === o && lit.i === i;
+      ctx.save();
+      const tilt = ((i * 37) % 7 - 3) * .006;
+      ctx.translate(r.x + r.w / 2, r.y + (o.type === "stairs" ? 0 : r.h / 2)); ctx.rotate(tilt);
+      const hh = o.type === "stairs" ? r.h : r.h;
+      const y0 = o.type === "stairs" ? 0 : -r.h / 2;
+      ctx.fillStyle = "rgba(0,0,0,.35)"; ctx.fillRect(-r.w / 2 + 2, y0 + 3, r.w, hh);
+      let fill = o.type === "tunnel" ? "#dcebf2" : o.type === "water" ? "#f1e5c9" : "#f1e5c9";
+      if (r.charm) fill = "#f1cf78";
+      if (litNow) fill = "#fff3c4";
+      ctx.fillStyle = fill; ctx.fillRect(-r.w / 2, y0, r.w, hh);
+      ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1; ctx.strokeRect(-r.w / 2, y0, r.w, hh);
+      if (o.type === "water") { // a little sail
+        ctx.fillStyle = "#b3303e"; ctx.beginPath(); ctx.moveTo(-2, y0); ctx.lineTo(-2, y0 - 12); ctx.lineTo(8, y0 - 3); ctx.closePath(); ctx.fill();
+      }
+      if (o.type === "gate") { // string for the garland
+        ctx.strokeStyle = "rgba(239,227,198,.6)"; ctx.beginPath(); ctx.moveTo(-r.w / 2 - 2, y0); ctx.lineTo(r.w / 2 + 2, y0); ctx.stroke();
+      }
+      ctx.fillStyle = "#2a2118";
+      ctx.fillText(r.word, 0, o.type === "stairs" ? 9 : 1);
+      if (litNow) { ctx.shadowColor = "#f1cf78"; ctx.shadowBlur = 16; ctx.strokeStyle = "#f1cf78"; ctx.lineWidth = 2; ctx.strokeRect(-r.w / 2, y0, r.w, hh); }
+      ctx.restore();
+    });
+  }
+
+  function drawLamp(o) {
+    const x = o.lamp, y = o.gy;
+    const active = !o.solved;
+    ctx.fillStyle = "#1b1626"; ctx.fillRect(x - 2, y - 46, 4, 46);
+    ctx.fillRect(x - 6, y - 50, 12, 4);
+    const glow = active ? .55 + .2 * Math.sin(T * 3) : .15;
+    const g = ctx.createRadialGradient(x, y - 56, 1, x, y - 56, 26);
+    g.addColorStop(0, `rgba(241,207,120,${glow})`); g.addColorStop(1, "rgba(241,207,120,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y - 56, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = active ? "#f1cf78" : "#6a5844"; ctx.fillRect(x - 5, y - 62, 10, 12);
+    ctx.strokeStyle = "#1b1626"; ctx.lineWidth = 1.5; ctx.strokeRect(x - 5, y - 62, 10, 12);
+    if (active && mode === "play") { // a quill hint
+      ctx.fillStyle = "rgba(239,227,198,.9)"; ctx.font = "13px 'IM Fell English', serif"; ctx.textAlign = "center";
+      ctx.fillText("✎", x, y - 72 + Math.sin(T * 3) * 2);
+    }
+  }
+
+  function drawKeepsake(k) {
+    const y = k.y + Math.sin(T * 2 + k.x) * 2.5;
+    ctx.save(); ctx.translate(k.x, y);
+    const g = ctx.createRadialGradient(0, 0, 1, 0, 0, 16); g.addColorStop(0, "rgba(241,207,120,.5)"); g.addColorStop(1, "rgba(241,207,120,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 16, 0, 7); ctx.fill();
+    ctx.fillStyle = "#f1e5c9"; ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 9, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.scale(.3, .3); ctx.translate(-24, -24);
+    ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.stroke(new Path2D(k.d));
+    ctx.restore();
+  }
+
+  function drawGhost() {
+    const x = G.x, y = G.y, t = T;
+    ctx.save();
+    ctx.translate(x + GW / 2, y + GH);
+    ctx.scale(G.face, 1);
+    const bob = mode === "sing" ? Math.sin(t * 6) * 1.5 : Math.sin(t * 3) * 1;
+    ctx.translate(0, bob);
+    const g = ctx.createRadialGradient(0, -12, 2, 0, -12, 30);
+    g.addColorStop(0, "rgba(220,205,255,.35)"); g.addColorStop(1, "rgba(220,205,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -12, 30, 0, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-9, -2);
+    ctx.lineTo(-9, -13); ctx.bezierCurveTo(-9, -26, 9, -26, 9, -13); ctx.lineTo(9, -2);
+    for (let i = 0; i < 4; i++) {
+      const x0 = 9 - i * 4.5, wob = Math.sin(t * 8 + i) * 1.2;
+      ctx.quadraticCurveTo(x0 - 2.25, 2 + wob, x0 - 4.5, -2);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#f7eedb"; ctx.fill();
+    ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = "#2a2118";
+    ctx.beginPath(); ctx.ellipse(-1, -14, 1.3, 1.9, 0, 0, 7); ctx.ellipse(4.5, -14, 1.3, 1.9, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "rgba(179,48,62,.5)";
+    ctx.beginPath(); ctx.ellipse(-3.5, -10, 1.8, 1, 0, 0, 7); ctx.ellipse(7, -10, 1.8, 1, 0, 0, 7); ctx.fill();
+    if (mode === "sing" && Math.sin(t * 9) > 0) { ctx.fillStyle = "#2a2118"; ctx.beginPath(); ctx.ellipse(2, -8, 1.4, 1.8, 0, 0, 7); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawKeeper() {
+    const x = 4640, y = 70;
+    ctx.save(); ctx.translate(x, y);
+    // stool
+    ctx.fillStyle = "#5a4632"; ctx.fillRect(-10, -12, 20, 3); ctx.fillRect(-8, -9, 2, 9); ctx.fillRect(6, -9, 2, 9);
+    // coat
+    ctx.fillStyle = "#2e3f6b"; ctx.strokeStyle = "#2a2118"; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(-10, -12); ctx.lineTo(-8, -34); ctx.quadraticCurveTo(0, -40, 8, -34); ctx.lineTo(10, -12); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // head, beard, cap
+    ctx.fillStyle = "#f1e5c9"; ctx.beginPath(); ctx.arc(0, -44, 7, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#e7e2d6"; ctx.beginPath(); ctx.moveTo(-6, -43); ctx.quadraticCurveTo(0, -30, 6, -43); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#1b1626"; ctx.fillRect(-8, -53, 16, 5); ctx.fillRect(-5, -56, 13, 4);
+    ctx.fillStyle = "#2a2118"; ctx.fillRect(-4, -46, 1.6, 1.6); ctx.fillRect(2, -46, 1.6, 1.6);
+    ctx.restore();
+    keeperHearts = keeperHearts.filter(h => h.t < 2.4);
+    keeperHearts.forEach(h => {
+      h.t += 1 / 60;
+      ctx.globalAlpha = 1 - h.t / 2.4;
+      ctx.fillStyle = "#b3303e"; ctx.font = "14px serif"; ctx.textAlign = "center";
+      ctx.fillText("♥", x + h.dx * h.t * 20, y - 60 - h.t * 40);
+    });
+    ctx.globalAlpha = 1;
+  }
+  function drawBeam() {
+    if (!lampOn) return;
+    const cx = 4580, cy = -196;
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.rotate(Math.sin(T * .7) * 1.1 + Math.PI);
+    const g = ctx.createLinearGradient(0, 0, 900, 0);
+    g.addColorStop(0, `rgba(241,207,120,${.45 * lampOn})`); g.addColorStop(1, "rgba(241,207,120,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(900, -110); ctx.lineTo(900, 110); ctx.fill();
+    ctx.restore();
+  }
+  function drawSpark() {
+    const g = ctx.createRadialGradient(spark.x, spark.y, 0, spark.x, spark.y, 14);
+    g.addColorStop(0, "rgba(255,243,196,.95)"); g.addColorStop(1, "rgba(241,207,120,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(spark.x, spark.y, 14, 0, 7); ctx.fill();
+  }
+
+  // ================= input =================
+  const keys = { left: false, right: false, jump: false };
+  let jumpEdge = false;
+  const typing = e => e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA");
+  addEventListener("keydown", e => {
+    if (typing(e) || mode !== "play") return;
+    const k = e.key;
+    if (k === "ArrowLeft" || k === "a" || k === "A") { keys.left = true; e.preventDefault(); }
+    else if (k === "ArrowRight" || k === "d" || k === "D") { keys.right = true; e.preventDefault(); }
+    else if (k === " " || k === "ArrowUp" || k === "w" || k === "W") { if (!keys.jump) jumpEdge = true; keys.jump = true; e.preventDefault(); ensureAudio(); }
+  });
+  addEventListener("keyup", e => {
+    const k = e.key;
+    if (k === "ArrowLeft" || k === "a" || k === "A") keys.left = false;
+    else if (k === "ArrowRight" || k === "d" || k === "D") keys.right = false;
+    else if (k === " " || k === "ArrowUp" || k === "w" || k === "W") keys.jump = false;
+  });
+  function holdButton(id, key) {
+    const b = $(id);
+    const on = e => { e.preventDefault(); ensureAudio(); if (key === "jump" && !keys.jump) jumpEdge = true; keys[key] = true; b.classList.add("on"); try { b.setPointerCapture(e.pointerId); } catch {} };
+    const off = () => { keys[key] = false; b.classList.remove("on"); };
+    b.addEventListener("pointerdown", on);
+    b.addEventListener("pointerup", off); b.addEventListener("pointercancel", off); b.addEventListener("lostpointercapture", off);
+    b.addEventListener("contextmenu", e => e.preventDefault());
+  }
+  holdButton("bLeft", "left"); holdButton("bRight", "right"); holdButton("bJump", "jump");
+  addEventListener("blur", () => { keys.left = keys.right = keys.jump = false; });
+
+  // ================= physics =================
+  const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  function step(dt) {
+    // rafts bob, and carry the ghost with them
+    OBS.forEach(o => {
+      if (o.type !== "water" || !o.solved) return;
+      o.rects.forEach((r, i) => { const ny = r.base + Math.sin(T * 2 + i * .9) * 2; r.dy = ny - r.y; r.y = ny; });
+    });
+    if (G.on && G.on.dy) G.y += G.on.dy;
+
+    const dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    const target = mode === "play" ? dir * SPEED : 0;
+    G.vx += (target - G.vx) * Math.min(1, dt * (G.ground ? 14 : 7));
+    if (dir) G.face = dir;
+    G.coyote = G.ground ? .1 : Math.max(0, G.coyote - dt);
+    if (jumpEdge && G.coyote > 0 && mode === "play") {
+      G.vy = -JUMP; G.coyote = 0; G.cut = false;
+      blip(VOICE.base + 12 + [0, 3, 5, 7, 10][Math.floor(Math.random() * 5)], .035);
+    }
+    jumpEdge = false;
+    if (!keys.jump && G.vy < -120 && !G.cut) { G.vy *= .55; G.cut = true; }
+    G.vy = Math.min(MAXFALL, G.vy + GRAV * dt);
+
+    const box = { x: G.x, y: G.y, w: GW, h: GH };
+    box.x += G.vx * dt;
+    solids.forEach(s => { if (overlap(box, s)) { if (G.vx > 0) box.x = s.x - GW; else if (G.vx < 0) box.x = s.x + s.w; G.vx = 0; } });
+    box.y += G.vy * dt;
+    G.ground = false; G.on = null;
+    solids.forEach(s => {
+      if (!overlap(box, s)) return;
+      if (G.vy > 0) { box.y = s.y - GH; G.vy = 0; G.ground = true; G.on = s; }
+      else if (G.vy < 0) { box.y = s.y + s.h; G.vy = 0; }
+    });
+    G.x = box.x; G.y = box.y;
+
+    // falling into the dark, or the sea
+    const inSea = G.x + GW > WATER.x0 && G.x < WATER.x1 && G.y + GH > WATER.y + 8;
+    if (G.y > 560 || inSea) respawn(inSea);
+  }
+  function respawn(sea) {
+    G.x = check.x; G.y = check.y; G.vx = G.vy = 0;
+    toast(sea ? "Splash. The ghost floats back to the last lamp." : "The ghost drifts back up.");
+  }
+
+  // ================= the story as you move =================
+  function story() {
+    const cx = G.x + GW / 2;
+    // scene titles
+    let si = 0; SCENES.forEach((s, i) => { if (cx >= s.x) si = i; });
+    if (si !== sceneIdx) {
+      sceneIdx = si;
+      const s = SCENES[si];
+      const sc = $("scene"); sc.querySelector("b").textContent = s.title; sc.querySelector("small").textContent = s.sub;
+      const tc = $("titleCard"); tc.querySelector("span").textContent = s.n; tc.querySelector("b").textContent = s.title;
+      tc.classList.add("show"); clearTimeout(tc._t); tc._t = setTimeout(() => tc.classList.remove("show"), 2400);
+    }
+    CAPTIONS.forEach((c, i) => { if (!captionsSeen.has(i) && cx >= c.x && cx < c.x + 400) { captionsSeen.add(i); caption(c.t); } });
+    // keepsakes
+    KEEPSAKES.forEach(k => {
+      if (got.has(k.id)) return;
+      if (Math.abs(cx - k.x) < 16 && Math.abs(G.y + GH / 2 - k.y) < 20) {
+        got.add(k.id); renderPocket();
+        toast(`Found ${k.name}.`);
+        if (ac) [0, 4, 7].forEach((d, i) => tone(VOICE.base + 12 + d, ac.currentTime + i * .07, .2, .05));
+        save();
+      }
+    });
+    // lamps: stand under one to write
+    OBS.forEach(o => {
+      if (o.solved) return;
+      const near = Math.abs(cx - o.lamp) < 22 && G.ground;
+      if (!near && Math.abs(cx - o.lamp) > 60) dismissed.delete(o.id);
+      if (near && mode === "play" && !dismissed.has(o.id)) openSlip(o);
+    });
+    if (mode === "play" && OBS.every(o => o.solved) && cx > FINALE_X && G.y < 80) finale();
+  }
+
+  let capT = 0;
+  function caption(t) {
+    const c = $("caption"); c.textContent = t; c.classList.add("show");
+    clearTimeout(capT); capT = setTimeout(() => c.classList.remove("show"), 5200);
+  }
+  let toastT = 0;
+  function toast(m) { const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200); }
+
+  function renderPocket() {
+    $("pocket").innerHTML = KEEPSAKES.filter(k => got.has(k.id)).map(k => `<span class="item" title="${esc(k.name)}"><svg viewBox="0 0 48 48"><path d="${k.d}"/></svg></span>`).join("");
+  }
+
+  // ================= writing =================
+  let slip = null;
+  function openSlip(o) {
+    mode = "write"; writing = o;
+    $("titleCard").classList.remove("show"); $("caption").classList.remove("show");
+    keys.left = keys.right = keys.jump = false;
+    G.vx = 0;
+    $("pad").hidden = true;
+    const pocket = KEEPSAKES.filter(k => got.has(k.id));
+    slip = document.createElement("div");
+    slip.className = "slip";
+    slip.setAttribute("role", "dialog");
+    slip.setAttribute("aria-label", o.h);
+    slip.innerHTML = `
+      <h2>${esc(o.h)}</h2>
+      <p class="ask">${esc(o.ask)}</p>
+      <p class="rule">${esc(o.rule(o))}</p>
+      ${pocket.length ? `<div class="pocket-line">In your pocket: ${pocket.map(k => `<span class="chip" data-id="${k.id}">${esc(k.kw[0])}</span>`).join("")}</div>` : ""}
+      <input type="text" id="line" maxlength="110" autocomplete="off" autocapitalize="sentences" placeholder="Write your line…" aria-label="Your line">
+      <div class="foot"><span class="status" id="status" aria-live="polite"></span>
+        <button class="btn ghost sm" id="notYet">Not yet</button>
+        <button class="btn" id="lay" disabled>Lay it down</button></div>`;
+    document.body.appendChild(slip);
+    const inp = $("line");
+    inp.value = o.draft || "";
+    let lastN = 0;
+    const update = () => {
+      o.draft = inp.value;
+      const j = judge(o, inp.value);
+      o.preview = j.L;
+      const st = $("status"); st.textContent = j.msg; st.className = "status" + (j.tone ? " " + j.tone : "");
+      $("lay").disabled = !j.ok;
+      const hit = charmOf(inp.value);
+      slip.querySelectorAll(".chip").forEach(c => c.classList.toggle("hit", hit.includes(c.dataset.id)));
+      const n = j.L.ws.length;
+      if (n > lastN && /\s$/.test(inp.value) && ac) blip(wordNote(inp.value.trim(), n - 1, OBS.indexOf(o)), .04);
+      lastN = n;
+    };
+    inp.oninput = update;
+    inp.onkeydown = e => { if (e.key === "Enter" && !$("lay").disabled) lay(); if (e.key === "Escape") closeSlip(true); };
+    $("lay").onclick = lay;
+    $("notYet").onclick = () => closeSlip(true);
+    update();
+    setTimeout(() => inp.focus({ preventScroll: true }), 50);
+  }
+  function charmOf(text) {
+    const ws = words(text).map(w => w.toLowerCase());
+    return KEEPSAKES.filter(k => got.has(k.id) && k.kw.some(kw => ws.includes(kw))).map(k => k.id);
+  }
+  function closeSlip(dismiss) {
+    if (slip) { slip.remove(); slip = null; }
+    if (dismiss && writing) { dismissed.add(writing.id); writing.preview = null; }
+    writing = null; mode = "play";
+    $("pad").hidden = false;
+    document.documentElement.style.setProperty("--kb", "0px");
+  }
+
+  function lay() {
+    const o = writing;
+    const text = $("line").value.trim().replace(/\s+/g, " ");
+    const j = judge(o, text);
+    if (!j.ok) return;
+    ensureAudio();
+    const charms = charmOf(text);
+    o.line = text; o.charms = charms; o.preview = null; o.draft = "";
+    o.rects = j.L.rects.map((r, i) => ({ ...r, charm: charms.length && KEEPSAKES.some(k => charms.includes(k.id) && k.kw.includes(letters(r.word).toLowerCase())), idx: i }));
+    closeSlip(false);
+    mode = "laying";
+    o.shown = 0;
+    const idx = OBS.indexOf(o);
+    const dropOne = () => {
+      if (o.shown >= o.rects.length) { finishLay(o); return; }
+      const r = o.rects[o.shown];
+      if (!r.deco) solids.push(Object.assign(r, { k: "plank" }));
+      o.shown++;
+      if (ac) tone(wordNote(text, o.shown - 1, idx), ac.currentTime + .01, .2, .07);
+      setTimeout(dropOne, reduceMotion ? 20 : 170);
+    };
+    dropOne();
+  }
+  function finishLay(o) {
+    o.solved = true; o.shown = 0;
+    if (o.type === "gate") {
+      const door = solids.find(s => s.gate);
+      solids = solids.filter(s => s !== door);
+      const t0 = performance.now();
+      const swing = () => { o.open = Math.min(1, (performance.now() - t0) / 700); if (o.open < 1) requestAnimationFrame(swing); };
+      swing();
+    }
+    check = { ...o.check };
+    mode = "play";
+    const msgs = { bridge: "The bridge holds.", tunnel: "Small words, safe passage.", gate: "The gate swings open.", water: "The boats hold steady.", stairs: "Climb." };
+    toast(msgs[o.type]);
+    if (o.charms && o.charms.length) setTimeout(() => toast("A keepsake is in the song now."), 1400);
+    save();
+  }
+
+  // ================= the song sheet =================
+  const lyricsList = () => OBS.map(o => o.line ? `<li>${esc(o.line)}</li>` : `<li class="empty">…</li>`).join("");
+  let veil = null;
+  function openVeil(html) {
+    closeVeil();
+    veil = document.createElement("div");
+    veil.className = "veil";
+    veil.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+    document.body.appendChild(veil);
+    return veil.firstElementChild;
+  }
+  function closeVeil() { if (veil) { veil.remove(); veil = null; } }
+  $("songBtn").onclick = () => {
+    if (mode === "start" || mode === "sing") return;
+    const d = openVeil(`<span class="eyebrow">the song so far</span><h2>For the lighthouse keeper</h2><ol class="lyrics">${lyricsList()}</ol>
+      <p style="font-size:15px;color:var(--ink-soft)">Each line is a place you crossed. The ghost will sing them in order.</p>
+      <div class="actions"><button class="btn ghost" id="closeSong">Back to the night</button><button class="btn ghost sm" id="restart">Start the walk over</button></div>`);
+    d.querySelector("#closeSong").onclick = closeVeil;
+    d.querySelector("#restart").onclick = () => { closeVeil(); store.del("tl.progress"); resetWorld(); renderPocket(); mode = "play"; };
+  };
+
+  // ================= finale =================
+  function finale() {
+    mode = "finale";
+    keys.left = keys.right = keys.jump = false;
+    $("pad").hidden = true;
+    const d = openVeil(`<span class="eyebrow">the top of the lighthouse</span><h2>He's here.</h2>
+      <p>The keeper is sitting by the dark lamp. He doesn't look up. The ghost has five lines to sing him, every one of them yours.</p>
+      <ol class="lyrics">${lyricsList()}</ol>
+      <label for="songTitle" style="font-family:var(--caps);font-size:14px;color:var(--ink-soft)">Call the song</label>
+      <input type="text" id="songTitle" maxlength="60" placeholder="Untitled">
+      <div class="actions"><button class="btn" id="singIt">Sing it to him</button></div>`);
+    d.querySelector("#singIt").onclick = () => {
+      ensureAudio();
+      songTitle = d.querySelector("#songTitle").value.trim() || "Untitled";
+      closeVeil();
+      performSong();
+    };
+  }
+  let songTitle = "Untitled", singTimers = [];
+  function performSong() {
+    mode = "sing";
+    const beat = 60 / VOICE.bpm;
+    let t = ac.currentTime + 1.6;
+    const at = x => (x - ac.currentTime) * 1000;
+    const prog = [0, 5, 3, 4, 0];
+    OBS.forEach((o, li) => {
+      const tune = tuneFor(o.line, li);
+      let unit = beat / 2;
+      if (tune.length > 12) unit *= Math.max(.62, 12 / tune.length);
+      const cxy = center(o);
+      singTimers.push(setTimeout(() => { cam.tx = cxy.x; cam.ty = cxy.y - 40; }, at(t) - 1300));
+      const starts = [];
+      let tt = t;
+      tune.forEach((n, i) => { const d = i === tune.length - 1 ? beat * 2 : unit; starts.push(tt); sing(n.midi, tt, d); tt += d; });
+      // soft piano under each line
+      const deg = prog[li], L = VOICE.harm.length;
+      const chord = [0, 2, 4].map(k => VOICE.base - 12 + VOICE.harm[(deg + k) % L] + 12 * Math.floor((deg + k) / L));
+      for (let bt = t, b = 0; bt < tt + beat * .5; bt += beat, b++) {
+        if (b % 3 === 0) tone(VOICE.base - 24 + VOICE.harm[deg], bt, beat * .9, .1);
+        else chord.forEach(m => tone(m, bt, beat * .3, .04));
+      }
+      let lastW = -1;
+      tune.forEach((n, i) => {
+        if (n.wi === lastW) return;
+        lastW = n.wi;
+        const wi = n.wi;
+        singTimers.push(setTimeout(() => {
+          lit = { o, i: wi };
+          const r = o.rects[wi];
+          if (r) spark = { x: r.x + r.w / 2, y: r.y - 10 };
+        }, at(starts[i])));
+      });
+      t = tt + beat * 1.2;
+    });
+    singTimers.push(setTimeout(() => {
+      lit = null; spark = null;
+      cam.tx = 4580; cam.ty = -40;
+      const t0 = performance.now();
+      const glow = () => { lampOn = Math.min(1, (performance.now() - t0) / 1500); if (lampOn < 1) requestAnimationFrame(glow); };
+      setTimeout(() => {
+        glow();
+        for (let i = 0; i < 8; i++) keeperHearts.push({ t: -i * .15, dx: Math.random() * 2 - 1 });
+        if (ac) [0, 4, 7, 12].forEach((d, i) => tone(VOICE.base + d, ac.currentTime + i * .18, .8, .08));
+      }, 1200);
+      setTimeout(endCard, 4400);
+    }, at(t)));
+  }
+  function center(o) {
+    const rs = o.rects;
+    if (!rs.length) return { x: o.x0, y: o.gy };
+    const x0 = Math.min(...rs.map(r => r.x)), x1 = Math.max(...rs.map(r => r.x + r.w));
+    const y0 = Math.min(...rs.map(r => r.y));
+    return { x: (x0 + x1) / 2, y: Math.min(o.gy, y0 + 20) };
+  }
+
+  // ================= the end =================
+  const songText = () => songTitle + "\n\n" + OBS.map(o => o.line).join("\n");
+  function endCard() {
+    mode = "end";
+    const songs = store.get("tl.songs", []);
+    songs.unshift({ title: songTitle, lines: OBS.map(o => o.line), when: Date.now() });
+    store.set("tl.songs", songs.slice(0, 30));
+    store.del("tl.progress");
+    const found = got.size;
+    const d = openVeil(`<span class="eyebrow">the lamp came on</span>
+      <h2>“${esc(songTitle)}”</h2>
+      <p>For the first time in years the light is turning. He's humming the tune. He keeps getting the second line wrong.</p>
+      <ol class="lyrics">${OBS.map(o => `<li>${esc(o.line)}</li>`).join("")}</ol>
+      <p style="font-size:15px;color:var(--ink-soft)">You found ${found} of ${KEEPSAKES.length} keepsakes on the way.</p>
+      <div class="room" id="room" hidden><span class="who">The lighthouse keeper</span><p id="roomText"></p></div>
+      <div class="actions">
+        <button class="btn" id="copyW">Copy the words</button>
+        <button class="btn ghost" id="askK" hidden>Ask the keeper what he heard</button>
+        <button class="btn ghost" id="again">Walk it again</button>
+      </div>`);
+    d.querySelector("#copyW").onclick = e => copy(songText(), e.currentTarget);
+    d.querySelector("#again").onclick = () => { closeVeil(); resetWorld(); renderPocket(); $("pad").hidden = false; mode = "play"; };
+    if (sampleFn) { const b = d.querySelector("#askK"); b.hidden = false; b.onclick = () => askKeeper(b); }
+  }
+  function copy(txt, btn) {
+    const done = () => { btn.textContent = "Copied"; };
+    const fallback = () => {
+      const ta = document.createElement("textarea"); ta.value = txt; ta.style.cssText = "width:100%;min-height:140px;font-family:var(--type)";
+      btn.closest(".sheet").appendChild(ta); ta.select();
+    };
+    try { navigator.clipboard.writeText(txt).then(done, fallback); } catch { fallback(); }
+  }
+
+  // ================= the keeper talks back (Claude, optional) =================
+  let sampleFn = null;
+  try { window.claude?.use?.("sample").then(s => { sampleFn = s || null; }).catch(() => {}); } catch {}
+  async function askKeeper(btn) {
+    const box = $("room"), out = $("roomText");
+    box.hidden = false; btn.disabled = true;
+    out.textContent = "He's quiet for a long moment…";
+    const prompt = `You are an old lighthouse keeper in a gentle, whimsical, paper-cut storybook game. Forty years ago you played the piano at Mrs. Abernathy's boarding house every night. Tonight, on your birthday, the shy ghost who lived in that piano crossed the town to sing you a song. A human player wrote every word of it:
+
+"${songTitle}"
+${OBS.map(o => o.line).join("\n")}
+
+Answer in 2 or 3 short sentences, as the keeper, speaking to the ghost. Be warm and specific; mention one line or image from the song by quoting a few of its words. Do not rewrite the lyrics, suggest new lines, or give writing advice. Plain text only.`;
+    try {
+      await sampleFn(prompt, { modelTier: "quick", onText: ({ text }) => { out.textContent = text; } });
+      btn.hidden = true;
+    } catch (e) {
+      const c = e && e.code;
+      if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(c)) { box.hidden = true; btn.hidden = true; sampleFn = null; }
+      else if (c === "rate_limited") { out.textContent = "He needs a minute. Ask again shortly."; btn.disabled = false; }
+      else if (c !== "cancelled") { out.textContent = (e && e.text) || "He only nods. Ask again?"; btn.disabled = false; }
+    }
+  }
+
+  // ================= saving a walk in progress =================
+  function save() {
+    store.set("tl.progress", { lines: OBS.map(o => o.line), got: [...got], check, x: G.x, y: G.y });
+  }
+  function restore(p) {
+    resetWorld();
+    (p.got || []).forEach(id => got.add(id));
+    (p.lines || []).forEach((line, i) => {
+      if (!line) return;
+      const o = OBS[i];
+      const L = layout(o, line);
+      o.line = line; o.solved = true;
+      o.rects = L.rects.map(r => ({ ...r }));
+      o.rects.forEach(r => { if (!r.deco) solids.push(Object.assign(r, { k: "plank" })); });
+      if (o.type === "gate") { solids = solids.filter(s => !s.gate); o.open = 1; }
+    });
+    if (p.check) check = p.check;
+    G.x = p.check ? p.check.x : 40; G.y = p.check ? p.check.y : 210;
+    renderPocket();
+  }
+
+  // ================= start =================
+  function startCard() {
+    const prog = store.get("tl.progress", null);
+    const songs = store.get("tl.songs", []);
+    const done = prog && prog.lines ? prog.lines.filter(Boolean).length : 0;
+    const d = openVeil(`<span class="eyebrow">a walk in five lines</span>
+      <h1>The Long Way to the Lighthouse</h1>
+      <p>A ghost wants to sing to the man who used to play its piano. Ghosts can't make up words, so every gap between here and the lighthouse gets crossed with a line you write. Your words become the bridge.</p>
+      <p style="font-size:15px;color:var(--ink-soft)">Walk and jump with the arrows and space, or the buttons on screen. Stand under a lamp to write.</p>
+      <div class="actions">
+        ${done ? `<button class="btn" id="cont">Carry on (${done} of 5 lines)</button><button class="btn ghost" id="fresh">Start fresh</button>` : `<button class="btn" id="fresh">Begin</button>`}
+      </div>
+      ${songs.length ? `<details class="kept"><summary>Songs you've finished (${songs.length})</summary>${songs.map(s => `<pre>${esc(s.title)}\n${esc(s.lines.join("\n"))}</pre>`).join("")}</details>` : ""}`);
+    const go = p => { ensureAudio(); closeVeil(); if (p) restore(p); else { resetWorld(); store.del("tl.progress"); } mode = "play"; };
+    d.querySelector("#fresh").onclick = () => go(null);
+    const c = d.querySelector("#cont"); if (c) c.onclick = () => go(prog);
+  }
+
+  // ================= loop =================
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.033, (now - last) / 1000); last = now;
+    T += dt;
+    if (mode === "play" || mode === "laying" || mode === "write") step(dt);
+    if (mode === "play") story();
+    // camera
+    if (mode === "write" && writing) { const c = writing.type === "stairs" ? { x: writing.x0 - 90, y: writing.gy - 60 } : { x: (writing.x0 + writing.x1) / 2, y: writing.gy - 20 }; cam.tx = c.x; cam.ty = c.y; }
+    else if (mode === "play" || mode === "laying" || mode === "finale") { cam.tx = G.x + GW / 2 + G.face * 30; cam.ty = G.y - 30; }
+    const k = mode === "sing" || mode === "end" ? .035 : .1;
+    cam.x += (cam.tx - cam.x) * k; cam.y += (cam.ty - cam.y) * k;
+    cam.y = Math.min(cam.y, 330);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  resetWorld();
+  renderPocket();
+  G.face = 1;
+  cam.x = cam.tx = 260; cam.y = cam.ty = 180;
+  requestAnimationFrame(frame);
+  startCard();
+  // Local test hook only; never present on the published page.
+  if (location.protocol === "file:") window.__walk = { G, OBS, get mode() { return mode; }, openSlip, finale };
+  if (document.fonts && document.fonts.load) document.fonts.load(PLANK_FONT).catch(() => {});
+})();
+</script>
