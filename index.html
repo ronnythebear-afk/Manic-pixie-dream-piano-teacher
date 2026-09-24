@@ -243,7 +243,7 @@
 
   /* ---------- the accompanist's scene on top of the deck ---------- */
   .deck { padding-top: 0; }
-  .scene-wrap { position: relative; height: 84px; margin: 0 -16px 8px; overflow: hidden; border-bottom: 2px solid #14121b; --beat: .7s; }
+  .scene-wrap { position: relative; height: 108px; margin: 0 -16px 8px; overflow: hidden; border-bottom: 2px solid #14121b; --beat: .7s; }
   .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .buddy-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 104px; border: 0; background: transparent; }
   .buddy-hit:focus-visible { outline-offset: -4px; }
@@ -621,6 +621,25 @@
   .color-chip.on { background: color-mix(in srgb, var(--lamp) 50%, var(--card)); }
   .shape-name span { line-height: 1.25; }
   .seg .cnt { font-size: 10.5px; }
+
+  /* ---------- calmer stage ---------- */
+  .lane-row.mini { align-items: center; }
+  .lane-mini { flex: 1; height: 36px; border: 1.5px dashed color-mix(in srgb, var(--soft) 65%, transparent); border-radius: 12px; background: var(--card-2); font-family: var(--hand); font-weight: 700; font-size: 17px; color: var(--soft); text-align: left; padding: 0 12px; }
+  .lane-mini:hover { color: var(--ink); }
+  .tile .sticker, .sticker { display: inline-block; width: 15px; height: 15px; vertical-align: -3px; margin-right: 3px; transform: rotate(-6deg); }
+  .tile:nth-child(2n) .sticker { transform: rotate(7deg); }
+  /* ---------- more life in the world ---------- */
+  .scene .bob { animation: bob 2.6s ease-in-out infinite alternate; }
+  .scene .float { animation: float 3s ease-in-out infinite alternate; }
+  .playing .scene .float { animation-duration: calc(var(--beat) * 2); }
+  .playing .scene g.float[style] { animation: swing var(--beat) ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0%; }
+  @keyframes swing { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
+  .playing .scene .rattle { animation: hop calc(var(--beat) / 2) ease-out infinite alternate; }
+  @keyframes hop { from { transform: translateY(0); } to { transform: translateY(-2.2px) rotate(-5deg); } }
+  .bd-stars { animation: skydrift 90s ease-in-out infinite alternate; }
+  @keyframes skydrift { from { transform: translateX(-2%); } to { transform: translateX(2%) translateY(-1%); } }
+  .bd-cloud { position: absolute; left: -30%; width: 150px; height: 62px; animation: cloud 80s linear infinite; }
+  @keyframes cloud { from { transform: translateX(0); } to { transform: translateX(170vw); } }
 
   /* ---------- the song map ---------- */
   .sections { gap: 6px; padding: 3px 2px 5px; }
@@ -2158,6 +2177,9 @@
     let inner = "";
     if (!room) {
       inner += `<svg class="bd-stars" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${starsIn(46, 17, 0, 0, 400, 560, sky.night)}</svg>`;
+      // clouds drift by in the daytime
+      const cl = Math.max(0, 0.85 - sky.night * 1.3);
+      if (cl > 0.05) inner += [[12, 70, 40], [38, 55, 62], [22, 90, 85]].map(([top, dur, delay], i) => `<svg class="bd-cloud" style="top:${top}%;animation-duration:${dur}s;animation-delay:-${delay}s;opacity:${(cl * (i === 1 ? 0.7 : 0.9)).toFixed(2)}" viewBox="0 0 120 50" aria-hidden="true"><path d="M20 42a14 14 0 0 1 4-27 20 20 0 0 1 37-4 16 16 0 0 1 28 8 12 12 0 0 1 11 23z" fill="#fff"/></svg>`).join("");
       inner += `<svg class="bd-orb" style="top:${(2 + (1 - sky.el) * 16).toFixed(1)}px" viewBox="-20 -20 40 40" aria-hidden="true">${orb(0, 0, 9, sky, "b" + u)}</svg>`;
       const hill = id === "wren" ? hexMix("#6f9a86", "#162520", Math.min(1, sky.night * 1.1)) : hexMix("#8a93b8", "#262a4a", sky.night);
       const ground = id === "wren"
@@ -3176,7 +3198,7 @@
   const HEAR = ["drums", "sing", "crackle"];
   const VIEWS = {
     bare: { name: "bare", note: "keys and chords, nothing else", on: ["palette", "entry", "arrows"] },
-    writer: { name: "writer", note: "write, loop, sing", on: LAYERS.filter(l => l !== "entry") },
+    writer: { name: "writer", note: "write, loop, sing", on: LAYERS.filter(l => l !== "entry" && l !== "ribbon") },
     story: { name: "story", note: "a big scene and your words", on: ["scene", "talk", "lyrics", "arrows", "fx", "drums", "sing", "crackle"] },
     all: { name: "everything", note: "every switch on", on: LAYERS }
   };
@@ -3191,6 +3213,8 @@
     [["tips", "talk"], ["sing", "sing"], ["drums", "drums"], ["fingers", "fingers"], ["next", "arrows"], ["crackle", "crackle"]]
       .forEach(([o, n]) => { if (typeof oldPrefs[o] === "boolean") prefs.layers[n] = oldPrefs[o]; });
   }
+  // a calmer default: the length strip lives in the chord menu now
+  if (!prefs.calm) { prefs.calm = 1; if (prefs.view === "writer") prefs.layers.ribbon = false; }
   LAYERS.forEach(l => { if (typeof prefs.layers[l] !== "boolean") prefs.layers[l] = VIEWS[prefs.view].on.includes(l); });
   ["tips", "sing", "drums", "fingers", "next", "crackle"].forEach(k => delete prefs[k]);
   prefs.fills = Math.max(0, Math.min(4, Math.round(+prefs.fills || 0)));
@@ -3385,6 +3409,13 @@
     return `${esc(pretty(ch.rootName))}${q ? `<span class="q">${esc(q)}</span>` : ""}${ch.slash ? `<span class="sl">/${esc(pretty(ch.bassName))}</span>` : ""}`;
   }
   const fnVar = fn => `--fn: var(--${fn})`;
+  // a little doodle for each role
+  const STICKERS = {
+    home: `<svg class="sticker" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 10.5 10 3.5l7 7V17H3z" fill="var(--home)" stroke="#2f2a3d" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.5 17v-4h3v4" fill="#f7f1e6" stroke="#2f2a3d" stroke-width="1.1"/></svg>`,
+    away: `<svg class="sticker" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 15.5a3.5 3.5 0 0 1 .4-7 4.6 4.6 0 0 1 8.8 1.2 2.9 2.9 0 0 1 .3 5.8z" fill="var(--away)" stroke="#2f2a3d" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
+    tension: `<svg class="sticker" viewBox="0 0 20 20" aria-hidden="true"><path d="M11.5 2 5 11h4.5L8 18l7-9.5h-4.6z" fill="var(--tension)" stroke="#2f2a3d" stroke-width="1.3" stroke-linejoin="round"/></svg>`,
+    surprise: `<svg class="sticker" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 16C4 8 9 4 17 3.5 16.5 11 12 16 4 16z" fill="var(--surprise)" stroke="#2f2a3d" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 16 12 8" stroke="#2f2a3d" stroke-width="1.1" stroke-linecap="round"/></svg>`
+  };
 
   // ---------- the tune: words (or a hummed line) over each chord ----------
   const SCAT = { dusty: "doo", ghost: "bop", wren: "ooh", oona: "mm", lulu: "la" };
@@ -3474,7 +3505,7 @@
       const c = byIndex.get(it.i);
       if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span></div><span class="t-foot">not a chord I know</span></div>`;
       return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}">
-        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${esc(c.a.num)}</span></span>
+        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${STICKERS[c.a.fn] || ""}${esc(c.a.num)}</span></span>
         ${keyboard(c.v, range[0], range[1], { stay: c.stay })}
         <span class="t-foot"><span class="t-words">${esc(words()[it.i] || (Array.isArray(sec().melody[it.i]) ? "~" : "·"))}</span><span>${c.beats}${g}</span></span>
       </button>`;
@@ -3589,7 +3620,6 @@
       <div class="stage-top">
         <button class="chord-name as-btn${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}" type="button" data-act="chord" title="Colors and surprises for this chord">${symbolHTML(c.ch)}<span class="caret" aria-hidden="true">▾</span></button>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
-        ${L("ribbon") ? "" : `<button class="pill" type="button" data-act="beats" title="How long it lasts. Tap to change.">${c.beats}${glyph(Mtr)}</button>`}
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
@@ -3700,12 +3730,14 @@
   }
   function laneRow(c) {
     const m = laneModel(c), editing = editingLyric;
+    if (!editing && !m.w && !m.contour) return `<div class="lane-row mini"><button class="lane-mini" type="button" data-act="words">✎ words &amp; tune</button>
+      <button class="sing-btn" type="button" data-act="sing" aria-pressed="${L("sing")}" title="${esc(B().name)} sings it">♪</button></div>`;
     const tight = m.mel && m.mel.notes.length > 7;
     const ph = !editing && !m.w ? (m.contour ? `<span class="pen">✎ words</span>` : `<span class="ph"><span>✎ tap for words<small>or drag a line to draw the tune</small></span></span>`) : "";
     return `<div class="lane-row">
       <div class="lane${editing ? " editing" : ""}${tight ? " tight" : ""}" id="lane" data-i="${c.i}" data-sec="${secIdx}" role="button" tabindex="0" aria-label="Words and tune for ${esc(c.tok)}. Tap to type words, drag to draw the tune.">
         <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}
-        ${editing ? `<input class="lane-input" id="lyricInput" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}…" enterkeyhint="next" aria-label="Words for this chord" autocomplete="off">` : ""}
+        ${editing ? `<input class="lane-input" id="lyricInput" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}, or draw above" enterkeyhint="next" aria-label="Words for this chord" autocomplete="off">` : ""}
       </div>
       <div class="lane-btns">
         <button class="sing-btn" type="button" data-act="sing" aria-pressed="${L("sing")}" title="${esc(B().name)} sings it">♪</button>
@@ -4450,6 +4482,10 @@
       body.innerHTML = `
         ${ld && ld.L.length > 1 ? `<div class="knob"><span class="lbl">colors · tap to hear each one</span>
           <div class="colors">${ld.L.map((q, k) => `<button class="color-chip${k === ld.i ? " on" : ""}" type="button" data-color="${esc(q)}" aria-pressed="${k === ld.i}"><b>${symbolHTML(parseChord(c.ch.rootName + q))}</b><small>${esc(COLOR_WORDS[q] || "")}</small></button>`).join("")}</div></div>` : ""}
+        <div class="knob"><span class="lbl">how long it lasts</span>
+          <div class="presets">${lengthSteps(Mtr).map(n => `<button class="choice" type="button" data-setlen="${n}" aria-pressed="${c.beats === n}">${n} ${glyph(Mtr)}${n === Mtr.n ? "<small>a bar</small>" : n === Mtr.n * 2 ? "<small>two bars</small>" : ""}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">time signature for the ${esc(sec().name.toLowerCase())}</span>
+          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${sec().meter === m}">${m}</button>`).join("")}</div></div>
         <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button></div>`;
     } else if (sheetMode === "library") {
       $("sheetTitle").textContent = "library";
@@ -4756,6 +4792,7 @@
     else if (act === "beats") { cycleBeats(); refocus('[data-act="beats"]'); }
     else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
     else if (act === "chord" && c) openSheet("chord");
+    else if (act === "words") startLyric();
     else if (act === "undo") {
       const u = undoStack.pop();
       if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
@@ -4925,6 +4962,8 @@
     if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
     const colorB = e.target.closest("[data-color]"), chordAct = e.target.closest("[data-chordact]");
     if (colorB && current[sel]) { setColor(current[sel], colorB.dataset.color, true); return; }
+    const lenB2 = e.target.closest("[data-setlen]");
+    if (lenB2 && current[sel]) { setLength(current[sel], +lenB2.dataset.setlen, true); renderSheet(); playOne(sel); return; }
     if (chordAct) { if (chordAct.dataset.chordact === "surprise") { surprise(); renderSheet(); } else playOne(sel); return; }
     const tapeB = e.target.closest("[data-tape]");
     if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
