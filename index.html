@@ -1,281 +1,305 @@
 <title>Pixie Chords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Nunito:ital,wght@0,500;0,700;0,800;0,900;1,700&family=DM+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nunito:wght@600;700;800&family=Courier+Prime:wght@400;700&display=swap">
 <style>
+  /* afternoon paper (light) and late-night desk (dark) */
   :root {
-    --bg: #fdeef4;
-    --dot: #f8d3e2;
-    --paper: #ffffff;
-    --ink: #2b1e4a;
-    --muted: #76688f;
-    --line: #2b1e4a;
-    --rh: #ff5c9d;
-    --lh: #2ec4a6;
-    --stay: #ffc53d;
-    --spark: #8a6cff;
-    --key-w: #fffdf9;
-    --key-b: #2b1e4a;
-    --key-edge: #2b1e4a;
-    --tint: #fff5d6;
-    --field: #ffffff;
-    --home: #ffa96b;
-    --away: #8ea8ff;
-    --tension: #ff5a5a;
-    --surprise: #b77cff;
-    --scrim: rgba(43, 30, 74, .35);
-    --display: "Bagel Fat One", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif;
+    --bg: #e8e2ea;
+    --card: #f7f3f4;
+    --card-2: #efe8ec;
+    --ink: #2f2a3d;
+    --soft: #6f6782;
+    --line: #2f2a3d;
+    --rh: #e48fa3;
+    --lh: #6db3a0;
+    --lamp: #e9b44c;
+    --home: #edb45a;
+    --away: #8da2cc;
+    --tension: #e07b63;
+    --surprise: #a98bd8;
+    --key-w: #fbf8f3;
+    --key-b: #2f2a3d;
+    --key-edge: #2f2a3d;
+    --on-color: #2f2a3d;
+    --shadow: 0 1px 0 rgba(47, 42, 61, .08), 0 10px 18px -12px rgba(47, 42, 61, .35);
+    --grain-blend: multiply;
+    --grain-op: .55;
+    --scrim: rgba(47, 42, 61, .35);
+    --wob: 16px 22px 14px 24px / 22px 14px 24px 16px;
+    --wob-s: 10px 13px 9px 14px / 13px 9px 14px 10px;
+    --hand: "Gaegu", "Comic Sans MS", "Chalkboard SE", "Nunito", cursive;
     --body: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
-    --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --type: "Courier Prime", "Courier New", ui-monospace, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #1d1533; --dot: #2c2250; --paper: #2a2047; --ink: #fff0f6; --muted: #b6a8d4; --line: #0c0818;
-      --rh: #ff6fa9; --lh: #3fd9b9; --stay: #ffd166; --spark: #a996ff;
-      --key-w: #f5efff; --key-b: #150e2a; --key-edge: #0c0818; --tint: #3a2c5f; --field: #221a3c;
-      --home: #ffb27f; --away: #9db4ff; --tension: #ff7070; --surprise: #c597ff; --scrim: rgba(8, 5, 18, .6);
+      --bg: #1c1e2b; --card: #262839; --card-2: #2e3044; --ink: #efe7dc; --soft: #a8a1b8; --line: rgba(239, 231, 220, .72);
+      --rh: #ee9ab0; --lh: #7cc7b2; --lamp: #f2c063; --home: #f2c063; --away: #9db1dd; --tension: #ee8b72; --surprise: #b89ce6;
+      --key-w: #efe7dc; --key-b: #14151f; --key-edge: #14151f;
+      --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 12px 22px -12px rgba(0, 0, 0, .7);
+      --grain-blend: screen; --grain-op: .16; --scrim: rgba(6, 6, 12, .6);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #1d1533; --dot: #2c2250; --paper: #2a2047; --ink: #fff0f6; --muted: #b6a8d4; --line: #0c0818;
-    --rh: #ff6fa9; --lh: #3fd9b9; --stay: #ffd166; --spark: #a996ff;
-    --key-w: #f5efff; --key-b: #150e2a; --key-edge: #0c0818; --tint: #3a2c5f; --field: #221a3c;
-    --home: #ffb27f; --away: #9db4ff; --tension: #ff7070; --surprise: #c597ff; --scrim: rgba(8, 5, 18, .6);
+    --bg: #1c1e2b; --card: #262839; --card-2: #2e3044; --ink: #efe7dc; --soft: #a8a1b8; --line: rgba(239, 231, 220, .72);
+    --rh: #ee9ab0; --lh: #7cc7b2; --lamp: #f2c063; --home: #f2c063; --away: #9db1dd; --tension: #ee8b72; --surprise: #b89ce6;
+    --key-w: #efe7dc; --key-b: #14151f; --key-edge: #14151f;
+    --shadow: 0 1px 0 rgba(0, 0, 0, .3), 0 12px 22px -12px rgba(0, 0, 0, .7);
+    --grain-blend: screen; --grain-op: .16; --scrim: rgba(6, 6, 12, .6);
   }
 
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { height: 100%; }
-  body {
-    background-color: var(--bg);
-    background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
-    background-size: 22px 22px;
-    color: var(--ink);
-    font-family: var(--body);
-    font-size: 15px;
-    line-height: 1.45;
+  body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .45 0 0 0 0 .55 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: var(--grain-blend); opacity: var(--grain-op);
   }
   button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
-  :focus-visible { outline: 3px solid var(--spark); outline-offset: 2px; }
+  :focus-visible { outline: 2.5px dashed var(--surprise); outline-offset: 3px; }
 
-  .app { min-height: 100%; max-width: 1200px; margin: 0 auto; padding-inline: 18px; padding-block: 12px; display: flex; flex-direction: column; gap: 10px; }
-  .view { display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
-
-  /* ---------- top bar ---------- */
-  .bar { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
-  h1 { flex: none; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; margin: 0; text-shadow: 2px 2px 0 var(--rh); }
-  h1 .dot { color: var(--lh); text-shadow: 2px 2px 0 var(--ink); }
-  .tabs { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
-  .tabs button { border: 0; background: none; padding: 5px 13px; font-weight: 900; font-size: 14px; }
-  .tabs button + button { border-left: 2px solid var(--line); }
-  .tabs button[aria-selected="true"] { background: var(--stay); color: #2b1e4a; }
-  .bar-right { margin-left: auto; display: flex; gap: 8px; }
-
-  .btn {
-    flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    border: 2.5px solid var(--line); border-radius: 14px; padding: 7px 14px;
-    font-weight: 900; font-size: 15px; background: var(--paper);
-    box-shadow: 3px 3px 0 var(--line);
-    transition: transform .08s, box-shadow .08s, background .15s;
+  .app {
+    min-height: 100%; max-width: 760px; margin: 0 auto;
+    padding-inline: 16px; padding-block: 12px calc(92px + env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; gap: 10px;
   }
-  .btn:active { transform: translate(3px, 3px); box-shadow: none; }
-  .btn svg { width: 14px; height: 14px; flex: none; }
-  .btn.small { padding: 4px 10px; font-size: 13px; border-width: 2px; border-radius: 11px; box-shadow: 2px 2px 0 var(--line); }
-  .btn.play { background: var(--rh); color: #2b1e4a; min-width: 92px; }
-  .btn[aria-pressed="true"] { background: var(--lh); color: #2b1e4a; }
-  .btn.sparkle { background: var(--surprise); color: #2b1e4a; }
+  .view { display: flex; flex-direction: column; gap: 10px; }
 
-  /* ---------- song row ---------- */
-  .song-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; min-width: 0; }
-  .song-title { border: 0; border-bottom: 2px dashed var(--muted); background: transparent; font-weight: 900; font-size: 16px; padding: 2px 2px; width: 14ch; min-width: 0; }
-  .song-title:focus { outline: none; border-bottom-color: var(--spark); }
-  .sections { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-  .sec { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 2px 11px; font-weight: 800; font-size: 13px; }
-  .sec[aria-current="true"] { background: var(--ink); color: var(--bg); }
-  .sec.add { border-style: dashed; color: var(--muted); }
-  .sec-edit { display: inline-flex; align-items: center; gap: 4px; }
-  .sec-edit select { border: 2px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 13px; font-weight: 800; padding: 1px 4px; }
-  .x { border: 0; background: none; color: var(--muted); font-weight: 900; font-size: 16px; line-height: 1; padding: 0 4px; }
+  /* ---------- header ---------- */
+  .top { display: flex; align-items: center; gap: 10px; }
+  .wordmark { font-family: var(--hand); font-weight: 700; font-size: 30px; line-height: 1; margin: 0; letter-spacing: -.5px; }
+  .wordmark span { color: var(--rh); }
+  .modes { margin-left: auto; display: inline-flex; background: var(--card-2); border-radius: 999px; padding: 3px; }
+  .modes button { border: 0; background: none; border-radius: 999px; padding: 3px 11px; font-family: var(--type); font-size: 12.5px; font-weight: 700; color: var(--soft); }
+  .modes button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
 
-  /* ---------- compose ---------- */
-  .compose { display: flex; align-items: center; gap: 10px; }
-  .field { flex: 1; min-width: 0; display: flex; align-items: center; background: var(--field); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--line); padding: 0 14px; }
-  #prog { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-family: var(--display); font-size: 22px; padding: 6px 0; }
-  select { border: 2px solid var(--line); border-radius: 12px; background: var(--paper); padding: 4px 8px; font-weight: 800; font-size: 14px; max-width: 200px; }
+  .songline { display: flex; align-items: center; gap: 8px; }
+  .song-title { flex: 1; min-width: 0; border: 0; background: transparent; font-family: var(--hand); font-weight: 700; font-size: 22px; padding: 0; line-height: 1.1; }
+  .song-title:focus { outline: none; text-decoration: underline wavy var(--surprise) 1.5px; text-underline-offset: 5px; }
+  .link { border: 0; background: none; padding: 2px 4px; font-family: var(--type); font-weight: 700; font-size: 13px; color: var(--soft); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+  .link:hover { color: var(--ink); }
 
-  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-  .controls select { max-width: 150px; }
-  #key { max-width: 190px; }
-  .label { font-weight: 900; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-  .mini { display: inline-flex; align-items: center; gap: 6px; }
-  .levels { display: inline-flex; flex-direction: column; gap: 3px; }
-  .seg { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
-  .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg label { padding: 4px 10px; font-weight: 900; font-size: 13.5px; cursor: pointer; border-right: 2px solid var(--line); display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; }
-  .seg label:last-of-type { border-right: 0; }
-  .seg label i { font-style: normal; font-size: 8px; letter-spacing: 1px; color: var(--muted); }
-  .seg input:checked + label { background: var(--lh); color: #2b1e4a; }
-  .seg input:checked + label i { color: #2b1e4a; }
-  .seg input:focus-visible + label { outline: 3px solid var(--spark); outline-offset: -3px; }
-  .round { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--paper); font-weight: 900; font-size: 16px; line-height: 1; display: inline-grid; place-items: center; }
-  .round:active { transform: scale(.92); }
-  input[type="range"] { accent-color: var(--rh); width: 76px; }
-  .tabnum { font-family: var(--mono); font-size: 13px; min-width: 3ch; font-variant-numeric: tabular-nums; }
-  .switch { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; cursor: pointer; }
-  .switch input { accent-color: var(--lh); width: 17px; height: 17px; margin: 0; }
-  .sound-hint { margin: 0; align-self: flex-start; background: var(--stay); color: #2b1e4a; border: 2px solid var(--line); border-radius: 12px; padding: 5px 12px; font-weight: 800; font-size: 14px; }
+  /* section tabs: masking tape */
+  .sections { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 4px; align-items: center; scrollbar-width: none; }
+  .sec {
+    flex: none; border: 0; padding: 3px 12px; font-family: var(--type); font-weight: 700; font-size: 12.5px; letter-spacing: .04em; text-transform: lowercase;
+    background: color-mix(in srgb, var(--lamp) 38%, transparent); color: var(--ink);
+    clip-path: polygon(0 12%, 4% 0, 8% 14%, 12% 2%, 100% 0, 97% 50%, 100% 100%, 90% 88%, 84% 100%, 0 100%, 3% 50%);
+    transform: rotate(-1.2deg);
+  }
+  .sec:nth-child(2n) { transform: rotate(1deg); background: color-mix(in srgb, var(--away) 42%, transparent); }
+  .sec[aria-current="true"] { background: var(--lamp); color: var(--on-color); }
+  .sec.add { background: none; clip-path: none; color: var(--soft); border: 1.5px dashed var(--soft); border-radius: 999px; transform: none; }
+  .sec-edit { flex: none; display: inline-flex; align-items: center; gap: 2px; background: var(--lamp); padding: 1px 4px 1px 8px; transform: rotate(-1deg); clip-path: polygon(0 10%, 5% 0, 100% 0, 97% 50%, 100% 100%, 0 100%, 3% 50%); }
+  .sec-edit select { border: 0; background: transparent; font-family: var(--type); font-weight: 700; font-size: 12.5px; color: var(--on-color); padding: 2px 0; }
+  .x { border: 0; background: none; color: var(--on-color); font-weight: 800; font-size: 16px; line-height: 1; padding: 0 4px; }
 
-  /* ---------- palette ---------- */
-  .pal-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
-  .pal-row > .mini { flex: none; }
-  .palette { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: thin; }
-  .palette .label { white-space: nowrap; margin-right: 2px; }
-  .pal { flex: none; display: inline-flex; flex-direction: column; align-items: center; gap: 0; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); padding: 2px 9px 3px; line-height: 1.1; position: relative; transition: transform .1s; }
-  .pal:hover { transform: translateY(-2px); }
-  .pal b { font-family: var(--display); font-weight: 400; font-size: 16px; }
-  .pal small { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
-  .pal::before { content: ""; position: absolute; left: 6px; right: 6px; top: -2px; height: 3px; border-radius: 0 0 3px 3px; background: var(--fn); }
-  .pal.next { box-shadow: 0 0 0 3px var(--stay); }
-  .pal.next::after { content: "✦"; position: absolute; top: -9px; right: -5px; font-size: 12px; color: var(--spark); }
-  .divider { width: 2px; align-self: stretch; background: var(--dot); margin: 2px 4px; flex: none; }
-
-  /* ---------- chord strip ---------- */
-  .strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 6px 8px 2px; scroll-snap-type: x proximity; flex: none; }
+  /* ---------- chord strip: index cards ---------- */
+  .strip { display: flex; gap: 10px; overflow-x: auto; padding: 10px 4px 10px 2px; scroll-snap-type: x proximity; scrollbar-width: none; }
   .tile {
-    flex: 1 0 116px; max-width: 180px; scroll-snap-align: start; text-align: left;
-    background: var(--paper); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--line);
-    padding: 0 9px 7px; display: grid; gap: 3px; overflow: hidden;
-    transition: transform .15s cubic-bezier(.3,1.6,.5,1), box-shadow .15s, background .15s;
+    position: relative; flex: 0 0 104px; scroll-snap-align: start; text-align: left;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob-s);
+    padding: 12px 8px 7px; display: grid; gap: 3px; box-shadow: var(--shadow);
+    transform: rotate(var(--r, 0deg)); transition: transform .2s ease;
   }
-  .tile:hover { transform: translateY(-2px); }
-  .tile.sel { background: var(--tint); transform: translateY(-3px); box-shadow: 4px 6px 0 var(--line); }
-  .band { height: 6px; margin: 0 -9px 3px; background: var(--fn, var(--dot)); border-bottom: 2px solid var(--line); }
-  .t-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-  .t-sym { font-family: var(--display); font-size: 21px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .q, .sl { font-size: .66em; color: var(--muted); }
-  .t-num { font-family: var(--mono); font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-  .t-shape { font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; justify-content: space-between; gap: 4px; }
-  .t-shape.ovr span:first-child { color: var(--spark); }
+  .tile:nth-child(3n+1) { --r: -1.3deg; } .tile:nth-child(3n+2) { --r: .9deg; } .tile:nth-child(3n) { --r: -.4deg; }
+  .tile::before {
+    content: ""; position: absolute; top: -7px; left: 50%; width: 44px; height: 13px; margin-left: -22px;
+    background: color-mix(in srgb, var(--fn, var(--lamp)) 70%, transparent); transform: rotate(-3deg);
+    clip-path: polygon(0 15%, 6% 0, 12% 18%, 18% 0, 100% 0, 95% 50%, 100% 100%, 88% 85%, 80% 100%, 0 100%, 4% 50%);
+  }
+  .tile.sel { transform: rotate(0deg) translateY(-4px); background: var(--card-2); border-width: 2px; }
+  .t-head { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+  .t-sym { font-family: var(--hand); font-weight: 700; font-size: 24px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .q, .sl { font-size: .7em; }
+  .t-num { font-family: var(--type); font-size: 11px; color: var(--soft); }
+  .t-foot { font-family: var(--type); font-size: 10.5px; color: var(--soft); display: flex; justify-content: space-between; }
   .tile svg { display: block; width: 100%; height: auto; }
-  .tile.bad { border-style: dashed; box-shadow: none; background: var(--bg); cursor: default; padding-top: 7px; }
-  .glyph, .tile .glyph { width: 14px; height: 14px; flex: none; display: inline-block; }
-  .glyph path, .glyph rect { fill: var(--gfill); stroke: var(--line); stroke-width: 1; stroke-linejoin: round; }
-  .glyph .g-in { fill: var(--paper); }
-  .glyph .g-line { fill: none; stroke: var(--gfill); stroke-width: 1.6; stroke-linecap: round; }
-  .g-home { --gfill: var(--home); } .g-away { --gfill: var(--away); } .g-tension { --gfill: var(--tension); } .g-surprise { --gfill: var(--surprise); }
+  .tile.bad { background: transparent; border-style: dashed; box-shadow: none; }
+  .tile.bad::before { display: none; }
 
-  /* ---------- stage ---------- */
-  .stage {
-    position: relative; flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;
-    background: var(--paper); border: 3px solid var(--line); border-radius: 22px; box-shadow: 5px 5px 0 var(--line);
-    padding: 12px 16px; min-height: 0; overflow: hidden; isolation: isolate;
+  /* ---------- entry + chord buttons ---------- */
+  .entry { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob); padding: 2px 6px 2px 14px; }
+  .entry label { font-family: var(--type); font-size: 11.5px; font-weight: 700; color: var(--soft); white-space: nowrap; }
+  #prog { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-family: var(--hand); font-weight: 700; font-size: 22px; padding: 4px 0; }
+
+  .palette { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 8px 2px 6px; scrollbar-width: none; }
+  .keychip { flex: none; border: 0; background: none; font-family: var(--type); font-weight: 700; font-size: 12.5px; color: var(--soft); padding: 0 4px 0 0; white-space: nowrap; text-decoration: underline dotted; text-underline-offset: 3px; }
+  .pal {
+    flex: none; position: relative; display: inline-flex; flex-direction: column; align-items: center; line-height: 1;
+    border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); padding: 4px 9px 4px;
+    box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--fn) 55%, transparent);
   }
-  .stage-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 85% 0%, color-mix(in srgb, var(--fn, transparent) 22%, transparent), transparent 60%); transition: background .4s; }
-  .stage-bg .glyph { position: absolute; width: 26px; height: 26px; opacity: .22; animation: drift 7s ease-in-out infinite alternate; }
-  .stage-bg .glyph path, .stage-bg .glyph rect { stroke: none; }
-  @keyframes drift { from { transform: translateY(0) rotate(-6deg); } to { transform: translateY(-8px) rotate(8deg); } }
-  .stage-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-  .who { display: flex; align-items: baseline; gap: 10px; }
-  .big-sym { font-family: var(--display); font-size: 44px; line-height: 1; min-width: 2ch; }
-  .fn-tag { display: inline-flex; align-items: center; gap: 5px; font-weight: 900; font-size: 13px; border: 2px solid var(--line); border-radius: 999px; padding: 1px 9px 1px 6px; background: color-mix(in srgb, var(--fn) 35%, var(--paper)); white-space: nowrap; }
-  .fn-tag .num { font-family: var(--mono); font-weight: 500; }
-  .shape { display: flex; align-items: center; gap: 6px; }
-  .nudge { flex: none; width: 32px; height: 32px; border-radius: 11px; border: 2.5px solid var(--line); background: var(--paper); font-weight: 900; font-size: 19px; line-height: 1; display: grid; place-items: center; }
-  .nudge:hover { background: var(--lh); color: #2b1e4a; }
-  .shape-name { min-width: 140px; text-align: center; line-height: 1.2; }
-  .shape-name b { display: block; font-weight: 900; font-size: 15px; }
-  .shape-name span { font-size: 12px; color: var(--muted); font-weight: 700; }
-  .reset { border: 0; background: none; padding: 0; margin-left: 4px; color: var(--spark); font-weight: 900; font-size: 12px; text-decoration: underline; }
-  .tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .beats { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; white-space: nowrap; }
-  .beats .round { width: 24px; height: 24px; font-size: 14px; }
-  .undo { border: 0; background: none; color: var(--spark); font-weight: 900; font-size: 13px; text-decoration: underline; padding: 0; }
+  .pal b { font-family: var(--hand); font-weight: 700; font-size: 19px; }
+  .pal small { font-family: var(--type); font-size: 10px; color: var(--soft); margin-top: 1px; }
+  .pal.next { border-width: 2px; }
+  .pal.next::after { content: "next?"; position: absolute; top: -10px; right: -8px; font-family: var(--hand); font-weight: 700; font-size: 13px; color: var(--tension); transform: rotate(8deg); }
+  .pal.borrowed { border-style: dashed; }
+  .sep { flex: none; font-family: var(--hand); font-size: 18px; color: var(--soft); padding: 0 2px; }
+  .mini-switch { flex: none; display: inline-flex; align-items: center; gap: 4px; font-family: var(--type); font-size: 12px; font-weight: 700; color: var(--soft); cursor: pointer; padding-left: 4px; }
+  .mini-switch input { accent-color: var(--lh); margin: 0; }
 
-  .big-kbd { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 110px; cursor: pointer; }
-  .big-kbd svg { display: block; width: 100%; height: auto; max-height: min(38vh, 300px); }
-  .kw { fill: var(--key-w); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
-  .kb { fill: var(--key-b); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
-  .kw.lh, .kb.lh { fill: var(--lh); }
-  .kw.rh, .kb.rh { fill: var(--rh); }
-  .stay { fill: var(--stay); stroke: var(--key-edge); stroke-width: .8; }
-  .oct { fill: var(--muted); font-family: var(--mono); font-size: 4.6px; text-anchor: middle; }
-  .kl { fill: #2b1e4a; font-family: var(--body); font-weight: 900; font-size: 4.2px; text-anchor: middle; }
-  .kl.onb { font-size: 3.4px; }
-  .fnum { fill: #2b1e4a; font-family: var(--body); font-weight: 900; font-size: 5.4px; text-anchor: middle; }
-  .pixie.bob { animation: bob 1.1s ease-in-out infinite alternate; }
-  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2.5px); } }
-  [data-m] { cursor: pointer; }
-
-  .stage-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-  .tip { flex: 1 1 320px; display: flex; align-items: center; gap: 8px; min-width: 0; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; padding: 5px 12px 5px 6px; font-weight: 700; font-size: 13.5px; text-align: left; line-height: 1.35; }
-  .tip:hover { background: var(--tint); }
-  .pixie-badge { width: 30px; height: 40px; flex: none; }
-  .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-  .hand { font-weight: 900; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-  .n { font-family: var(--mono); font-size: 13px; border: 2px solid var(--line); border-radius: 8px; padding: 0 6px; color: #2b1e4a; }
+  /* ---------- stage: the big keyboard ---------- */
+  .stage { position: relative; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob); box-shadow: var(--shadow); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .stage-top { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+  .chord-name { font-family: var(--hand); font-weight: 700; font-size: 48px; line-height: .85; }
+  .role { display: inline-flex; align-items: center; gap: 6px; font-family: var(--type); font-size: 13px; font-weight: 700; padding-bottom: 4px; }
+  .role i { width: 11px; height: 11px; border-radius: 50%; background: var(--fn); display: inline-block; box-shadow: 0 0 0 1.5px var(--line); }
+  .role span { color: var(--soft); font-weight: 400; }
+  .pill { margin-left: auto; border: 1.5px solid var(--line); background: var(--card-2); border-radius: 999px; padding: 2px 10px; font-family: var(--type); font-weight: 700; font-size: 12.5px; }
+  .kbd { cursor: pointer; }
+  .kbd svg { display: block; width: 100%; height: auto; max-height: min(34vh, 260px); margin: 0 auto; }
+  .shape-row { display: flex; align-items: center; gap: 8px; }
+  .nudge { flex: none; width: 34px; height: 34px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card-2); font-family: var(--hand); font-weight: 700; font-size: 22px; line-height: 1; display: grid; place-items: center; }
+  .shape-name { flex: 1; min-width: 0; text-align: center; line-height: 1.15; }
+  .shape-name b { display: block; font-family: var(--hand); font-weight: 700; font-size: 20px; }
+  .shape-name span { font-size: 12.5px; color: var(--soft); font-weight: 700; }
+  .reset { border: 0; background: none; padding: 0; margin-left: 4px; color: var(--surprise); font-weight: 800; font-size: 12.5px; text-decoration: underline; }
+  .notes-row { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 6px; font-family: var(--type); font-size: 13px; }
+  .notes-row .h { color: var(--soft); font-size: 11.5px; font-weight: 700; }
+  .n { border-radius: 6px; padding: 0 6px; color: var(--on-color); font-weight: 700; }
   .n.lh { background: var(--lh); } .n.rh { background: var(--rh); }
   .n.spk::before { content: "✦ "; }
-  .gap { width: 6px; }
-  .toggles { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
-  .moves { font-size: 13px; font-weight: 800; color: var(--muted); }
-  .moves b { color: var(--ink); }
-  .empty { margin: auto; font-weight: 800; color: var(--muted); font-size: 17px; text-align: center; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-weight: 700; font-size: 12px; color: var(--muted); }
-  .legend span { display: inline-flex; align-items: center; gap: 4px; }
-
-  /* ---------- finder ---------- */
-  .alts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .alt { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 1px 10px; font-family: var(--mono); font-size: 13px; }
-  .finder-note { margin: 0; font-weight: 700; color: var(--muted); font-size: 13.5px; }
-
-  /* ---------- drawer ---------- */
-  .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; }
-  .drawer {
-    position: fixed; z-index: 21; top: 0; right: 0; bottom: 0; width: min(560px, 100%);
-    background: var(--bg); border-left: 3px solid var(--line); box-shadow: -6px 0 0 var(--line);
-    display: flex; flex-direction: column;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px calc(14px + env(safe-area-inset-bottom, 0px));
-    gap: 12px;
+  .moves { color: var(--soft); margin-left: auto; }
+  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card-2);
+    padding: 6px 13px; font-family: var(--body); font-weight: 800; font-size: 14px;
   }
-  .drawer-head { display: flex; align-items: center; gap: 10px; }
-  .drawer-head h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; flex: 1; }
-  .drawer-body { overflow-y: auto; display: grid; gap: 12px; align-content: start; padding: 2px 6px 10px 2px; }
-  .card { background: var(--paper); border: 2.5px solid var(--line); border-radius: 18px; box-shadow: 3px 3px 0 var(--line); padding: 12px 14px; display: grid; gap: 6px; }
-  .card h3 { margin: 0; font-size: 17px; font-weight: 900; display: flex; align-items: center; gap: 7px; }
-  .mood { font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; border: 1.5px solid var(--line); border-radius: 999px; padding: 0 7px; margin-left: auto; background: color-mix(in srgb, var(--fn) 35%, var(--paper)); }
-  .card .prog { font-family: var(--mono); font-size: 13.5px; }
-  .card .poem { font-style: italic; font-weight: 700; margin: 0; }
-  .card .theory { color: var(--muted); font-weight: 700; font-size: 13.5px; margin: 0; }
-  .card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn:active { transform: translateY(1px); }
+  .btn.surprise { background: color-mix(in srgb, var(--surprise) 55%, var(--card)); color: var(--on-color); }
+  .btn[aria-pressed="true"] { background: color-mix(in srgb, var(--lh) 60%, var(--card)); color: var(--on-color); }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .undo { border: 0; background: none; padding: 0; color: var(--surprise); font-weight: 800; font-size: 13.5px; text-decoration: underline; }
+
+  /* pixie's sticky note */
+  .note-tip {
+    display: flex; align-items: center; gap: 8px; text-align: left; width: 100%;
+    background: color-mix(in srgb, var(--lamp) 30%, var(--card)); border: 0; border-radius: 3px 3px 14px 3px;
+    padding: 6px 12px 6px 6px; font-family: var(--hand); font-weight: 700; font-size: 17px; line-height: 1.15;
+    box-shadow: var(--shadow); transform: rotate(-.5deg);
+  }
+  .pixie-badge { width: 28px; height: 38px; flex: none; }
+  .empty { margin: 18px auto; font-family: var(--hand); font-weight: 700; font-size: 20px; color: var(--soft); text-align: center; }
+
+  /* keyboard svg */
+  .kw { fill: var(--key-w); stroke: var(--key-edge); stroke-width: .9; }
+  .kb { fill: var(--key-b); stroke: var(--key-edge); stroke-width: .9; }
+  .kw.lh, .kb.lh { fill: var(--lh); }
+  .kw.rh, .kb.rh { fill: var(--rh); }
+  .stay { fill: var(--lamp); stroke: var(--key-edge); stroke-width: .7; }
+  .ring { fill: none; stroke: var(--lamp); stroke-width: 1.5; }
+  .fdot { stroke: var(--key-edge); stroke-width: .7; fill: var(--key-w); }
+  .fnum { fill: #2f2a3d; font-family: var(--hand); font-weight: 700; font-size: 6.4px; text-anchor: middle; }
+  .kl { fill: #2f2a3d; font-family: var(--type); font-weight: 700; font-size: 3.9px; text-anchor: middle; }
+  .oct { fill: var(--soft); font-family: var(--type); font-size: 4.2px; text-anchor: middle; }
+  [data-m] { cursor: pointer; }
+
+  /* finder */
+  .alts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-family: var(--type); font-size: 12.5px; color: var(--soft); }
+  .alt { border: 1.5px dashed var(--line); border-radius: 999px; padding: 0 8px; color: var(--ink); }
+
+  /* ---------- the tape deck ---------- */
+  .deck {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: #25222f; color: #efe7dc;
+    border-top: 2px solid #14121b;
+  }
+  .deck-in { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+  .cassette { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+  .reels { flex: none; display: flex; gap: 5px; background: rgba(239, 231, 220, .1); border-radius: 8px; padding: 5px 7px; }
+  .reel { width: 22px; height: 22px; }
+  .reel circle, .reel path { fill: none; stroke: currentColor; stroke-width: 1.4; }
+  .playing .reel { animation: spin 2.4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .label-strip { min-width: 0; font-family: var(--type); font-size: 12px; line-height: 1.25; overflow: hidden; }
+  .label-strip b { display: block; font-family: var(--hand); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .label-strip span { opacity: .75; white-space: nowrap; }
+  .dbtn {
+    flex: none; display: grid; place-items: center; min-width: 48px; height: 48px; padding: 0 10px;
+    border: 0; border-radius: 12px; background: rgba(239, 231, 220, .12); color: #efe7dc;
+    font-family: var(--type); font-weight: 700; font-size: 11px; gap: 0; line-height: 1;
+  }
+  .dbtn svg { width: 18px; height: 18px; }
+  .dbtn.play { background: var(--rh); color: #2f2a3d; min-width: 60px; }
+  .dbtn[aria-pressed="true"] { background: var(--lh); color: #2f2a3d; }
+  .groove { flex: none; height: 48px; border: 0; border-radius: 12px; background: rgba(239, 231, 220, .12); color: #efe7dc; font-family: var(--type); font-weight: 700; font-size: 12.5px; padding: 0 8px; max-width: 120px; }
+  .groove option { color: #2f2a3d; background: #f7f3f4; }
+  .sound-hint { margin: 0; background: var(--lamp); color: var(--on-color); border-radius: 6px; padding: 5px 12px; font-weight: 800; font-size: 13.5px; }
+
+  /* ---------- sheets ---------- */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; }
+  .sheet {
+    position: fixed; z-index: 21; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: min(620px, 100%); max-height: 86vh; display: flex; flex-direction: column; gap: 10px;
+    background: var(--bg); border: 1.5px solid var(--line); border-bottom: 0; border-radius: 22px 22px 0 0;
+    padding: 14px 18px calc(16px + env(safe-area-inset-bottom, 0px)); box-shadow: 0 -12px 30px -12px rgba(0, 0, 0, .4);
+  }
+  .sheet-head { display: flex; align-items: center; gap: 10px; }
+  .sheet-head h2 { margin: 0; flex: 1; font-family: var(--hand); font-weight: 700; font-size: 28px; line-height: 1; }
+  .sheet-body { overflow-y: auto; display: grid; gap: 12px; align-content: start; padding: 4px 4px 8px 2px; }
+  .card { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob); padding: 12px 14px; display: grid; gap: 6px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 22px; line-height: 1.05; display: flex; align-items: center; gap: 8px; }
+  .mood { margin-left: auto; font-family: var(--type); font-size: 11px; font-weight: 700; padding: 1px 7px; background: color-mix(in srgb, var(--fn) 45%, transparent); transform: rotate(2deg); }
+  .card .prog { font-family: var(--type); font-size: 13.5px; }
+  .card .poem { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 18px; line-height: 1.2; }
+  .card .theory { margin: 0; color: var(--soft); font-size: 13.5px; font-weight: 700; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .song-card { display: flex; align-items: center; gap: 10px; }
   .song-card .meta { flex: 1; min-width: 0; }
-  .song-card .meta b { display: block; font-size: 16px; }
-  .song-card .meta span { font-size: 12.5px; color: var(--muted); font-weight: 700; }
-  .song-card[aria-current="true"] { background: var(--tint); }
-  textarea { width: 100%; min-height: 110px; border: 2px solid var(--line); border-radius: 12px; background: var(--field); padding: 8px 10px; font-family: var(--mono); font-size: 13px; resize: vertical; }
-  .note { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
-  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--ink); color: var(--bg); font-weight: 800; border-radius: 999px; padding: 7px 16px; font-size: 14px; }
+  .song-card .meta b { display: block; font-family: var(--hand); font-size: 21px; line-height: 1.1; }
+  .song-card .meta span { font-size: 12.5px; color: var(--soft); font-weight: 700; }
+  .song-card[aria-current="true"] { background: var(--card-2); }
+  .note { margin: 0; font-size: 13px; font-weight: 700; color: var(--soft); }
+  textarea { width: 100%; min-height: 100px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 8px 10px; font-family: var(--type); font-size: 13px; resize: vertical; }
 
-  @media (max-width: 720px) {
-    .app { padding-inline: 16px; gap: 8px; }
-    h1 { font-size: 24px; }
-    .bar-right { margin-left: auto; }
-    .song-row { order: 5; flex-basis: 100%; }
-    .compose { flex-wrap: wrap; }
-    .field { flex-basis: 100%; }
-    .compose .btn { flex: 1; padding: 6px 10px; }
-    .controls { gap: 8px 12px; }
-    .seg label { padding: 3px 7px; font-size: 12.5px; }
-    .big-sym { font-size: 36px; }
-    .tools { margin-left: 0; }
-    .shape { flex: 1 1 100%; }
-    .shape-name { flex: 1; min-width: 0; }
-    .toggles { margin-left: 0; }
-    .pal-row { flex-wrap: wrap; }
-    .palette { flex-basis: 100%; }
+  /* knobs */
+  .knob { display: grid; gap: 6px; }
+  .knob > .lbl { font-family: var(--type); font-weight: 700; font-size: 12px; color: var(--soft); text-transform: lowercase; letter-spacing: .04em; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .choice { border: 1.5px solid var(--line); background: var(--card); border-radius: var(--wob-s); padding: 5px 12px; font-family: var(--hand); font-weight: 700; font-size: 18px; line-height: 1.1; text-align: left; }
+  .choice small { display: block; font-family: var(--body); font-size: 11.5px; font-weight: 700; color: var(--soft); }
+  .choice[aria-pressed="true"] { background: color-mix(in srgb, var(--lh) 55%, var(--card)); color: var(--on-color); }
+  .choice[aria-pressed="true"] small { color: var(--on-color); }
+  .knob input[type="range"] { accent-color: var(--rh); width: 100%; }
+  .knob select { border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); padding: 6px 8px; font-weight: 700; }
+  .toggles { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .tog { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; cursor: pointer; }
+  .tog input { accent-color: var(--lh); width: 18px; height: 18px; margin: 0; }
+  .round { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 18px; line-height: 1; display: inline-grid; place-items: center; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) rotate(-1deg); z-index: 30; background: var(--lamp); color: var(--on-color); font-family: var(--hand); font-weight: 700; font-size: 18px; padding: 5px 14px; box-shadow: var(--shadow); white-space: nowrap; }
+
+  @media (min-width: 700px) {
+    .tile { flex-basis: 120px; }
+    .chord-name { font-size: 58px; }
+    .label-strip b { font-size: 19px; }
+  }
+  /* wide screens: writing on the left, the keyboard on the right */
+  @media (min-width: 1000px) {
+    .app { max-width: 1180px; }
+    .deck-in { max-width: 1180px; }
+    #writeView { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); column-gap: 28px; row-gap: 10px; align-content: start;
+      grid-template-areas: "song stage" "sec stage" "strip stage" "entry stage" "pal stage" ". stage"; grid-template-rows: auto auto auto auto auto 1fr; }
+    #writeView > .songline { grid-area: song; }
+    #writeView > .sections { grid-area: sec; }
+    #writeView > .strip { grid-area: strip; flex-wrap: wrap; overflow: visible; }
+    #writeView > .entry { grid-area: entry; }
+    #writeView > .palette { grid-area: pal; flex-wrap: wrap; overflow: visible; row-gap: 14px; }
+    #writeView > .stage { grid-area: stage; align-self: start; }
+    .kbd svg { max-height: 300px; }
+  }
+  @media (max-width: 380px) {
+    .groove { max-width: 92px; }
+    .dbtn { min-width: 44px; padding: 0 8px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -283,72 +307,29 @@
 </style>
 
 <div class="app">
-  <header class="bar">
-    <h1>Pixie Chords<span class="dot">.</span></h1>
-    <div class="tabs" role="tablist" aria-label="Mode">
-      <button role="tab" id="tabWrite" type="button" aria-selected="true">Write</button>
-      <button role="tab" id="tabFind" type="button" aria-selected="false">What's this chord?</button>
-    </div>
-    <div class="song-row" id="songRow">
-      <input id="songTitle" class="song-title" type="text" aria-label="Song title" spellcheck="false">
-      <div class="sections" id="sections"></div>
-    </div>
-    <div class="bar-right">
-      <button class="btn small" type="button" id="openLib">Library</button>
-      <button class="btn small" type="button" id="openSongs">Songs</button>
+  <header class="top">
+    <h1 class="wordmark">pixie chords<span>.</span></h1>
+    <div class="modes" role="group" aria-label="Mode">
+      <button id="tabWrite" type="button" aria-pressed="true">write</button>
+      <button id="tabFind" type="button" aria-pressed="false">name a chord</button>
     </div>
   </header>
 
-  <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap Play again, turn your volume up, and on an iPhone flip the silent switch off.</p>
+  <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap play again, turn the volume up, and on an iPhone flip the silent switch off.</p>
 
   <section class="view" id="writeView">
-    <div class="compose">
-      <div class="field">
-        <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Chord progression" placeholder="Type chords, or tap them below">
-      </div>
-      <button class="btn play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play</span></button>
-      <button class="btn" id="loop" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7l-2-2M12 11H5l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Loop</button>
-      <select id="scope" aria-label="What to play">
-        <option value="section">This section</option>
-        <option value="song">Whole song</option>
-      </select>
+    <div class="songline">
+      <input id="songTitle" class="song-title" type="text" aria-label="Song title" spellcheck="false">
+      <button class="link" type="button" id="openSongs">songs</button>
+      <button class="link" type="button" id="openLib">library</button>
     </div>
-
-    <div class="controls">
-      <div class="levels">
-        <div class="seg" role="radiogroup" aria-label="Level, from easy to fancy">
-          <input type="radio" name="level" id="lv-starter" value="starter"><label for="lv-starter">Starter<i>●</i></label>
-          <input type="radio" name="level" id="lv-simple" value="simple"><label for="lv-simple">Simple<i>●●</i></label>
-          <input type="radio" name="level" id="lv-smooth" value="smooth" checked><label for="lv-smooth">Smooth<i>●●●</i></label>
-          <input type="radio" name="level" id="lv-open" value="open"><label for="lv-open">Open<i>●●●●</i></label>
-          <input type="radio" name="level" id="lv-jazzy" value="jazzy"><label for="lv-jazzy">Jazzy<i>●●●●●</i></label>
-        </div>
-      </div>
-      <label class="switch"><input type="checkbox" id="oneHand"> One hand</label>
-      <select id="pattern" aria-label="Playing pattern"></select>
-      <select id="drum" aria-label="Drums"></select>
-      <div class="mini">
-        <label class="label" for="bpm">Tempo</label>
-        <input type="range" id="bpm" min="50" max="160" value="92">
-        <span class="tabnum" id="bpmVal">92</span>
-      </div>
-      <div class="mini">
-        <label class="label" for="beats">Beats</label>
-        <select id="beats" aria-label="Beats per chord">
-          <option>1</option><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="pal-row">
-        <div class="mini">
-          <select id="key" aria-label="Key"></select>
-          <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
-          <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
-        </div>
-      <div class="palette" id="palette" aria-label="Chords in this key"></div>
-    </div>
+    <div class="sections" id="sections"></div>
     <nav class="strip" id="strip" aria-label="Chords in this section"></nav>
+    <div class="entry">
+      <label for="prog">chords</label>
+      <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="C Am F G">
+    </div>
+    <div class="palette" id="palette" aria-label="Chords that fit this key"></div>
     <main class="stage" id="stage" aria-live="polite"></main>
   </section>
 
@@ -357,13 +338,29 @@
   </section>
 </div>
 
-<div class="scrim" id="scrim" hidden></div>
-<aside class="drawer" id="drawer" hidden aria-labelledby="drawerTitle">
-  <div class="drawer-head">
-    <h2 id="drawerTitle">Library</h2>
-    <button class="btn small" type="button" id="closeDrawer">Close</button>
+<footer class="deck" id="deck">
+  <div class="deck-in">
+    <div class="cassette">
+      <div class="reels" aria-hidden="true">
+        <svg class="reel" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5"/><circle cx="11" cy="11" r="3"/><path d="M11 2v5.5M11 14.5V20M2.8 6.5l4.6 2.7M14.6 12.8l4.6 2.7M2.8 15.5l4.6-2.7M14.6 9.2l4.6-2.7"/></svg>
+        <svg class="reel" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5"/><circle cx="11" cy="11" r="3"/><path d="M11 2v5.5M11 14.5V20M2.8 6.5l4.6 2.7M14.6 12.8l4.6 2.7M2.8 15.5l4.6-2.7M14.6 9.2l4.6-2.7"/></svg>
+      </div>
+      <div class="label-strip"><b id="deckTitle">verse</b><span id="deckInfo">92 bpm · C major</span></div>
+    </div>
+    <button class="dbtn play" id="playAll" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2v12l10-6z" fill="currentColor"/></svg></button>
+    <button class="dbtn" id="loop" type="button" aria-pressed="true" aria-label="Loop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.5a3 3 0 0 1 3-3h6.5M11 1.5l2 2-2 2M13 9.5a3 3 0 0 1-3 3H3.5M5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <select class="groove" id="groove" aria-label="Groove"></select>
+    <button class="dbtn" id="openKnobs" type="button" aria-label="Knobs"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg></button>
   </div>
-  <div class="drawer-body" id="drawerBody"></div>
+</footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden aria-labelledby="sheetTitle">
+  <div class="sheet-head">
+    <h2 id="sheetTitle">knobs</h2>
+    <button class="btn" type="button" id="closeSheet">done</button>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
 </aside>
 <div class="toast" id="toast" role="status" hidden></div>
 <script>
@@ -863,13 +860,13 @@
       theory: "I, V, vi, IV. Shuffle the order and you get a different song from the same four chords." },
     { name: "Doo-wop Moon", prog: "C Am F G", mood: "sweet", fn: "home", pattern: "waltz", beats: 3,
       poem: "A slow dance in a gym with paper stars taped to the ceiling.",
-      theory: "I, vi, IV, V. The 1950s ran on this one. It sways nicely in the Waltz pattern." },
+      theory: "I, vi, IV, V. The 1950s ran on this one. It sways nicely on the waltz groove." },
     { name: "Rainy Window", prog: "Am F C G", key: "0M", mood: "wistful", fn: "away",
       poem: "The same four chords as the Wonder, started from the sad one.",
       theory: "vi, IV, I, V. Starting on vi tips the whole loop toward minor." },
     { name: "Walking Home", prog: "Dm7 G7 Cmaj7 Cmaj7", mood: "warm", fn: "home", level: "smooth",
       poem: "Keys in the door, lamp on, shoes off.",
-      theory: "ii, V, I: the most common move in jazz. In Smooth, watch how little your hands move." },
+      theory: "ii, V, I: the most common move in jazz. On the smooth feel, watch how little your hands move." },
     { name: "Borrowed Sugar", prog: "C F Fm C", mood: "tender", fn: "surprise",
       poem: "A happy chord that suddenly remembers something.",
       theory: "F to Fm borrows the iv from C minor. One note, A falling to A♭, does all the aching." },
@@ -878,7 +875,7 @@
       theory: "C in D major is ♭VII, borrowed from the Mixolydian mode. It sounds open and a little rock." },
     { name: "Canon in the Kitchen", prog: "D A Bm F#m G D G A", mood: "stately", fn: "home", pattern: "broken",
       poem: "Pachelbel's bass line, still walking down the stairs more than three hundred years later.",
-      theory: "The bass steps down while the chords above it change. Try Broken to hear each line." },
+      theory: "The bass steps down while the chords above it change. The dreamy groove lets you hear each line." },
     { name: "Bossa Afternoon", prog: "Cmaj7 C6 Dm7 G7 Em7 A7 Dm7 G7", mood: "breezy", fn: "away", level: "jazzy", drum: "brushes",
       poem: "Linen shirt, iced coffee, nowhere to be.",
       theory: "A7 is a secondary dominant, the V of Dm, so it leans hard toward the ii chord." },
@@ -967,145 +964,73 @@
   };
 
   // =========================================================
-  // Drawing: keyboard, hands, pixie, glyphs
+  // Drawing
   // =========================================================
   const BLACK = new Set([1, 3, 6, 8, 10]);
   const isBlack = m => BLACK.has(mod(m));
+  const INK = "#2f2a3d";
 
-  const GLYPH = {
-    home: '<path d="M2.5 8.2 8 3.2l5.5 5V13.5h-11z"/><rect x="6.6" y="9.4" width="2.8" height="4.1" rx=".6" class="g-in"/>',
-    away: '<path d="M4.4 12.6h7.4a2.7 2.7 0 0 0-.4-5.4 3.6 3.6 0 0 0-6.9.7 2.35 2.35 0 0 0-.1 4.7z"/>',
-    tension: '<path d="M9.4 1.4 3.2 9.2h4.2l-1 5.4 6.4-8.2H8.6z"/>',
-    surprise: '<path d="M9.5 2.2l1.1 3.6 3.6 1.1-3.6 1.1-1.1 3.6-1.1-3.6-3.6-1.1 3.6-1.1z"/><path d="M5.6 10.4 2 14" class="g-line"/>'
-  };
-  const glyph = (fn, cls = "glyph") => `<svg class="${cls} g-${fn}" viewBox="0 0 16 16" aria-hidden="true">${GLYPH[fn]}</svg>`;
-
-  const HAND_STYLES = {
-    pixie: { name: "Pixie", fill: "#d9c7ff" },
-    glove: { name: "Glove", fill: "#ffffff" },
-    paw: { name: "Paw", fill: "#ffc08a" },
-    robot: { name: "Robot", fill: "#c9d3e0" }
-  };
-  const INK = "#2b1e4a";
-
-  function pixieSVG(x, y, s, bob) {
-    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="pixie${bob ? " bob" : ""}">
-      <ellipse cx="-6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(-28 -6.2 -15)" fill="#cff5ff" fill-opacity=".9" stroke="${INK}" stroke-width=".6"/>
-      <ellipse cx="6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(28 6.2 -15)" fill="#cff5ff" fill-opacity=".9" stroke="${INK}" stroke-width=".6"/>
-      <path d="M-1.8-2 -2.6 3M1.8-2 2.8 3" stroke="${INK}" stroke-width="1.1" stroke-linecap="round"/>
-      <path d="M-5.2-1.6h10.4L2.6-12h-5.2z" fill="#ff7fb5" stroke="${INK}" stroke-width=".7" stroke-linejoin="round"/>
-      <path d="M-5.3-17.6-8.8-19.8-5.2-15.6zM5.3-17.6 8.8-19.8 5.2-15.6z" fill="#ffe3d3" stroke="${INK}" stroke-width=".6" stroke-linejoin="round"/>
-      <circle cx="0" cy="-17" r="5.6" fill="#ffe3d3" stroke="${INK}" stroke-width=".7"/>
-      <circle cx="0" cy="-24.6" r="2.3" fill="#3ed6b5" stroke="${INK}" stroke-width=".6"/>
-      <path d="M-6-16.6Q-6.2-23.6 0-23.6T6-16.6Q3.4-20.2 0-19.6T-6-16.6z" fill="#3ed6b5" stroke="${INK}" stroke-width=".6"/>
-      <circle cx="-2" cy="-16.8" r=".8" fill="${INK}"/><circle cx="2" cy="-16.8" r=".8" fill="${INK}"/>
-      <circle cx="-3.3" cy="-15" r="1.1" fill="#ff9ebb" opacity=".85"/><circle cx="3.3" cy="-15" r="1.1" fill="#ff9ebb" opacity=".85"/>
-      <path d="M-1.3-14.9Q0-13.8 1.3-14.9" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
+  function pixieSVG(x, y, s) {
+    return `<g transform="translate(${x} ${y}) scale(${s})">
+      <ellipse cx="-6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(-28 -6.2 -15)" fill="#d6ecf2" stroke="${INK}" stroke-width=".7"/>
+      <ellipse cx="6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(28 6.2 -15)" fill="#d6ecf2" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-1.8-2-2.6 3M1.8-2 2.8 3" stroke="${INK}" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M-5.2-1.6h10.4L2.6-12h-5.2z" fill="#e48fa3" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>
+      <path d="M-5.3-17.6-8.8-19.8-5.2-15.6zM5.3-17.6 8.8-19.8 5.2-15.6z" fill="#f6dccd" stroke="${INK}" stroke-width=".7" stroke-linejoin="round"/>
+      <circle cx="0" cy="-17" r="5.6" fill="#f6dccd" stroke="${INK}" stroke-width=".8"/>
+      <circle cx="0" cy="-24.6" r="2.3" fill="#6db3a0" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-6-16.6Q-6.2-23.6 0-23.6T6-16.6Q3.4-20.2 0-19.6T-6-16.6z" fill="#6db3a0" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-2.8-16.9q.8-.9 1.6 0M1.2-16.9q.8-.9 1.6 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
+      <circle cx="-3.3" cy="-15" r="1.1" fill="#e48fa3" opacity=".7"/><circle cx="3.3" cy="-15" r="1.1" fill="#e48fa3" opacity=".7"/>
+      <path d="M-1.2-14.8Q0-13.9 1.2-14.8" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
       <path d="M4.4-8 9.2-15.2" stroke="${INK}" stroke-width=".8" stroke-linecap="round"/>
-      <path d="M9.8-18.6l.9 1.9 2.1.3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.4 2.1-.3z" fill="#ffd34d" stroke="${INK}" stroke-width=".45" stroke-linejoin="round"/>
-    </g></g>`;
+      <path d="M9.8-18.6l.9 1.9 2.1.3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.4 2.1-.3z" fill="#e9b44c" stroke="${INK}" stroke-width=".45" stroke-linejoin="round"/>
+    </g>`;
   }
-  const pixieBadge = () => `<svg class="pixie-badge" viewBox="-12 -29 24 33" aria-hidden="true">${pixieSVG(0, 0, 1, false)}</svg>`;
+  const pixieBadge = () => `<svg class="pixie-badge" viewBox="-12 -29 24 33" aria-hidden="true">${pixieSVG(0, 0, 1)}</svg>`;
 
-  // One hand: fingers reach from a palm above the keyboard down to the keys
-  function handSVG(notes, hand, style, T, xOf, yOf, stay) {
-    if (!notes.length) return "";
-    const S = HAND_STYLES[style] || HAND_STYLES.pixie;
-    const fingers = fingering(notes, hand);
-    const dir = hand === "rh" ? 1 : -1;
-    const ks = 6.4;
-    const tips = notes.map((m, i) => ({ m, f: fingers[i], x: xOf(m), y: yOf(m) }));
-    const cx = avg(tips.map(t => t.x - dir * (t.f - 3) * ks));
-    const py = T - 15, prx = 18, pry = 9.5;
-    const ky = T - 7;
-    const byF = new Map(tips.map(t => [t.f, t]));
-    const kn = f => {
-      let x = cx + dir * (f - 3) * ks;
-      if (f === 1) x += dir * -3;
-      const t = byF.get(f);
-      if (t) x = x + (t.x - x) * 0.45;
-      return { x, y: f === 1 ? ky - 3 : ky };
-    };
-    const outline = style === "glove" ? 8.4 : 7.6;
-    const inner = style === "glove" ? 5.8 : 5.6;
-    let back = "", front = "", badges = "";
-    // arm
-    back += `<rect x="${cx - 10}" y="-6" width="20" height="${py + 4}" rx="6" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>`;
-    if (style === "glove") back += `<rect x="${cx - 12.5}" y="${py - 16}" width="25" height="6" rx="3" fill="#fff" stroke="${INK}" stroke-width="1"/>`;
-    if (style === "robot") back += `<path d="M${cx - 10} ${py - 16}h20M${cx - 10} ${py - 21}h20" stroke="${INK}" stroke-width=".6" opacity=".5"/>`;
-    for (let f = 1; f <= 5; f++) {
-      const k = kn(f), t = byF.get(f);
-      const end = t ? { x: t.x, y: t.y } : { x: k.x + dir * (f - 3) * 0.6, y: T + 2 };
-      back += `<line x1="${k.x}" y1="${k.y}" x2="${end.x}" y2="${end.y}" stroke="${INK}" stroke-width="${outline}" stroke-linecap="round"/>`;
-      front += `<line x1="${k.x}" y1="${k.y}" x2="${end.x}" y2="${end.y}" stroke="${S.fill}" stroke-width="${inner}" stroke-linecap="round"/>`;
-      if (style === "robot") {
-        const mx = (k.x + end.x) / 2, my = (k.y + end.y) / 2;
-        front += `<circle cx="${mx}" cy="${my}" r="1.3" fill="#8d9bb0" stroke="${INK}" stroke-width=".4"/>`;
-      }
-      if (t) {
-        const col = hand === "rh" ? "var(--rh)" : "var(--lh)";
-        if (stay.has(t.m)) badges += `<circle cx="${t.x}" cy="${t.y}" r="5.7" fill="none" stroke="var(--stay)" stroke-width="1.6"/>`;
-        if (style === "robot") badges += `<rect x="${t.x - 4}" y="${t.y - 4}" width="8" height="8" rx="1.4" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
-        else if (style === "paw") badges += `<ellipse cx="${t.x}" cy="${t.y}" rx="4.4" ry="4" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
-        else badges += `<circle cx="${t.x}" cy="${t.y}" r="4.1" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
-        badges += `<text class="fnum" x="${t.x}" y="${t.y + 1.8}">${t.f}</text>`;
-      }
-    }
-    // palm
-    let palm;
-    if (style === "robot") palm = `<rect x="${cx - prx}" y="${py - pry}" width="${prx * 2}" height="${pry * 2}" rx="4" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>
-      <circle cx="${cx - prx + 3.5}" cy="${py - pry + 3.5}" r="1.2" fill="#8d9bb0"/><circle cx="${cx + prx - 3.5}" cy="${py - pry + 3.5}" r="1.2" fill="#8d9bb0"/>
-      <rect x="${cx - 6}" y="${py - 3}" width="12" height="5" rx="1.5" fill="#9ff0de" stroke="${INK}" stroke-width=".6"/>`;
-    else palm = `<ellipse cx="${cx}" cy="${py}" rx="${prx}" ry="${pry}" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>`;
-    if (style === "paw") palm += `<path d="M${cx} ${py + 6}c-5-3.2-7.4-5.4-7.4-8 0-2 1.6-3.2 3.3-3.2 1.7 0 3.2 1 4.1 2.3.9-1.3 2.4-2.3 4.1-2.3 1.7 0 3.3 1.2 3.3 3.2 0 2.6-2.4 4.8-7.4 8z" fill="#ff9ebb" stroke="${INK}" stroke-width=".7"/>`;
-    if (style === "glove") palm += `<path d="M${cx - 6} ${py - 6}v8M${cx} ${py - 7}v9M${cx + 6} ${py - 6}v8" stroke="${INK}" stroke-width=".9" stroke-linecap="round"/>`;
-    if (style === "pixie") palm += `<path d="M${cx - 9} ${py - 3}l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="#fff"/><path d="M${cx + 10} ${py + 2}l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="#fff"/>`;
-    return { svg: back + front + palm + badges, palm: { x: cx, y: py, rx: prx, ry: pry } };
-  }
-
-  // opts: stay, label, hands (style name), pixie, bob, picked (Set, finder), interactive
+  // o: stay, label, fingers, picked (Set, finder), interactive
   function keyboard(v, lo, hi, o = {}) {
     const stay = o.stay || new Set();
     const lh = new Set(v.lh), rh = new Set(v.rh);
     const picked = o.picked;
     const labelled = !!o.label;
     const W = 10, H = labelled ? 46 : 36, BW = 6, BH = labelled ? 28 : 22;
-    const T = o.hands ? 38 : 0;
     const whites = [];
     for (let m = lo; m <= hi; m++) if (!isBlack(m)) whites.push(m);
     const pos = new Map(whites.map((m, i) => [m, i]));
     const bx = m => (pos.get(m - 1) + 1) * W + .5 - BW / 2;
     const xOf = m => isBlack(m) ? bx(m) + BW / 2 : pos.get(m) * W + .5 + W / 2;
-    const yOf = m => isBlack(m) ? T + BH - 7 : T + H - 15;
-    const cls = m => picked ? (picked.has(m) ? (m === Math.min(...picked) ? " lh" : " rh") : "") : (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
+    const yOf = m => isBlack(m) ? BH - 7 : H - 15;
+    const low = picked && picked.size ? Math.min(...picked) : null;
+    const cls = m => picked ? (picked.has(m) ? (m === low ? " lh" : " rh") : "") : (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
     const hit = m => o.interactive ? ` data-m="${m}"` : "";
     const width = whites.length * W + 1;
-    let s = `<svg viewBox="0 0 ${width} ${T + H + (labelled ? 9 : 1)}" aria-hidden="true">`;
+    let keys = "", marks = "";
     whites.forEach((m, i) => {
-      const cx = i * W + .5 + W / 2;
-      s += `<rect class="kw${cls(m)}"${hit(m)} x="${i * W + .5}" y="${T + .5}" width="${W}" height="${H}" rx="1.8"/>`;
-      if (!o.hands && stay.has(m)) s += `<circle class="stay" cx="${cx}" cy="${labelled ? T + H - 14 : T + H - 6}" r="${labelled ? 2.4 : 2.8}"/>`;
-      if (labelled && cls(m)) s += `<text class="kl" x="${cx}" y="${T + H - 4}">${o.label(m)}</text>`;
-      if (labelled && mod(m) === 0) s += `<text class="oct" x="${cx}" y="${T + H + 7.5}">C${m / 12 - 1}</text>`;
+      keys += `<rect class="kw${cls(m)}"${hit(m)} x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.6"/>`;
+      if (labelled && cls(m)) marks += `<text class="kl" x="${xOf(m)}" y="${H - 3.6}">${o.label(m)}</text>`;
+      if (labelled && mod(m) === 0) marks += `<text class="oct" x="${xOf(m)}" y="${H + 7.2}">C${m / 12 - 1}</text>`;
     });
     for (let m = lo; m <= hi; m++) {
       if (!isBlack(m) || !pos.has(m - 1)) continue;
-      const x = bx(m);
-      s += `<rect class="kb${cls(m)}"${hit(m)} x="${x}" y="${T + .5}" width="${BW}" height="${BH}" rx="1.2"/>`;
-      if (!o.hands && stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${labelled ? T + BH - 11 : T + BH - 5}" r="${labelled ? 2.1 : 2.4}"/>`;
-      if (labelled && cls(m) && !o.hands) s += `<text class="kl onb" x="${x + BW / 2}" y="${T + BH - 3.5}">${o.label(m)}</text>`;
+      keys += `<rect class="kb${cls(m)}"${hit(m)} x="${bx(m)}" y=".5" width="${BW}" height="${BH}" rx="1.1"/>`;
+      if (labelled && cls(m) && !o.fingers) marks += `<text class="kl" x="${xOf(m)}" y="${BH - 3.2}" style="font-size:3.2px">${o.label(m)}</text>`;
     }
-    if (o.hands) {
-      const L = handSVG(v.lh, "lh", o.hands, T, xOf, yOf, stay);
-      const R = handSVG(v.rh, "rh", o.hands, T, xOf, yOf, stay);
-      s += `<g class="hands">${L ? L.svg : ""}${R ? R.svg : ""}</g>`;
-      if (o.pixie && R) {
-        let px = R.palm.x + 7;
-        px = Math.max(12, Math.min(width - 12, px));
-        s += pixieSVG(px, R.palm.y + 2, .78, o.bob);
-      }
+    if (o.fingers) {
+      const put = (notes, hand) => fingering(notes, hand).forEach((f, i) => {
+        const m = notes[i], x = xOf(m), y = yOf(m);
+        if (stay.has(m)) marks += `<circle class="ring" cx="${x}" cy="${y}" r="5.4"/>`;
+        marks += `<circle class="fdot" cx="${x}" cy="${y}" r="4"/><text class="fnum" x="${x}" y="${y + 2.2}">${f}</text>`;
+      });
+      put(v.lh, "lh");
+      put(v.rh, "rh");
+    } else {
+      stay.forEach(m => { if (pos.has(m) || isBlack(m)) marks += `<circle class="stay" cx="${xOf(m)}" cy="${labelled ? yOf(m) : (isBlack(m) ? BH - 5 : H - 6)}" r="${labelled ? 2.4 : 2.8}"/>`; });
     }
-    return s + "</svg>";
+    return `<svg viewBox="0 0 ${width} ${H + (labelled ? 9 : 1)}" aria-hidden="true">
+      <defs><filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="1" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.3"/></filter></defs>
+      <g filter="url(#rough)">${keys}</g>${marks}</svg>`;
   }
   // ---------- audio ----------
   let ac = null, master = null, silentEl = null;
@@ -1163,12 +1088,28 @@
   }
   function soundHint(show) { $("soundHint").hidden = !show; }
 
+  // Everything runs through a warm low-pass, like an old tape deck
+  let wobble = null, warmth = null;
   function freshMaster() {
     const comp = ac.createDynamicsCompressor();
+    if (!warmth) {
+      warmth = ac.createBiquadFilter();
+      warmth.type = "lowpass";
+      warmth.frequency.value = 4600;
+      warmth.Q.value = 0.4;
+      warmth.connect(comp);
+      comp.connect(ac.destination);
+      // slow pitch wobble shared by every note: tape flutter
+      const lfo = ac.createOscillator();
+      lfo.frequency.value = 0.55;
+      wobble = ac.createGain();
+      wobble.gain.value = 7; // cents
+      lfo.connect(wobble);
+      lfo.start();
+    }
     master = ac.createGain();
-    master.gain.value = 0.8;
-    master.connect(comp);
-    comp.connect(ac.destination);
+    master.gain.value = 0.85;
+    master.connect(warmth);
   }
   function tone(midi, t, dur, vel) {
     const f = 440 * Math.pow(2, (midi - 69) / 12);
@@ -1184,9 +1125,30 @@
     const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
     const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
     const g2 = ac.createGain(); g2.gain.value = 0.22;
+    if (wobble) { wobble.connect(o1.detune); wobble.connect(o2.detune); }
     o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
     const end = t + dur + 1;
     o1.start(t); o2.start(t); o1.stop(end); o2.stop(end);
+  }
+
+  // Vinyl crackle: soft hiss with the odd pop, looped while playing
+  let crackleSrc = null;
+  function crackle(on) {
+    if (crackleSrc) { try { crackleSrc.stop(); } catch {} crackleSrc = null; }
+    if (!on || !ac) return;
+    const len = ac.sampleRate * 4, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      let x = (Math.random() * 2 - 1) * 0.012;
+      if (Math.random() < 0.00035) x += (Math.random() * 2 - 1) * 0.6;
+      d[i] = x;
+    }
+    const src = ac.createBufferSource();
+    src.buffer = buf; src.loop = true;
+    const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 2400; f.Q.value = 0.5;
+    const g = ac.createGain(); g.gain.value = 0.5;
+    src.connect(f); f.connect(g); g.connect(warmth || ac.destination);
+    src.start();
+    crackleSrc = src;
   }
 
   // ---------- drums (all synthesized) ----------
@@ -1291,6 +1253,16 @@
   }
   const strum = (v, t, dur) => { v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2)); v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15)); };
 
+  // Grooves pair a playing pattern with a drum kit
+  const GROOVES = {
+    plain: { name: "just chords", pattern: "block", drum: "off" },
+    lofi: { name: "lo-fi", pattern: "ballad", drum: "lofi" },
+    dreamy: { name: "dreamy", pattern: "broken", drum: "brushes" },
+    waltz: { name: "waltz", pattern: "waltz", drum: "brushes" },
+    pop: { name: "bouncy", pattern: "pop", drum: "click" },
+    shaker: { name: "campfire", pattern: "broken", drum: "shaker" }
+  };
+
   // =========================================================
   // App state
   // =========================================================
@@ -1306,21 +1278,32 @@
   try { localStorage.setItem("pixie:probe", "1"); localStorage.removeItem("pixie:probe"); } catch { storageOK = false; }
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 
-  const prefs = Object.assign({ hands: true, handStyle: "pixie", tips: true, sevenths: false }, readJSON("prefs", {}));
+  const prefs = Object.assign({ fingers: true, tips: true, sevenths: false, crackle: true, wholeSong: false }, readJSON("prefs", {}));
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
 
-  const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, pattern: "block", drum: "off", bpm: 92, beats: 4, key: "auto" };
+  const FEELS = [
+    { id: "starter", name: "easy", note: "three notes, barely moving" },
+    { id: "smooth", name: "smooth", note: "every note, closest shapes" },
+    { id: "open", name: "lush", note: "wide and airy" },
+    { id: "jazzy", name: "jazzy", note: "color notes on top" }
+  ];
+  const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, groove: "lofi", bpm: 84, beats: 4, key: "auto" };
   const SECTION_NAMES = ["Verse", "Chorus", "Bridge", "Pre-chorus", "Intro", "Outro", "Solo", "Hook"];
   const uid = () => "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   function newSong(title, prog, settings = {}) {
     return { id: uid(), title, sections: [{ name: "Verse", prog }], settings: { ...DEFAULT_SETTINGS, ...settings }, updated: Date.now() };
   }
+  // library entries name a pattern; find the groove that plays it
+  const grooveFor = pattern => (Object.entries(GROOVES).find(([, g]) => g.pattern === pattern) || ["lofi"])[0];
 
   let songs = readJSON("songs", []);
-  if (!Array.isArray(songs) || !songs.length) {
-    songs = [newSong("My first song", store.get("prog") || "C Am F G")];
-  }
-  songs.forEach(s => { s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) }; if (!s.sections?.length) s.sections = [{ name: "Verse", prog: "" }]; });
+  if (!Array.isArray(songs) || !songs.length) songs = [newSong("my first song", store.get("prog") || "C Am F G")];
+  songs.forEach(s => {
+    s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) };
+    if (!FEELS.some(f => f.id === s.settings.level)) s.settings.level = "smooth";
+    if (!GROOVES[s.settings.groove]) s.settings.groove = s.settings.pattern ? grooveFor(s.settings.pattern) : "lofi";
+    if (!s.sections?.length) s.sections = [{ name: "Verse", prog: "" }];
+  });
   let song = songs.find(s => s.id === store.get("current")) || songs[0];
   let secIdx = 0;
   const S = () => song.settings;
@@ -1340,7 +1323,6 @@
 
   function parseKeySetting(v) { const m = /^(\d+)([Mm])$/.exec(v || ""); return m ? { tonic: +m[1], minor: m[2] === "m" } : null; }
 
-  // Work out shapes for one section's chords
   function compute(prog, settings, sIdx) {
     const its = tokenize(prog).map((raw, i) => {
       const { chord, beats } = splitBeats(raw);
@@ -1357,13 +1339,8 @@
       const v = picked[j].v, notes = allNotes(v);
       const stay = new Set(prev ? notes.filter(n => prev.includes(n)) : []);
       const nextCh = valid[j + 1]?.ch || (loopOn && valid.length > 1 ? valid[0].ch : null);
-      let moves = "Starting shape";
-      if (prev) {
-        const moved = notes.length - stay.size;
-        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"}`;
-      }
       prev = notes;
-      return { ...x, v, opt: picked[j].opt, len: opts[j].length, j, stay, moves, a: analyze(x.ch, key, nextCh), beats: x.beats || settings.beats };
+      return { ...x, v, opt: picked[j].opt, len: opts[j].length, j, stay, a: analyze(x.ch, key, nextCh), beats: x.beats || settings.beats };
     });
     if (cur.length > 1 && loopOn) {
       const last = allNotes(cur[cur.length - 1].v);
@@ -1379,7 +1356,7 @@
     lo -= 1; hi += 1;
     while (isBlack(lo)) lo--;
     while (isBlack(hi)) hi++;
-    while (hi - lo < 24) { hi++; if (hi - lo < 24) lo--; }
+    while (hi - lo < 19) { hi++; if (hi - lo < 19) lo--; }
     while (isBlack(lo)) lo--;
     while (isBlack(hi)) hi++;
     return [lo, hi];
@@ -1392,7 +1369,7 @@
   const fnVar = fn => `--fn: var(--${fn})`;
 
   // =========================================================
-  // Rendering: write view
+  // Rendering
   // =========================================================
   const input = $("prog"), stripEl = $("strip"), stageEl = $("stage"), palEl = $("palette");
 
@@ -1402,71 +1379,56 @@
     range = computeRange(current);
     if (sel >= current.length) sel = Math.max(0, current.length - 1);
     renderSections();
-    renderKeySelect();
     renderPalette();
     renderStrip();
     renderStage();
+    renderDeck();
   }
 
   function renderSections() {
-    const el = $("sections");
-    el.innerHTML = song.sections.map((s, i) => i === secIdx && song.sections.length > 1
-      ? `<span class="sec-edit"><select data-act="rename" aria-label="Section name">${SECTION_NAMES.concat(SECTION_NAMES.includes(s.name) ? [] : [s.name]).map(n => `<option${n === s.name ? " selected" : ""}>${esc(n)}</option>`).join("")}</select><button class="x" type="button" data-act="delsec" aria-label="Remove ${esc(s.name)}">×</button></span>`
+    $("sections").innerHTML = song.sections.map((s, i) => i === secIdx && song.sections.length > 1
+      ? `<span class="sec-edit"><select data-act="rename" aria-label="Section name">${SECTION_NAMES.concat(SECTION_NAMES.includes(s.name) ? [] : [s.name]).map(n => `<option${n === s.name ? " selected" : ""}>${esc(n.toLowerCase())}</option>`).join("")}</select><button class="x" type="button" data-act="delsec" aria-label="Remove ${esc(s.name)}">×</button></span>`
       : `<button class="sec" type="button" data-sec="${i}" aria-current="${i === secIdx}">${esc(s.name)}</button>`
-    ).join("") + `<button class="sec add" type="button" data-act="addsec">+ Section</button>`;
-  }
-
-  function renderKeySelect() {
-    const sel_ = $("key");
-    const auto = !parseKeySetting(S().key);
-    let html = `<option value="auto">Key: auto (${esc(pretty(keyName(K)))})</option>`;
-    for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
-      const v = t + (minor ? "m" : "M");
-      html += `<option value="${v}"${!auto && S().key === v ? " selected" : ""}>${esc(pretty(keyName({ tonic: t, minor })))}</option>`;
-    }
-    sel_.innerHTML = html;
-    if (auto) sel_.value = "auto";
+    ).join("") + `<button class="sec add" type="button" data-act="addsec">+ section</button>`;
   }
 
   function renderPalette() {
     const p = palette(K, prefs.sevenths);
     const last = current[current.length - 1];
-    const next = new Set(suggestNext(last?.ch, K).slice(0, 3));
-    const lastIsMinorIV = last && !K.minor && mod(last.ch.rootPc - K.tonic) === 5 && baseQuality(last.ch.ivs) === "min";
-    const chip = (c, isBorrowed) => {
-      const hint = !isBorrowed && next.has(c.iv) && !(lastIsMinorIV && c.iv !== 0);
-      return `<button class="pal${hint ? " next" : ""}" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}" title="${hint ? "A natural next chord" : ""}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
+    const next = new Set(suggestNext(last?.ch, K).slice(0, 2));
+    const minorIV = last && !K.minor && mod(last.ch.rootPc - K.tonic) === 5 && baseQuality(last.ch.ivs) === "min";
+    const chip = (c, borrowed) => {
+      const hint = !borrowed && next.has(c.iv) && !(minorIV && c.iv !== 0);
+      return `<button class="pal${hint ? " next" : ""}${borrowed ? " borrowed" : ""}" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
     };
-    palEl.innerHTML = p.di.map(c => chip(c, false)).join("")
-      + `<span class="divider"></span><span class="label">Borrowed</span>` + p.borrowed.map(c => chip(c, true)).join("")
-      + `<span class="divider"></span><label class="switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> 7ths</label>`;
+    palEl.innerHTML = `<button class="keychip" type="button" data-act="key">${esc(pretty(keyName(K)))}</button>`
+      + p.di.map(c => chip(c, false)).join("")
+      + `<span class="sep" title="Borrowed chords">·</span>` + p.borrowed.map(c => chip(c, true)).join("")
+      + `<label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> 7ths</label>`;
   }
 
   function renderStrip() {
     const byIndex = new Map(current.map(c => [c.i, c]));
-    stripEl.innerHTML = items.length ? items.map((it, n) => {
+    stripEl.innerHTML = items.map((it, n) => {
       const c = byIndex.get(it.i);
-      if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span><span class="t-num">${n + 1}</span></div><span class="t-shape">Not a chord I know</span></div>`;
-      const ovr = overrides.has(it.key);
-      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}, ${FN_INFO[c.a.fn].label}, ${esc(c.v.name)}">
-        <span class="band"></span>
-        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${glyph(c.a.fn)}${esc(c.a.num)}</span></span>
+      if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span></div><span class="t-foot">not a chord I know</span></div>`;
+      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}">
+        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${esc(c.a.num)}</span></span>
         ${keyboard(c.v, range[0], range[1], { stay: c.stay })}
-        <span class="t-shape${ovr ? " ovr" : ""}"><span>${esc(c.v.name)}</span><span>${c.beats}♩</span></span>
+        <span class="t-foot"><span>${n + 1}</span><span>${c.beats} beat${c.beats === 1 ? "" : "s"}</span></span>
       </button>`;
-    }).join("") : "";
+    }).join("");
   }
 
   function tipsFor(c) {
     const list = [roleTip(c.ch, c.a, K), fingerTip(c.v, c.ch), BUILD_TIPS[baseQuality(c.ch.ivs)]];
-    if (c.j > 0) {
+    if (c.j > 0 || (loopOn && current.length > 1)) {
       const moved = allNotes(c.v).length - c.stay.size;
-      list.push(c.stay.size ? `${c.stay.size} ${c.stay.size === 1 ? "key stays" : "keys stay"} down from the last chord (the gold rings), and ${moved} ${moved === 1 ? "finger moves" : "fingers move"}.` : "Nothing carries over from the last chord, so lift and land in one move.");
+      list.push(c.stay.size ? `${c.stay.size} ${c.stay.size === 1 ? "key stays" : "keys stay"} down from the chord before (the gold rings). Only ${moved} ${moved === 1 ? "finger moves" : "fingers move"}.` : "Nothing carries over from the chord before, so lift and land in one move.");
     }
     return list.filter(Boolean);
   }
 
-  const playing_ = () => playing;
   function renderStage() {
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
     const tile = stripEl.querySelector(`.tile[data-j="${sel}"]`);
@@ -1478,11 +1440,10 @@
     const c = current[sel];
     if (!c) {
       stageEl.style.removeProperty("--fn");
-      stageEl.innerHTML = `<p class="empty">Type some chords up top, or tap the chord buttons to start ${esc(song.sections[secIdx].name.toLowerCase())}.</p>`;
+      stageEl.innerHTML = `<p class="empty">type some chords, or tap one below the box to start the ${esc(song.sections[secIdx].name.toLowerCase())}</p>`;
       return;
     }
-    const fn = c.a.fn, info = FN_INFO[fn];
-    stageEl.style.setProperty("--fn", `var(--${fn})`);
+    stageEl.style.setProperty("--fn", `var(--${c.a.fn})`);
     const spark = new Set(c.v.spark);
     const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
     const blurb = c.v.blurb || `${noteName(c.ch, c.v.rh[0])} on the bottom`;
@@ -1490,35 +1451,32 @@
     const tips = tipsFor(c);
     const tip = tipOverride || tips[tipIdx % tips.length];
     const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
-    const spots = [[8, 18], [30, 70], [62, 12], [80, 58], [46, 40]];
+    const moved = allNotes(c.v).length - c.stay.size;
     stageEl.innerHTML = `
-      <div class="stage-bg">${spots.map(([x, y], i) => `<span style="position:absolute;left:${x}%;top:${y}%;animation-delay:${-i * 1.3}s">${glyph(fn)}</span>`).join("")}</div>
-      <div class="stage-head">
-        <div class="who">
-          <div class="big-sym">${symbolHTML(c.ch)}</div>
-          <span class="fn-tag" title="${esc(info.say)}">${glyph(fn)}<span class="num">${esc(c.a.num)}</span> ${info.label}</span>
-        </div>
-        <div class="shape">
-          <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
-          <div class="shape-name"><b>${esc(c.v.name)}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
-          <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
-        </div>
-        <div class="tools">
-          <span class="beats"><button class="round" type="button" data-act="beats" data-dir="-1" aria-label="Fewer beats">−</button>${c.beats} beat${c.beats === 1 ? "" : "s"}<button class="round" type="button" data-act="beats" data-dir="1" aria-label="More beats">+</button></span>
-          <button class="btn small sparkle" type="button" data-act="surprise">✦ Surprise me</button>
-          ${undo ? `<button class="undo" type="button" data-act="undo">Undo</button>` : ""}
-        </div>
+      <div class="stage-top">
+        <div class="chord-name">${symbolHTML(c.ch)}</div>
+        <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
+        <button class="pill" type="button" data-act="beats" title="Tap to change how long it lasts">${c.beats} beat${c.beats === 1 ? "" : "s"}</button>
       </div>
-      <div class="big-kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), hands: prefs.hands ? prefs.handStyle : null, pixie: true, bob: playing_() })}</div>
-      <div class="stage-foot">
-        ${prefs.tips ? `<button class="tip" type="button" data-act="tip" title="Tap for another tip">${pixieBadge()}<span>${esc(tip)}</span></button>` : ""}
-        <div class="notes">${c.v.lh.length ? `<span class="hand">Left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}<span class="gap"></span>` : ""}<span class="hand">Right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}<span class="gap"></span><span class="moves">${c.moves}</span></div>
-        <div class="toggles">
-          <button class="btn small" type="button" data-act="hands" aria-pressed="${prefs.hands}">✋ Hands</button>
-          ${prefs.hands ? `<select data-act="style" aria-label="Hand style">${Object.entries(HAND_STYLES).map(([k, h]) => `<option value="${k}"${k === prefs.handStyle ? " selected" : ""}>${h.name}</option>`).join("")}</select>` : ""}
-          <button class="btn small" type="button" data-act="tips" aria-pressed="${prefs.tips}">Pixie tips</button>
-        </div>
-      </div>`;
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), fingers: prefs.fingers })}</div>
+      <div class="shape-row">
+        <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
+        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
+        <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
+      </div>
+      <div class="notes-row">${c.v.lh.length ? `<span class="h">left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}` : ""}<span class="h">right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}<span class="moves">${c.j > 0 || c.stay.size ? `${c.stay.size} stay · ${moved} move` : "first chord"}</span></div>
+      <div class="actions">
+        <button class="btn surprise" type="button" data-act="surprise">✦ surprise me</button>
+        ${undo ? `<button class="undo" type="button" data-act="undo">undo</button>` : ""}
+      </div>
+      ${prefs.tips ? `<button class="note-tip" type="button" data-act="tip" title="Tap for another tip">${pixieBadge()}<span>${esc(tip)}</span></button>` : ""}`;
+  }
+
+  function renderDeck() {
+    const sec = song.sections[secIdx];
+    $("deckTitle").textContent = (prefs.wholeSong ? (song.title || "untitled") : sec.name).toLowerCase();
+    $("deckInfo").textContent = `${S().bpm} bpm · ${pretty(keyName(K))}`;
+    $("groove").value = S().groove;
   }
 
   // =========================================================
@@ -1528,15 +1486,15 @@
   const timers = new Set();
   const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, Math.max(0, ms)); timers.add(id); };
   const playBtn = $("playAll");
+  const PLAY_ICON = '<path d="M3.5 2v12l10-6z" fill="currentColor"/>';
+  const STOP_ICON = '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/>';
 
   function setPlaying(on) {
     playing = on;
-    playBtn.querySelector("span").textContent = on ? "Stop" : "Play";
-    playBtn.querySelector("svg").innerHTML = on
-      ? '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/>'
-      : '<path d="M3 1.5v13l11-6.5z" fill="currentColor"/>';
-    const px = stageEl.querySelector(".pixie");
-    if (px) px.classList.toggle("bob", on);
+    playBtn.querySelector("svg").innerHTML = on ? STOP_ICON : PLAY_ICON;
+    playBtn.setAttribute("aria-label", on ? "Stop" : "Play");
+    $("deck").classList.toggle("playing", on);
+    if (!on) crackle(false);
   }
   function stop() {
     timers.forEach(clearTimeout);
@@ -1552,7 +1510,7 @@
   function listFor(sIdx) { return sIdx === secIdx ? current : compute(song.sections[sIdx].prog, S(), sIdx).current; }
   function tick() {
     if (!playing) return;
-    const whole = $("scope").value === "song";
+    const whole = prefs.wholeSong;
     let list = listFor(playSec);
     let guard = 0;
     while (step >= list.length) {
@@ -1565,15 +1523,16 @@
       if (++guard > song.sections.length + 1) return finish();
     }
     const c = list[step];
-    const B = 60 / +$("bpm").value;
-    const meter = S().pattern === "waltz" ? 3 : 4;
-    playChord(c.v, nextT, c.beats, B, S().pattern);
-    for (let b = 0; b < c.beats; b++) if (S().drum !== "off") drumBeat(S().drum, nextT + b * B, B, (beatCount + b) % meter, meter);
+    const B = 60 / S().bpm;
+    const g = GROOVES[S().groove] || GROOVES.plain;
+    const meter = g.pattern === "waltz" ? 3 : 4;
+    playChord(c.v, nextT, c.beats, B, g.pattern);
+    if (g.drum !== "off") for (let b = 0; b < c.beats; b++) drumBeat(g.drum, nextT + b * B, B, (beatCount + b) % meter, meter);
     beatCount += c.beats;
     const at = nextT, j = c.j, sIdx = playSec;
     later(() => {
       if (!playing) return;
-      if (sIdx !== secIdx) switchSection(sIdx, true);
+      if (sIdx !== secIdx) switchSection(sIdx);
       sel = j; tipOverride = null; tipIdx = 0;
       renderStage();
     }, (at - ac.currentTime) * 1000);
@@ -1584,14 +1543,14 @@
   function finish() { later(() => setPlaying(false), (nextT - ac.currentTime) * 1000); }
   async function playAll() {
     if (playing) { stop(); return; }
-    const whole = $("scope").value === "song";
-    if (!current.length && !whole) return;
+    if (!current.length && !prefs.wholeSong) { input.focus(); return; }
     setPlaying(true);
     if (!(await audioReady())) { setPlaying(false); return; }
     playSec = secIdx;
-    step = whole && !current.length ? 0 : sel;
+    step = prefs.wholeSong && !current.length ? 0 : sel;
     beatCount = 0;
     nextT = ac.currentTime + 0.08;
+    crackle(prefs.crackle);
     tick();
   }
   async function playOne(j) {
@@ -1610,28 +1569,20 @@
     saveSongs();
     renderAll();
   }
-  // replace the n-th token, keeping separators
   function replaceToken(text, n, raw) {
     let k = -1;
     return text.replace(/[^\s,|]+/g, t => (++k === n ? raw : t));
   }
-  function switchSection(i, keepPlaying) {
+  function switchSection(i) {
     secIdx = i;
     input.value = song.sections[i].prog;
     sel = 0; tipOverride = null; tipIdx = 0;
     renderAll();
-    if (!keepPlaying && playing && $("scope").value === "section") { /* keeps looping the new section */ }
   }
   function applySettings() {
-    const s = S();
-    const lv = $("lv-" + s.level); if (lv) lv.checked = true;
-    $("oneHand").checked = !!s.oneHand;
-    $("pattern").value = s.pattern;
-    $("drum").value = s.drum;
-    $("bpm").value = s.bpm; $("bpmVal").textContent = s.bpm;
-    $("beats").value = String(s.beats);
     $("songTitle").value = song.title;
     input.value = song.sections[secIdx].prog;
+    $("loop").setAttribute("aria-pressed", loopOn);
   }
   function openSong(s) {
     if (playing) stop();
@@ -1646,13 +1597,12 @@
     const c = current[sel];
     if (!c) return;
     const next = current[sel + 1]?.ch || (loopOn && current.length > 1 ? current[0].ch : null);
-    let list = surprises(c.ch, K, next && next !== c.ch ? next : null).filter(x => x.tok !== lastSurprise);
+    const list = surprises(c.ch, K, next && next !== c.ch ? next : null).filter(x => x.tok !== lastSurprise);
     if (!list.length) return;
     const pick = list[Math.floor(Math.random() * list.length)];
     lastSurprise = pick.tok;
-    const raw = pick.tok + (c.beats !== S().beats || c.raw.includes(":") ? ":" + c.beats : "");
+    const raw = pick.tok + (c.raw.includes(":") ? ":" + c.beats : "");
     const keepSel = sel;
-    tipOverride = `${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
     setProg(replaceToken(song.sections[secIdx].prog, c.i, raw), true);
     sel = keepSel;
     tipOverride = `${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
@@ -1660,13 +1610,12 @@
     playOne(sel);
   }
 
-  const BEAT_STEPS = [1, 2, 3, 4, 6, 8, 12, 16];
-  function stepBeats(dir) {
+  const BEAT_STEPS = [1, 2, 3, 4, 6, 8];
+  function cycleBeats() {
     const c = current[sel];
     if (!c) return;
-    let i = BEAT_STEPS.indexOf(c.beats);
-    if (i < 0) i = BEAT_STEPS.findIndex(b => b > c.beats) - (dir > 0 ? 1 : 0);
-    const nb = BEAT_STEPS[Math.max(0, Math.min(BEAT_STEPS.length - 1, i + dir))];
+    const i = BEAT_STEPS.indexOf(c.beats);
+    const nb = BEAT_STEPS[(i + 1) % BEAT_STEPS.length];
     const raw = c.tok + (nb === S().beats ? "" : ":" + nb);
     const keepSel = sel;
     setProg(replaceToken(song.sections[secIdx].prog, c.i, raw), false);
@@ -1674,7 +1623,14 @@
     renderStage();
   }
 
-  const NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+  const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  // spell chord roots the way the new key does
+  function namesFor(k) {
+    const flatKeys = k.minor ? [0, 2, 3, 5, 7, 10] : [1, 3, 5, 6, 8, 10];
+    return flatKeys.includes(k.tonic) ? FLATS : SHARPS;
+  }
+  let NAMES = FLATS;
   function shiftTok(raw, n) {
     const { chord, beats } = splitBeats(raw);
     const ch = parseChord(chord);
@@ -1686,7 +1642,11 @@
   function transpose(n) {
     const k = parseKeySetting(S().key);
     if (k) setting("key", mod(k.tonic + n) + (k.minor ? "m" : "M"));
-    setProg(song.sections[secIdx].prog.replace(/[^\s,|]+/g, t => shiftTok(t, n)), false);
+    NAMES = namesFor({ tonic: mod(K.tonic + n), minor: K.minor });
+    song.sections.forEach((sec, i) => { sec.prog = sec.prog.replace(/[^\s,|]+/g, t => shiftTok(t, n)); });
+    input.value = song.sections[secIdx].prog;
+    saveSongs();
+    renderAll();
   }
 
   let toastTimer;
@@ -1699,7 +1659,7 @@
   }
 
   // =========================================================
-  // Chord finder
+  // Name a chord
   // =========================================================
   const picked = new Set();
   const finderEl = $("finder");
@@ -1708,57 +1668,47 @@
     const res = identify(notes);
     const top = res[0];
     const nm = m => pretty(FALLBACK[mod(m)]);
-    let title = "Tap some keys", tip = "Tap keys on the keyboard and I'll tell you what chord they make. The lowest key you pick counts as the bass.";
-    if (notes.length === 1) { title = nm(notes[0]); tip = `Just ${nm(notes[0])} so far. Chords need at least three notes, so add a couple more.`; }
-    else if (notes.length === 2 && !top) { const d = (notes[1] - notes[0]) % 12; title = `${nm(notes[0])} + ${nm(notes[1])}`; tip = `That's a ${IVNAME[d]}. Add one more key to turn it into a chord.`; }
-    else if (notes.length >= 2 && !top) { title = "Hmm, a mystery"; tip = "No common chord name for these notes. Try moving one key by a half step."; }
+    let title = "tap some keys", tip = "Tap keys and I'll tell you what chord they make. The lowest key counts as the bass.";
+    if (notes.length === 1) { title = nm(notes[0]); tip = `Just ${nm(notes[0])} so far. Chords need three notes or more.`; }
+    else if (notes.length === 2 && !top) { const d = (notes[1] - notes[0]) % 12; title = `${nm(notes[0])} + ${nm(notes[1])}`; tip = `That's a ${IVNAME[d]}. Add one more key to make a chord.`; }
+    else if (notes.length >= 2 && !top) { title = "a mystery"; tip = "No common chord name for these. Try moving one key by a half step."; }
     else if (top) {
       title = pretty(top.name);
       const root = top.root;
-      const parts = [...new Set(notes.map(m => mod(m - root)))].filter(x => x).sort((a, b) => a - b).map(iv => `${IVNAME[iv]} up to ${pretty(FALLBACK[mod(root + iv)])}`);
-      tip = `Root ${pretty(FALLBACK[root])}, then a ${parts.join(", a ")}. ` + (BUILD_TIPS[baseQuality(Q[top.q])] || "") + (top.omit5 ? " The 5th is left out, which is normal." : "") + (top.name.includes("/") ? " The slash means a different note is in the bass." : "");
+      const parts = [...new Set(notes.map(m => mod(m - root)))].filter(x => x).sort((a, b) => a - b).map(iv => `a ${IVNAME[iv]} up to ${pretty(FALLBACK[mod(root + iv)])}`);
+      tip = `Root ${pretty(FALLBACK[root])}, then ${parts.join(", ")}. ` + (BUILD_TIPS[baseQuality(Q[top.q])] || "") + (top.omit5 ? " The 5th is left out, which is normal." : "") + (top.name.includes("/") ? " The slash means another note is in the bass." : "");
     }
-    const v = { lh: [], rh: notes };
     finderEl.innerHTML = `
-      <div class="stage-head">
-        <div>
-          <div class="big-sym">${esc(title)}</div>
-          ${res.length > 1 ? `<div class="alts"><span class="label">Also</span>${res.slice(1, 6).map(r => `<span class="alt">${esc(pretty(r.name))}</span>`).join("")}</div>` : ""}
-        </div>
-        <div class="tools">
-          <button class="btn small" type="button" data-act="fplay"${notes.length ? "" : " disabled"}>▶ Play</button>
-          <button class="btn small" type="button" data-act="fclear"${notes.length ? "" : " disabled"}>Clear</button>
-          <button class="btn small sparkle" type="button" data-act="fadd"${top ? "" : " disabled"}>Add to ${esc(song.sections[secIdx].name)}</button>
-        </div>
+      <div class="stage-top"><div class="chord-name">${esc(title)}</div></div>
+      ${res.length > 1 ? `<div class="alts">also ${res.slice(1, 5).map(r => `<span class="alt">${esc(pretty(r.name))}</span>`).join("")}</div>` : ""}
+      <div class="kbd">${keyboard({ lh: [], rh: notes }, 48, 76, { picked, interactive: true, label: m => nm(m) })}</div>
+      <div class="actions">
+        <button class="btn" type="button" data-act="fplay"${notes.length ? "" : " disabled"}>▶ hear it</button>
+        <button class="btn" type="button" data-act="fclear"${notes.length ? "" : " disabled"}>clear</button>
+        <button class="btn surprise" type="button" data-act="fadd"${top ? "" : " disabled"}>add to ${esc(song.sections[secIdx].name.toLowerCase())}</button>
       </div>
-      <div class="big-kbd">${keyboard(v, 48, 76, { picked, interactive: true, label: m => nm(m) })}</div>
-      <div class="stage-foot">
-        <div class="tip">${pixieBadge()}<span>${esc(tip)}</span></div>
-        <div class="notes">${notes.map((m, i) => `<span class="n ${i === 0 ? "lh" : "rh"}">${nm(m)}</span>`).join("")}</div>
-      </div>`;
+      <div class="note-tip">${pixieBadge()}<span>${esc(tip)}</span></div>`;
   }
 
   // =========================================================
-  // Drawer: library and songs
+  // Sheets: knobs, songs, library
   // =========================================================
-  let drawerMode = null, confirmDel = null;
-  function openDrawer(mode) {
-    drawerMode = mode;
-    $("drawer").hidden = false;
+  let sheetMode = null, confirmDel = null;
+  function openSheet(mode) {
+    sheetMode = mode;
+    $("sheet").hidden = false;
     $("scrim").hidden = false;
-    renderDrawer();
-    $("closeDrawer").focus();
+    renderSheet();
+    $("closeSheet").focus();
   }
-  function closeDrawer() {
-    $("drawer").hidden = true;
+  function closeSheet() {
+    $("sheet").hidden = true;
     $("scrim").hidden = true;
-    drawerMode = null; confirmDel = null;
+    sheetMode = null; confirmDel = null;
   }
-  function songText(s) {
-    return `Title: ${s.title}\n` + s.sections.map(x => `[${x.name}]\n${x.prog}`).join("\n");
-  }
+  function songText(s) { return `Title: ${s.title}\n` + s.sections.map(x => `[${x.name}]\n${x.prog}`).join("\n"); }
   function parseSongText(t) {
-    const title = (t.match(/^\s*Title:\s*(.+)$/mi) || [])[1]?.trim() || "Pasted song";
+    const title = (t.match(/^\s*Title:\s*(.+)$/mi) || [])[1]?.trim() || "pasted song";
     const secs = [];
     let cur = null;
     t.split(/\r?\n/).forEach(line => {
@@ -1774,42 +1724,78 @@
     s.sections = secs;
     return s;
   }
-  function renderDrawer() {
-    const body = $("drawerBody");
-    if (drawerMode === "lib") {
-      $("drawerTitle").textContent = "Library";
+
+  function renderSheet() {
+    const body = $("sheetBody");
+    if (sheetMode === "knobs") {
+      $("sheetTitle").textContent = "knobs";
+      const auto = !parseKeySetting(S().key);
+      let keyOpts = `<option value="auto"${auto ? " selected" : ""}>guess it (${esc(pretty(keyName(K)))})</option>`;
+      for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
+        const v = t + (minor ? "m" : "M");
+        keyOpts += `<option value="${v}"${!auto && S().key === v ? " selected" : ""}>${esc(pretty(keyName({ tonic: t, minor })))}</option>`;
+      }
+      body.innerHTML = `
+        <div class="knob"><span class="lbl">feel · easy to fancy</span>
+          <div class="choices">${FEELS.map(f => `<button class="choice" type="button" data-feel="${f.id}" aria-pressed="${S().level === f.id}">${f.name}<small>${f.note}</small></button>`).join("")}</div>
+        </div>
+        <div class="knob"><span class="lbl">hands</span>
+          <div class="choices">
+            <button class="choice" type="button" data-hands="two" aria-pressed="${!S().oneHand}">two hands</button>
+            <button class="choice" type="button" data-hands="one" aria-pressed="${!!S().oneHand}">one hand<small>right hand only</small></button>
+          </div>
+        </div>
+        <div class="knob"><label class="lbl" for="kBpm">tempo · <span id="kBpmVal">${S().bpm}</span> bpm</label><input type="range" id="kBpm" min="50" max="150" value="${S().bpm}"></div>
+        <div class="knob"><span class="lbl">key</span>
+          <div class="row"><select id="kKey" aria-label="Key">${keyOpts}</select>
+            <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
+            <button class="round" type="button" data-shift="1" aria-label="Move everything up a half step">+</button></div>
+        </div>
+        <div class="knob"><label class="lbl" for="kBeats">beats per chord</label>
+          <select id="kBeats">${[1, 2, 3, 4, 6, 8].map(b => `<option${b === S().beats ? " selected" : ""}>${b}</option>`).join("")}</select>
+        </div>
+        <div class="knob"><span class="lbl">extras</span>
+          <div class="toggles">
+            <label class="tog"><input type="checkbox" data-pref="fingers"${prefs.fingers ? " checked" : ""}> finger numbers</label>
+            <label class="tog"><input type="checkbox" data-pref="tips"${prefs.tips ? " checked" : ""}> pixie notes</label>
+            <label class="tog"><input type="checkbox" data-pref="crackle"${prefs.crackle ? " checked" : ""}> vinyl crackle</label>
+            <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song</label>
+          </div>
+        </div>`;
+    } else if (sheetMode === "lib") {
+      $("sheetTitle").textContent = "library";
       body.innerHTML = `<p class="note">Progressions to borrow, each with a mood, a little poem and the theory underneath.</p>` + LIBRARY.map((e, i) => `
         <article class="card" style="${fnVar(e.fn)}">
-          <h3>${glyph(e.fn)}${esc(e.name)}<span class="mood">${esc(e.mood)}</span></h3>
+          <h3>${esc(e.name.toLowerCase())}<span class="mood">${esc(e.mood)}</span></h3>
           <div class="prog">${esc(pretty(e.prog))}</div>
           <p class="poem">${esc(e.poem)}</p>
           <p class="theory">${esc(e.theory)}</p>
           <div class="row">
-            <button class="btn small" type="button" data-lib="${i}" data-how="here">Use in ${esc(song.sections[secIdx].name)}</button>
-            <button class="btn small" type="button" data-lib="${i}" data-how="new">Start a song with it</button>
-            <button class="btn small" type="button" data-lib="${i}" data-how="hear">▶</button>
+            <button class="btn" type="button" data-lib="${i}" data-how="hear">▶</button>
+            <button class="btn" type="button" data-lib="${i}" data-how="here">use in ${esc(song.sections[secIdx].name.toLowerCase())}</button>
+            <button class="btn" type="button" data-lib="${i}" data-how="new">new song</button>
           </div>
         </article>`).join("");
     } else {
-      $("drawerTitle").textContent = "Songs";
+      $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row" style="display:flex;gap:8px"><button class="btn small sparkle" type="button" data-song="new">+ New song</button></div>
-        ${storageOK ? `<p class="note">Songs save in this browser as you go. Copy a song as text below if you want a backup.</p>` : `<p class="note">This browser isn't letting the page save, so songs disappear when you close it. Copy them as text to keep them.</p>`}
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button></div>
+        <p class="note">${storageOK ? "Songs save in this browser as you go. Copy one as text below if you want a backup." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
           return `<article class="card song-card" aria-current="${s.id === song.id}">
-            <div class="meta"><b>${esc(s.title || "Untitled")}</b><span>${s.sections.length} section${s.sections.length === 1 ? "" : "s"} · ${n} chord${n === 1 ? "" : "s"}${s.id === song.id ? " · open now" : ""}</span></div>
+            <div class="meta"><b>${esc(s.title || "untitled")}</b><span>${s.sections.length} section${s.sections.length === 1 ? "" : "s"} · ${n} chord${n === 1 ? "" : "s"}${s.id === song.id ? " · open now" : ""}</span></div>
             ${confirmDel === s.id
-              ? `<button class="btn small" type="button" data-song="del-yes" data-id="${s.id}">Delete it</button><button class="btn small" type="button" data-song="del-no">Keep</button>`
-              : `${s.id === song.id ? "" : `<button class="btn small" type="button" data-song="open" data-id="${s.id}">Open</button>`}${songs.length > 1 ? `<button class="x" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
+              ? `<button class="btn" type="button" data-song="del-yes" data-id="${s.id}">delete it</button><button class="btn" type="button" data-song="del-no">keep</button>`
+              : `${s.id === song.id ? "" : `<button class="btn" type="button" data-song="open" data-id="${s.id}">open</button>`}${songs.length > 1 ? `<button class="x" style="color:var(--soft)" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
           </article>`;
         }).join("")}
         <article class="card">
-          <h3>Back up or share</h3>
-          <div class="row"><button class="btn small" type="button" data-song="copy">Copy “${esc(song.title || "Untitled")}” as text</button></div>
-          <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: Moon Song&#10;[Verse]&#10;C Am F G&#10;[Chorus]&#10;F G C C" aria-label="Paste a song as text"></textarea>
-          <div class="row"><button class="btn small" type="button" data-song="import">Add pasted song</button></div>
+          <h3>back up or share</h3>
+          <div class="row"><button class="btn" type="button" data-song="copy">copy “${esc(song.title || "untitled")}” as text</button></div>
+          <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: moon song&#10;[Verse]&#10;C Am F G&#10;[Chorus]&#10;F G C C" aria-label="Paste a song as text"></textarea>
+          <div class="row"><button class="btn" type="button" data-song="import">add pasted song</button></div>
         </article>`;
     }
   }
@@ -1817,24 +1803,19 @@
   // =========================================================
   // Wiring
   // =========================================================
-  Object.entries(PATTERNS).forEach(([k, p]) => $("pattern").insertAdjacentHTML("beforeend", `<option value="${k}">${p.name}</option>`));
-  Object.entries(DRUMS).forEach(([k, d]) => $("drum").insertAdjacentHTML("beforeend", `<option value="${k}">${d.name}</option>`));
+  Object.entries(GROOVES).forEach(([k, g]) => $("groove").insertAdjacentHTML("beforeend", `<option value="${k}">${g.name}</option>`));
+  $("groove").addEventListener("change", e => setting("groove", e.target.value));
 
   input.addEventListener("input", () => { song.sections[secIdx].prog = input.value; saveSongs(); renderAll(); });
   input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
-  $("songTitle").addEventListener("input", e => { song.title = e.target.value.slice(0, 60); saveSongs(); });
+  $("songTitle").addEventListener("input", e => { song.title = e.target.value.slice(0, 60); saveSongs(); renderDeck(); });
   playBtn.addEventListener("click", playAll);
-  $("loop").setAttribute("aria-pressed", loopOn);
   $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
-  $("up").addEventListener("click", () => transpose(1));
-  $("down").addEventListener("click", () => transpose(-1));
-  $("bpm").addEventListener("input", e => { $("bpmVal").textContent = e.target.value; setting("bpm", +e.target.value); });
-  $("beats").addEventListener("change", e => { setting("beats", +e.target.value); renderAll(); });
-  $("pattern").addEventListener("change", e => setting("pattern", e.target.value));
-  $("drum").addEventListener("change", e => setting("drum", e.target.value));
-  $("key").addEventListener("change", e => { setting("key", e.target.value); renderAll(); });
-  $("oneHand").addEventListener("change", e => { setting("oneHand", e.target.checked); overrides.clear(); renderAll(); });
-  document.querySelectorAll('input[name="level"]').forEach(r => r.addEventListener("change", () => { setting("level", r.value); overrides.clear(); tipIdx = 0; renderAll(); }));
+  $("openKnobs").addEventListener("click", () => openSheet("knobs"));
+  $("openSongs").addEventListener("click", () => openSheet("songs"));
+  $("openLib").addEventListener("click", () => openSheet("lib"));
+  $("closeSheet").addEventListener("click", closeSheet);
+  $("scrim").addEventListener("click", closeSheet);
 
   $("sections").addEventListener("click", e => {
     const b = e.target.closest("[data-sec],[data-act]");
@@ -1842,29 +1823,32 @@
     if (b.dataset.sec != null) switchSection(+b.dataset.sec);
     else if (b.dataset.act === "addsec") {
       const used = new Set(song.sections.map(s => s.name));
-      const name = SECTION_NAMES.find(n => !used.has(n)) || "Part " + (song.sections.length + 1);
-      song.sections.push({ name, prog: "" });
+      song.sections.push({ name: SECTION_NAMES.find(n => !used.has(n)) || "Part " + (song.sections.length + 1), prog: "" });
       saveSongs();
       switchSection(song.sections.length - 1);
       input.focus();
-    } else if (b.dataset.act === "delsec") {
-      if (song.sections.length < 2) return;
+    } else if (b.dataset.act === "delsec" && song.sections.length > 1) {
       song.sections.splice(secIdx, 1);
       saveSongs();
       switchSection(Math.max(0, secIdx - 1));
     }
   });
   $("sections").addEventListener("change", e => {
-    if (e.target.dataset.act === "rename") { song.sections[secIdx].name = e.target.value; saveSongs(); renderSections(); }
+    if (e.target.dataset.act === "rename") {
+      const n = SECTION_NAMES.find(x => x.toLowerCase() === e.target.value) || e.target.value;
+      song.sections[secIdx].name = n; saveSongs(); renderSections(); renderDeck();
+    }
   });
 
   palEl.addEventListener("click", e => {
+    if (e.target.closest('[data-act="key"]')) { openSheet("knobs"); return; }
     const b = e.target.closest("[data-add]");
     if (!b) return;
     const t = song.sections[secIdx].prog.trim();
     setProg((t ? t + " " : "") + b.dataset.add, true);
     sel = current.length - 1;
     renderStage();
+    requestAnimationFrame(() => { stripEl.scrollLeft = stripEl.scrollWidth; });
     playOne(sel);
   });
   palEl.addEventListener("change", e => { if (e.target.id === "sev") { prefs.sevenths = e.target.checked; savePrefs(); renderPalette(); } });
@@ -1885,32 +1869,110 @@
     renderAll();
     playOne(sel);
   }
+  const refocus = sel_ => stageEl.querySelector(sel_)?.focus();
   stageEl.addEventListener("click", e => {
     const el = e.target.closest("[data-act]");
     if (!el) return;
     const act = el.dataset.act, c = current[sel];
     if (act === "play") playOne(sel);
-    else if (act === "nudge") { const dir = +el.dataset.dir; nudge(dir); stageEl.querySelector(`.nudge[data-dir="${dir}"]`)?.focus(); }
+    else if (act === "nudge") { const d = +el.dataset.dir; nudge(d); refocus(`.nudge[data-dir="${d}"]`); }
     else if (act === "reset" && c) { overrides.delete(c.key); renderAll(); playOne(sel); }
-    else if (act === "beats") { const dir = +el.dataset.dir; stepBeats(dir); stageEl.querySelector(`[data-act="beats"][data-dir="${dir}"]`)?.focus(); }
-    else if (act === "surprise") { surprise(); stageEl.querySelector('[data-act="surprise"]')?.focus(); }
+    else if (act === "beats") { cycleBeats(); refocus('[data-act="beats"]'); }
+    else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
     else if (act === "undo") {
       const u = undoStack.pop();
-      if (u && u.sec === secIdx) { const keepSel = sel; tipOverride = "Back how it was."; setProg(u.prog, false); sel = Math.min(keepSel, current.length - 1); renderStage(); }
+      if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
     }
-    else if (act === "tip") { if (tipOverride) tipOverride = null; else tipIdx++; renderStage(); stageEl.querySelector('[data-act="tip"]')?.focus(); }
-    else if (act === "hands") { prefs.hands = !prefs.hands; savePrefs(); renderStage(); stageEl.querySelector('[data-act="hands"]')?.focus(); }
-    else if (act === "tips") { prefs.tips = !prefs.tips; savePrefs(); renderStage(); stageEl.querySelector('[data-act="tips"]')?.focus(); }
+    else if (act === "tip") { if (tipOverride) tipOverride = null; else tipIdx++; renderStage(); refocus('[data-act="tip"]'); }
   });
-  stageEl.addEventListener("change", e => { if (e.target.dataset.act === "style") { prefs.handStyle = e.target.value; savePrefs(); renderStage(); stageEl.querySelector('[data-act="style"]')?.focus(); } });
 
-  // views
+  $("sheetBody").addEventListener("click", async e => {
+    const feel = e.target.closest("[data-feel]"), hands = e.target.closest("[data-hands]"), shift = e.target.closest("[data-shift]");
+    if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
+    if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
+    if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
+    const b = e.target.closest("[data-lib],[data-song]");
+    if (!b) return;
+    if (b.dataset.lib != null) {
+      const en = LIBRARY[+b.dataset.lib];
+      const extra = { key: en.key || "auto" };
+      ["level", "bpm", "beats"].forEach(k => { if (en[k] != null) extra[k] = en[k]; });
+      if (extra.level === "simple") extra.level = "smooth";
+      if (en.pattern) extra.groove = grooveFor(en.pattern);
+      if (b.dataset.how === "hear") {
+        if (playing || !(await audioReady())) return;
+        const r = compute(en.prog, { ...S(), ...extra }, -1);
+        let t = ac.currentTime + 0.05;
+        r.current.forEach(c => { strum(c.v, t, 0.9); t += 0.7; });
+        return;
+      }
+      if (b.dataset.how === "new") {
+        const s = newSong(en.name.toLowerCase(), en.prog, extra);
+        songs.push(s);
+        openSong(s);
+        toast(`new song: ${en.name.toLowerCase()}`);
+      } else {
+        Object.assign(S(), extra);
+        overrides.clear();
+        setProg(en.prog, true);
+        toast(`${en.name.toLowerCase()} is in the ${song.sections[secIdx].name.toLowerCase()}`);
+      }
+      saveSongs();
+      closeSheet();
+      return;
+    }
+    const act = b.dataset.song, id = b.dataset.id;
+    if (act === "new") {
+      const s = newSong("untitled song", "");
+      songs.push(s);
+      openSong(s);
+      saveSongs();
+      closeSheet();
+      $("songTitle").focus();
+      $("songTitle").select();
+    } else if (act === "open") { openSong(songs.find(s => s.id === id)); saveSongs(); closeSheet(); }
+    else if (act === "del") { confirmDel = id; renderSheet(); }
+    else if (act === "del-no") { confirmDel = null; renderSheet(); }
+    else if (act === "del-yes") {
+      songs = songs.filter(s => s.id !== id);
+      confirmDel = null;
+      if (song.id === id) openSong(songs[0]);
+      saveSongs();
+      renderSheet();
+    } else if (act === "copy") {
+      const text = songText(song);
+      try { await navigator.clipboard.writeText(text); toast("copied. paste it anywhere to keep it"); }
+      catch { const ta = $("songPaste"); ta.value = text; ta.focus(); ta.select(); toast("selected below, copy it from there"); }
+    } else if (act === "import") {
+      const s = parseSongText($("songPaste").value);
+      if (!s) { toast("I couldn't find any chords in that"); return; }
+      songs.push(s);
+      openSong(s);
+      saveSongs();
+      closeSheet();
+      toast(`added “${s.title}”`);
+    }
+  });
+  $("sheetBody").addEventListener("input", e => {
+    if (e.target.id === "kBpm") { setting("bpm", +e.target.value); $("kBpmVal").textContent = e.target.value; renderDeck(); }
+  });
+  $("sheetBody").addEventListener("change", e => {
+    const t = e.target;
+    if (t.id === "kKey") { setting("key", t.value); renderAll(); renderSheet(); }
+    else if (t.id === "kBeats") { setting("beats", +t.value); renderAll(); }
+    else if (t.dataset.pref) {
+      prefs[t.dataset.pref] = t.checked; savePrefs();
+      if (t.dataset.pref === "crackle" && playing) crackle(t.checked);
+      renderAll();
+    }
+  });
+
   function showView(find) {
-    $("tabWrite").setAttribute("aria-selected", !find);
-    $("tabFind").setAttribute("aria-selected", find);
+    $("tabWrite").setAttribute("aria-pressed", !find);
+    $("tabFind").setAttribute("aria-pressed", find);
     $("writeView").hidden = find;
     $("findView").hidden = !find;
-    $("songRow").style.visibility = find ? "hidden" : "";
+    $("deck").hidden = find;
     if (find) { if (playing) stop(); renderFinder(); }
   }
   $("tabWrite").addEventListener("click", () => showView(false));
@@ -1938,82 +2000,14 @@
       input.value = song.sections[secIdx].prog;
       saveSongs();
       renderAll();
-      toast(`Added ${pretty(top.name)} to ${song.sections[secIdx].name}`);
-    }
-  });
-
-  $("openLib").addEventListener("click", () => openDrawer("lib"));
-  $("openSongs").addEventListener("click", () => openDrawer("songs"));
-  $("closeDrawer").addEventListener("click", closeDrawer);
-  $("scrim").addEventListener("click", closeDrawer);
-  $("drawerBody").addEventListener("click", async e => {
-    const b = e.target.closest("[data-lib],[data-song]");
-    if (!b) return;
-    if (b.dataset.lib != null) {
-      const en = LIBRARY[+b.dataset.lib];
-      const extra = {};
-      ["pattern", "level", "drum", "bpm", "beats"].forEach(k => { if (en[k] != null) extra[k] = en[k]; });
-      extra.key = en.key || "auto";
-      if (b.dataset.how === "hear") {
-        if (!(await audioReady())) return;
-        const r = compute(en.prog, { ...S(), ...extra }, -1);
-        let t = ac.currentTime + 0.05;
-        r.current.forEach(c => { strum(c.v, t, 0.9); t += 0.75; });
-        return;
-      }
-      if (b.dataset.how === "new") {
-        const s = newSong(en.name, en.prog, extra);
-        songs.push(s);
-        openSong(s);
-        toast(`New song: ${en.name}`);
-      } else {
-        Object.assign(S(), extra);
-        overrides.clear();
-        applySettings();
-        setProg(en.prog, true);
-        toast(`${en.name} is in ${song.sections[secIdx].name}`);
-      }
-      saveSongs();
-      closeDrawer();
-      return;
-    }
-    const act = b.dataset.song, id = b.dataset.id;
-    if (act === "new") {
-      const s = newSong("Untitled song", "");
-      songs.push(s);
-      openSong(s);
-      saveSongs();
-      closeDrawer();
-      $("songTitle").focus();
-      $("songTitle").select();
-    } else if (act === "open") { openSong(songs.find(s => s.id === id)); saveSongs(); closeDrawer(); }
-    else if (act === "del") { confirmDel = id; renderDrawer(); }
-    else if (act === "del-no") { confirmDel = null; renderDrawer(); }
-    else if (act === "del-yes") {
-      songs = songs.filter(s => s.id !== id);
-      confirmDel = null;
-      if (song.id === id) openSong(songs[0]);
-      saveSongs();
-      renderDrawer();
-    } else if (act === "copy") {
-      const text = songText(song);
-      try { await navigator.clipboard.writeText(text); toast("Copied. Paste it anywhere to keep it."); }
-      catch { const ta = $("songPaste"); ta.value = text; ta.focus(); ta.select(); toast("Selected below. Copy it from there."); }
-    } else if (act === "import") {
-      const s = parseSongText($("songPaste").value);
-      if (!s) { toast("I couldn't find any chords in that."); return; }
-      songs.push(s);
-      openSong(s);
-      saveSongs();
-      closeDrawer();
-      toast(`Added “${s.title}”`);
+      toast(`added ${pretty(top.name)} to the ${song.sections[secIdx].name.toLowerCase()}`);
     }
   });
 
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && drawerMode) { closeDrawer(); return; }
+    if (e.key === "Escape" && sheetMode) { closeSheet(); return; }
     const tag = e.target.tagName;
-    if (drawerMode || !$("findView").hidden || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (sheetMode || !$("findView").hidden || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === " " && tag !== "BUTTON") { e.preventDefault(); playAll(); }
     else if (e.key === "ArrowRight" && sel < current.length - 1) { e.preventDefault(); sel++; tipIdx = 0; tipOverride = null; renderStage(); playOne(sel); }
     else if (e.key === "ArrowLeft" && sel > 0) { e.preventDefault(); sel--; tipIdx = 0; tipOverride = null; renderStage(); playOne(sel); }
