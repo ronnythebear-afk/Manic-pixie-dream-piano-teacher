@@ -1,7 +1,7 @@
 <title>Pixie Chords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Nunito:wght@500;700;800;900&family=DM+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Nunito:ital,wght@0,500;0,700;0,800;0,900;1,700&family=DM+Mono:wght@500&display=swap">
 <style>
   :root {
     --bg: #fdeef4;
@@ -19,6 +19,11 @@
     --key-edge: #2b1e4a;
     --tint: #fff5d6;
     --field: #ffffff;
+    --home: #ffa96b;
+    --away: #8ea8ff;
+    --tension: #ff5a5a;
+    --surprise: #b77cff;
+    --scrim: rgba(43, 30, 74, .35);
     --display: "Bagel Fat One", "Arial Rounded MT Bold", "Nunito", system-ui, sans-serif;
     --body: "Nunito", ui-rounded, "Segoe UI", system-ui, sans-serif;
     --mono: "DM Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -26,43 +31,22 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #1d1533;
-      --dot: #2c2250;
-      --paper: #2a2047;
-      --ink: #fff0f6;
-      --muted: #b6a8d4;
-      --line: #0c0818;
-      --rh: #ff6fa9;
-      --lh: #3fd9b9;
-      --stay: #ffd166;
-      --spark: #a996ff;
-      --key-w: #f5efff;
-      --key-b: #150e2a;
-      --key-edge: #0c0818;
-      --tint: #3a2c5f;
-      --field: #221a3c;
+      --bg: #1d1533; --dot: #2c2250; --paper: #2a2047; --ink: #fff0f6; --muted: #b6a8d4; --line: #0c0818;
+      --rh: #ff6fa9; --lh: #3fd9b9; --stay: #ffd166; --spark: #a996ff;
+      --key-w: #f5efff; --key-b: #150e2a; --key-edge: #0c0818; --tint: #3a2c5f; --field: #221a3c;
+      --home: #ffb27f; --away: #9db4ff; --tension: #ff7070; --surprise: #c597ff; --scrim: rgba(8, 5, 18, .6);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #1d1533;
-    --dot: #2c2250;
-    --paper: #2a2047;
-    --ink: #fff0f6;
-    --muted: #b6a8d4;
-    --line: #0c0818;
-    --rh: #ff6fa9;
-    --lh: #3fd9b9;
-    --stay: #ffd166;
-    --spark: #a996ff;
-    --key-w: #f5efff;
-    --key-b: #150e2a;
-    --key-edge: #0c0818;
-    --tint: #3a2c5f;
-    --field: #221a3c;
+    --bg: #1d1533; --dot: #2c2250; --paper: #2a2047; --ink: #fff0f6; --muted: #b6a8d4; --line: #0c0818;
+    --rh: #ff6fa9; --lh: #3fd9b9; --stay: #ffd166; --spark: #a996ff;
+    --key-w: #f5efff; --key-b: #150e2a; --key-edge: #0c0818; --tint: #3a2c5f; --field: #221a3c;
+    --home: #ffb27f; --away: #9db4ff; --tension: #ff7070; --surprise: #c597ff; --scrim: rgba(8, 5, 18, .6);
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body {
     background-color: var(--bg);
@@ -73,139 +57,145 @@
     font-size: 15px;
     line-height: 1.45;
   }
-  button, input, select { font: inherit; color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
   button { cursor: pointer; }
   :focus-visible { outline: 3px solid var(--spark); outline-offset: 2px; }
 
-  .app {
-    min-height: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
-    padding-inline: 18px;
-    padding-block: 14px;
-    display: flex; flex-direction: column; gap: 12px;
-  }
+  .app { min-height: 100%; max-width: 1200px; margin: 0 auto; padding-inline: 18px; padding-block: 12px; display: flex; flex-direction: column; gap: 10px; }
+  .view { display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
 
   /* ---------- top bar ---------- */
-  .bar { display: flex; align-items: center; gap: 12px; }
-  h1 {
-    flex: none;
-    font-family: var(--display); font-weight: 400;
-    font-size: 30px; line-height: 1; margin: 0;
-    text-shadow: 2px 2px 0 var(--rh);
-  }
+  .bar { display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+  h1 { flex: none; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; margin: 0; text-shadow: 2px 2px 0 var(--rh); }
   h1 .dot { color: var(--lh); text-shadow: 2px 2px 0 var(--ink); }
-  .field {
-    flex: 1; min-width: 0;
-    display: flex; align-items: center;
-    background: var(--field);
-    border: 2.5px solid var(--line); border-radius: 16px;
-    box-shadow: 3px 3px 0 var(--line);
-    padding: 0 14px;
-  }
-  #prog {
-    flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
-    font-family: var(--display); font-size: 22px; padding: 7px 0;
-  }
+  .tabs { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
+  .tabs button { border: 0; background: none; padding: 5px 13px; font-weight: 900; font-size: 14px; }
+  .tabs button + button { border-left: 2px solid var(--line); }
+  .tabs button[aria-selected="true"] { background: var(--stay); color: #2b1e4a; }
+  .bar-right { margin-left: auto; display: flex; gap: 8px; }
+
   .btn {
-    flex: none;
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 2.5px solid var(--line); border-radius: 14px;
-    padding: 8px 14px; font-weight: 900; font-size: 15px;
-    background: var(--paper);
+    flex: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    border: 2.5px solid var(--line); border-radius: 14px; padding: 7px 14px;
+    font-weight: 900; font-size: 15px; background: var(--paper);
     box-shadow: 3px 3px 0 var(--line);
     transition: transform .08s, box-shadow .08s, background .15s;
   }
   .btn:active { transform: translate(3px, 3px); box-shadow: none; }
-  .btn svg { width: 14px; height: 14px; }
-  .btn.play { background: var(--rh); color: #2b1e4a; min-width: 96px; justify-content: center; }
-  .btn.loop[aria-pressed="true"] { background: var(--lh); color: #2b1e4a; }
+  .btn svg { width: 14px; height: 14px; flex: none; }
+  .btn.small { padding: 4px 10px; font-size: 13px; border-width: 2px; border-radius: 11px; box-shadow: 2px 2px 0 var(--line); }
+  .btn.play { background: var(--rh); color: #2b1e4a; min-width: 92px; }
+  .btn[aria-pressed="true"] { background: var(--lh); color: #2b1e4a; }
+  .btn.sparkle { background: var(--surprise); color: #2b1e4a; }
 
-  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+  /* ---------- song row ---------- */
+  .song-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 auto; min-width: 0; }
+  .song-title { border: 0; border-bottom: 2px dashed var(--muted); background: transparent; font-weight: 900; font-size: 16px; padding: 2px 2px; width: 14ch; min-width: 0; }
+  .song-title:focus { outline: none; border-bottom-color: var(--spark); }
+  .sections { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .sec { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 2px 11px; font-weight: 800; font-size: 13px; }
+  .sec[aria-current="true"] { background: var(--ink); color: var(--bg); }
+  .sec.add { border-style: dashed; color: var(--muted); }
+  .sec-edit { display: inline-flex; align-items: center; gap: 4px; }
+  .sec-edit select { border: 2px solid var(--line); border-radius: 10px; background: var(--paper); font-size: 13px; font-weight: 800; padding: 1px 4px; }
+  .x { border: 0; background: none; color: var(--muted); font-weight: 900; font-size: 16px; line-height: 1; padding: 0 4px; }
+
+  /* ---------- compose ---------- */
+  .compose { display: flex; align-items: center; gap: 10px; }
+  .field { flex: 1; min-width: 0; display: flex; align-items: center; background: var(--field); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--line); padding: 0 14px; }
+  #prog { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-family: var(--display); font-size: 22px; padding: 6px 0; }
+  select { border: 2px solid var(--line); border-radius: 12px; background: var(--paper); padding: 4px 8px; font-weight: 800; font-size: 14px; max-width: 200px; }
+
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .controls select { max-width: 150px; }
+  #key { max-width: 190px; }
   .label { font-weight: 900; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .mini { display: inline-flex; align-items: center; gap: 6px; }
+  .levels { display: inline-flex; flex-direction: column; gap: 3px; }
   .seg { display: inline-flex; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--paper); }
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg label { padding: 4px 11px; font-weight: 900; font-size: 14px; cursor: pointer; border-right: 2px solid var(--line); }
+  .seg label { padding: 4px 10px; font-weight: 900; font-size: 13.5px; cursor: pointer; border-right: 2px solid var(--line); display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; }
   .seg label:last-of-type { border-right: 0; }
+  .seg label i { font-style: normal; font-size: 8px; letter-spacing: 1px; color: var(--muted); }
   .seg input:checked + label { background: var(--lh); color: #2b1e4a; }
+  .seg input:checked + label i { color: #2b1e4a; }
   .seg input:focus-visible + label { outline: 3px solid var(--spark); outline-offset: -3px; }
-  .mini { display: inline-flex; align-items: center; gap: 6px; }
-  .round {
-    width: 28px; height: 28px; border-radius: 50%;
-    border: 2px solid var(--line); background: var(--paper);
-    font-weight: 900; font-size: 16px; line-height: 1;
-    display: inline-grid; place-items: center;
-  }
+  .round { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--paper); font-weight: 900; font-size: 16px; line-height: 1; display: inline-grid; place-items: center; }
   .round:active { transform: scale(.92); }
-  input[type="range"] { accent-color: var(--rh); width: 100px; }
+  input[type="range"] { accent-color: var(--rh); width: 76px; }
   .tabnum { font-family: var(--mono); font-size: 13px; min-width: 3ch; font-variant-numeric: tabular-nums; }
-  select {
-    border: 2px solid var(--line); border-radius: 12px; background: var(--paper);
-    padding: 4px 8px; font-weight: 800; font-size: 14px; max-width: 190px;
-  }
-  .mode-note { margin: 0; color: var(--muted); font-weight: 700; font-size: 14px; }
+  .switch { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; cursor: pointer; }
+  .switch input { accent-color: var(--lh); width: 17px; height: 17px; margin: 0; }
   .sound-hint { margin: 0; align-self: flex-start; background: var(--stay); color: #2b1e4a; border: 2px solid var(--line); border-radius: 12px; padding: 5px 12px; font-weight: 800; font-size: 14px; }
 
+  /* ---------- palette ---------- */
+  .pal-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .pal-row > .mini { flex: none; }
+  .palette { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; scrollbar-width: thin; }
+  .palette .label { white-space: nowrap; margin-right: 2px; }
+  .pal { flex: none; display: inline-flex; flex-direction: column; align-items: center; gap: 0; border: 2px solid var(--line); border-radius: 12px; background: var(--paper); padding: 2px 9px 3px; line-height: 1.1; position: relative; transition: transform .1s; }
+  .pal:hover { transform: translateY(-2px); }
+  .pal b { font-family: var(--display); font-weight: 400; font-size: 16px; }
+  .pal small { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .pal::before { content: ""; position: absolute; left: 6px; right: 6px; top: -2px; height: 3px; border-radius: 0 0 3px 3px; background: var(--fn); }
+  .pal.next { box-shadow: 0 0 0 3px var(--stay); }
+  .pal.next::after { content: "✦"; position: absolute; top: -9px; right: -5px; font-size: 12px; color: var(--spark); }
+  .divider { width: 2px; align-self: stretch; background: var(--dot); margin: 2px 4px; flex: none; }
+
   /* ---------- chord strip ---------- */
-  .strip {
-    display: flex; gap: 10px;
-    overflow-x: auto; padding: 2px 6px 8px 2px;
-    scroll-snap-type: x proximity;
-  }
+  .strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 6px 8px 2px; scroll-snap-type: x proximity; flex: none; }
   .tile {
-    flex: 1 0 118px; max-width: 190px;
-    scroll-snap-align: start;
-    text-align: left;
-    background: var(--paper);
-    border: 2.5px solid var(--line); border-radius: 16px;
-    box-shadow: 3px 3px 0 var(--line);
-    padding: 7px 9px 8px;
-    display: grid; gap: 4px;
+    flex: 1 0 116px; max-width: 180px; scroll-snap-align: start; text-align: left;
+    background: var(--paper); border: 2.5px solid var(--line); border-radius: 16px; box-shadow: 3px 3px 0 var(--line);
+    padding: 0 9px 7px; display: grid; gap: 3px; overflow: hidden;
     transition: transform .15s cubic-bezier(.3,1.6,.5,1), box-shadow .15s, background .15s;
   }
   .tile:hover { transform: translateY(-2px); }
   .tile.sel { background: var(--tint); transform: translateY(-3px); box-shadow: 4px 6px 0 var(--line); }
-  .tile.sel .t-sym { color: var(--ink); }
-  .t-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
-  .t-sym { font-family: var(--display); font-size: 22px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .t-sym .q, .t-sym .sl { font-size: .68em; color: var(--muted); }
-  .t-num { font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .t-shape { font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .t-shape.ovr { color: var(--spark); }
+  .band { height: 6px; margin: 0 -9px 3px; background: var(--fn, var(--dot)); border-bottom: 2px solid var(--line); }
+  .t-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .t-sym { font-family: var(--display); font-size: 21px; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .q, .sl { font-size: .66em; color: var(--muted); }
+  .t-num { font-family: var(--mono); font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .t-shape { font-size: 11px; font-weight: 800; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; justify-content: space-between; gap: 4px; }
+  .t-shape.ovr span:first-child { color: var(--spark); }
   .tile svg { display: block; width: 100%; height: auto; }
-  .tile.bad { border-style: dashed; box-shadow: none; background: var(--bg); cursor: default; }
-  .tile.bad .t-shape { white-space: normal; }
+  .tile.bad { border-style: dashed; box-shadow: none; background: var(--bg); cursor: default; padding-top: 7px; }
+  .glyph, .tile .glyph { width: 14px; height: 14px; flex: none; display: inline-block; }
+  .glyph path, .glyph rect { fill: var(--gfill); stroke: var(--line); stroke-width: 1; stroke-linejoin: round; }
+  .glyph .g-in { fill: var(--paper); }
+  .glyph .g-line { fill: none; stroke: var(--gfill); stroke-width: 1.6; stroke-linecap: round; }
+  .g-home { --gfill: var(--home); } .g-away { --gfill: var(--away); } .g-tension { --gfill: var(--tension); } .g-surprise { --gfill: var(--surprise); }
 
   /* ---------- stage ---------- */
   .stage {
-    flex: 1 1 auto;
-    display: flex; flex-direction: column; gap: 10px;
-    background: var(--paper);
-    border: 3px solid var(--line); border-radius: 22px;
-    box-shadow: 5px 5px 0 var(--line);
-    padding: 14px 16px;
-    min-height: 0;
+    position: relative; flex: 1 1 auto; display: flex; flex-direction: column; gap: 8px;
+    background: var(--paper); border: 3px solid var(--line); border-radius: 22px; box-shadow: 5px 5px 0 var(--line);
+    padding: 12px 16px; min-height: 0; overflow: hidden; isolation: isolate;
   }
+  .stage-bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 85% 0%, color-mix(in srgb, var(--fn, transparent) 22%, transparent), transparent 60%); transition: background .4s; }
+  .stage-bg .glyph { position: absolute; width: 26px; height: 26px; opacity: .22; animation: drift 7s ease-in-out infinite alternate; }
+  .stage-bg .glyph path, .stage-bg .glyph rect { stroke: none; }
+  @keyframes drift { from { transform: translateY(0) rotate(-6deg); } to { transform: translateY(-8px) rotate(8deg); } }
   .stage-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-  .big-sym { font-family: var(--display); font-size: 46px; line-height: 1; min-width: 2.4ch; }
-  .big-sym .q, .big-sym .sl { font-size: .6em; color: var(--muted); }
-  .shape { display: flex; align-items: center; gap: 8px; }
-  .nudge {
-    flex: none; width: 34px; height: 34px; border-radius: 12px;
-    border: 2.5px solid var(--line); background: var(--paper);
-    font-weight: 900; font-size: 20px; line-height: 1;
-    display: grid; place-items: center;
-  }
+  .who { display: flex; align-items: baseline; gap: 10px; }
+  .big-sym { font-family: var(--display); font-size: 44px; line-height: 1; min-width: 2ch; }
+  .fn-tag { display: inline-flex; align-items: center; gap: 5px; font-weight: 900; font-size: 13px; border: 2px solid var(--line); border-radius: 999px; padding: 1px 9px 1px 6px; background: color-mix(in srgb, var(--fn) 35%, var(--paper)); white-space: nowrap; }
+  .fn-tag .num { font-family: var(--mono); font-weight: 500; }
+  .shape { display: flex; align-items: center; gap: 6px; }
+  .nudge { flex: none; width: 32px; height: 32px; border-radius: 11px; border: 2.5px solid var(--line); background: var(--paper); font-weight: 900; font-size: 19px; line-height: 1; display: grid; place-items: center; }
   .nudge:hover { background: var(--lh); color: #2b1e4a; }
-  .shape-name { min-width: 150px; text-align: center; line-height: 1.2; }
-  .shape-name b { display: block; font-weight: 900; font-size: 16px; }
-  .shape-name span { font-size: 12.5px; color: var(--muted); font-weight: 700; }
-  .reset { border: 0; background: none; padding: 0; margin-left: 4px; color: var(--spark); font-weight: 900; font-size: 12.5px; text-decoration: underline; }
-  .moves { margin-left: auto; font-size: 14px; font-weight: 800; color: var(--muted); }
-  .moves b { color: var(--ink); }
-  .big-kbd { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 120px; cursor: pointer; }
-  .big-kbd svg { display: block; width: 100%; height: auto; max-height: min(38vh, 290px); }
+  .shape-name { min-width: 140px; text-align: center; line-height: 1.2; }
+  .shape-name b { display: block; font-weight: 900; font-size: 15px; }
+  .shape-name span { font-size: 12px; color: var(--muted); font-weight: 700; }
+  .reset { border: 0; background: none; padding: 0; margin-left: 4px; color: var(--spark); font-weight: 900; font-size: 12px; text-decoration: underline; }
+  .tools { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .beats { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; white-space: nowrap; }
+  .beats .round { width: 24px; height: 24px; font-size: 14px; }
+  .undo { border: 0; background: none; color: var(--spark); font-weight: 900; font-size: 13px; text-decoration: underline; padding: 0; }
 
+  .big-kbd { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; min-height: 110px; cursor: pointer; }
+  .big-kbd svg { display: block; width: 100%; height: auto; max-height: min(38vh, 300px); }
   .kw { fill: var(--key-w); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
   .kb { fill: var(--key-b); stroke: var(--key-edge); stroke-width: .9; transition: fill .15s; }
   .kw.lh, .kb.lh { fill: var(--lh); }
@@ -214,40 +204,78 @@
   .oct { fill: var(--muted); font-family: var(--mono); font-size: 4.6px; text-anchor: middle; }
   .kl { fill: #2b1e4a; font-family: var(--body); font-weight: 900; font-size: 4.2px; text-anchor: middle; }
   .kl.onb { font-size: 3.4px; }
+  .fnum { fill: #2b1e4a; font-family: var(--body); font-weight: 900; font-size: 5.4px; text-anchor: middle; }
+  .pixie.bob { animation: bob 1.1s ease-in-out infinite alternate; }
+  @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-2.5px); } }
+  [data-m] { cursor: pointer; }
 
-  .stage-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 18px; }
+  .stage-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+  .tip { flex: 1 1 320px; display: flex; align-items: center; gap: 8px; min-width: 0; background: var(--bg); border: 2px solid var(--line); border-radius: 16px; padding: 5px 12px 5px 6px; font-weight: 700; font-size: 13.5px; text-align: left; line-height: 1.35; }
+  .tip:hover { background: var(--tint); }
+  .pixie-badge { width: 30px; height: 40px; flex: none; }
   .notes { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
   .hand { font-weight: 900; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
   .n { font-family: var(--mono); font-size: 13px; border: 2px solid var(--line); border-radius: 8px; padding: 0 6px; color: #2b1e4a; }
   .n.lh { background: var(--lh); } .n.rh { background: var(--rh); }
   .n.spk::before { content: "✦ "; }
-  .gap { width: 8px; }
-  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 700; font-size: 12.5px; color: var(--muted); }
-  .legend span { display: inline-flex; align-items: center; gap: 5px; }
-  .sw { width: 11px; height: 11px; border-radius: 3px; border: 2px solid var(--line); display: inline-block; }
-  .sw.lh { background: var(--lh); } .sw.rh { background: var(--rh); }
-  .sw.stay { background: var(--stay); border-radius: 50%; }
-  .sw.spark { border: 0; width: auto; height: auto; color: var(--spark); font-size: 13px; line-height: 1; }
+  .gap { width: 6px; }
+  .toggles { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-left: auto; }
+  .moves { font-size: 13px; font-weight: 800; color: var(--muted); }
+  .moves b { color: var(--ink); }
   .empty { margin: auto; font-weight: 800; color: var(--muted); font-size: 17px; text-align: center; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-weight: 700; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
 
-  .help { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 0; }
-  .help kbd { font-family: var(--mono); font-size: 11.5px; border: 1.5px solid var(--dot); background: var(--paper); border-radius: 5px; padding: 0 4px; }
-  @media (hover: none) { .keys-hint { display: none; } }
+  /* ---------- finder ---------- */
+  .alts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .alt { border: 2px solid var(--line); background: var(--paper); border-radius: 999px; padding: 1px 10px; font-family: var(--mono); font-size: 13px; }
+  .finder-note { margin: 0; font-weight: 700; color: var(--muted); font-size: 13.5px; }
 
-  @media (max-width: 640px) {
-    .app { padding-inline: 16px; gap: 10px; }
-    .bar { flex-wrap: wrap; gap: 10px 8px; }
-    h1 { font-size: 24px; flex: 1; }
-    .field { flex-basis: 100%; order: 5; }
-    .btn { padding: 6px 11px; }
-    .btn.play { min-width: 80px; }
-    .help { display: none; }
-    .stage { padding: 12px; gap: 8px; }
+  /* ---------- drawer ---------- */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; }
+  .drawer {
+    position: fixed; z-index: 21; top: 0; right: 0; bottom: 0; width: min(560px, 100%);
+    background: var(--bg); border-left: 3px solid var(--line); box-shadow: -6px 0 0 var(--line);
+    display: flex; flex-direction: column;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px calc(14px + env(safe-area-inset-bottom, 0px));
+    gap: 12px;
+  }
+  .drawer-head { display: flex; align-items: center; gap: 10px; }
+  .drawer-head h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; flex: 1; }
+  .drawer-body { overflow-y: auto; display: grid; gap: 12px; align-content: start; padding: 2px 6px 10px 2px; }
+  .card { background: var(--paper); border: 2.5px solid var(--line); border-radius: 18px; box-shadow: 3px 3px 0 var(--line); padding: 12px 14px; display: grid; gap: 6px; }
+  .card h3 { margin: 0; font-size: 17px; font-weight: 900; display: flex; align-items: center; gap: 7px; }
+  .mood { font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; border: 1.5px solid var(--line); border-radius: 999px; padding: 0 7px; margin-left: auto; background: color-mix(in srgb, var(--fn) 35%, var(--paper)); }
+  .card .prog { font-family: var(--mono); font-size: 13.5px; }
+  .card .poem { font-style: italic; font-weight: 700; margin: 0; }
+  .card .theory { color: var(--muted); font-weight: 700; font-size: 13.5px; margin: 0; }
+  .card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .song-card { display: flex; align-items: center; gap: 10px; }
+  .song-card .meta { flex: 1; min-width: 0; }
+  .song-card .meta b { display: block; font-size: 16px; }
+  .song-card .meta span { font-size: 12.5px; color: var(--muted); font-weight: 700; }
+  .song-card[aria-current="true"] { background: var(--tint); }
+  textarea { width: 100%; min-height: 110px; border: 2px solid var(--line); border-radius: 12px; background: var(--field); padding: 8px 10px; font-family: var(--mono); font-size: 13px; resize: vertical; }
+  .note { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--ink); color: var(--bg); font-weight: 800; border-radius: 999px; padding: 7px 16px; font-size: 14px; }
+
+  @media (max-width: 720px) {
+    .app { padding-inline: 16px; gap: 8px; }
+    h1 { font-size: 24px; }
+    .bar-right { margin-left: auto; }
+    .song-row { order: 5; flex-basis: 100%; }
+    .compose { flex-wrap: wrap; }
+    .field { flex-basis: 100%; }
+    .compose .btn { flex: 1; padding: 6px 10px; }
     .controls { gap: 8px 12px; }
-    .big-sym { font-size: 38px; }
-    .moves { margin-left: 0; flex-basis: 100%; }
-    .shape { flex: 1; }
+    .seg label { padding: 3px 7px; font-size: 12.5px; }
+    .big-sym { font-size: 36px; }
+    .tools { margin-left: 0; }
+    .shape { flex: 1 1 100%; }
     .shape-name { flex: 1; min-width: 0; }
+    .toggles { margin-left: 0; }
+    .pal-row { flex-wrap: wrap; }
+    .palette { flex-basis: 100%; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -257,51 +285,97 @@
 <div class="app">
   <header class="bar">
     <h1>Pixie Chords<span class="dot">.</span></h1>
-    <div class="field">
-      <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" value="C Am F G" aria-label="Chord progression" placeholder="Type chords, like C Am F G">
+    <div class="tabs" role="tablist" aria-label="Mode">
+      <button role="tab" id="tabWrite" type="button" aria-selected="true">Write</button>
+      <button role="tab" id="tabFind" type="button" aria-selected="false">What's this chord?</button>
     </div>
-    <button class="btn play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play</span></button>
-    <button class="btn loop" id="loop" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7l-2-2M12 11H5l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Loop</button>
+    <div class="song-row" id="songRow">
+      <input id="songTitle" class="song-title" type="text" aria-label="Song title" spellcheck="false">
+      <div class="sections" id="sections"></div>
+    </div>
+    <div class="bar-right">
+      <button class="btn small" type="button" id="openLib">Library</button>
+      <button class="btn small" type="button" id="openSongs">Songs</button>
+    </div>
   </header>
 
-  <div class="controls">
-    <div class="seg" role="radiogroup" aria-label="Voicing style">
-      <input type="radio" name="mode" id="m-smooth" value="smooth" checked><label for="m-smooth">Smooth</label>
-      <input type="radio" name="mode" id="m-simple" value="simple"><label for="m-simple">Simple</label>
-      <input type="radio" name="mode" id="m-open" value="open"><label for="m-open">Open</label>
-      <input type="radio" name="mode" id="m-jazzy" value="jazzy"><label for="m-jazzy">Jazzy</label>
-    </div>
-    <div class="mini">
-      <span class="label">Key</span>
-      <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
-      <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
-    </div>
-    <div class="mini">
-      <label class="label" for="bpm">Tempo</label>
-      <input type="range" id="bpm" min="50" max="150" value="88">
-      <span class="tabnum" id="bpmVal">88</span>
-    </div>
-    <select id="presets" aria-label="Try a progression">
-      <option value="">Try a progression…</option>
-    </select>
-  </div>
-  <p class="mode-note" id="modeNote"></p>
   <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap Play again, turn your volume up, and on an iPhone flip the silent switch off.</p>
 
-  <nav class="strip" id="strip" aria-label="Chords in the progression"></nav>
+  <section class="view" id="writeView">
+    <div class="compose">
+      <div class="field">
+        <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Chord progression" placeholder="Type chords, or tap them below">
+      </div>
+      <button class="btn play" id="playAll" type="button"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor"/></svg><span>Play</span></button>
+      <button class="btn" id="loop" type="button" aria-pressed="true"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 5h7l-2-2M12 11H5l2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Loop</button>
+      <select id="scope" aria-label="What to play">
+        <option value="section">This section</option>
+        <option value="song">Whole song</option>
+      </select>
+    </div>
 
-  <main class="stage" id="stage" aria-live="polite"></main>
+    <div class="controls">
+      <div class="levels">
+        <div class="seg" role="radiogroup" aria-label="Level, from easy to fancy">
+          <input type="radio" name="level" id="lv-starter" value="starter"><label for="lv-starter">Starter<i>●</i></label>
+          <input type="radio" name="level" id="lv-simple" value="simple"><label for="lv-simple">Simple<i>●●</i></label>
+          <input type="radio" name="level" id="lv-smooth" value="smooth" checked><label for="lv-smooth">Smooth<i>●●●</i></label>
+          <input type="radio" name="level" id="lv-open" value="open"><label for="lv-open">Open<i>●●●●</i></label>
+          <input type="radio" name="level" id="lv-jazzy" value="jazzy"><label for="lv-jazzy">Jazzy<i>●●●●●</i></label>
+        </div>
+      </div>
+      <label class="switch"><input type="checkbox" id="oneHand"> One hand</label>
+      <select id="pattern" aria-label="Playing pattern"></select>
+      <select id="drum" aria-label="Drums"></select>
+      <div class="mini">
+        <label class="label" for="bpm">Tempo</label>
+        <input type="range" id="bpm" min="50" max="160" value="92">
+        <span class="tabnum" id="bpmVal">92</span>
+      </div>
+      <div class="mini">
+        <label class="label" for="beats">Beats</label>
+        <select id="beats" aria-label="Beats per chord">
+          <option>1</option><option>2</option><option>3</option><option selected>4</option><option>6</option><option>8</option>
+        </select>
+      </div>
+    </div>
 
-  <p class="help">Reads C, Cm, C7, Cmaj7, Cm7, Cm7b5, Cdim7, Caug, Csus4, C6, Cadd9, C9, C13, F#m, Bb7 and C/E.<span class="keys-hint"> Keys: <kbd>space</kbd> play, <kbd>←</kbd><kbd>→</kbd> pick a chord, <kbd>↑</kbd><kbd>↓</kbd> change its shape.</span></p>
+    <div class="pal-row">
+        <div class="mini">
+          <select id="key" aria-label="Key"></select>
+          <button class="round" type="button" id="down" aria-label="Transpose down a half step">−</button>
+          <button class="round" type="button" id="up" aria-label="Transpose up a half step">+</button>
+        </div>
+      <div class="palette" id="palette" aria-label="Chords in this key"></div>
+    </div>
+    <nav class="strip" id="strip" aria-label="Chords in this section"></nav>
+    <main class="stage" id="stage" aria-live="polite"></main>
+  </section>
+
+  <section class="view" id="findView" hidden>
+    <main class="stage" id="finder"></main>
+  </section>
 </div>
 
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <h2 id="drawerTitle">Library</h2>
+    <button class="btn small" type="button" id="closeDrawer">Close</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+<div class="toast" id="toast" role="status" hidden></div>
 <script>
 (() => {
-  // ---------- music theory ----------
+  // =========================================================
+  // Music theory
+  // =========================================================
   const NAT = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
   const LETTERS = "CDEFGAB";
   const Q = {};
-  const def = (keys, ivs) => keys.forEach(k => (Q[k] = ivs));
+  const CANON = []; // one canonical spelling per chord type, for naming
+  const def = (keys, ivs) => { keys.forEach(k => (Q[k] = ivs)); CANON.push({ q: keys[0], ivs }); };
   def(["", "M", "maj", "major"], [0, 4, 7]);
   def(["m", "min", "mi", "-", "minor"], [0, 3, 7]);
   def(["dim", "°", "o"], [0, 3, 6]);
@@ -335,16 +409,16 @@
   const FALLBACK = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
   const mod = (n, m = 12) => ((n % m) + m) % m;
   const accOf = s => (s === "#" ? 1 : s === "b" ? -1 : 0);
-  const pretty = s => s.replace(/#/g, "♯").replace(/(?<=[A-G])b/g, "♭");
+  const pretty = s => s.replace(/#/g, "♯").replace(/([A-G])b/g, "$1♭");
 
-  function spell(letterIdx, rootPc, iv) {
-    const deg = DEG[iv] ?? 1;
+  function spellWith(deg, letterIdx, rootPc, iv) {
     const letter = LETTERS[(letterIdx + deg - 1) % 7];
     let diff = mod(rootPc + iv - NAT[letter]);
     if (diff > 6) diff -= 12;
     if (Math.abs(diff) > 2) return FALLBACK[mod(rootPc + iv)];
     return letter + (diff > 0 ? "#".repeat(diff) : "b".repeat(-diff));
   }
+  const spell = (letterIdx, rootPc, iv) => spellWith(DEG[iv] ?? 1, letterIdx, rootPc, iv);
 
   function parseChord(tok) {
     const t = tok.replace(/♯/g, "#").replace(/♭/g, "b").replace(/[()]/g, "");
@@ -367,6 +441,12 @@
     return { tok, qual, rootPc, letterIdx, rootName: L + m[2], bassPc, bassName, slash: !!m[4], ivs, names };
   }
 
+  // "C:2" means C for two beats
+  function splitBeats(tok) {
+    const m = tok.match(/^(.*?)(?::(\d{1,2}))?$/);
+    return { chord: m[1], beats: m[2] ? Math.max(1, Math.min(16, +m[2])) : null };
+  }
+
   function noteName(ch, midi) {
     const pc = mod(midi);
     if (ch.names.has(pc)) return pretty(ch.names.get(pc));
@@ -376,7 +456,19 @@
     return pretty(spell(ch.letterIdx, ch.rootPc, iv));
   }
 
-  // ---------- voicings ----------
+  // chord family, for keys and colors
+  function baseQuality(ivs) {
+    const s = new Set(ivs.map(iv => mod(iv)));
+    if (s.has(4) && s.has(8) && !s.has(7)) return "aug";
+    if (s.has(3) && s.has(6) && !s.has(7)) return "dim";
+    if (s.has(4)) return "maj";
+    if (s.has(3)) return "min";
+    return "sus";
+  }
+
+  // =========================================================
+  // Voicings
+  // =========================================================
   const avg = a => a.reduce((s, x) => s + x, 0) / a.length;
   function stack(pcs, start) {
     const out = [];
@@ -400,70 +492,113 @@
   }
   const bassMidi = pc => 41 + mod(pc - 5); // F2 .. E3
 
-  function rhTones(ivs) {
+  // Starter level keeps just root, third and fifth
+  function trimIvs(ivs) {
+    const third = ivs.find(iv => iv === 3 || iv === 4) ?? ivs.find(iv => iv === 2 || iv === 5);
+    const fifth = ivs.find(iv => iv === 7) ?? ivs.find(iv => iv === 6 || iv === 8);
+    const out = [0];
+    if (third != null) out.push(third);
+    out.push(fifth ?? 7);
+    return out;
+  }
+
+  function rhTones(ivs, keepRoot) {
     let t = ivs.slice();
     if (t.length > 4) t = t.filter(iv => iv !== 7);
-    if (t.length > 4) t = t.filter(iv => iv !== 0);
-    return t;
+    if (t.length > 4 && !keepRoot) t = t.filter(iv => iv !== 0);
+    return t.slice(0, 5);
   }
-  const INV = ["Root position", "1st inversion", "2nd inversion", "3rd inversion"];
+  const INV = ["Root position", "1st inversion", "2nd inversion", "3rd inversion", "4th inversion"];
 
-  function options(ch) {
+  function options(ch, cfg) {
+    const ivs = cfg.trim ? trimIvs(ch.ivs) : ch.ivs;
+    const one = cfg.oneHand;
     const bass = bassMidi(ch.bassPc);
-    const tones = rhTones(ch.ivs);
+    const onRoot = ch.bassPc === ch.rootPc;
+    let tones = rhTones(ivs, one);
     const out = [];
+    const invCenter = one ? 62 : 65;
     tones.forEach((_, r) => {
       const rot = tones.slice(r).concat(tones.slice(0, r));
-      const pcs = rot.map(iv => mod(ch.rootPc + iv));
-      out.push({ kind: "inv", r, pcs, name: INV[r], lh: [bass], rh: placeNear(pcs, 65), spark: [] });
+      let pcs = rot.map(iv => mod(ch.rootPc + iv));
+      if (one && !onRoot) pcs = [ch.bassPc, ...pcs.filter(pc => pc !== ch.bassPc)];
+      out.push({ kind: "inv", r, pcs, name: cfg.trim ? (r ? INV[r] : "Starter triad") : INV[r], lh: one ? [] : [bass], rh: placeNear(pcs, invCenter), spark: [] });
     });
-
-    const fifth = ch.ivs.find(iv => iv === 7) ?? ch.ivs.find(iv => iv === 6 || iv === 8);
-    const onRoot = ch.bassPc === ch.rootPc;
-
-    // open
-    let upper = ch.ivs.filter(iv => iv !== 0 && ![6, 7, 8].includes(iv)).sort((a, b) => a - b);
-    if (upper.length < 3) upper.push(12);
-    if (upper.length < 3 && fifth != null) upper.push(fifth + 12);
-    if (upper.length < 3) upper.push(24);
-    upper = upper.slice(0, 4);
-    out.push({
-      kind: "open", name: "Open & wide", blurb: "Wide left hand, right hand up high",
-      lh: onRoot && fifth != null ? [bass, bass + fifth] : [bass, bass + 12],
-      rh: placeNear(upper.map(iv => mod(ch.rootPc + iv)), 69), spark: []
-    });
-
-    // shell + sparkle
-    const third = ch.ivs.find(iv => iv === 3 || iv === 4) ?? ch.ivs.find(iv => iv === 2 || iv === 5);
-    const sev = ch.ivs.find(iv => iv === 10 || iv === 11) ?? ch.ivs.find(iv => iv === 9);
-    const exts = ch.ivs.filter(iv => iv > 12);
-    let lh = [bass];
-    if (onRoot) lh = sev != null ? [bass, bass + sev] : fifth != null ? [bass, bass + fifth] : [bass];
-    const rh = [];
-    if (third != null) rh.push(third); else rh.push(12);
-    if (sev != null && fifth != null) rh.push(fifth);
-    if (!onRoot && sev != null) rh.push(sev);
-    const spark = [];
-    if (exts.length) rh.push(...exts);
-    else if (!ch.ivs.includes(8)) {
-      const color = ch.ivs.includes(6) && ch.ivs.includes(3) ? 17 : 14;
-      rh.push(color);
-      spark.push(mod(ch.rootPc + color));
+    if (one && !onRoot) {
+      // with the bass on the bottom, inversions collapse into one shape
+      out.splice(1);
+      out[0].name = "Bass on the bottom";
     }
-    if (sev == null && fifth != null) rh.push(fifth + 12);
-    const shellIvs = [...new Set(rh)].sort((a, b) => a - b).slice(0, 4);
-    out.push({
-      kind: "shell", name: spark.length ? "Shell + sparkle" : "Shell",
-      blurb: sev != null ? "Root and 7th below, color on top" : "Root and 5th below, a 9th for shimmer",
-      lh, rh: placeNear(shellIvs.map(iv => mod(ch.rootPc + iv)), 66), spark
-    });
+
+    const fifth = ivs.find(iv => iv === 7) ?? ivs.find(iv => iv === 6 || iv === 8);
+    const third = ivs.find(iv => iv === 3 || iv === 4) ?? ivs.find(iv => iv === 2 || iv === 5);
+    const sev = ivs.find(iv => iv === 10 || iv === 11) ?? ivs.find(iv => iv === 9);
+    const exts = ivs.filter(iv => iv > 12);
+
+    if (one) {
+      const frame = [0, third, fifth, 12].filter(iv => iv != null);
+      out.push({ kind: "open", name: "Octave frame", blurb: "Root at both ends of your hand", lh: [], rh: placeNear(frame.map(iv => mod(ch.rootPc + iv)), 62), spark: [] });
+      const spark = [];
+      const rootless = [third ?? 12, sev ?? fifth, ...(sev != null && fifth != null ? [fifth] : [])];
+      if (exts.length) rootless.push(...exts);
+      else if (!ivs.includes(8)) { rootless.push(14); spark.push(mod(ch.rootPc + 14)); }
+      const ordered = [...new Set(rootless.filter(iv => iv != null))].sort((a, b) => a - b).slice(0, 4);
+      out.push({ kind: "shell", name: "Rootless sparkle", blurb: "No root, just the colorful notes", lh: [], rh: placeNear(ordered.map(iv => mod(ch.rootPc + iv)), 64), spark });
+    } else {
+      let upper = ivs.filter(iv => iv !== 0 && ![6, 7, 8].includes(iv));
+      if (upper.length < 3) upper.push(12);
+      if (upper.length < 3 && fifth != null) upper.push(fifth + 12);
+      if (upper.length < 3) upper.push(24);
+      upper = [...new Set(upper)].sort((a, b) => a - b).slice(0, 4);
+      out.push({
+        kind: "open", name: "Open & wide", blurb: "Wide left hand, right hand up high",
+        lh: onRoot && fifth != null ? [bass, bass + fifth] : [bass, bass + 12],
+        rh: placeNear(upper.map(iv => mod(ch.rootPc + iv)), 69), spark: []
+      });
+
+      let lh = [bass];
+      if (onRoot) lh = sev != null ? [bass, bass + sev] : fifth != null ? [bass, bass + fifth] : [bass];
+      const rh = [];
+      if (third != null) rh.push(third); else rh.push(12);
+      if (sev != null && fifth != null) rh.push(fifth);
+      if (!onRoot && sev != null) rh.push(sev);
+      const spark = [];
+      if (exts.length) rh.push(...exts);
+      else if (!ivs.includes(8)) {
+        const color = ivs.includes(6) && ivs.includes(3) ? 17 : 14;
+        rh.push(color);
+        spark.push(mod(ch.rootPc + color));
+      }
+      if (sev == null && fifth != null) rh.push(fifth + 12);
+      const shellIvs = [...new Set(rh)].sort((a, b) => a - b).slice(0, 4);
+      out.push({
+        kind: "shell", name: spark.length ? "Shell + sparkle" : "Shell",
+        blurb: sev != null ? "Root and 7th below, color on top" : "Root and 5th below, a 9th for shimmer",
+        lh, rh: placeNear(shellIvs.map(iv => mod(ch.rootPc + iv)), 66), spark
+      });
+    }
     out.forEach(separateHands);
     return out;
   }
 
-  // Keep every left-hand key below every right-hand key. Drop the left hand
-  // an octave when that stays in a comfortable range, otherwise lift the right.
+  // Every left-hand key stays below every right-hand key
+  // No hand spans more than an octave: if it would, regroup the same
+  // notes into the tightest shape near where they were
+  function fitHand(notes) {
+    if (notes.length < 2 || notes[notes.length - 1] - notes[0] <= 12) return notes;
+    const pcs = [...new Set(notes.map(n => mod(n)))].sort((a, b) => a - b);
+    let best = pcs, bs = Infinity;
+    pcs.forEach((_, r) => {
+      const rot = pcs.slice(r).concat(pcs.slice(0, r));
+      const span = mod(rot[rot.length - 1] - rot[0]);
+      if (span < bs) { bs = span; best = rot; }
+    });
+    return placeNear(best, Math.round(avg(notes)));
+  }
   function separateHands(v) {
+    v.rh = fitHand(v.rh);
+    v.lh = fitHand(v.lh);
+    if (!v.lh.length) return;
     const lhTop = () => Math.max(...v.lh);
     if (lhTop() < v.rh[0]) return;
     if (Math.min(...v.lh) - 12 >= 36) v.lh = v.lh.map(n => n - 12);
@@ -472,37 +607,40 @@
 
   const allNotes = v => v.lh.concat(v.rh);
   function travel(a, b) {
+    if (!a.length || !b.length) return 0;
     let s = 0;
     for (const x of b) s += Math.min(...a.map(y => Math.abs(x - y)));
     for (const y of a) s += Math.min(...b.map(x => Math.abs(x - y)));
     return s / 2;
   }
 
-  function choose(opts, mode, ovr) {
-    if (mode !== "smooth") {
+  // level: starter | simple | smooth | open | jazzy
+  function choose(opts, level, ovr) {
+    if (level === "simple" || level === "open" || level === "jazzy") {
       return opts.map((o, i) => {
-        const idx = ovr[i] ?? (mode === "simple" ? 0 : mode === "open" ? o.length - 2 : o.length - 1);
+        const idx = ovr[i] ?? (level === "simple" ? 0 : level === "open" ? o.length - 2 : o.length - 1);
         return { opt: idx, v: o[idx] };
       });
     }
-    // Smooth: Viterbi over inversions and octave placements
+    // starter and smooth: shortest path through inversions and octaves
     const cands = opts.map((o, i) => {
       if (ovr[i] != null) return [{ opt: ovr[i], v: o[ovr[i]] }];
       const list = [];
       o.forEach((opt, idx) => {
         if (opt.kind !== "inv") return;
         const seen = new Set();
-        for (let s = 50; s <= 76; s++) {
+        const lhTop = opt.lh.length ? Math.max(...opt.lh) : 0;
+        for (let s = 48; s <= 76; s++) {
           const rh = stack(opt.pcs, s);
           const a = avg(rh);
-          if (a < 56 || a > 75 || rh[0] <= Math.max(...opt.lh) || seen.has(rh[0])) continue;
+          if (a < 55 || a > 75 || rh[0] <= lhTop || rh[rh.length - 1] - rh[0] > 12 || seen.has(rh[0])) continue;
           seen.add(rh[0]);
           list.push({ opt: idx, v: { ...opt, rh } });
         }
       });
-      return list;
+      return list.length ? list : [{ opt: 0, v: o[0] }];
     });
-    const here = c => 0.12 * Math.abs(avg(c.v.rh) - 65);
+    const here = c => 0.12 * Math.abs(avg(c.v.rh) - 64);
     let cost = cands[0].map(here), back = [];
     for (let i = 1; i < cands.length; i++) {
       const nc = [], nb = [];
@@ -527,171 +665,448 @@
     return out;
   }
 
-  // ---------- keyboard drawing ----------
+  // =========================================================
+  // Fingering: 1 = thumb ... 5 = pinky
+  // =========================================================
+  const SPAN = { "1,2": 3, "1,3": 4, "1,4": 5.5, "1,5": 7.5, "2,3": 2, "2,4": 3.5, "2,5": 5.5, "3,4": 2, "3,5": 3.5, "4,5": 2 };
+  function combos(n, from = 1, acc = [], out = []) {
+    if (acc.length === n) { out.push(acc.slice()); return out; }
+    for (let f = from; f <= 5; f++) { acc.push(f); combos(n, f + 1, acc, out); acc.pop(); }
+    return out;
+  }
+  // notes ascending; returns finger numbers in the same order
+  function fingering(notes, hand) {
+    const n = notes.length;
+    if (!n) return [];
+    if (n === 1) return [hand === "lh" ? 5 : 1];
+    const seq = hand === "lh" ? notes.slice().reverse() : notes.slice(); // thumb side first
+    const gaps = seq.slice(1).map((x, i) => Math.abs(x - seq[i]));
+    let best = null, bc = Infinity;
+    for (const c of combos(Math.min(n, 5))) {
+      let cost = c[0] === 1 ? 0 : 1.2;
+      gaps.forEach((g, i) => { cost += Math.abs(g - (SPAN[c[i] + "," + c[i + 1]] ?? 2)); });
+      if (cost < bc) { bc = cost; best = c; }
+    }
+    return hand === "lh" ? best.slice().reverse() : best;
+  }
+  const FINGER = ["", "thumb", "pointer", "middle", "ring", "pinky"];
+
+  // =========================================================
+  // Keys, numerals and chord colors
+  // =========================================================
+  const MAJOR = { steps: [0, 2, 4, 5, 7, 9, 11], tri: ["", "m", "m", "", "", "m", "dim"], sev: ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"], num: ["I", "ii", "iii", "IV", "V", "vi", "vii°"] };
+  const MINOR = { steps: [0, 2, 3, 5, 7, 8, 10], tri: ["m", "dim", "", "m", "", "", ""], sev: ["m7", "m7b5", "maj7", "m7", "7", "maj7", "7"], num: ["i", "ii°", "III", "iv", "V", "VI", "VII"] };
+  const MAJ_NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  const MIN_NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"];
+  const SDEG = { 0: 1, 1: 2, 2: 2, 3: 3, 4: 3, 5: 4, 6: 4, 7: 5, 8: 6, 9: 6, 10: 7, 11: 7 };
+  const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+  const keyName = k => (k.minor ? MIN_NAMES : MAJ_NAMES)[k.tonic] + (k.minor ? " minor" : " major");
+  function scaleNote(k, iv) {
+    const tn = (k.minor ? MIN_NAMES : MAJ_NAMES)[k.tonic];
+    return spellWith(SDEG[mod(iv)], LETTERS.indexOf(tn[0]), k.tonic, mod(iv));
+  }
+
+  // Chord buttons for a key: diatonic plus a few favorite borrowed chords
+  function palette(k, sevenths) {
+    const S = k.minor ? MINOR : MAJOR;
+    const di = S.steps.map((iv, d) => ({ iv, num: S.num[d], q: sevenths ? S.sev[d] : S.tri[d], fn: fnOfDegree(k, iv) }));
+    const borrowed = (k.minor
+      ? [[5, "IV", ""], [7, "v", "m"], [1, "♭II", ""], [0, "I", ""]]
+      : [[5, "iv", "m"], [10, "♭VII", ""], [8, "♭VI", ""], [3, "♭III", ""], [2, "II", sevenths ? "7" : ""]]
+    ).map(([iv, num, q]) => ({ iv, num, q, fn: "surprise" }));
+    const tok = c => scaleNote(k, c.iv) + c.q;
+    return { di: di.map(c => ({ ...c, tok: tok(c) })), borrowed: borrowed.map(c => ({ ...c, tok: tok(c) })) };
+  }
+
+  function fnOfDegree(k, iv) {
+    const home = k.minor ? [0, 3] : [0, 4, 9];
+    const away = k.minor ? [2, 5, 8] : [2, 5];
+    const pull = k.minor ? [7, 10, 11] : [7, 11];
+    if (home.includes(iv)) return "home";
+    if (away.includes(iv)) return "away";
+    if (pull.includes(iv)) return "tension";
+    return "surprise";
+  }
+
+  // numeral + color for a chord in a key; next = the chord after it
+  function analyze(ch, k, next) {
+    const S = k.minor ? MINOR : MAJOR;
+    const iv = mod(ch.rootPc - k.tonic);
+    const bq = baseQuality(ch.ivs);
+    const d = S.steps.indexOf(iv);
+    const s = new Set(ch.ivs.map(x => mod(x)));
+    const dom7 = s.has(4) && s.has(10);
+    let num;
+    if (d >= 0) num = ROMAN[d];
+    else if (k.minor) num = ({ 1: "♭II", 4: "♯III", 6: "♯IV", 9: "♯VI", 11: "♯VII" })[iv];
+    else num = ({ 1: "♭II", 3: "♭III", 6: "♯IV", 8: "♭VI", 10: "♭VII" })[iv];
+    if (bq === "min" || bq === "dim") num = num.toLowerCase();
+    if (bq === "dim") num += s.has(10) ? "ø" : "°";
+    if (bq === "aug") num += "+";
+    if (s.has(10) || s.has(11)) num += s.has(11) ? "maj7" : "7";
+    else if (bq === "dim" && s.has(9)) num += "7";
+    const expected = d >= 0 ? baseQuality(Q[S.tri[d]]) : null;
+    let fn;
+    let secondary = false;
+    if (next && dom7 && mod(next.rootPc - ch.rootPc) === 5 && iv !== 7) { fn = "tension"; secondary = true; }
+    else if (d < 0) fn = "surprise";
+    else if (bq === expected || bq === "sus" || (k.minor && iv === 7)) fn = fnOfDegree(k, iv);
+    else fn = "surprise";
+    return { num, fn, iv, inKey: d >= 0, secondary, bq };
+  }
+
+  // Guess the key from the chords typed
+  function detectKey(chs) {
+    if (!chs.length) return { tonic: 0, minor: false };
+    let best = null, bs = -Infinity;
+    for (let t = 0; t < 12; t++) for (const minor of [false, true]) {
+      const S = minor ? MINOR : MAJOR;
+      let sc = 0;
+      chs.forEach((c, i) => {
+        const iv = mod(c.rootPc - t), d = S.steps.indexOf(iv);
+        if (d < 0) sc -= 1;
+        else {
+          const bq = baseQuality(c.ivs), exp = baseQuality(Q[S.tri[d]]);
+          sc += bq === exp || bq === "sus" || (minor && iv === 7) ? 2 : 0.5;
+        }
+      });
+      const isTonic = c => c.rootPc === t && (baseQuality(c.ivs) === "min") === minor;
+      // a dominant 7th landing on the tonic is strong evidence for the key
+      chs.forEach((c, i) => {
+        const n = chs[i + 1], s7 = new Set(c.ivs.map(x => mod(x)));
+        if (n && s7.has(4) && s7.has(10) && mod(n.rootPc - c.rootPc) === 5 && isTonic(n)) sc += 2.5;
+      });
+      if (isTonic(chs[0])) sc += 1.5;
+      if (isTonic(chs[chs.length - 1])) sc += 1;
+      if (minor) sc -= 0.3;
+      if (sc > bs) { bs = sc; best = { tonic: t, minor }; }
+    }
+    return best;
+  }
+
+  // Likely next chords, by scale step from the tonic
+  const NEXT_MAJOR = { 0: [5, 7, 9, 2], 2: [7, 11, 5], 4: [9, 5], 5: [7, 0, 2], 7: [0, 9, 5], 9: [5, 2, 7], 11: [0, 4], 10: [0, 5], 8: [10, 7], 3: [8, 5] };
+  const NEXT_MINOR = { 0: [5, 8, 7, 10], 2: [7], 3: [8, 5, 10], 5: [7, 0, 10], 7: [0, 8], 8: [3, 10, 7], 10: [3, 0, 8], 1: [7] };
+  function suggestNext(last, k) {
+    if (!last) return [0];
+    const iv = mod(last.rootPc - k.tonic);
+    const table = k.minor ? NEXT_MINOR : NEXT_MAJOR;
+    if (!k.minor && iv === 5 && baseQuality(last.ivs) === "min") return [0];
+    return table[iv] || [0];
+  }
+
+  // =========================================================
+  // Chord finder
+  // =========================================================
+  function identify(midis) {
+    const sorted = [...new Set(midis)].sort((a, b) => a - b);
+    const pcs = [...new Set(sorted.map(m => mod(m)))];
+    if (pcs.length < 2) return [];
+    const bassPc = mod(sorted[0]);
+    const seen = new Set(), out = [];
+    for (const root of pcs) {
+      const rel = new Set(pcs.map(pc => mod(pc - root)));
+      CANON.forEach((c, ci) => {
+        const qs = new Set(c.ivs.map(x => mod(x)));
+        let score = null, omit5 = false;
+        const same = (a, b) => a.size === b.size && [...a].every(x => b.has(x));
+        if (same(qs, rel)) score = 0;
+        else if (qs.has(7) && qs.size >= 4 && !rel.has(7) && same(new Set([...qs].filter(x => x !== 7)), rel)) { score = 1.5; omit5 = true; }
+        if (score == null) return;
+        const rootName = FALLBACK[root];
+        const name = rootName + c.q + (root !== bassPc ? "/" + FALLBACK[bassPc] : "");
+        if (seen.has(name)) return;
+        seen.add(name);
+        score += (root !== bassPc ? 1.2 : 0) + ci * 0.02 + (c.q === "5" ? 0.5 : 0);
+        out.push({ name, score, root, q: c.q, omit5 });
+      });
+    }
+    return out.sort((a, b) => a.score - b.score);
+  }
+
+  const IVNAME = ["unison", "minor 2nd", "major 2nd", "minor 3rd", "major 3rd", "perfect 4th", "tritone", "perfect 5th", "minor 6th", "major 6th", "minor 7th", "major 7th"];
+
+  // =========================================================
+  // Surprise me: swaps for one chord
+  // =========================================================
+  function surprises(ch, k, next) {
+    const out = [];
+    const root = ch.rootPc, bq = baseQuality(ch.ivs);
+    const iv = mod(root - k.tonic);
+    const nm = pc => scaleNote(k, mod(pc - k.tonic));
+    const add = (tok, why) => { if (tok !== ch.tok && !out.some(o => o.tok === tok)) out.push({ tok, why }); };
+    if (bq === "maj") add(nm(root + 9) + "m", `Relative minor. It shares two notes with ${pretty(ch.rootName)}, so it feels related but moodier.`);
+    if (bq === "min") add(nm(root + 3), `Relative major. Same family, brighter light.`);
+    if (!k.minor && iv === 5 && bq === "maj") add(nm(root) + "m", `Borrowed from ${pretty(scaleNote(k, 0))} minor. One note drops a half step and the chord aches a little.`);
+    if (!k.minor && iv === 7) add(nm(k.tonic + 10), `♭VII in place of V. Softer than V, a little bit rock and roll.`);
+    if (next) add(nm(next.rootPc + 7) + "7", `This one points straight at the next chord. It's the V7 of ${pretty(next.rootName)}.`);
+    if (bq === "maj" && ch.ivs.includes(10)) add(nm(root + 6) + "7", `Tritone sub, a jazz trick. Same tension, and the bass slides down by a half step.`);
+    if (bq === "maj") { add(nm(root) + "maj7", `Same chord with a maj7 on top. Dreamier.`); add(nm(root) + "add9", `Same chord with a 9th tucked in. Sparkly.`); add(nm(root) + "sus4", `Suspended: the third lifts up a step and waits to come home.`); }
+    if (bq === "min") { add(nm(root) + "m7", `Same chord with a 7th. Softer and more open.`); add(nm(root) + "m9", `Minor 9th. Moody, like a late train.`); }
+    const S = k.minor ? MINOR : MAJOR;
+    const fam = { home: k.minor ? [0, 3] : [0, 4, 9], away: k.minor ? [5, 2, 8] : [2, 5], tension: [7, 11] };
+    const f = fnOfDegree(k, iv);
+    (fam[f] || []).filter(x => x !== iv).forEach(x => {
+      const d = S.steps.indexOf(x);
+      if (d >= 0) add(scaleNote(k, x) + S.tri[d], `Same job, different color. ${S.num[d]} does what ${S.num[S.steps.indexOf(iv)] || "this chord"} does, from another angle.`);
+    });
+    return out;
+  }
+
+  // =========================================================
+  // Library: progressions with a little poetry
+  // =========================================================
+  const LIBRARY = [
+    { name: "Four-Chord Wonder", prog: "C G Am F", mood: "bright", fn: "home",
+      poem: "Half the radio lives in these four rooms.",
+      theory: "I, V, vi, IV. Shuffle the order and you get a different song from the same four chords." },
+    { name: "Doo-wop Moon", prog: "C Am F G", mood: "sweet", fn: "home", pattern: "waltz", beats: 3,
+      poem: "A slow dance in a gym with paper stars taped to the ceiling.",
+      theory: "I, vi, IV, V. The 1950s ran on this one. It sways nicely in the Waltz pattern." },
+    { name: "Rainy Window", prog: "Am F C G", key: "0M", mood: "wistful", fn: "away",
+      poem: "The same four chords as the Wonder, started from the sad one.",
+      theory: "vi, IV, I, V. Starting on vi tips the whole loop toward minor." },
+    { name: "Walking Home", prog: "Dm7 G7 Cmaj7 Cmaj7", mood: "warm", fn: "home", level: "smooth",
+      poem: "Keys in the door, lamp on, shoes off.",
+      theory: "ii, V, I: the most common move in jazz. In Smooth, watch how little your hands move." },
+    { name: "Borrowed Sugar", prog: "C F Fm C", mood: "tender", fn: "surprise",
+      poem: "A happy chord that suddenly remembers something.",
+      theory: "F to Fm borrows the iv from C minor. One note, A falling to A♭, does all the aching." },
+    { name: "Road Trip, Windows Down", prog: "D C G D", key: "2M", mood: "open", fn: "surprise", pattern: "pop",
+      poem: "The map is upside down and nobody minds.",
+      theory: "C in D major is ♭VII, borrowed from the Mixolydian mode. It sounds open and a little rock." },
+    { name: "Canon in the Kitchen", prog: "D A Bm F#m G D G A", mood: "stately", fn: "home", pattern: "broken",
+      poem: "Pachelbel's bass line, still walking down the stairs more than three hundred years later.",
+      theory: "The bass steps down while the chords above it change. Try Broken to hear each line." },
+    { name: "Bossa Afternoon", prog: "Cmaj7 C6 Dm7 G7 Em7 A7 Dm7 G7", mood: "breezy", fn: "away", level: "jazzy", drum: "brushes",
+      poem: "Linen shirt, iced coffee, nowhere to be.",
+      theory: "A7 is a secondary dominant, the V of Dm, so it leans hard toward the ii chord." },
+    { name: "Andalusian Stairs", prog: "Am G F E", key: "9m", mood: "dramatic", fn: "tension", pattern: "broken",
+      poem: "Four steps down to the sea.",
+      theory: "i, ♭VII, ♭VI, V in A minor. The E major at the bottom borrows G♯ from harmonic minor." },
+    { name: "Heartache Turn", prog: "G B C Cm", key: "7M", mood: "bittersweet", fn: "surprise",
+      poem: "Something good, something strange, and then it breaks a little.",
+      theory: "B major is a chromatic surprise in G. C to Cm is the borrowed iv again." },
+    { name: "Dream Pop Float", prog: "Fmaj7 Em7 Dm7 Cmaj7", mood: "floaty", fn: "away", level: "open", drum: "lofi",
+      poem: "Drifting down four stairs and never quite landing.",
+      theory: "Each chord steps down one note of the scale. The maj7s keep the edges soft." },
+    { name: "Gospel Lift", prog: "C C7 F Fm C/G G7 C:4", mood: "joyful", fn: "tension", pattern: "ballad",
+      poem: "The whole choir stands up at once.",
+      theory: "C7 points at F, Fm adds a bit of ache, and C/G sets up the last V to I." },
+    { name: "Lullaby Sway", prog: "C Em Am F G C", mood: "gentle", fn: "home", pattern: "waltz", beats: 3, bpm: 76,
+      poem: "Rocking chair, night light, one more verse.",
+      theory: "Three beats to a chord. Em and Am are I's softer cousins, so it never gets loud." },
+    { name: "Minor Mystery", prog: "Am Dm E7 Am", key: "9m", mood: "shadowy", fn: "tension", pattern: "broken",
+      poem: "A candle, a locked drawer, a stair that creaks.",
+      theory: "i, iv, V7, i. The E7 borrows G♯, which makes the pull home to Am much stronger." },
+    { name: "Sunday Porch", prog: "G Gsus4 G C/G G", mood: "easy", fn: "home", level: "starter",
+      poem: "Lemonade sweating on the railing.",
+      theory: "Sus4 lifts one note and lets it fall back. Great first progression: your hand barely moves." },
+    { name: "Neon Night Drive", prog: "Em C G D", key: "7M", mood: "anthemic", fn: "away", pattern: "pop", drum: "lofi",
+      poem: "Streetlights counting you down the highway.",
+      theory: "vi, IV, I, V in G. The same shape as Rainy Window, played with the windows down." }
+  ];
+
+  const FN_INFO = {
+    home: { label: "Home", color: "var(--home)", say: "resting, settled" },
+    away: { label: "Away", color: "var(--away)", say: "drifting, opening up" },
+    tension: { label: "Tension", color: "var(--tension)", say: "leaning, wanting to move" },
+    surprise: { label: "Surprise", color: "var(--surprise)", say: "borrowed, a little bit sideways" }
+  };
+
+  // What each chord does in a key, in the pixie's words
+  const ROLE_TIPS = {
+    major: {
+      0: "Home base. Songs love to end here, and your ear relaxes when it lands.",
+      2: "The ii chord is a gentle step away from home. It loves to walk to V.",
+      4: "iii is a shy chord. It shares two notes with I and usually slides to vi.",
+      5: "IV feels like opening a window. From here, go home to I or lean into V.",
+      7: "V is the pull. Your ear wants the next chord to be I.",
+      9: "vi is the relative minor: nearly the same notes as I, more wistful.",
+      11: "vii° is all tension. Think of it as V7 with the root taken off."
+    },
+    minor: {
+      0: "Home, in minor. It settles, but with the lights down low.",
+      2: "ii° is small and tense. It loves to step to V.",
+      3: "III is the relative major, the sunny room in a minor house.",
+      5: "iv is the sigh. It pulls back from home, then wants to go to V.",
+      7: "V in a minor key borrows one raised note so it can pull home hard.",
+      8: "VI is warm and wide. It often leads to III or VII.",
+      10: "VII is bold and bright, a step below home. It likes to climb back up to i."
+    }
+  };
+
+  function roleTip(ch, a, k) {
+    if (a.secondary) return `${pretty(ch.rootName)}${ch.qual} isn't from ${keyName(k)}. It's a secondary dominant: it points at the next chord like an arrow.`;
+    if (!a.inKey || a.fn === "surprise") {
+      if (!k.minor && a.iv === 5 && a.bq === "min") return `A minor iv in a major key, borrowed from ${pretty(scaleNote(k, 0))} minor. It's a sudden ache, then usually home.`;
+      if (!k.minor && a.iv === 10) return `♭VII is borrowed from the minor side. It sounds bold and a little bit rock.`;
+      if (!k.minor && a.iv === 8) return `♭VI is a borrowed chord, dark and cinematic. It often leads to ♭VII and then home.`;
+      return `${pretty(ch.rootName)}${ch.qual} is outside ${keyName(k)}, a borrowed color. Surprise chords are how songs get a personality.`;
+    }
+    return ROLE_TIPS[k.minor ? "minor" : "major"][a.iv] || "";
+  }
+
+  function fingerTip(v, ch) {
+    const lf = fingering(v.lh, "lh"), rf = fingering(v.rh, "rh");
+    const part = (notes, fs) => notes.map((m, i) => `${FINGER[fs[i]]} on ${noteName(ch, m)}`).join(", ");
+    const span = notes => notes.length ? notes[notes.length - 1] - notes[0] : 0;
+    let tip = `Right hand: ${part(v.rh, rf)}.`;
+    if (v.lh.length) tip = `Left hand: ${part(v.lh, lf)}. ` + tip;
+    if (span(v.rh) > 12 || span(v.lh) > 12) tip += " That's a big stretch, so roll the notes if you need to.";
+    return tip;
+  }
+
+  const BUILD_TIPS = {
+    maj: "Major chords stack a major 3rd, then a minor 3rd. Bright and settled.",
+    min: "Minor chords flip it: a minor 3rd first, then a major 3rd. Instant mood.",
+    dim: "Diminished chords stack two minor 3rds. Small, tight and nervous.",
+    aug: "Augmented chords stack two major 3rds. Dreamy and a little unhinged.",
+    sus: "Sus chords skip the 3rd and use a 2nd or 4th instead. They hover, neither happy nor sad."
+  };
+
+  // =========================================================
+  // Drawing: keyboard, hands, pixie, glyphs
+  // =========================================================
   const BLACK = new Set([1, 3, 6, 8, 10]);
   const isBlack = m => BLACK.has(mod(m));
-  function keyboard(v, lo, hi, stay, label) {
+
+  const GLYPH = {
+    home: '<path d="M2.5 8.2 8 3.2l5.5 5V13.5h-11z"/><rect x="6.6" y="9.4" width="2.8" height="4.1" rx=".6" class="g-in"/>',
+    away: '<path d="M4.4 12.6h7.4a2.7 2.7 0 0 0-.4-5.4 3.6 3.6 0 0 0-6.9.7 2.35 2.35 0 0 0-.1 4.7z"/>',
+    tension: '<path d="M9.4 1.4 3.2 9.2h4.2l-1 5.4 6.4-8.2H8.6z"/>',
+    surprise: '<path d="M9.5 2.2l1.1 3.6 3.6 1.1-3.6 1.1-1.1 3.6-1.1-3.6-3.6-1.1 3.6-1.1z"/><path d="M5.6 10.4 2 14" class="g-line"/>'
+  };
+  const glyph = (fn, cls = "glyph") => `<svg class="${cls} g-${fn}" viewBox="0 0 16 16" aria-hidden="true">${GLYPH[fn]}</svg>`;
+
+  const HAND_STYLES = {
+    pixie: { name: "Pixie", fill: "#d9c7ff" },
+    glove: { name: "Glove", fill: "#ffffff" },
+    paw: { name: "Paw", fill: "#ffc08a" },
+    robot: { name: "Robot", fill: "#c9d3e0" }
+  };
+  const INK = "#2b1e4a";
+
+  function pixieSVG(x, y, s, bob) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="pixie${bob ? " bob" : ""}">
+      <ellipse cx="-6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(-28 -6.2 -15)" fill="#cff5ff" fill-opacity=".9" stroke="${INK}" stroke-width=".6"/>
+      <ellipse cx="6.2" cy="-15" rx="5.6" ry="8.4" transform="rotate(28 6.2 -15)" fill="#cff5ff" fill-opacity=".9" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-1.8-2 -2.6 3M1.8-2 2.8 3" stroke="${INK}" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="M-5.2-1.6h10.4L2.6-12h-5.2z" fill="#ff7fb5" stroke="${INK}" stroke-width=".7" stroke-linejoin="round"/>
+      <path d="M-5.3-17.6-8.8-19.8-5.2-15.6zM5.3-17.6 8.8-19.8 5.2-15.6z" fill="#ffe3d3" stroke="${INK}" stroke-width=".6" stroke-linejoin="round"/>
+      <circle cx="0" cy="-17" r="5.6" fill="#ffe3d3" stroke="${INK}" stroke-width=".7"/>
+      <circle cx="0" cy="-24.6" r="2.3" fill="#3ed6b5" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-6-16.6Q-6.2-23.6 0-23.6T6-16.6Q3.4-20.2 0-19.6T-6-16.6z" fill="#3ed6b5" stroke="${INK}" stroke-width=".6"/>
+      <circle cx="-2" cy="-16.8" r=".8" fill="${INK}"/><circle cx="2" cy="-16.8" r=".8" fill="${INK}"/>
+      <circle cx="-3.3" cy="-15" r="1.1" fill="#ff9ebb" opacity=".85"/><circle cx="3.3" cy="-15" r="1.1" fill="#ff9ebb" opacity=".85"/>
+      <path d="M-1.3-14.9Q0-13.8 1.3-14.9" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
+      <path d="M4.4-8 9.2-15.2" stroke="${INK}" stroke-width=".8" stroke-linecap="round"/>
+      <path d="M9.8-18.6l.9 1.9 2.1.3-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.4 2.1-.3z" fill="#ffd34d" stroke="${INK}" stroke-width=".45" stroke-linejoin="round"/>
+    </g></g>`;
+  }
+  const pixieBadge = () => `<svg class="pixie-badge" viewBox="-12 -29 24 33" aria-hidden="true">${pixieSVG(0, 0, 1, false)}</svg>`;
+
+  // One hand: fingers reach from a palm above the keyboard down to the keys
+  function handSVG(notes, hand, style, T, xOf, yOf, stay) {
+    if (!notes.length) return "";
+    const S = HAND_STYLES[style] || HAND_STYLES.pixie;
+    const fingers = fingering(notes, hand);
+    const dir = hand === "rh" ? 1 : -1;
+    const ks = 6.4;
+    const tips = notes.map((m, i) => ({ m, f: fingers[i], x: xOf(m), y: yOf(m) }));
+    const cx = avg(tips.map(t => t.x - dir * (t.f - 3) * ks));
+    const py = T - 15, prx = 18, pry = 9.5;
+    const ky = T - 7;
+    const byF = new Map(tips.map(t => [t.f, t]));
+    const kn = f => {
+      let x = cx + dir * (f - 3) * ks;
+      if (f === 1) x += dir * -3;
+      const t = byF.get(f);
+      if (t) x = x + (t.x - x) * 0.45;
+      return { x, y: f === 1 ? ky - 3 : ky };
+    };
+    const outline = style === "glove" ? 8.4 : 7.6;
+    const inner = style === "glove" ? 5.8 : 5.6;
+    let back = "", front = "", badges = "";
+    // arm
+    back += `<rect x="${cx - 10}" y="-6" width="20" height="${py + 4}" rx="6" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>`;
+    if (style === "glove") back += `<rect x="${cx - 12.5}" y="${py - 16}" width="25" height="6" rx="3" fill="#fff" stroke="${INK}" stroke-width="1"/>`;
+    if (style === "robot") back += `<path d="M${cx - 10} ${py - 16}h20M${cx - 10} ${py - 21}h20" stroke="${INK}" stroke-width=".6" opacity=".5"/>`;
+    for (let f = 1; f <= 5; f++) {
+      const k = kn(f), t = byF.get(f);
+      const end = t ? { x: t.x, y: t.y } : { x: k.x + dir * (f - 3) * 0.6, y: T + 2 };
+      back += `<line x1="${k.x}" y1="${k.y}" x2="${end.x}" y2="${end.y}" stroke="${INK}" stroke-width="${outline}" stroke-linecap="round"/>`;
+      front += `<line x1="${k.x}" y1="${k.y}" x2="${end.x}" y2="${end.y}" stroke="${S.fill}" stroke-width="${inner}" stroke-linecap="round"/>`;
+      if (style === "robot") {
+        const mx = (k.x + end.x) / 2, my = (k.y + end.y) / 2;
+        front += `<circle cx="${mx}" cy="${my}" r="1.3" fill="#8d9bb0" stroke="${INK}" stroke-width=".4"/>`;
+      }
+      if (t) {
+        const col = hand === "rh" ? "var(--rh)" : "var(--lh)";
+        if (stay.has(t.m)) badges += `<circle cx="${t.x}" cy="${t.y}" r="5.7" fill="none" stroke="var(--stay)" stroke-width="1.6"/>`;
+        if (style === "robot") badges += `<rect x="${t.x - 4}" y="${t.y - 4}" width="8" height="8" rx="1.4" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
+        else if (style === "paw") badges += `<ellipse cx="${t.x}" cy="${t.y}" rx="4.4" ry="4" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
+        else badges += `<circle cx="${t.x}" cy="${t.y}" r="4.1" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
+        badges += `<text class="fnum" x="${t.x}" y="${t.y + 1.8}">${t.f}</text>`;
+      }
+    }
+    // palm
+    let palm;
+    if (style === "robot") palm = `<rect x="${cx - prx}" y="${py - pry}" width="${prx * 2}" height="${pry * 2}" rx="4" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>
+      <circle cx="${cx - prx + 3.5}" cy="${py - pry + 3.5}" r="1.2" fill="#8d9bb0"/><circle cx="${cx + prx - 3.5}" cy="${py - pry + 3.5}" r="1.2" fill="#8d9bb0"/>
+      <rect x="${cx - 6}" y="${py - 3}" width="12" height="5" rx="1.5" fill="#9ff0de" stroke="${INK}" stroke-width=".6"/>`;
+    else palm = `<ellipse cx="${cx}" cy="${py}" rx="${prx}" ry="${pry}" fill="${S.fill}" stroke="${INK}" stroke-width="1"/>`;
+    if (style === "paw") palm += `<path d="M${cx} ${py + 6}c-5-3.2-7.4-5.4-7.4-8 0-2 1.6-3.2 3.3-3.2 1.7 0 3.2 1 4.1 2.3.9-1.3 2.4-2.3 4.1-2.3 1.7 0 3.3 1.2 3.3 3.2 0 2.6-2.4 4.8-7.4 8z" fill="#ff9ebb" stroke="${INK}" stroke-width=".7"/>`;
+    if (style === "glove") palm += `<path d="M${cx - 6} ${py - 6}v8M${cx} ${py - 7}v9M${cx + 6} ${py - 6}v8" stroke="${INK}" stroke-width=".9" stroke-linecap="round"/>`;
+    if (style === "pixie") palm += `<path d="M${cx - 9} ${py - 3}l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="#fff"/><path d="M${cx + 10} ${py + 2}l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z" fill="#fff"/>`;
+    return { svg: back + front + palm + badges, palm: { x: cx, y: py, rx: prx, ry: pry } };
+  }
+
+  // opts: stay, label, hands (style name), pixie, bob, picked (Set, finder), interactive
+  function keyboard(v, lo, hi, o = {}) {
+    const stay = o.stay || new Set();
     const lh = new Set(v.lh), rh = new Set(v.rh);
-    const W = 10, H = label ? 46 : 36, BW = 6, BH = label ? 28 : 22;
+    const picked = o.picked;
+    const labelled = !!o.label;
+    const W = 10, H = labelled ? 46 : 36, BW = 6, BH = labelled ? 28 : 22;
+    const T = o.hands ? 38 : 0;
     const whites = [];
     for (let m = lo; m <= hi; m++) if (!isBlack(m)) whites.push(m);
     const pos = new Map(whites.map((m, i) => [m, i]));
-    const cls = m => (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
-    let s = `<svg viewBox="0 0 ${whites.length * W + 1} ${H + (label ? 9 : 1)}" aria-hidden="true">`;
+    const bx = m => (pos.get(m - 1) + 1) * W + .5 - BW / 2;
+    const xOf = m => isBlack(m) ? bx(m) + BW / 2 : pos.get(m) * W + .5 + W / 2;
+    const yOf = m => isBlack(m) ? T + BH - 7 : T + H - 15;
+    const cls = m => picked ? (picked.has(m) ? (m === Math.min(...picked) ? " lh" : " rh") : "") : (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
+    const hit = m => o.interactive ? ` data-m="${m}"` : "";
+    const width = whites.length * W + 1;
+    let s = `<svg viewBox="0 0 ${width} ${T + H + (labelled ? 9 : 1)}" aria-hidden="true">`;
     whites.forEach((m, i) => {
       const cx = i * W + .5 + W / 2;
-      s += `<rect class="kw${cls(m)}" x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.8"/>`;
-      if (stay.has(m)) s += `<circle class="stay" cx="${cx}" cy="${label ? H - 14 : H - 6}" r="${label ? 2.4 : 2.8}"/>`;
-      if (label && cls(m)) s += `<text class="kl" x="${cx}" y="${H - 4}">${label(m)}</text>`;
-      if (label && mod(m) === 0) s += `<text class="oct" x="${cx}" y="${H + 7.5}">C${m / 12 - 1}</text>`;
+      s += `<rect class="kw${cls(m)}"${hit(m)} x="${i * W + .5}" y="${T + .5}" width="${W}" height="${H}" rx="1.8"/>`;
+      if (!o.hands && stay.has(m)) s += `<circle class="stay" cx="${cx}" cy="${labelled ? T + H - 14 : T + H - 6}" r="${labelled ? 2.4 : 2.8}"/>`;
+      if (labelled && cls(m)) s += `<text class="kl" x="${cx}" y="${T + H - 4}">${o.label(m)}</text>`;
+      if (labelled && mod(m) === 0) s += `<text class="oct" x="${cx}" y="${T + H + 7.5}">C${m / 12 - 1}</text>`;
     });
     for (let m = lo; m <= hi; m++) {
       if (!isBlack(m) || !pos.has(m - 1)) continue;
-      const x = (pos.get(m - 1) + 1) * W + .5 - BW / 2;
-      s += `<rect class="kb${cls(m)}" x="${x}" y=".5" width="${BW}" height="${BH}" rx="1.2"/>`;
-      if (stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${label ? BH - 11 : BH - 5}" r="${label ? 2.1 : 2.4}"/>`;
-      if (label && cls(m)) s += `<text class="kl onb" x="${x + BW / 2}" y="${BH - 3.5}">${label(m)}</text>`;
+      const x = bx(m);
+      s += `<rect class="kb${cls(m)}"${hit(m)} x="${x}" y="${T + .5}" width="${BW}" height="${BH}" rx="1.2"/>`;
+      if (!o.hands && stay.has(m)) s += `<circle class="stay" cx="${x + BW / 2}" cy="${labelled ? T + BH - 11 : T + BH - 5}" r="${labelled ? 2.1 : 2.4}"/>`;
+      if (labelled && cls(m) && !o.hands) s += `<text class="kl onb" x="${x + BW / 2}" y="${T + BH - 3.5}">${o.label(m)}</text>`;
+    }
+    if (o.hands) {
+      const L = handSVG(v.lh, "lh", o.hands, T, xOf, yOf, stay);
+      const R = handSVG(v.rh, "rh", o.hands, T, xOf, yOf, stay);
+      s += `<g class="hands">${L ? L.svg : ""}${R ? R.svg : ""}</g>`;
+      if (o.pixie && R) {
+        let px = R.palm.x + 7;
+        px = Math.max(12, Math.min(width - 12, px));
+        s += pixieSVG(px, R.palm.y + 2, .78, o.bob);
+      }
     }
     return s + "</svg>";
   }
-
-  // ---------- state ----------
-  const $ = id => document.getElementById(id);
-  const input = $("prog"), stripEl = $("strip"), stageEl = $("stage");
-  const store = {
-    get(k) { try { return localStorage.getItem("pixie:" + k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem("pixie:" + k, v); } catch {} }
-  };
-  const overrides = new Map();
-  let items = [];   // every typed token, valid or not
-  let current = []; // the valid chords with their chosen shape
-  let range = [48, 72];
-  let sel = 0;      // index into current
-  let mode = "smooth";
-  let loopOn = true;
-
-  const MODE_NOTES = {
-    smooth: "Smooth: each chord takes the shape closest to the one before, so your hands barely travel.",
-    simple: "Simple: every chord in root position. Easy to read, but your hand hops around.",
-    open: "Open: left hand spreads out, right hand floats up high. Big and airy.",
-    jazzy: "Jazzy: root and 7th in the left hand, color up top. Plain triads get a 9th."
-  };
-
-  const PRESETS = [
-    ["Pop four", "C G Am F"],
-    ["Doo-wop", "C Am F G"],
-    ["Sad hours", "Am F C G"],
-    ["ii V I", "Dm7 G7 Cmaj7"],
-    ["Dreamy", "Fmaj9 Em7 Am7 Dm9 G13"],
-    ["Heartache", "G B C Cm"],
-    ["Canon", "D A Bm F#m G D G A"],
-    ["Bossa", "Cmaj7 C6 Dm7 G7 Em7 A7 Dm7 G7"]
-  ];
-
-  const esc = s => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const tokenize = s => s.split(/[\s,|]+/).filter(Boolean).slice(0, 32);
-
-  function symbolHTML(ch) {
-    const q = ch.qual.replace(/b(?=\d)/g, "♭").replace(/#/g, "♯");
-    return `${esc(pretty(ch.rootName))}${q ? `<span class="q">${esc(q)}</span>` : ""}${ch.slash ? `<span class="sl">/${esc(pretty(ch.bassName))}</span>` : ""}`;
-  }
-
-  // Work out every chord's shape, then draw the strip and the stage
-  function render() {
-    items = tokenize(input.value).map((tok, i) => ({ tok, i, key: i + ":" + tok, ch: parseChord(tok) }));
-    const valid = items.filter(x => x.ch);
-    const opts = valid.map(x => options(x.ch));
-    const ovr = valid.map(x => overrides.get(x.key));
-    const picked = valid.length ? choose(opts, mode, ovr) : [];
-
-    let prev = null;
-    current = valid.map((x, j) => {
-      const v = picked[j].v, notes = allNotes(v);
-      const stay = new Set(prev ? notes.filter(n => prev.includes(n)) : []);
-      let moves = "Starting shape";
-      if (prev) {
-        const moved = notes.length - stay.size;
-        const steps = Math.round(travel(prev, notes));
-        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"} · ${steps} half-step${steps === 1 ? "" : "s"} apart`;
-      }
-      prev = notes;
-      return { ...x, v, opt: picked[j].opt, len: opts[j].length, j, stay, moves };
-    });
-    // the first chord's gold dots compare against the last one when looping
-    if (current.length > 1 && loopOn) {
-      const last = allNotes(current[current.length - 1].v);
-      current[0].stay = new Set(allNotes(current[0].v).filter(n => last.includes(n)));
-    }
-
-    let lo = Infinity, hi = -Infinity;
-    current.forEach(c => allNotes(c.v).forEach(n => { lo = Math.min(lo, n); hi = Math.max(hi, n); }));
-    if (!current.length) { lo = 48; hi = 72; }
-    lo -= 1; hi += 1;
-    while (isBlack(lo)) lo--;
-    while (isBlack(hi)) hi++;
-    while (hi - lo < 24) { hi++; if (hi - lo < 24) lo--; }
-    while (isBlack(lo)) lo--;
-    while (isBlack(hi)) hi++;
-    range = [lo, hi];
-
-    if (sel >= current.length) sel = Math.max(0, current.length - 1);
-    renderStrip();
-    renderStage();
-  }
-
-  function renderStrip() {
-    const byIndex = new Map(current.map(c => [c.i, c]));
-    stripEl.innerHTML = items.map((it, n) => {
-      const c = byIndex.get(it.i);
-      if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.tok)}</span><span class="t-num">${n + 1}</span></div><span class="t-shape">Not a chord I know</span></div>`;
-      const ovr = overrides.has(it.key);
-      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" aria-label="${esc(it.tok)}, ${c.v.name}">
-        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${n + 1}</span></span>
-        ${keyboard(c.v, range[0], range[1], c.stay)}
-        <span class="t-shape${ovr ? " ovr" : ""}">${c.v.name}</span>
-      </button>`;
-    }).join("");
-  }
-
-  function renderStage() {
-    stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
-    const tile = stripEl.querySelector(`.tile[data-j="${sel}"]`);
-    if (tile) {
-      tile.classList.add("sel");
-      const r = tile.getBoundingClientRect(), s = stripEl.getBoundingClientRect();
-      if (r.left < s.left || r.right > s.right) stripEl.scrollLeft += r.left - s.left - 8;
-    }
-    const c = current[sel];
-    if (!c) {
-      stageEl.innerHTML = `<p class="empty">Type some chords up top, like C Am F G.</p>`;
-      return;
-    }
-    const spark = new Set(c.v.spark);
-    const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
-    const blurb = c.v.blurb || `${noteName(c.ch, c.v.rh[0])} on the bottom`;
-    const ovr = overrides.has(c.key);
-    stageEl.innerHTML = `
-      <div class="stage-head">
-        <div class="big-sym">${symbolHTML(c.ch)}</div>
-        <div class="shape">
-          <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
-          <div class="shape-name"><b>${c.v.name}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
-          <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
-        </div>
-        <div class="moves">${c.moves}</div>
-      </div>
-      <div class="big-kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], c.stay, m => noteName(c.ch, m))}</div>
-      <div class="stage-foot">
-        <div class="notes"><span class="hand">Left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}<span class="gap"></span><span class="hand">Right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}</div>
-        <div class="legend" aria-hidden="true">
-          <span><i class="sw lh"></i>Left</span>
-          <span><i class="sw rh"></i>Right</span>
-          <span><i class="sw stay"></i>Stays from last chord</span>
-          <span><i class="sw spark">✦</i>Color note</span>
-        </div>
-      </div>`;
-  }
-
   // ---------- audio ----------
   let ac = null, master = null, silentEl = null;
 
@@ -773,16 +1188,343 @@
     const end = t + dur + 1;
     o1.start(t); o2.start(t); o1.stop(end); o2.stop(end);
   }
-  function strum(v, t, dur) {
-    v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2));
-    v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15));
+
+  // ---------- drums (all synthesized) ----------
+  let noiseBuf = null;
+  function noise() {
+    if (!noiseBuf) {
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const src = ac.createBufferSource();
+    src.buffer = noiseBuf;
+    return src;
+  }
+  function env(t, peak, attack, decay) {
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
+    g.connect(master);
+    return g;
+  }
+  function hitNoise(t, { type = "highpass", freq = 7000, q = 0.7, peak = 0.1, attack = 0.002, decay = 0.05 }) {
+    const n = noise(), f = ac.createBiquadFilter();
+    f.type = type; f.frequency.value = freq; f.Q.value = q;
+    n.connect(f); f.connect(env(t, peak, attack, decay));
+    n.start(t, Math.random() * 0.5); n.stop(t + attack + decay + 0.05);
+  }
+  function hitTone(t, f0, f1, peak, decay, type = "sine") {
+    const o = ac.createOscillator();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(f1, t + decay);
+    o.connect(env(t, peak, 0.003, decay));
+    o.start(t); o.stop(t + decay + 0.05);
+  }
+  const DRUMS = {
+    off: { name: "No drums" },
+    click: { name: "Soft click" },
+    brushes: { name: "Brushes" },
+    lofi: { name: "Lo-fi beat" },
+    shaker: { name: "Shaker" }
+  };
+  // one beat of drums; pos = beat within the bar, meter = beats per bar
+  function drumBeat(kind, t, B, pos, meter) {
+    const accent = pos === 0;
+    if (kind === "click") {
+      hitTone(t, accent ? 1900 : 1400, accent ? 1700 : 1250, accent ? 0.12 : 0.07, 0.035);
+    } else if (kind === "brushes") {
+      if (accent) hitTone(t, 90, 50, 0.16, 0.22);
+      const back = meter === 3 ? pos > 0 : pos % 2 === 1;
+      hitNoise(t, { type: "bandpass", freq: 3200, q: 0.8, peak: back ? 0.07 : 0.035, attack: back ? 0.04 : 0.01, decay: back ? 0.22 : 0.08 });
+      hitNoise(t + B / 2, { type: "bandpass", freq: 4200, q: 0.9, peak: 0.02, attack: 0.01, decay: 0.06 });
+    } else if (kind === "lofi") {
+      const kickBeat = meter === 3 ? pos === 0 : pos % 2 === 0;
+      if (kickBeat) hitTone(t, 120, 42, 0.32, 0.26);
+      if (meter === 3 ? pos > 0 : pos % 2 === 1) {
+        hitNoise(t, { type: "bandpass", freq: 1700, q: 0.6, peak: 0.13, decay: 0.16 });
+        hitTone(t, 190, 150, 0.05, 0.1, "triangle");
+      }
+      hitNoise(t, { freq: 7500, peak: 0.035, decay: 0.035 });
+      hitNoise(t + B / 2, { freq: 7500, peak: 0.022, decay: 0.03 });
+    } else if (kind === "shaker") {
+      [0, 0.25, 0.5, 0.75].forEach((f, i) => hitNoise(t + B * f, { freq: 5200, peak: i === 0 ? 0.06 : i === 2 ? 0.045 : 0.025, attack: 0.012, decay: 0.05 }));
+    }
   }
 
+  // ---------- playing patterns ----------
+  const PATTERNS = {
+    block: { name: "Block chords" },
+    broken: { name: "Broken (arpeggio)" },
+    ballad: { name: "Ballad pulse" },
+    pop: { name: "Pop eighths" },
+    waltz: { name: "Waltz (1-2-3)" }
+  };
+  // Schedule one chord that lasts `beats` beats of length B, starting at t
+  function playChord(v, t, beats, B, pattern) {
+    const hasLH = v.lh.length > 0;
+    const low = hasLH ? v.lh : [v.rh[0]];
+    const up = hasLH ? v.rh : (v.rh.length > 1 ? v.rh.slice(1) : v.rh);
+    const total = beats * B;
+    const block = (notes, at, dur, vel, spread = 0.02) => notes.forEach((m, i) => tone(m, at + i * spread, dur, vel));
+    if (pattern === "broken") {
+      block(low, t, total, 0.19, 0.012);
+      const seq = up.length > 2 ? up.concat(up.slice(1, -1).reverse()) : up;
+      for (let e = 0; e < beats * 2; e++) tone(seq[e % seq.length], t + e * B / 2, B * 0.9, e % 2 ? 0.11 : 0.14);
+    } else if (pattern === "ballad") {
+      block(low, t, total, 0.19, 0.012);
+      for (let b = 0; b < beats; b++) block(up, t + b * B + 0.01, B * 0.95, b === 0 ? 0.14 : 0.09, 0.012);
+    } else if (pattern === "pop") {
+      for (let b = 0; b < beats; b += 2) block(low, t + b * B, Math.min(2, beats - b) * B, 0.19, 0.01);
+      for (let e = 0; e < beats * 2; e++) block(up, t + e * B / 2 + 0.005, B * 0.35, e % 2 ? 0.075 : 0.12, 0.006);
+    } else if (pattern === "waltz") {
+      for (let b = 0; b < beats; b++) {
+        if (b % 3 === 0) block(low, t + b * B, B * 2.8, 0.19, 0.01);
+        else block(up, t + b * B, B * 0.6, 0.1, 0.008);
+      }
+    } else {
+      block(v.lh, t, total, 0.2, 0.012);
+      block(v.rh, t + 0.03, total, 0.15, 0.022);
+    }
+  }
+  const strum = (v, t, dur) => { v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2)); v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15)); };
 
-  // ---------- playback ----------
-  // Chords are scheduled one at a time, a moment ahead, so edits made
-  // while it plays (shape, style, tempo, key) land on the next chord.
-  let playing = false, step = 0, nextT = 0;
+  // =========================================================
+  // App state
+  // =========================================================
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const tokenize = s => s.split(/[\s,|]+/).filter(Boolean).slice(0, 48);
+
+  let storageOK = true;
+  const store = {
+    get(k) { try { return localStorage.getItem("pixie:" + k); } catch { storageOK = false; return null; } },
+    set(k, v) { try { localStorage.setItem("pixie:" + k, v); } catch { storageOK = false; } }
+  };
+  try { localStorage.setItem("pixie:probe", "1"); localStorage.removeItem("pixie:probe"); } catch { storageOK = false; }
+  const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
+
+  const prefs = Object.assign({ hands: true, handStyle: "pixie", tips: true, sevenths: false }, readJSON("prefs", {}));
+  const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
+
+  const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, pattern: "block", drum: "off", bpm: 92, beats: 4, key: "auto" };
+  const SECTION_NAMES = ["Verse", "Chorus", "Bridge", "Pre-chorus", "Intro", "Outro", "Solo", "Hook"];
+  const uid = () => "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function newSong(title, prog, settings = {}) {
+    return { id: uid(), title, sections: [{ name: "Verse", prog }], settings: { ...DEFAULT_SETTINGS, ...settings }, updated: Date.now() };
+  }
+
+  let songs = readJSON("songs", []);
+  if (!Array.isArray(songs) || !songs.length) {
+    songs = [newSong("My first song", store.get("prog") || "C Am F G")];
+  }
+  songs.forEach(s => { s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) }; if (!s.sections?.length) s.sections = [{ name: "Verse", prog: "" }]; });
+  let song = songs.find(s => s.id === store.get("current")) || songs[0];
+  let secIdx = 0;
+  const S = () => song.settings;
+
+  let saveTimer = null;
+  function saveSongs() {
+    song.updated = Date.now();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { store.set("songs", JSON.stringify(songs)); store.set("current", song.id); }, 350);
+  }
+
+  let loopOn = store.get("loop") !== "0";
+  const overrides = new Map();
+  let items = [], current = [], range = [48, 72], K = { tonic: 0, minor: false };
+  let sel = 0, tipIdx = 0, tipOverride = null, lastSurprise = null;
+  const undoStack = [];
+
+  function parseKeySetting(v) { const m = /^(\d+)([Mm])$/.exec(v || ""); return m ? { tonic: +m[1], minor: m[2] === "m" } : null; }
+
+  // Work out shapes for one section's chords
+  function compute(prog, settings, sIdx) {
+    const its = tokenize(prog).map((raw, i) => {
+      const { chord, beats } = splitBeats(raw);
+      return { raw, tok: chord, beats, i, key: sIdx + "|" + i + ":" + raw, ch: parseChord(chord) };
+    });
+    const valid = its.filter(x => x.ch);
+    const key = parseKeySetting(settings.key) || detectKey(valid.map(x => x.ch));
+    const cfg = { trim: settings.level === "starter", oneHand: settings.oneHand };
+    const opts = valid.map(x => options(x.ch, cfg));
+    const ovr = valid.map(x => overrides.get(x.key));
+    const picked = valid.length ? choose(opts, settings.level, ovr) : [];
+    let prev = null;
+    const cur = valid.map((x, j) => {
+      const v = picked[j].v, notes = allNotes(v);
+      const stay = new Set(prev ? notes.filter(n => prev.includes(n)) : []);
+      const nextCh = valid[j + 1]?.ch || (loopOn && valid.length > 1 ? valid[0].ch : null);
+      let moves = "Starting shape";
+      if (prev) {
+        const moved = notes.length - stay.size;
+        moves = `<b>${stay.size}</b> stay · <b>${moved}</b> ${moved === 1 ? "moves" : "move"}`;
+      }
+      prev = notes;
+      return { ...x, v, opt: picked[j].opt, len: opts[j].length, j, stay, moves, a: analyze(x.ch, key, nextCh), beats: x.beats || settings.beats };
+    });
+    if (cur.length > 1 && loopOn) {
+      const last = allNotes(cur[cur.length - 1].v);
+      cur[0].stay = new Set(allNotes(cur[0].v).filter(n => last.includes(n)));
+    }
+    return { items: its, current: cur, key };
+  }
+
+  function computeRange(list) {
+    let lo = Infinity, hi = -Infinity;
+    list.forEach(c => allNotes(c.v).forEach(n => { lo = Math.min(lo, n); hi = Math.max(hi, n); }));
+    if (!list.length) { lo = 48; hi = 72; }
+    lo -= 1; hi += 1;
+    while (isBlack(lo)) lo--;
+    while (isBlack(hi)) hi++;
+    while (hi - lo < 24) { hi++; if (hi - lo < 24) lo--; }
+    while (isBlack(lo)) lo--;
+    while (isBlack(hi)) hi++;
+    return [lo, hi];
+  }
+
+  function symbolHTML(ch) {
+    const q = ch.qual.replace(/b(?=\d)/g, "♭").replace(/#/g, "♯");
+    return `${esc(pretty(ch.rootName))}${q ? `<span class="q">${esc(q)}</span>` : ""}${ch.slash ? `<span class="sl">/${esc(pretty(ch.bassName))}</span>` : ""}`;
+  }
+  const fnVar = fn => `--fn: var(--${fn})`;
+
+  // =========================================================
+  // Rendering: write view
+  // =========================================================
+  const input = $("prog"), stripEl = $("strip"), stageEl = $("stage"), palEl = $("palette");
+
+  function renderAll() {
+    const r = compute(song.sections[secIdx].prog, S(), secIdx);
+    items = r.items; current = r.current; K = r.key;
+    range = computeRange(current);
+    if (sel >= current.length) sel = Math.max(0, current.length - 1);
+    renderSections();
+    renderKeySelect();
+    renderPalette();
+    renderStrip();
+    renderStage();
+  }
+
+  function renderSections() {
+    const el = $("sections");
+    el.innerHTML = song.sections.map((s, i) => i === secIdx && song.sections.length > 1
+      ? `<span class="sec-edit"><select data-act="rename" aria-label="Section name">${SECTION_NAMES.concat(SECTION_NAMES.includes(s.name) ? [] : [s.name]).map(n => `<option${n === s.name ? " selected" : ""}>${esc(n)}</option>`).join("")}</select><button class="x" type="button" data-act="delsec" aria-label="Remove ${esc(s.name)}">×</button></span>`
+      : `<button class="sec" type="button" data-sec="${i}" aria-current="${i === secIdx}">${esc(s.name)}</button>`
+    ).join("") + `<button class="sec add" type="button" data-act="addsec">+ Section</button>`;
+  }
+
+  function renderKeySelect() {
+    const sel_ = $("key");
+    const auto = !parseKeySetting(S().key);
+    let html = `<option value="auto">Key: auto (${esc(pretty(keyName(K)))})</option>`;
+    for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
+      const v = t + (minor ? "m" : "M");
+      html += `<option value="${v}"${!auto && S().key === v ? " selected" : ""}>${esc(pretty(keyName({ tonic: t, minor })))}</option>`;
+    }
+    sel_.innerHTML = html;
+    if (auto) sel_.value = "auto";
+  }
+
+  function renderPalette() {
+    const p = palette(K, prefs.sevenths);
+    const last = current[current.length - 1];
+    const next = new Set(suggestNext(last?.ch, K).slice(0, 3));
+    const lastIsMinorIV = last && !K.minor && mod(last.ch.rootPc - K.tonic) === 5 && baseQuality(last.ch.ivs) === "min";
+    const chip = (c, isBorrowed) => {
+      const hint = !isBorrowed && next.has(c.iv) && !(lastIsMinorIV && c.iv !== 0);
+      return `<button class="pal${hint ? " next" : ""}" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}" title="${hint ? "A natural next chord" : ""}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
+    };
+    palEl.innerHTML = p.di.map(c => chip(c, false)).join("")
+      + `<span class="divider"></span><span class="label">Borrowed</span>` + p.borrowed.map(c => chip(c, true)).join("")
+      + `<span class="divider"></span><label class="switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> 7ths</label>`;
+  }
+
+  function renderStrip() {
+    const byIndex = new Map(current.map(c => [c.i, c]));
+    stripEl.innerHTML = items.length ? items.map((it, n) => {
+      const c = byIndex.get(it.i);
+      if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span><span class="t-num">${n + 1}</span></div><span class="t-shape">Not a chord I know</span></div>`;
+      const ovr = overrides.has(it.key);
+      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}, ${FN_INFO[c.a.fn].label}, ${esc(c.v.name)}">
+        <span class="band"></span>
+        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${glyph(c.a.fn)}${esc(c.a.num)}</span></span>
+        ${keyboard(c.v, range[0], range[1], { stay: c.stay })}
+        <span class="t-shape${ovr ? " ovr" : ""}"><span>${esc(c.v.name)}</span><span>${c.beats}♩</span></span>
+      </button>`;
+    }).join("") : "";
+  }
+
+  function tipsFor(c) {
+    const list = [roleTip(c.ch, c.a, K), fingerTip(c.v, c.ch), BUILD_TIPS[baseQuality(c.ch.ivs)]];
+    if (c.j > 0) {
+      const moved = allNotes(c.v).length - c.stay.size;
+      list.push(c.stay.size ? `${c.stay.size} ${c.stay.size === 1 ? "key stays" : "keys stay"} down from the last chord (the gold rings), and ${moved} ${moved === 1 ? "finger moves" : "fingers move"}.` : "Nothing carries over from the last chord, so lift and land in one move.");
+    }
+    return list.filter(Boolean);
+  }
+
+  const playing_ = () => playing;
+  function renderStage() {
+    stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
+    const tile = stripEl.querySelector(`.tile[data-j="${sel}"]`);
+    if (tile) {
+      tile.classList.add("sel");
+      const r = tile.getBoundingClientRect(), s = stripEl.getBoundingClientRect();
+      if (r.left < s.left || r.right > s.right) stripEl.scrollLeft += r.left - s.left - 8;
+    }
+    const c = current[sel];
+    if (!c) {
+      stageEl.style.removeProperty("--fn");
+      stageEl.innerHTML = `<p class="empty">Type some chords up top, or tap the chord buttons to start ${esc(song.sections[secIdx].name.toLowerCase())}.</p>`;
+      return;
+    }
+    const fn = c.a.fn, info = FN_INFO[fn];
+    stageEl.style.setProperty("--fn", `var(--${fn})`);
+    const spark = new Set(c.v.spark);
+    const chip = (m, h) => `<span class="n ${h}${spark.has(mod(m)) ? " spk" : ""}">${noteName(c.ch, m)}</span>`;
+    const blurb = c.v.blurb || `${noteName(c.ch, c.v.rh[0])} on the bottom`;
+    const ovr = overrides.has(c.key);
+    const tips = tipsFor(c);
+    const tip = tipOverride || tips[tipIdx % tips.length];
+    const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
+    const spots = [[8, 18], [30, 70], [62, 12], [80, 58], [46, 40]];
+    stageEl.innerHTML = `
+      <div class="stage-bg">${spots.map(([x, y], i) => `<span style="position:absolute;left:${x}%;top:${y}%;animation-delay:${-i * 1.3}s">${glyph(fn)}</span>`).join("")}</div>
+      <div class="stage-head">
+        <div class="who">
+          <div class="big-sym">${symbolHTML(c.ch)}</div>
+          <span class="fn-tag" title="${esc(info.say)}">${glyph(fn)}<span class="num">${esc(c.a.num)}</span> ${info.label}</span>
+        </div>
+        <div class="shape">
+          <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
+          <div class="shape-name"><b>${esc(c.v.name)}</b><span>${esc(blurb)} · ${c.opt + 1}/${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
+          <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
+        </div>
+        <div class="tools">
+          <span class="beats"><button class="round" type="button" data-act="beats" data-dir="-1" aria-label="Fewer beats">−</button>${c.beats} beat${c.beats === 1 ? "" : "s"}<button class="round" type="button" data-act="beats" data-dir="1" aria-label="More beats">+</button></span>
+          <button class="btn small sparkle" type="button" data-act="surprise">✦ Surprise me</button>
+          ${undo ? `<button class="undo" type="button" data-act="undo">Undo</button>` : ""}
+        </div>
+      </div>
+      <div class="big-kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), hands: prefs.hands ? prefs.handStyle : null, pixie: true, bob: playing_() })}</div>
+      <div class="stage-foot">
+        ${prefs.tips ? `<button class="tip" type="button" data-act="tip" title="Tap for another tip">${pixieBadge()}<span>${esc(tip)}</span></button>` : ""}
+        <div class="notes">${c.v.lh.length ? `<span class="hand">Left</span>${c.v.lh.map(m => chip(m, "lh")).join("")}<span class="gap"></span>` : ""}<span class="hand">Right</span>${c.v.rh.map(m => chip(m, "rh")).join("")}<span class="gap"></span><span class="moves">${c.moves}</span></div>
+        <div class="toggles">
+          <button class="btn small" type="button" data-act="hands" aria-pressed="${prefs.hands}">✋ Hands</button>
+          ${prefs.hands ? `<select data-act="style" aria-label="Hand style">${Object.entries(HAND_STYLES).map(([k, h]) => `<option value="${k}"${k === prefs.handStyle ? " selected" : ""}>${h.name}</option>`).join("")}</select>` : ""}
+          <button class="btn small" type="button" data-act="tips" aria-pressed="${prefs.tips}">Pixie tips</button>
+        </div>
+      </div>`;
+  }
+
+  // =========================================================
+  // Playback
+  // =========================================================
+  let playing = false, step = 0, nextT = 0, beatCount = 0, playSec = 0;
   const timers = new Set();
   const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, Math.max(0, ms)); timers.add(id); };
   const playBtn = $("playAll");
@@ -793,6 +1535,8 @@
     playBtn.querySelector("svg").innerHTML = on
       ? '<rect x="3" y="3" width="10" height="10" rx="1.5" fill="currentColor"/>'
       : '<path d="M3 1.5v13l11-6.5z" fill="currentColor"/>';
+    const px = stageEl.querySelector(".pixie");
+    if (px) px.classList.toggle("bob", on);
   }
   function stop() {
     timers.forEach(clearTimeout);
@@ -805,28 +1549,48 @@
       freshMaster();
     }
   }
+  function listFor(sIdx) { return sIdx === secIdx ? current : compute(song.sections[sIdx].prog, S(), sIdx).current; }
   function tick() {
     if (!playing) return;
-    if (!current.length) { stop(); return; }
-    if (step >= current.length) {
-      if (!loopOn) { later(() => setPlaying(false), (nextT - ac.currentTime) * 1000); return; }
+    const whole = $("scope").value === "song";
+    let list = listFor(playSec);
+    let guard = 0;
+    while (step >= list.length) {
+      if (whole) {
+        playSec++;
+        if (playSec >= song.sections.length) { if (!loopOn) return finish(); playSec = 0; }
+      } else if (!loopOn || !list.length) return finish();
       step = 0;
+      list = listFor(playSec);
+      if (++guard > song.sections.length + 1) return finish();
     }
-    const c = current[step];
-    const dur = (60 / +$("bpm").value) * 2;
-    const at = nextT, j = c.j;
-    strum(c.v, at, dur);
-    later(() => { if (playing) { sel = j; renderStage(); } }, (at - ac.currentTime) * 1000);
-    nextT += dur;
+    const c = list[step];
+    const B = 60 / +$("bpm").value;
+    const meter = S().pattern === "waltz" ? 3 : 4;
+    playChord(c.v, nextT, c.beats, B, S().pattern);
+    for (let b = 0; b < c.beats; b++) if (S().drum !== "off") drumBeat(S().drum, nextT + b * B, B, (beatCount + b) % meter, meter);
+    beatCount += c.beats;
+    const at = nextT, j = c.j, sIdx = playSec;
+    later(() => {
+      if (!playing) return;
+      if (sIdx !== secIdx) switchSection(sIdx, true);
+      sel = j; tipOverride = null; tipIdx = 0;
+      renderStage();
+    }, (at - ac.currentTime) * 1000);
+    nextT += c.beats * B;
     step++;
-    later(tick, (nextT - ac.currentTime - 0.12) * 1000);
+    later(tick, (nextT - ac.currentTime - 0.15) * 1000);
   }
+  function finish() { later(() => setPlaying(false), (nextT - ac.currentTime) * 1000); }
   async function playAll() {
     if (playing) { stop(); return; }
-    if (!current.length) return;
+    const whole = $("scope").value === "song";
+    if (!current.length && !whole) return;
     setPlaying(true);
     if (!(await audioReady())) { setPlaying(false); return; }
-    step = sel;
+    playSec = secIdx;
+    step = whole && !current.length ? 0 : sel;
+    beatCount = 0;
     nextT = ac.currentTime + 0.08;
     tick();
   }
@@ -836,119 +1600,429 @@
     strum(c.v, ac.currentTime + 0.02, 1.4);
   }
 
-  // ---------- transpose ----------
-  const NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
-  function shiftTok(tok, n) {
-    const ch = parseChord(tok);
-    if (!ch) return tok;
-    let out = NAMES[mod(ch.rootPc + n)] + ch.qual;
-    if (ch.slash) out += "/" + NAMES[mod(ch.bassPc + n)];
-    return out;
+  // =========================================================
+  // Editing
+  // =========================================================
+  function setProg(text, pushUndo) {
+    if (pushUndo) undoStack.push({ sec: secIdx, prog: song.sections[secIdx].prog });
+    song.sections[secIdx].prog = text;
+    input.value = text;
+    saveSongs();
+    renderAll();
   }
-  function transpose(n) {
-    input.value = input.value.replace(/[^\s,|]+/g, t => shiftTok(t, n));
-    changed();
+  // replace the n-th token, keeping separators
+  function replaceToken(text, n, raw) {
+    let k = -1;
+    return text.replace(/[^\s,|]+/g, t => (++k === n ? raw : t));
+  }
+  function switchSection(i, keepPlaying) {
+    secIdx = i;
+    input.value = song.sections[i].prog;
+    sel = 0; tipOverride = null; tipIdx = 0;
+    renderAll();
+    if (!keepPlaying && playing && $("scope").value === "section") { /* keeps looping the new section */ }
+  }
+  function applySettings() {
+    const s = S();
+    const lv = $("lv-" + s.level); if (lv) lv.checked = true;
+    $("oneHand").checked = !!s.oneHand;
+    $("pattern").value = s.pattern;
+    $("drum").value = s.drum;
+    $("bpm").value = s.bpm; $("bpmVal").textContent = s.bpm;
+    $("beats").value = String(s.beats);
+    $("songTitle").value = song.title;
+    input.value = song.sections[secIdx].prog;
+  }
+  function openSong(s) {
+    if (playing) stop();
+    song = s; secIdx = 0; sel = 0; overrides.clear(); undoStack.length = 0;
+    store.set("current", song.id);
+    applySettings();
+    renderAll();
+  }
+  function setting(k, v) { S()[k] = v; saveSongs(); }
+
+  function surprise() {
+    const c = current[sel];
+    if (!c) return;
+    const next = current[sel + 1]?.ch || (loopOn && current.length > 1 ? current[0].ch : null);
+    let list = surprises(c.ch, K, next && next !== c.ch ? next : null).filter(x => x.tok !== lastSurprise);
+    if (!list.length) return;
+    const pick = list[Math.floor(Math.random() * list.length)];
+    lastSurprise = pick.tok;
+    const raw = pick.tok + (c.beats !== S().beats || c.raw.includes(":") ? ":" + c.beats : "");
+    const keepSel = sel;
+    tipOverride = `${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
+    setProg(replaceToken(song.sections[secIdx].prog, c.i, raw), true);
+    sel = keepSel;
+    tipOverride = `${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
+    renderStage();
+    playOne(sel);
   }
 
-  // ---------- wiring ----------
-  function changed() {
-    store.set("prog", input.value);
-    render();
+  const BEAT_STEPS = [1, 2, 3, 4, 6, 8, 12, 16];
+  function stepBeats(dir) {
+    const c = current[sel];
+    if (!c) return;
+    let i = BEAT_STEPS.indexOf(c.beats);
+    if (i < 0) i = BEAT_STEPS.findIndex(b => b > c.beats) - (dir > 0 ? 1 : 0);
+    const nb = BEAT_STEPS[Math.max(0, Math.min(BEAT_STEPS.length - 1, i + dir))];
+    const raw = c.tok + (nb === S().beats ? "" : ":" + nb);
+    const keepSel = sel;
+    setProg(replaceToken(song.sections[secIdx].prog, c.i, raw), false);
+    sel = keepSel;
+    renderStage();
   }
+
+  const NAMES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
+  function shiftTok(raw, n) {
+    const { chord, beats } = splitBeats(raw);
+    const ch = parseChord(chord);
+    if (!ch) return raw;
+    let out = NAMES[mod(ch.rootPc + n)] + ch.qual;
+    if (ch.slash) out += "/" + NAMES[mod(ch.bassPc + n)];
+    return out + (beats ? ":" + beats : "");
+  }
+  function transpose(n) {
+    const k = parseKeySetting(S().key);
+    if (k) setting("key", mod(k.tonic + n) + (k.minor ? "m" : "M"));
+    setProg(song.sections[secIdx].prog.replace(/[^\s,|]+/g, t => shiftTok(t, n)), false);
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => (t.hidden = true), 2200);
+  }
+
+  // =========================================================
+  // Chord finder
+  // =========================================================
+  const picked = new Set();
+  const finderEl = $("finder");
+  function renderFinder() {
+    const notes = [...picked].sort((a, b) => a - b);
+    const res = identify(notes);
+    const top = res[0];
+    const nm = m => pretty(FALLBACK[mod(m)]);
+    let title = "Tap some keys", tip = "Tap keys on the keyboard and I'll tell you what chord they make. The lowest key you pick counts as the bass.";
+    if (notes.length === 1) { title = nm(notes[0]); tip = `Just ${nm(notes[0])} so far. Chords need at least three notes, so add a couple more.`; }
+    else if (notes.length === 2 && !top) { const d = (notes[1] - notes[0]) % 12; title = `${nm(notes[0])} + ${nm(notes[1])}`; tip = `That's a ${IVNAME[d]}. Add one more key to turn it into a chord.`; }
+    else if (notes.length >= 2 && !top) { title = "Hmm, a mystery"; tip = "No common chord name for these notes. Try moving one key by a half step."; }
+    else if (top) {
+      title = pretty(top.name);
+      const root = top.root;
+      const parts = [...new Set(notes.map(m => mod(m - root)))].filter(x => x).sort((a, b) => a - b).map(iv => `${IVNAME[iv]} up to ${pretty(FALLBACK[mod(root + iv)])}`);
+      tip = `Root ${pretty(FALLBACK[root])}, then a ${parts.join(", a ")}. ` + (BUILD_TIPS[baseQuality(Q[top.q])] || "") + (top.omit5 ? " The 5th is left out, which is normal." : "") + (top.name.includes("/") ? " The slash means a different note is in the bass." : "");
+    }
+    const v = { lh: [], rh: notes };
+    finderEl.innerHTML = `
+      <div class="stage-head">
+        <div>
+          <div class="big-sym">${esc(title)}</div>
+          ${res.length > 1 ? `<div class="alts"><span class="label">Also</span>${res.slice(1, 6).map(r => `<span class="alt">${esc(pretty(r.name))}</span>`).join("")}</div>` : ""}
+        </div>
+        <div class="tools">
+          <button class="btn small" type="button" data-act="fplay"${notes.length ? "" : " disabled"}>▶ Play</button>
+          <button class="btn small" type="button" data-act="fclear"${notes.length ? "" : " disabled"}>Clear</button>
+          <button class="btn small sparkle" type="button" data-act="fadd"${top ? "" : " disabled"}>Add to ${esc(song.sections[secIdx].name)}</button>
+        </div>
+      </div>
+      <div class="big-kbd">${keyboard(v, 48, 76, { picked, interactive: true, label: m => nm(m) })}</div>
+      <div class="stage-foot">
+        <div class="tip">${pixieBadge()}<span>${esc(tip)}</span></div>
+        <div class="notes">${notes.map((m, i) => `<span class="n ${i === 0 ? "lh" : "rh"}">${nm(m)}</span>`).join("")}</div>
+      </div>`;
+  }
+
+  // =========================================================
+  // Drawer: library and songs
+  // =========================================================
+  let drawerMode = null, confirmDel = null;
+  function openDrawer(mode) {
+    drawerMode = mode;
+    $("drawer").hidden = false;
+    $("scrim").hidden = false;
+    renderDrawer();
+    $("closeDrawer").focus();
+  }
+  function closeDrawer() {
+    $("drawer").hidden = true;
+    $("scrim").hidden = true;
+    drawerMode = null; confirmDel = null;
+  }
+  function songText(s) {
+    return `Title: ${s.title}\n` + s.sections.map(x => `[${x.name}]\n${x.prog}`).join("\n");
+  }
+  function parseSongText(t) {
+    const title = (t.match(/^\s*Title:\s*(.+)$/mi) || [])[1]?.trim() || "Pasted song";
+    const secs = [];
+    let cur = null;
+    t.split(/\r?\n/).forEach(line => {
+      const h = line.match(/^\s*\[(.+?)\]\s*$/);
+      if (h) { cur = { name: h[1].trim().slice(0, 24), prog: "" }; secs.push(cur); }
+      else if (!/^\s*Title:/i.test(line) && line.trim()) {
+        if (!cur) { cur = { name: "Verse", prog: "" }; secs.push(cur); }
+        cur.prog = (cur.prog + " " + line.trim()).trim();
+      }
+    });
+    if (!secs.length) return null;
+    const s = newSong(title.slice(0, 60), "");
+    s.sections = secs;
+    return s;
+  }
+  function renderDrawer() {
+    const body = $("drawerBody");
+    if (drawerMode === "lib") {
+      $("drawerTitle").textContent = "Library";
+      body.innerHTML = `<p class="note">Progressions to borrow, each with a mood, a little poem and the theory underneath.</p>` + LIBRARY.map((e, i) => `
+        <article class="card" style="${fnVar(e.fn)}">
+          <h3>${glyph(e.fn)}${esc(e.name)}<span class="mood">${esc(e.mood)}</span></h3>
+          <div class="prog">${esc(pretty(e.prog))}</div>
+          <p class="poem">${esc(e.poem)}</p>
+          <p class="theory">${esc(e.theory)}</p>
+          <div class="row">
+            <button class="btn small" type="button" data-lib="${i}" data-how="here">Use in ${esc(song.sections[secIdx].name)}</button>
+            <button class="btn small" type="button" data-lib="${i}" data-how="new">Start a song with it</button>
+            <button class="btn small" type="button" data-lib="${i}" data-how="hear">▶</button>
+          </div>
+        </article>`).join("");
+    } else {
+      $("drawerTitle").textContent = "Songs";
+      const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
+      body.innerHTML = `
+        <div class="row" style="display:flex;gap:8px"><button class="btn small sparkle" type="button" data-song="new">+ New song</button></div>
+        ${storageOK ? `<p class="note">Songs save in this browser as you go. Copy a song as text below if you want a backup.</p>` : `<p class="note">This browser isn't letting the page save, so songs disappear when you close it. Copy them as text to keep them.</p>`}
+        ${sorted.map(s => {
+          const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
+          return `<article class="card song-card" aria-current="${s.id === song.id}">
+            <div class="meta"><b>${esc(s.title || "Untitled")}</b><span>${s.sections.length} section${s.sections.length === 1 ? "" : "s"} · ${n} chord${n === 1 ? "" : "s"}${s.id === song.id ? " · open now" : ""}</span></div>
+            ${confirmDel === s.id
+              ? `<button class="btn small" type="button" data-song="del-yes" data-id="${s.id}">Delete it</button><button class="btn small" type="button" data-song="del-no">Keep</button>`
+              : `${s.id === song.id ? "" : `<button class="btn small" type="button" data-song="open" data-id="${s.id}">Open</button>`}${songs.length > 1 ? `<button class="x" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
+          </article>`;
+        }).join("")}
+        <article class="card">
+          <h3>Back up or share</h3>
+          <div class="row"><button class="btn small" type="button" data-song="copy">Copy “${esc(song.title || "Untitled")}” as text</button></div>
+          <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: Moon Song&#10;[Verse]&#10;C Am F G&#10;[Chorus]&#10;F G C C" aria-label="Paste a song as text"></textarea>
+          <div class="row"><button class="btn small" type="button" data-song="import">Add pasted song</button></div>
+        </article>`;
+    }
+  }
+
+  // =========================================================
+  // Wiring
+  // =========================================================
+  Object.entries(PATTERNS).forEach(([k, p]) => $("pattern").insertAdjacentHTML("beforeend", `<option value="${k}">${p.name}</option>`));
+  Object.entries(DRUMS).forEach(([k, d]) => $("drum").insertAdjacentHTML("beforeend", `<option value="${k}">${d.name}</option>`));
+
+  input.addEventListener("input", () => { song.sections[secIdx].prog = input.value; saveSongs(); renderAll(); });
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
+  $("songTitle").addEventListener("input", e => { song.title = e.target.value.slice(0, 60); saveSongs(); });
+  playBtn.addEventListener("click", playAll);
+  $("loop").setAttribute("aria-pressed", loopOn);
+  $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
+  $("up").addEventListener("click", () => transpose(1));
+  $("down").addEventListener("click", () => transpose(-1));
+  $("bpm").addEventListener("input", e => { $("bpmVal").textContent = e.target.value; setting("bpm", +e.target.value); });
+  $("beats").addEventListener("change", e => { setting("beats", +e.target.value); renderAll(); });
+  $("pattern").addEventListener("change", e => setting("pattern", e.target.value));
+  $("drum").addEventListener("change", e => setting("drum", e.target.value));
+  $("key").addEventListener("change", e => { setting("key", e.target.value); renderAll(); });
+  $("oneHand").addEventListener("change", e => { setting("oneHand", e.target.checked); overrides.clear(); renderAll(); });
+  document.querySelectorAll('input[name="level"]').forEach(r => r.addEventListener("change", () => { setting("level", r.value); overrides.clear(); tipIdx = 0; renderAll(); }));
+
+  $("sections").addEventListener("click", e => {
+    const b = e.target.closest("[data-sec],[data-act]");
+    if (!b) return;
+    if (b.dataset.sec != null) switchSection(+b.dataset.sec);
+    else if (b.dataset.act === "addsec") {
+      const used = new Set(song.sections.map(s => s.name));
+      const name = SECTION_NAMES.find(n => !used.has(n)) || "Part " + (song.sections.length + 1);
+      song.sections.push({ name, prog: "" });
+      saveSongs();
+      switchSection(song.sections.length - 1);
+      input.focus();
+    } else if (b.dataset.act === "delsec") {
+      if (song.sections.length < 2) return;
+      song.sections.splice(secIdx, 1);
+      saveSongs();
+      switchSection(Math.max(0, secIdx - 1));
+    }
+  });
+  $("sections").addEventListener("change", e => {
+    if (e.target.dataset.act === "rename") { song.sections[secIdx].name = e.target.value; saveSongs(); renderSections(); }
+  });
+
+  palEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-add]");
+    if (!b) return;
+    const t = song.sections[secIdx].prog.trim();
+    setProg((t ? t + " " : "") + b.dataset.add, true);
+    sel = current.length - 1;
+    renderStage();
+    playOne(sel);
+  });
+  palEl.addEventListener("change", e => { if (e.target.id === "sev") { prefs.sevenths = e.target.checked; savePrefs(); renderPalette(); } });
+
+  stripEl.addEventListener("click", e => {
+    const t = e.target.closest(".tile[data-j]");
+    if (!t) return;
+    sel = +t.dataset.j; tipIdx = 0; tipOverride = null;
+    renderStage();
+    playOne(sel);
+  });
+
   function nudge(dir) {
     const c = current[sel];
     if (!c) return;
     overrides.set(c.key, mod(c.opt + dir, c.len));
-    render();
+    tipOverride = null;
+    renderAll();
     playOne(sel);
   }
-  function pick(j) {
-    if (j < 0 || j >= current.length) return;
-    sel = j;
-    renderStage();
-    playOne(j);
-  }
-
-  const presetsEl = $("presets");
-  PRESETS.forEach(([name, prog]) => {
-    const o = document.createElement("option");
-    o.value = prog;
-    o.textContent = `${name} · ${prog}`;
-    presetsEl.appendChild(o);
-  });
-  presetsEl.addEventListener("change", () => {
-    if (!presetsEl.value) return;
-    input.value = presetsEl.value;
-    presetsEl.value = "";
-    overrides.clear();
-    sel = 0;
-    changed();
-  });
-
-  input.addEventListener("input", changed);
-  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
-  playBtn.addEventListener("click", playAll);
-  $("loop").addEventListener("click", e => {
-    loopOn = !loopOn;
-    e.currentTarget.setAttribute("aria-pressed", loopOn);
-    store.set("loop", loopOn ? "1" : "0");
-    render();
-  });
-  $("up").addEventListener("click", () => transpose(1));
-  $("down").addEventListener("click", () => transpose(-1));
-  $("bpm").addEventListener("input", e => { $("bpmVal").textContent = e.target.value; store.set("bpm", e.target.value); });
-  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener("change", () => {
-    mode = r.value;
-    store.set("mode", mode);
-    overrides.clear();
-    $("modeNote").textContent = MODE_NOTES[mode];
-    render();
-  }));
-
-  stripEl.addEventListener("click", e => {
-    const t = e.target.closest(".tile[data-j]");
-    if (t) pick(+t.dataset.j);
-  });
   stageEl.addEventListener("click", e => {
     const el = e.target.closest("[data-act]");
     if (!el) return;
-    const act = el.dataset.act;
+    const act = el.dataset.act, c = current[sel];
     if (act === "play") playOne(sel);
-    else if (act === "nudge") {
-      const dir = +el.dataset.dir;
-      nudge(dir);
-      const again = stageEl.querySelector(`.nudge[data-dir="${dir}"]`);
-      if (again) again.focus();
-    } else if (act === "reset") {
-      overrides.delete(current[sel].key);
-      render();
-      playOne(sel);
+    else if (act === "nudge") { const dir = +el.dataset.dir; nudge(dir); stageEl.querySelector(`.nudge[data-dir="${dir}"]`)?.focus(); }
+    else if (act === "reset" && c) { overrides.delete(c.key); renderAll(); playOne(sel); }
+    else if (act === "beats") { const dir = +el.dataset.dir; stepBeats(dir); stageEl.querySelector(`[data-act="beats"][data-dir="${dir}"]`)?.focus(); }
+    else if (act === "surprise") { surprise(); stageEl.querySelector('[data-act="surprise"]')?.focus(); }
+    else if (act === "undo") {
+      const u = undoStack.pop();
+      if (u && u.sec === secIdx) { const keepSel = sel; tipOverride = "Back how it was."; setProg(u.prog, false); sel = Math.min(keepSel, current.length - 1); renderStage(); }
+    }
+    else if (act === "tip") { if (tipOverride) tipOverride = null; else tipIdx++; renderStage(); stageEl.querySelector('[data-act="tip"]')?.focus(); }
+    else if (act === "hands") { prefs.hands = !prefs.hands; savePrefs(); renderStage(); stageEl.querySelector('[data-act="hands"]')?.focus(); }
+    else if (act === "tips") { prefs.tips = !prefs.tips; savePrefs(); renderStage(); stageEl.querySelector('[data-act="tips"]')?.focus(); }
+  });
+  stageEl.addEventListener("change", e => { if (e.target.dataset.act === "style") { prefs.handStyle = e.target.value; savePrefs(); renderStage(); stageEl.querySelector('[data-act="style"]')?.focus(); } });
+
+  // views
+  function showView(find) {
+    $("tabWrite").setAttribute("aria-selected", !find);
+    $("tabFind").setAttribute("aria-selected", find);
+    $("writeView").hidden = find;
+    $("findView").hidden = !find;
+    $("songRow").style.visibility = find ? "hidden" : "";
+    if (find) { if (playing) stop(); renderFinder(); }
+  }
+  $("tabWrite").addEventListener("click", () => showView(false));
+  $("tabFind").addEventListener("click", () => showView(true));
+
+  finderEl.addEventListener("click", async e => {
+    const k = e.target.closest("[data-m]");
+    if (k) {
+      const m = +k.dataset.m;
+      if (picked.has(m)) picked.delete(m); else picked.add(m);
+      renderFinder();
+      if (picked.has(m) && await audioReady()) tone(m, ac.currentTime + 0.01, 0.8, 0.18);
+      return;
+    }
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const notes = [...picked].sort((a, x) => a - x);
+    if (b.dataset.act === "fplay" && notes.length && await audioReady()) strum({ lh: [], rh: notes }, ac.currentTime + 0.02, 1.5);
+    else if (b.dataset.act === "fclear") { picked.clear(); renderFinder(); }
+    else if (b.dataset.act === "fadd") {
+      const top = identify(notes)[0];
+      if (!top) return;
+      const t = song.sections[secIdx].prog.trim();
+      song.sections[secIdx].prog = (t ? t + " " : "") + top.name;
+      input.value = song.sections[secIdx].prog;
+      saveSongs();
+      renderAll();
+      toast(`Added ${pretty(top.name)} to ${song.sections[secIdx].name}`);
+    }
+  });
+
+  $("openLib").addEventListener("click", () => openDrawer("lib"));
+  $("openSongs").addEventListener("click", () => openDrawer("songs"));
+  $("closeDrawer").addEventListener("click", closeDrawer);
+  $("scrim").addEventListener("click", closeDrawer);
+  $("drawerBody").addEventListener("click", async e => {
+    const b = e.target.closest("[data-lib],[data-song]");
+    if (!b) return;
+    if (b.dataset.lib != null) {
+      const en = LIBRARY[+b.dataset.lib];
+      const extra = {};
+      ["pattern", "level", "drum", "bpm", "beats"].forEach(k => { if (en[k] != null) extra[k] = en[k]; });
+      extra.key = en.key || "auto";
+      if (b.dataset.how === "hear") {
+        if (!(await audioReady())) return;
+        const r = compute(en.prog, { ...S(), ...extra }, -1);
+        let t = ac.currentTime + 0.05;
+        r.current.forEach(c => { strum(c.v, t, 0.9); t += 0.75; });
+        return;
+      }
+      if (b.dataset.how === "new") {
+        const s = newSong(en.name, en.prog, extra);
+        songs.push(s);
+        openSong(s);
+        toast(`New song: ${en.name}`);
+      } else {
+        Object.assign(S(), extra);
+        overrides.clear();
+        applySettings();
+        setProg(en.prog, true);
+        toast(`${en.name} is in ${song.sections[secIdx].name}`);
+      }
+      saveSongs();
+      closeDrawer();
+      return;
+    }
+    const act = b.dataset.song, id = b.dataset.id;
+    if (act === "new") {
+      const s = newSong("Untitled song", "");
+      songs.push(s);
+      openSong(s);
+      saveSongs();
+      closeDrawer();
+      $("songTitle").focus();
+      $("songTitle").select();
+    } else if (act === "open") { openSong(songs.find(s => s.id === id)); saveSongs(); closeDrawer(); }
+    else if (act === "del") { confirmDel = id; renderDrawer(); }
+    else if (act === "del-no") { confirmDel = null; renderDrawer(); }
+    else if (act === "del-yes") {
+      songs = songs.filter(s => s.id !== id);
+      confirmDel = null;
+      if (song.id === id) openSong(songs[0]);
+      saveSongs();
+      renderDrawer();
+    } else if (act === "copy") {
+      const text = songText(song);
+      try { await navigator.clipboard.writeText(text); toast("Copied. Paste it anywhere to keep it."); }
+      catch { const ta = $("songPaste"); ta.value = text; ta.focus(); ta.select(); toast("Selected below. Copy it from there."); }
+    } else if (act === "import") {
+      const s = parseSongText($("songPaste").value);
+      if (!s) { toast("I couldn't find any chords in that."); return; }
+      songs.push(s);
+      openSong(s);
+      saveSongs();
+      closeDrawer();
+      toast(`Added “${s.title}”`);
     }
   });
 
   document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && drawerMode) { closeDrawer(); return; }
     const tag = e.target.tagName;
-    if (tag === "INPUT" || tag === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (drawerMode || !$("findView").hidden || tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === " " && tag !== "BUTTON") { e.preventDefault(); playAll(); }
-    else if (e.key === "ArrowRight") { e.preventDefault(); pick(sel + 1); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); pick(sel - 1); }
+    else if (e.key === "ArrowRight" && sel < current.length - 1) { e.preventDefault(); sel++; tipIdx = 0; tipOverride = null; renderStage(); playOne(sel); }
+    else if (e.key === "ArrowLeft" && sel > 0) { e.preventDefault(); sel--; tipIdx = 0; tipOverride = null; renderStage(); playOne(sel); }
     else if (e.key === "ArrowUp") { e.preventDefault(); nudge(1); }
     else if (e.key === "ArrowDown") { e.preventDefault(); nudge(-1); }
   });
 
-  // restore per-viewer conveniences
-  const savedProg = store.get("prog");
-  if (savedProg) input.value = savedProg;
-  const savedMode = store.get("mode");
-  if (savedMode && MODE_NOTES[savedMode]) {
-    mode = savedMode;
-    const r = $("m-" + mode);
-    if (r) r.checked = true;
-  }
-  const savedBpm = store.get("bpm");
-  if (savedBpm) { $("bpm").value = savedBpm; $("bpmVal").textContent = savedBpm; }
-  if (store.get("loop") === "0") { loopOn = false; $("loop").setAttribute("aria-pressed", "false"); }
-  $("modeNote").textContent = MODE_NOTES[mode];
-  render();
+  applySettings();
+  renderAll();
+  store.set("current", song.id);
 })();
 </script>
