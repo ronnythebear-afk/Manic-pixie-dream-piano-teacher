@@ -1678,8 +1678,11 @@
   // the way fingers would travel (lowest to lowest when the counts match,
   // otherwise each new note comes from the closest old one)
   function moves(from, to) {
-    const a = from.slice().sort((x, y) => x - y), b = to.slice().sort((x, y) => x - y);
-    if (!a.length || !b.length) return [];
+    // notes in both chords stay put: only the rest travel
+    const shared = new Set(from.filter(m => to.includes(m)));
+    const a = from.filter(m => !shared.has(m)).sort((x, y) => x - y), b = to.filter(m => !shared.has(m)).sort((x, y) => x - y);
+    if (!b.length) return [];
+    if (!a.length) return b.map(m => [[...shared].reduce((best, x) => (Math.abs(x - m) < Math.abs(best - m) ? x : best), [...shared][0] ?? m), m]);
     if (a.length === b.length) return a.map((m, i) => [m, b[i]]);
     return b.map(m => [a.reduce((best, x) => (Math.abs(x - m) < Math.abs(best - m) ? x : best), a[0]), m]);
   }
@@ -3529,8 +3532,10 @@
     const tips = tipsFor(c);
     const tip = tipOverride || tips[tipIdx % tips.length];
     const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
-    const nextC = current[sel + 1] || (loopOn && current.length > 1 ? current[0] : null);
+    const nextC = nextChord();
     const arrows = L("arrows") && nextC && nextC !== c;
+    // gold dots: keys that stay down into the next chord
+    const keep = arrows ? new Set(allNotes(c.v).filter(m => allNotes(nextC.v).includes(m))) : c.stay;
     stageEl.innerHTML = `
       <div class="stage-top">
         <div class="chord-name${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}">${symbolHTML(c.ch)}</div>
@@ -3541,10 +3546,10 @@
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, nextName: arrows ? esc(pretty(nextC.tok)) : "", tall: prefs.view === "bare" })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: keep, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, nextName: arrows ? esc(pretty(nextC.tok)) : "", tall: prefs.view === "bare" })}</div>
       <div class="shape-row">
         <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
-        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${c.j > 0 || c.stay.size ? ` · ${c.stay.size} stay` : ""}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
+        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${arrows ? ` · ${keep.size} stay for ${esc(pretty(nextC.tok))}` : c.j > 0 || c.stay.size ? ` · ${c.stay.size} kept` : ""}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
         <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
       </div>`;
     if (!finding) say(tip);
@@ -3593,6 +3598,22 @@
     while (size > 12 && crowded()) { size -= 1; syl.forEach(s => { s.style.fontSize = size + "px"; }); }
     // still bumping: lift every other word a little
     if (crowded()) syl.forEach((s, i) => { s.style.marginTop = (i % 2 ? -7 : 5) + "px"; });
+  }
+
+  // the chord that really plays next: the next card, or the next part of
+  // the song when the whole song is playing, or back to the start on a loop
+  function nextChord() {
+    if (current[sel + 1]) return current[sel + 1];
+    if (prefs.wholeSong && song.order.length > 1) {
+      let p = ordPos + 1;
+      if (p >= song.order.length) { if (!loopOn) return null; p = 0; }
+      for (let k = 0; k < song.order.length; k++, p = (p + 1) % song.order.length) {
+        const d = sectionData(idxOf(song.order[p]));
+        if (d.list.length) return d.list[0];
+      }
+      return null;
+    }
+    return loopOn && current.length > 1 ? current[0] : null;
   }
 
   // ---------- the melody lane ----------
