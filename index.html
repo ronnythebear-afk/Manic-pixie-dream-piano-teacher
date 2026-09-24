@@ -351,6 +351,40 @@
 
   @media (max-width: 480px) { .label-strip { display: none; } .cassette { flex: none; } }
 
+
+  /* ---------- each accompanist retints the room ---------- */
+  :root[data-buddy="dusty"] { --rh: #e8845a; --lh: #3db5a6; --lamp: #f2bd4b; --surprise: #d9658f; --home: #f2bd4b; --key-w: #fbf1df; --deck: #2b1f22; --bg: #efe2d4; --card: #fbf4ea; --card-2: #f3e6d6; }
+  :root[data-buddy="ghost"] { --rh: #ff5fa2; --lh: #2fd0c7; --lamp: #ffc94d; --surprise: #8f6bff; --away: #7fa0ff; --key-w: #f7f5ff; --deck: #1a1433; --bg: #e5e0f0; --card: #f7f4fc; --card-2: #ece6f7; }
+  :root[data-buddy="wren"] { --rh: #d7897b; --lh: #6fa36b; --lamp: #e6b454; --surprise: #8f86c9; --home: #e6b454; --key-w: #f8f1df; --deck: #1c2620; --bg: #e2e6da; --card: #f5f5ee; --card-2: #e9ede0; }
+  @media (prefers-color-scheme: dark) {
+    :root[data-buddy="dusty"]:not([data-theme="light"]) { --bg: #231b22; --card: #30252d; --card-2: #3b2e37; --key-w: #f1e4cc; --key-b: #1a1210; --key-edge: #1a1210; }
+    :root[data-buddy="ghost"]:not([data-theme="light"]) { --bg: #141129; --card: #201b3b; --card-2: #2a244d; --key-w: #ecebff; --key-b: #0d0a1e; --key-edge: #0d0a1e; }
+    :root[data-buddy="wren"]:not([data-theme="light"]) { --bg: #161e1a; --card: #212b25; --card-2: #2a362f; --key-w: #ece4cf; --key-b: #111812; --key-edge: #111812; }
+  }
+  :root[data-buddy="dusty"][data-theme="dark"] { --bg: #231b22; --card: #30252d; --card-2: #3b2e37; --key-w: #f1e4cc; --key-b: #1a1210; --key-edge: #1a1210; }
+  :root[data-buddy="ghost"][data-theme="dark"] { --bg: #141129; --card: #201b3b; --card-2: #2a244d; --key-w: #ecebff; --key-b: #0d0a1e; --key-edge: #0d0a1e; }
+  :root[data-buddy="wren"][data-theme="dark"] { --bg: #161e1a; --card: #212b25; --card-2: #2a362f; --key-w: #ece4cf; --key-b: #111812; --key-edge: #111812; }
+  .deck { background: var(--deck, #25222f) !important; transition: background .5s; }
+  body { transition: background-color .5s; }
+  /* key personalities */
+  :root[data-buddy="dusty"] .kb { fill: #3a2620; }
+  :root[data-buddy="dusty"] .kw { stroke-width: 1.1; }
+  :root[data-buddy="ghost"] .kw.rh, :root[data-buddy="ghost"] .kb.rh { filter: drop-shadow(0 0 2.5px var(--rh)); }
+  :root[data-buddy="ghost"] .kw.lh, :root[data-buddy="ghost"] .kb.lh { filter: drop-shadow(0 0 2.5px var(--lh)); }
+  :root[data-buddy="ghost"] .kb { fill: #231b3d; }
+  :root[data-buddy="wren"] .kw, :root[data-buddy="wren"] .kb { stroke-width: 1.3; stroke-linejoin: round; }
+  :root[data-buddy="wren"] .kb { fill: #2e3a2f; }
+
+  /* ---------- singing ---------- */
+  .lyric-row { display: flex; align-items: center; gap: 6px; }
+  .lyric-row .lyric, .lyric-row .lyric-input { flex: 1; min-width: 0; }
+  .sing-btn { flex: none; width: 36px; height: 36px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--card-2); font-family: var(--hand); font-weight: 700; font-size: 20px; line-height: 1; display: grid; place-items: center; }
+  .sing-btn[aria-pressed="true"] { background: var(--lamp); color: var(--on-color); }
+  .syl { transition: color .08s, background .08s; border-radius: 4px; }
+  .syl.sung { color: var(--on-color); background: color-mix(in srgb, var(--lamp) 75%, transparent); }
+  .scene .mouth { opacity: 0; }
+  .singing .scene .mouth { opacity: 1; }
+
   /* ---------- sheets ---------- */
   .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; }
   .sheet {
@@ -1300,6 +1334,7 @@
         <circle cx="-2.7" cy="-20" r=".7" fill="${INK}"/><circle cx="2.7" cy="-20" r=".7" fill="${INK}"/>
         <path d="M-4.4-16.8h.1M-3.6-16.2h.1M3.6-16.8h.1M4.4-16.2h.1" stroke="#b8704f" stroke-width=".8" stroke-linecap="round"/>
         <path d="M-1.6-15.6q1.6 1.2 3.2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
+        <ellipse class="mouth" cx="0" cy="-15.2" rx="1.5" ry="1.9" fill="#5a2230" stroke="${INK}" stroke-width=".4"/>
         <path d="M-5.8-25.6q-.4-7.4 3.4-7 1.2 1.2 2.4 1.2t2.4-1.2q3.8-.4 3.4 7z" fill="#eadbb8" stroke="${INK}" stroke-width=".7"/>
         <rect x="-5.8" y="-27.4" width="11.6" height="1.7" fill="#c8453f"/>
         <path d="M-12.4-25.6q12.4-3.6 24.8 0" fill="#eadbb8" stroke="${INK}" stroke-width=".8"/>
@@ -1323,7 +1358,7 @@
       <rect x="9.8" y="-23" width="4.2" height="7" rx="1.6" fill="#3fd9b9" stroke="${INK}" stroke-width=".6"/>
       <ellipse cx="-3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/><ellipse cx="3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/>
       <circle cx="-6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/><circle cx="6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/>
-      <ellipse cx="0" cy="-12.6" rx="1.4" ry="1.7" fill="${INK}"/>
+      <ellipse cx="0" cy="-12.6" rx="1.4" ry="1.7" fill="${INK}"/><ellipse class="mouth" cx="0" cy="-12.2" rx="2.4" ry="3" fill="${INK}"/>
       <g class="hit"><ellipse cx="12.5" cy="-6" rx="3.4" ry="2.2" transform="rotate(25 12.5 -6)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/></g>
       <ellipse cx="-12" cy="-7" rx="3.2" ry="2.1" transform="rotate(-20 -12 -7)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/>
     </g></g>`;
@@ -1341,6 +1376,7 @@
       <path d="M-5.8-21.6q1.4-1.2 1.2 1M5.8-21.6q-1.4-1.2-1.2 1" fill="#6b4a33"/>
       <path d="M-3.4-20.4q1 .8 2 0M1.4-20.4q1 .8 2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
       <path d="M-1.2-17.6q1.2.9 2.4 0" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
+      <ellipse class="mouth" cx="0" cy="-17.2" rx="1.3" ry="1.7" fill="#5a2230" stroke="${INK}" stroke-width=".35"/>
       <path d="M-7.2-24.6Q-3-33 4-46q-.4 12 3.4 21.4z" fill="#5f8a55" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>
       <path d="M5.8-29q4-3 6.4-1.2-3 .2-5.6 3z" fill="#d9534f" stroke="${INK}" stroke-width=".5"/>
       <ellipse cx="0" cy="-24.6" rx="13.5" ry="3" fill="#5f8a55" stroke="${INK}" stroke-width=".8"/>
@@ -1489,7 +1525,7 @@
     felt: { name: "felt piano", oscs: [["sine", 1, 0, 1], ["triangle", 1, 0, .3], ["sine", 2, 0, .06]], a: .018, d: .5, s: .3, lp: [3.2, 1.4], gain: 1.15 },
     wurly: { name: "wurly electric", oscs: [["sine", 1, 0, 1], ["triangle", 2, 0, .2], ["sine", 3, 0, .07], ["square", 1, 0, .03]], a: .005, d: .42, s: .38, lp: [6, 2.2], gain: 1.05 },
     saloon: { name: "saloon upright", oscs: [["triangle", 1, -9, .8], ["triangle", 1, 9, .8], ["square", 2, 0, .05]], a: .004, d: .22, s: .25, lp: [10, 3] },
-    neon: { name: "neon synth", oscs: [["sawtooth", 1, -7, .5], ["sawtooth", 1, 7, .5], ["sine", .5, 0, .35]], a: .03, d: .6, s: .55, lp: [1.6, 2.4], sweep: 5, gain: .6 }
+    neon: { name: "neon synth", oscs: [["sawtooth", 1, -7, .5], ["sawtooth", 1, 7, .5], ["sine", .5, 0, .35]], a: .03, d: .6, s: .55, lp: [1.6, 2.4], sweep: 5, gain: .95 }
   };
   let VOICE = "tape";
   function tone(midi, t, dur, vel) {
@@ -1669,6 +1705,197 @@
   }
 
   // =========================================================
+  // Singing: lyrics → syllables → a melody over the chord →
+  // a formant voice that sings each syllable's vowel
+  // =========================================================
+  const VOW = "aeiouy";
+  function syllabify(word) {
+    const w = word.toLowerCase().replace(/[^a-z']/g, "");
+    if (!w) return [];
+    // find vowel groups
+    const groups = [];
+    let i = 0;
+    while (i < w.length) {
+      if (VOW.includes(w[i]) && !(w[i] === "y" && i === 0)) {
+        let j = i;
+        while (j < w.length && VOW.includes(w[j])) j++;
+        groups.push([i, j]);
+        i = j;
+      } else i++;
+    }
+    if (!groups.length) return [w];
+    // silent final e ("time", "love")
+    if (groups.length > 1) {
+      const [a, b] = groups[groups.length - 1];
+      if (b === w.length && b - a === 1 && w[a] === "e" && !VOW.includes(w[a - 1])) groups.pop();
+    }
+    const cuts = [0];
+    for (let g = 1; g < groups.length; g++) {
+      const gap = groups[g][0] - groups[g - 1][1];
+      cuts.push(groups[g - 1][1] + (gap >= 2 ? 1 : 0));
+    }
+    cuts.push(w.length);
+    const out = [];
+    for (let c = 0; c < cuts.length - 1; c++) out.push(w.slice(cuts[c], cuts[c + 1]));
+    return out.filter(Boolean);
+  }
+  const WORD_VOWELS = { to: "u", do: "u", you: "u", who: "u", through: "u", two: "u", the: "a", a: "a", of: "a", love: "a", above: "a", come: "a", some: "a", one: "a", done: "a" };
+  function vowelOf(s, word) {
+    if (word && WORD_VOWELS[word]) return WORD_VOWELS[word];
+    const v = (s.replace(/^y/, "").match(/[aeiouy]+/) || ["a"])[0];
+    if (/^(oo|ew|ue|ui)/.test(v)) return "u";
+    if (/^(eau|ou|ow|oa|o)/.test(v)) return "o";
+    if (/^(ee|ea|ie|ey|i|y)/.test(v)) return "i";
+    if (/^(e|ai|ay|ei)/.test(v)) return "e";
+    if (/^u/.test(v)) return "a";
+    return "a";
+  }
+  // a lyric line → syllables with the text to show, vowel, onset consonant
+  function lineSyllables(text) {
+    const out = [];
+    text.split(/\s+/).filter(Boolean).forEach(word => {
+      const parts = syllabify(word);
+      if (!parts.length) return;
+      // spread the original word's characters across its syllables for display
+      let pos = 0;
+      parts.forEach((p, k) => {
+        const len = k === parts.length - 1 ? word.length - pos : Math.max(1, Math.round(word.length * p.length / parts.join("").length));
+        out.push({ show: word.slice(pos, pos + len), vowel: vowelOf(p, parts.length === 1 ? word.toLowerCase().replace(/[^a-z]/g, "") : null), onset: (p.match(/^[^aeiouy]+/) || [""])[0], first: k === 0, last: k === parts.length - 1, stress: parts.length > 1 ? k === 0 : word.length > 3 });
+        pos += len;
+      });
+    });
+    return out;
+  }
+
+  const rng = seed => { let s = (seed >>> 0) || 1; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296; };
+  const hashStr = t => { let h = 2166136261; for (const ch of t) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
+
+  // how each accompanist phrases a melody
+  const SING_STYLES = {
+    dusty: { start: 0.5, legato: 0.85, leap: 0.25, penta: true, range: [62, 77] },
+    ghost: { start: 0, legato: 0.5, leap: 0.55, arp: true, range: [65, 81] },
+    wren: { start: 0, legato: 1, leap: 0.08, range: [60, 74] }
+  };
+
+  // prev: { note, rhTop } from the chord before, or null
+  function melodyFor(sylls, c, key, beats, prev, who, seed) {
+    const st = SING_STYLES[who] || SING_STYLES.wren;
+    const r = rng(seed);
+    const n = sylls.length;
+    if (!n) return [];
+    const room = beats - st.start;
+    // rhythm: eighths, spread out when there's space, sixteenths when crowded
+    let grid = 0.5;
+    if (n > room / grid) grid = 0.25;
+    if (n > room / grid) grid = room / n;
+    const spread = Math.max(1, Math.min(2, Math.floor(room / grid / n)));
+    const stepLen = grid * spread;
+    // pitches
+    const chordPcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+    const S = key.minor ? MINOR : MAJOR;
+    const pent = key.minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9];
+    const scalePcs = new Set((st.penta ? pent : S.steps).map(x => mod(key.tonic + x)).concat([...chordPcs]));
+    const [lo, hi] = st.range;
+    const pool = pcs => { const a = []; for (let m = lo; m <= hi; m++) if (pcs.has(mod(m))) a.push(m); return a; };
+    const ct = pool(chordPcs), sc = pool(scalePcs);
+    const rhTop = Math.max(...c.v.rh);
+    let cur = prev?.note ?? ct.reduce((b, m) => Math.abs(m - (lo + hi) / 2) < Math.abs(b - (lo + hi) / 2) ? m : b, ct[0]);
+    // move against the pianist's top note
+    let dir = prev && prev.rhTop != null ? (rhTop > prev.rhTop ? -1 : rhTop < prev.rhTop ? 1 : (r() < 0.5 ? -1 : 1)) : (r() < 0.5 ? 1 : -1);
+    const peak = Math.max(1, Math.floor(n * (0.4 + r() * 0.3)));
+    const notes = [];
+    for (let i = 0; i < n; i++) {
+      const start = st.start + i * stepLen;
+      const strong = i === 0 || i === n - 1 || Math.abs(start - Math.round(start)) < 0.01 || sylls[i].stress;
+      if (i === peak) dir = -dir;
+      let cand = strong || st.arp ? ct : sc;
+      let step = st.arp ? 3 + Math.floor(r() * 4) : r() < st.leap ? 4 + Math.floor(r() * 3) : 1 + Math.floor(r() * 2);
+      let want = i === 0 && !prev ? cur : cur + dir * step;
+      if (want > hi - 1) { dir = -1; want = cur - step; }
+      if (want < lo + 1) { dir = 1; want = cur + step; }
+      if (i === n - 1) {
+        // land on the root or third of the chord
+        const rest = new Set([c.ch.rootPc, mod(c.ch.rootPc + (c.ch.ivs.find(x => x === 3 || x === 4) ?? 7))]);
+        cand = pool(rest);
+      }
+      const near = (arr, x) => arr.reduce((b, m) => b == null || Math.abs(m - x) < Math.abs(b - x) ? m : b, null);
+      let pick;
+      if (i === n - 1) pick = near(cand.filter(m => m !== rhTop), cur);
+      else if (i > 0 && r() < 0.14 && cand.includes(cur)) pick = cur;
+      else {
+        let side = cand.filter(m => (m - cur) * dir > 0 && m !== rhTop);
+        if (!side.length) { dir = -dir; side = cand.filter(m => (m - cur) * dir > 0 && m !== rhTop); }
+        pick = near(side, want);
+      }
+      if (pick == null) pick = cur;
+      const last = i === n - 1;
+      const dur = last ? Math.max(stepLen, beats - start - 0.2) : stepLen * st.legato;
+      notes.push({ midi: pick, start, dur, s: i, glide: who === "dusty" && strong, hop: who === "ghost" && !strong });
+      cur = pick;
+    }
+    return notes;
+  }
+
+  // ---------- the voices ----------
+  const FORMANTS = { a: [800, 1150, 2900], e: [450, 1800, 2550], i: [320, 2300, 3000], o: [480, 850, 2800], u: [340, 750, 2500] };
+  const VOCALS = {
+    dusty: { name: "twangy tenor", src: "sawtooth", vib: [5.4, 24], glide: 140, nasal: 0.45, gain: 0.125, shift: 1.04 },
+    ghost: { name: "vocoder", src: "square", vib: [9.5, 38], glide: 0, robot: true, gain: 0.21, shift: 1.12 },
+    wren: { name: "breathy hum", src: "triangle", vib: [4.6, 14], glide: 30, breath: 0.6, gain: 0.34, shift: 0.97 }
+  };
+  const SING_LINES = {
+    dusty: "Alright, I'll sing it. Don't laugh.",
+    ghost: "Warming up the vocoder. Beep.",
+    wren: "I'll hum it for you."
+  };
+  function singNote(midi, t, dur, syl, who, opts = {}) {
+    const V = VOCALS[who] || VOCALS.wren;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const end = t + dur + 0.12;
+    const src = ac.createOscillator();
+    src.type = V.src;
+    src.frequency.value = f;
+    if (opts.glide && V.glide) { src.detune.setValueAtTime(-V.glide, t); src.detune.linearRampToValueAtTime(0, t + 0.09); }
+    if (opts.hop) { src.detune.setValueAtTime(1200, t); src.detune.setValueAtTime(0, t + 0.03); }
+    // vibrato that blooms after the attack
+    const lfo = ac.createOscillator(); lfo.frequency.value = V.vib[0];
+    const lg = ac.createGain(); lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(V.vib[1], t + Math.min(0.25, dur * 0.6));
+    lfo.connect(lg); lg.connect(src.detune);
+    if (wobble) wobble.connect(src.detune);
+    // envelope
+    const env = ac.createGain();
+    env.gain.setValueAtTime(0.0001, t);
+    env.gain.exponentialRampToValueAtTime(V.gain, t + (/^[mnlrwyhv]/.test(syl.onset) ? 0.06 : 0.025));
+    env.gain.setValueAtTime(V.gain, t + Math.max(0.03, dur - 0.05));
+    env.gain.exponentialRampToValueAtTime(0.0001, end);
+    env.connect(master);
+    // vowel formants in parallel
+    const F = FORMANTS[syl.vowel] || FORMANTS.a;
+    [[F[0], 9, 1], [F[1], 11, 0.55], [F[2], 13, 0.28]].forEach(([fr, q, lvl]) => {
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fr * V.shift; bp.Q.value = q;
+      const g = ac.createGain(); g.gain.value = lvl * 3.2;
+      src.connect(bp); bp.connect(g); g.connect(env);
+    });
+    if (V.nasal) { const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 260; bp.Q.value = 5; const g = ac.createGain(); g.gain.value = V.nasal * 2; src.connect(bp); bp.connect(g); g.connect(env); }
+    if (V.robot) {
+      // a second square a fifth up, stepped on and off: tinny robot shimmer
+      const o2 = ac.createOscillator(); o2.type = "square"; o2.frequency.value = f * 1.5;
+      const g2 = ac.createGain(); g2.gain.value = 0.06;
+      o2.connect(g2); g2.connect(env); o2.start(t); o2.stop(end);
+    }
+    if (V.breath) {
+      const nz = noise(), bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = F[1]; bp.Q.value = 2;
+      const g = ac.createGain(); g.gain.value = V.breath * 0.35;
+      nz.connect(bp); bp.connect(g); g.connect(env); nz.start(t, Math.random() * 0.5); nz.stop(end);
+    }
+    // consonant at the front of the syllable
+    const on = syl.onset;
+    if (/^(s|z|sh|ch|f|th|c(?=[ei]))/.test(on)) hitNoise(Math.max(0, t - 0.035), { freq: 4800, peak: 0.045, attack: 0.01, decay: 0.05 });
+    else if (/^[tkpdbgcq]/.test(on)) hitNoise(Math.max(0, t - 0.012), { type: "bandpass", freq: 2600, q: 0.8, peak: 0.05, decay: 0.018 });
+    src.start(t); lfo.start(t); src.stop(end); lfo.stop(end);
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -1683,7 +1910,7 @@
   try { localStorage.setItem("pixie:probe", "1"); localStorage.removeItem("pixie:probe"); } catch { storageOK = false; }
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 
-  const prefs = Object.assign({ fingers: true, tips: true, sevenths: false, crackle: true, wholeSong: false, buddy: "dusty", drums: true, next: true }, readJSON("prefs", {}));
+  const prefs = Object.assign({ fingers: true, tips: true, sevenths: false, crackle: true, wholeSong: false, buddy: "dusty", drums: true, next: true, sing: true }, readJSON("prefs", {}));
   if (!BUDDIES[prefs.buddy]) prefs.buddy = "dusty";
   const B = () => BUDDIES[prefs.buddy];
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
@@ -1841,7 +2068,7 @@
     el.textContent = text || "";
     el.classList.toggle("quiet", !prefs.tips || !text);
   }
-  function renderScene() { $("scene").innerHTML = scene(prefs.buddy); }
+  function renderScene() { $("scene").innerHTML = scene(prefs.buddy); document.documentElement.dataset.buddy = prefs.buddy; }
 
   function renderStage() {
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
@@ -1880,9 +2107,13 @@
         <button class="icon-btn" type="button" data-act="surprise" title="Swap this chord for a surprise">✦</button>
         ${undo ? `<button class="undo" type="button" data-act="undo">undo</button>` : ""}
       </div>
+      <div class="lyric-row">
       ${editingLyric
         ? `<input class="lyric-input" id="lyricInput" type="text" value="${esc(w)}" placeholder="words for ${esc(pretty(c.tok))}…" enterkeyhint="next" aria-label="Words for this chord">`
-        : `<button class="lyric${w ? "" : " empty"}" type="button" data-act="lyric">${w ? esc(w) : "✎ words for this chord"}</button>`}
+        : `<button class="lyric${w ? "" : " empty"}" type="button" data-act="lyric" id="lyricLine">${w ? lineSyllables(w).map((sy, k, arr) => `<span class="syl" data-s="${k}">${esc(sy.show)}</span>${sy.last && k < arr.length - 1 ? " " : ""}`).join("") : "✎ words for this chord"}</button>`}
+        <button class="sing-btn" type="button" data-act="sing" aria-pressed="${prefs.sing}" title="${esc(B().name)} sings your words">♪</button>
+        ${prefs.sing && w ? `<button class="sing-btn" type="button" data-act="reroll" title="Sing it another way">↻</button>` : ""}
+      </div>
       <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), fingers: prefs.fingers, next: nextSet })}</div>
       <div class="shape-row">
         <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
@@ -1989,6 +2220,7 @@
       later(() => { if (playing) beatLight(beatNo % meter, (beatNo * 4) % len); }, (nextT + b * B - ac.currentTime) * 1000);
     }
     beatCount += c.beats;
+    if (prefs.sing) singChord(c, song.sections[playSec], nextT, B);
     const at = nextT, j = c.j, sIdx = playSec;
     later(() => {
       if (!playing) return;
@@ -2000,6 +2232,52 @@
     nextT += c.beats * B;
     step++;
     later(tick, (nextT - ac.currentTime - 0.15) * 1000);
+  }
+  // the accompanist sings this chord's words, with karaoke and a moving mouth
+  let singPrev = null;
+  function singChord(c, sec, t0, beatLen) {
+    const w = (sec.words || [])[c.i];
+    if (!w || !w.trim()) { singPrev = null; return; }
+    const sy = lineSyllables(w);
+    const notes = melodyFor(sy, c, K, c.beats, singPrev, prefs.buddy, hashStr(w) + (sec.seed || 1) * 7919 + c.i);
+    if (!notes.length) return;
+    notes.forEach(nt => {
+      const t = t0 + nt.start * beatLen, dur = Math.max(0.12, nt.dur * beatLen);
+      singNote(nt.midi, t, dur, sy[nt.s], prefs.buddy, { glide: nt.glide, hop: nt.hop });
+      later(() => {
+        const line = $("lyricLine");
+        if (line && current[sel] === c) line.querySelectorAll(".syl").forEach(el => el.classList.toggle("sung", +el.dataset.s === nt.s));
+        const wrap = $("sceneWrap");
+        wrap.classList.add("singing");
+        clearTimeout(wrap._t);
+        wrap._t = setTimeout(() => wrap.classList.remove("singing"), dur * 1000 * 0.9);
+        if (!reduceMotion && nt.s % 2 === 0) singFx();
+      }, (t - ac.currentTime) * 1000);
+    });
+    singPrev = { note: notes[notes.length - 1].midi, rhTop: Math.max(...c.v.rh) };
+  }
+  function singFx() {
+    const r = $("buddyHit").getBoundingClientRect();
+    const el = document.createElement("span");
+    el.className = "note-fx";
+    el.textContent = ["♪", "♫", "♬"][Math.floor(Math.random() * 3)];
+    el.style.left = r.left + r.width * 0.5 + "px";
+    el.style.top = r.top + 8 + "px";
+    el.style.color = "var(--lamp)";
+    el.style.fontSize = "16px";
+    el.style.setProperty("--dx", (Math.random() * 30).toFixed(0) + "px");
+    el.style.setProperty("--rot", (Math.random() * 40 - 20).toFixed(0) + "deg");
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+  async function previewSing() {
+    const c = current[sel];
+    if (!c || playing || !(await audioReady())) return;
+    singPrev = null;
+    const B_ = 60 / S().bpm, t = ac.currentTime + 0.05;
+    playChord(c.v, t, c.beats, B_, S().style);
+    singChord(c, song.sections[secIdx], t, B_);
+    fx(c);
   }
   function beatLight(n, st) {
     $("lights").querySelectorAll("i").forEach((el, i) => el.classList.toggle("on", i === n));
@@ -2019,6 +2297,7 @@
     playSec = secIdx;
     step = prefs.wholeSong && !current.length ? 0 : sel;
     beatCount = 0;
+    singPrev = null;
     nextT = ac.currentTime + 0.08;
     crackle(prefs.crackle);
     tick();
@@ -2236,6 +2515,7 @@
           <div class="toggles">
             <label class="tog"><input type="checkbox" data-pref="drums"${prefs.drums ? " checked" : ""}> ${esc(B().name)} drums along</label>
             <label class="tog"><input type="checkbox" data-pref="tips"${prefs.tips ? " checked" : ""}> ${esc(B().name)} talks</label>
+            <label class="tog"><input type="checkbox" data-pref="sing"${prefs.sing ? " checked" : ""}> ${esc(B().name)} sings your words</label>
             <label class="tog"><input type="checkbox" data-pref="next"${prefs.next ? " checked" : ""}> show the next chord</label>
             <label class="tog"><input type="checkbox" data-pref="fingers"${prefs.fingers ? " checked" : ""}> finger numbers</label>
             <label class="tog"><input type="checkbox" data-pref="crackle"${prefs.crackle ? " checked" : ""}> vinyl crackle</label>
@@ -2278,7 +2558,7 @@
       body.innerHTML = Object.entries(BUDDIES).map(([id, b]) => `
         <button class="card buddy-card" type="button" data-buddy="${id}" aria-pressed="${prefs.buddy === id}">
           ${portrait(id)}
-          <div><b>${esc(b.name)}</b><span>${esc(b.who)} · plays ${esc(({ brushes: "brushes", lofi: "a drum machine", shaker: "a shaker" })[b.kit])} · ${esc(VOICES[b.voice].name)}</span><br><span>${esc(b.blurb)}</span></div>
+          <div><b>${esc(b.name)}</b><span>${esc(b.who)} · sings like a ${esc(VOCALS[id].name)} · ${esc(VOICES[b.voice].name)}</span><br><span>${esc(b.blurb)}</span></div>
         </button>`).join("");
     } else if (sheetMode === "moods") {
       $("sheetTitle").textContent = "moods";
@@ -2417,6 +2697,22 @@
       if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
     }
     else if (act === "lyric") { editingLyric = true; renderStage(); }
+    else if (act === "sing") {
+      prefs.sing = !prefs.sing; savePrefs();
+      tipOverride = prefs.sing ? SING_LINES[prefs.buddy] : null;
+      renderStage();
+      refocus('[data-act="sing"]');
+      if (prefs.sing) previewSing();
+    }
+    else if (act === "reroll") {
+      const sec = song.sections[secIdx];
+      sec.seed = (sec.seed || 1) + 1;
+      saveSongs();
+      tipOverride = ({ dusty: "New take. Rolling tape.", ghost: "Remix loaded.", wren: "Another way down the path." })[prefs.buddy];
+      renderStage();
+      refocus('[data-act="reroll"]');
+      previewSing();
+    }
     else if (act === "wizard") { wiz = { mode: "here", tonic: null, minor: null }; openSheet("start"); }
   });
   function saveLyric() {
@@ -2510,7 +2806,7 @@
       playOne(0);
       return;
     }
-    const voice = e.target.closest("[data-voice]"), buddy = e.target.closest("[data-buddy]"), mood = e.target.closest("[data-mood]");
+    const voice = e.target.closest("[data-voice]"), buddy = e.target.closest(".buddy-card[data-buddy]"), mood = e.target.closest("[data-mood]");
     if (voice) {
       setting("voice", voice.dataset.voice === B().voice ? null : voice.dataset.voice);
       VOICE = S().voice || B().voice;
