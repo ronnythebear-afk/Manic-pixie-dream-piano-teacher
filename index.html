@@ -457,7 +457,17 @@
       blurb: sev != null ? "Root and 7th below, color on top" : "Root and 5th below, a 9th for shimmer",
       lh, rh: placeNear(shellIvs.map(iv => mod(ch.rootPc + iv)), 66), spark
     });
+    out.forEach(separateHands);
     return out;
+  }
+
+  // Keep every left-hand key below every right-hand key. Drop the left hand
+  // an octave when that stays in a comfortable range, otherwise lift the right.
+  function separateHands(v) {
+    const lhTop = () => Math.max(...v.lh);
+    if (lhTop() < v.rh[0]) return;
+    if (Math.min(...v.lh) - 12 >= 36) v.lh = v.lh.map(n => n - 12);
+    while (lhTop() >= v.rh[0]) v.rh = v.rh.map(n => n + 12);
   }
 
   const allNotes = v => v.lh.concat(v.rh);
@@ -485,7 +495,7 @@
         for (let s = 50; s <= 76; s++) {
           const rh = stack(opt.pcs, s);
           const a = avg(rh);
-          if (a < 56 || a > 75 || rh[0] < 52 || seen.has(rh[0])) continue;
+          if (a < 56 || a > 75 || rh[0] <= Math.max(...opt.lh) || seen.has(rh[0])) continue;
           seen.add(rh[0]);
           list.push({ opt: idx, v: { ...opt, rh } });
         }
