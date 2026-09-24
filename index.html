@@ -584,6 +584,36 @@
   .tape audio { width: 100%; }
   .tape .cass { width: 180px; height: 110px; }
 
+  /* ---------- a quieter keyboard ---------- */
+  .kl.off { opacity: 0; transition: opacity .25s; }
+  .kbd:hover .kl.off, .kbd.peek .kl.off { opacity: .8; }
+  .kl.land { fill: var(--ink); opacity: .75; }
+  .kl.bl.land { fill: var(--key-w); opacity: .9; }
+  .land { stroke-width: .7; }
+  .land.rh { fill: color-mix(in srgb, var(--rh) 32%, transparent); stroke: var(--rh); }
+  .land.lh { fill: color-mix(in srgb, var(--lh) 32%, transparent); stroke: var(--lh); }
+  .kb + .land, .land { pointer-events: none; }
+  /* ---------- the next row ---------- */
+  .pal-lbl { flex: none; font-family: var(--type); font-weight: 700; font-size: 12px; color: var(--soft); padding: 0 2px 0 6px; }
+  .has-bd .pal-lbl { color: var(--on-bg); opacity: .85; }
+  .pal.nx { padding: 5px 13px 4px; }
+  .pal.nx b { font-size: 22px; }
+  .pal.more { justify-content: center; box-shadow: none; border-style: dashed; font-family: var(--hand); font-weight: 700; font-size: 17px; padding: 8px 12px; }
+  /* ---------- the feel ladder ---------- */
+  .shape-row { gap: 10px; }
+  .stairs { flex: none; display: grid; justify-items: center; gap: 2px; }
+  .steps { display: flex; align-items: flex-end; gap: 3px; height: 24px; }
+  .st { width: 11px; height: var(--h); border: 1.5px solid var(--line); border-radius: 3px 3px 1px 1px; background: var(--card-2); padding: 0; }
+  .st.on { background: var(--lamp); }
+  .st-lbl { font-family: var(--type); font-weight: 700; font-size: 10.5px; color: var(--soft); line-height: 1; }
+  .shape-name { text-align: left; }
+  .shape-name b { font-size: 19px; }
+  .shape-name span { font-size: 12.5px; }
+  .nudges { flex: none; display: flex; gap: 6px; }
+  .stage-top .cknob { margin-left: auto; }
+  .shape-name span { line-height: 1.25; }
+  .seg .cnt { font-size: 10.5px; }
+
   /* ---------- the song map ---------- */
   .sections { gap: 6px; padding: 3px 2px 5px; }
   .blk { flex: none; position: relative; height: 36px; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; padding: 4px 7px 5px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); text-align: left; touch-action: pan-y; box-shadow: var(--shadow); }
@@ -1712,40 +1742,48 @@
     // above the keys, from the key it's on to the key it goes to
     const pairs = [];
     if (nv && o.arrows) {
-      const hand = (a, b, cl) => moves(a, b).forEach(([p, q]) => { if (p !== q && has(p) && has(q)) pairs.push({ p, q, cl, a: Math.min(xOf(p), xOf(q)), b: Math.max(xOf(p), xOf(q)) }); });
+      const hand = (a, b, cl) => moves(a, b).forEach(([p, q]) => { if (Math.abs(q - p) > 2 && has(p) && has(q)) pairs.push({ p, q, cl, a: Math.min(xOf(p), xOf(q)), b: Math.max(xOf(p), xOf(q)) }); });
       if (v.lh.length && nv.lh.length) { hand(v.lh, nv.lh, "lh"); hand(v.rh, nv.rh, "rh"); }
       else hand(allNotes(v), allNotes(nv), "rh");
     }
+    // two lanes, always the same height, so the keyboard never changes shape
     const lanes = [];
     pairs.sort((x, y) => x.a - y.a).forEach(pr => {
       let k = lanes.findIndex(end => end < pr.a - 4);
-      if (k < 0) { k = lanes.length; lanes.push(0); }
-      lanes[k] = pr.b;
+      if (k < 0 && lanes.length < 2) { k = lanes.length; lanes.push(0); }
+      if (k < 0) k = lanes[0] <= lanes[1] ? 0 : 1;
+      lanes[k] = Math.max(lanes[k], pr.b);
       pr.lane = k;
     });
     const LANE = 6;
-    const T = nv && o.arrows ? Math.max(1, lanes.length) * LANE + 3 : 0;
+    const T = o.band ? 2 * LANE + 3 : 0;
 
     let keys = "", marks = "", over = "";
     const name = (m, on) => labelled ? o.label(m, on) : "";
+    // quiet keyboard: only pressed keys (and the keys you land on next) keep their names
+    const landSet = new Set(nv ? allNotes(nv).filter(m => !lh.has(m) && !rh.has(m)) : []);
+    const lk = m => cls(m) ? " on" : landSet.has(m) ? " land" : o.quiet ? " off" : "";
     whites.forEach((m, i) => {
       keys += `<rect class="kw${cls(m)}"${hit(m)} data-k="${m}" x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.6"/>`;
-      if (labelled) marks += `<text class="kl${cls(m) ? " on" : ""}" x="${xOf(m)}" y="${H - 3.4}">${name(m, !!cls(m))}</text>`;
+      if (labelled) marks += `<text class="kl${lk(m)}" x="${xOf(m)}" y="${H - 3.4}">${name(m, !!cls(m))}</text>`;
       if (labelled && mod(m) === 0) marks += `<text class="oct" x="${xOf(m)}" y="${H + 7.2}">C${m / 12 - 1}</text>`;
     });
     for (let m = lo; m <= hi; m++) {
       if (!isBlack(m) || !pos.has(m - 1)) continue;
       keys += `<rect class="kb${cls(m)}"${hit(m)} data-k="${m}" x="${bx(m)}" y=".5" width="${BW}" height="${BH}" rx="1.1"/>`;
-      if (labelled) marks += `<text class="kl bl${cls(m) ? " on" : ""}" x="${xOf(m)}" y="${BH - 2.6}">${name(m, !!cls(m))}</text>`;
+      if (labelled) marks += `<text class="kl bl${lk(m)}" x="${xOf(m)}" y="${BH - 2.6}">${name(m, !!cls(m))}</text>`;
     }
-    // the chord coming up next, as dotted outlines
-    if (nv) allNotes(nv).forEach(m => {
-      if (lh.has(m) || rh.has(m) || m < lo || m > hi) return;
-      if (isBlack(m)) { if (pos.has(m - 1)) marks += `<rect class="ghostkey" x="${bx(m) + 1}" y="1.5" width="${BW - 2}" height="${BH - 2}" rx="1"/>`; }
-      else if (pos.has(m)) marks += `<rect class="ghostkey" x="${pos.get(m) * W + 2}" y="${BH + 2}" width="${W - 3}" height="${H - BH - 10}" rx="1.4"/>`;
+    // the chord coming up next: its new keys glow softly in the color of the hand that plays them
+    let land = "";
+    landSet.forEach(m => {
+      if (m < lo || m > hi) return;
+      const hc = nv.lh.includes(m) ? "lh" : "rh";
+      if (isBlack(m)) { if (pos.has(m - 1)) land += `<rect class="land ${hc}" x="${bx(m) + .9}" y="1.2" width="${BW - 1.8}" height="${BH - 2.2}" rx="1"/>`; }
+      else if (pos.has(m)) land += `<rect class="land ${hc}" x="${pos.get(m) * W + 1.8}" y="${BH + 1.5}" width="${W - 2.6}" height="${H - BH - 3.5}" rx="1.4"/>`;
     });
     // keys that stay down into the next chord
     stay.forEach(m => { if (has(m)) marks += `<circle class="stay" cx="${xOf(m)}" cy="${labelled ? yOf(m) : (isBlack(m) ? BH - 5 : H - 6)}" r="${labelled ? 2.2 : 2.8}"/>`; });
+    if (!T && land) over = `<g class="arrows">${land}</g>`;
     if (T) {
       let arr = "";
       pairs.forEach(pr => {
@@ -1758,12 +1796,7 @@
           + `<path class="head" d="M${tip.toFixed(1)} ${y.toFixed(1)}L${base.toFixed(1)} ${(y - h * 0.62).toFixed(1)}L${base.toFixed(1)} ${(y + h * 0.62).toFixed(1)}z"/>`
           + `<path class="drop" d="M${x1.toFixed(1)} ${(y + 1.2).toFixed(1)}V-.3"/></g>`;
       });
-      // "next" note: in the top lane, on whichever side is free
-      const top = pairs.filter(pr => pr.lane === lanes.length - 1);
-      const leftFree = !top.some(pr => pr.a < 44), rightFree = !top.some(pr => pr.b > width - 44);
-      const lbl = o.nextName ? `next: ${o.nextName}${pairs.length ? "" : " · same keys"}` : "";
-      if (lbl && (leftFree || rightFree || !pairs.length)) arr += `<text class="nextlbl" x="${leftFree ? 1 : width - 1}" y="${(-T + 4.4).toFixed(1)}" text-anchor="${leftFree ? "start" : "end"}">${lbl}</text>`;
-      over = `<g class="arrows">${arr}</g>`;
+      over = `<g class="arrows">${land}${arr}</g>`;
     }
     return `<svg viewBox="0 ${-T} ${width} ${H + (labelled ? 9 : 1) + T}" aria-hidden="true">
       <defs><filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="1" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.3"/></filter></defs>
@@ -3403,7 +3436,15 @@
     }).join("") + `<button class="blk add" type="button" data-act="addsec" aria-label="Add a part">+</button>`;
   }
 
+  // the next row: your best next chords, big, and "more" for everything else
   function renderPalette() {
+    const ideas = nextIdeas();
+    palEl.innerHTML = `<button class="keychip" type="button" data-act="key" title="Key">${esc(pretty(keyName(K)))}</button>`
+      + `<span class="pal-lbl">${current.length ? "next" : "start on"}</span>`
+      + ideas.pick.slice(0, 3).map(c => `<button class="pal nx" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`).join("")
+      + `<button class="pal more" type="button" data-act="more">more…</button>`;
+  }
+  function renderPaletteOld() {
     const p = palette(K, prefs.sevenths);
     const last = current[current.length - 1];
     const next = new Set(suggestNext(last?.ch, K).slice(0, 2));
@@ -3540,17 +3581,23 @@
       <div class="stage-top">
         <div class="chord-name${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}">${symbolHTML(c.ch)}</div>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
-        <button class="pill" type="button" data-act="beats" title="How long it lasts. Tap to change.">${c.beats}${glyph(Mtr)}</button>
+        ${L("ribbon") ? "" : `<button class="pill" type="button" data-act="beats" title="How long it lasts. Tap to change.">${c.beats}${glyph(Mtr)}</button>`}
         ${(() => { const ld = ladderOf(c.ch); return ld && ld.L.length > 1 ? `<button class="cknob" type="button" id="knob" data-act="knob" role="slider" aria-label="Chord color" aria-valuemin="0" aria-valuemax="${ld.L.length - 1}" aria-valuenow="${ld.i}" aria-valuetext="${esc(c.tok)}" title="Turn for more color">${knobSVG(ld.L.length, ld.i)}</button>` : ""; })()}
         <button class="icon-btn" type="button" data-act="surprise" title="Swap this chord for a surprise">✦</button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: keep, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, nextName: arrows ? esc(pretty(nextC.tok)) : "", tall: prefs.view === "bare" })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: keep, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, quiet: true, band: L("arrows"), tall: prefs.view === "bare" })}</div>
       <div class="shape-row">
-        <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
-        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${arrows ? ` · ${keep.size} stay for ${esc(pretty(nextC.tok))}` : c.j > 0 || c.stay.size ? ` · ${c.stay.size} kept` : ""}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
-        <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape">›</button>
+        <div class="stairs" role="radiogroup" aria-label="How fancy the shapes are">
+          <span class="steps">${FEELS.map((f, k) => `<button class="st${S().level === f.id ? " on" : ""}" type="button" role="radio" aria-checked="${S().level === f.id}" data-ladder="${f.id}" style="--h:${7 + k * 5}px" title="${f.name}: ${f.note}" aria-label="${f.name}"></button>`).join("")}</span>
+          <span class="st-lbl">${esc((FEELS.find(f => f.id === S().level) || FEELS[1]).name)}</span>
+        </div>
+        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${arrows ? `<br>${keep.size ? `${keep.size} stay for ${esc(pretty(nextC.tok))}` : `all move for ${esc(pretty(nextC.tok))}`}` : ""}</span></div>
+        <div class="nudges">
+          <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
+          <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape (${c.opt + 1} of ${c.len})" title="${c.opt + 1} of ${c.len}">›</button>
+        </div>
       </div>`;
     if (!finding) say(tip);
     fitLane();
@@ -3688,7 +3735,7 @@
       el.className = "note-fx";
       el.textContent = FX_GLYPHS[(m + i) % FX_GLYPHS.length];
       el.style.left = r.left + r.width / 2 + "px";
-      el.style.top = r.top + r.height * 0.35 + "px";
+      el.style.top = kb.getBoundingClientRect().top - 6 + "px";
       el.style.color = lh.has(m) ? "var(--lh)" : "var(--rh)";
       el.style.setProperty("--dx", (Math.random() * 50 - 25).toFixed(0) + "px");
       el.style.setProperty("--rot", (Math.random() * 60 - 30).toFixed(0) + "deg");
@@ -4360,7 +4407,7 @@
         <div class="knob"><span class="lbl">${current.length ? `could come next, in ${esc(pretty(keyName(K)))}` : `good first chords for a ${esc(x.name.toLowerCase())}`}</span>
           <p class="note">${esc(current.length ? B().name + " would try one of these. Tap to add, tap again to keep going." : role.hint)}</p>
           <div class="add-row">${ideas.pick.map(c => chip(c, true)).join("")}</div></div>
-        <div class="knob"><span class="lbl">every chord in the key</span>
+        <div class="knob"><span class="lbl">every chord in the key <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></span>
           <div class="add-row">${ideas.all.map(c => chip(c)).join("")}<span class="sep">·</span>${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
         <div class="knob"><span class="lbl">or a whole mood, ${current.length ? "added on the end" : "four bars at once"}</span>
           <div class="moods">${MOODS.map(m => `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`).join("")}</div></div>
@@ -4575,6 +4622,7 @@
   palEl.addEventListener("click", e => {
     if (e.target.closest('[data-act="key"]')) { openSheet("knobs"); return; }
     if (e.target.closest('[data-act="moods"]')) { openSheet("moods"); return; }
+    if (e.target.closest('[data-act="more"]')) { openSheet("add"); return; }
     const b = e.target.closest("[data-add]");
     if (!b) return;
     const t = sec().prog.trim();
@@ -4669,7 +4717,7 @@
     renderStage();
   }
   stageEl.addEventListener("click", e => {
-    const el = e.target.closest("[data-act]") || e.target.closest("#lane");
+    const el = e.target.closest("[data-act],[data-ladder]") || e.target.closest("#lane");
     if (!el) return;
     if (el.id === "lane") {
       if (laneClickBlocked) return;
@@ -4682,6 +4730,13 @@
       if (knobDrag?.moved) return;
       const ld = ladderOf(c.ch);
       setColor(c, ld.L[(ld.i + 1) % ld.L.length], true);
+      return;
+    }
+    if (el.dataset.ladder) {
+      setting("level", el.dataset.ladder); overrides.clear();
+      const f = FEELS.find(x => x.id === el.dataset.ladder);
+      tipOverride = `${f.name}: ${f.note}.`;
+      renderAll(); refocus(`[data-ladder="${f.id}"]`); playOne(sel);
       return;
     }
     if (act === "play") playOne(sel);
@@ -4748,6 +4803,19 @@
     if (e.target.id !== "lyricInput") return;
     saveLyric();
     setTimeout(() => { if (editingLyric && document.activeElement?.id !== "lyricInput" && !pen) { editingLyric = false; renderStage(); } }, 0);
+  });
+
+  // touching the keyboard shows every key's name for a moment
+  let peekT = null;
+  stageEl.addEventListener("pointerdown", e => {
+    const kb = e.target.closest(".kbd");
+    if (!kb) return;
+    clearTimeout(peekT);
+    kb.classList.add("peek");
+  });
+  stageEl.addEventListener("pointerup", e => {
+    const kb = stageEl.querySelector(".kbd.peek");
+    if (kb) peekT = setTimeout(() => kb.classList.remove("peek"), 1600);
   });
 
   // ---------- turning the color knob: drag up or right for more color ----------
@@ -5036,6 +5104,7 @@
   $("sheetBody").addEventListener("change", e => {
     const t = e.target;
     if (t.id === "kKey") { setting("key", t.value); renderAll(); renderSheet(); }
+    else if (t.id === "sev") { prefs.sevenths = t.checked; savePrefs(); renderPalette(); renderSheet(); }
     else if (t.id === "kFills") previewFill();
     else if (t.dataset.layer) {
       prefs.layers[t.dataset.layer] = t.checked; savePrefs();
