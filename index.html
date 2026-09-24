@@ -66,7 +66,7 @@
 
   .app {
     min-height: 100%; max-width: 760px; margin: 0 auto;
-    padding-inline: 16px; padding-block: 12px calc(92px + env(safe-area-inset-bottom, 0px));
+    padding-inline: 16px; padding-block: 12px calc(162px + env(safe-area-inset-bottom, 0px));
     display: flex; flex-direction: column; gap: 10px;
   }
   .view { display: flex; flex-direction: column; gap: 10px; }
@@ -79,8 +79,10 @@
   .modes button { border: 0; background: none; border-radius: 999px; padding: 3px 11px; font-family: var(--type); font-size: 12.5px; font-weight: 700; color: var(--soft); }
   .modes button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
 
-  .songline { display: flex; align-items: center; gap: 8px; }
-  .song-title { flex: 1; min-width: 0; border: 0; background: transparent; font-family: var(--hand); font-weight: 700; font-size: 22px; padding: 0; line-height: 1.1; }
+  .songline { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .songline .sections { flex: 1; min-width: 0; }
+  .toplinks { margin-left: auto; display: flex; gap: 2px; }
+  .song-title { flex: 0 1 12ch; min-width: 6ch; border: 0; background: transparent; font-family: var(--hand); font-weight: 700; font-size: 22px; padding: 0; line-height: 1.1; }
   .song-title:focus { outline: none; text-decoration: underline wavy var(--surprise) 1.5px; text-underline-offset: 5px; }
   .link { border: 0; background: none; padding: 2px 4px; font-family: var(--type); font-weight: 700; font-size: 13px; color: var(--soft); text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
   .link:hover { color: var(--ink); }
@@ -235,6 +237,56 @@
   .groove option { color: #2f2a3d; background: #f7f3f4; }
   .sound-hint { margin: 0; background: var(--lamp); color: var(--on-color); border-radius: 6px; padding: 5px 12px; font-weight: 800; font-size: 13.5px; }
 
+
+  /* ---------- the accompanist's scene on top of the deck ---------- */
+  .deck { padding-top: 0; }
+  .scene-wrap { position: relative; height: 84px; margin: 0 -16px 8px; overflow: hidden; border-bottom: 2px solid #14121b; --beat: .7s; }
+  .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .buddy-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 104px; border: 0; background: transparent; }
+  .buddy-hit:focus-visible { outline-offset: -4px; }
+  .say {
+    position: absolute; left: 112px; right: 12px; top: 9px; max-width: 520px; min-height: 40px; text-align: left;
+    background: #f7f1e6; color: #2f2a3d; border: 1.5px solid #2f2a3d; border-radius: 14px 16px 15px 13px / 13px 15px 16px 14px;
+    padding: 5px 11px; font-family: var(--hand); font-weight: 700; font-size: 16.5px; line-height: 1.12;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    box-shadow: 0 6px 12px -8px rgba(0, 0, 0, .6);
+  }
+  .say::before { content: ""; position: absolute; left: -8px; top: 16px; border: 7px solid transparent; border-right-color: #2f2a3d; border-left: 0; }
+  .say::after { content: ""; position: absolute; left: -5.5px; top: 17.5px; border: 5.5px solid transparent; border-right-color: #f7f1e6; border-left: 0; }
+  .say.quiet { opacity: 0; pointer-events: none; }
+  .scene .bob, .scene .float, .scene .hit, .scene .flick, .scene .fly, .scene .pad { transform-box: fill-box; }
+  .scene .hit { transform-origin: 0% 0%; }
+  .scene .flick { transform-origin: 50% 100%; animation: flick .45s ease-in-out infinite alternate; }
+  .scene .twinkle { animation: twinkle 2.8s ease-in-out infinite alternate; }
+  .scene .fly { animation: fly 3.2s ease-in-out infinite alternate; }
+  .scene .float { animation: float 2.4s ease-in-out infinite alternate; }
+  .scene .neon { animation: twinkle 1.6s ease-in-out infinite alternate; }
+  .playing .scene .bob { animation: bob var(--beat) ease-in-out infinite alternate; }
+  .playing .scene .hit { animation: hit calc(var(--beat) / 2) ease-in-out infinite alternate; }
+  .playing .scene .shake { animation: shake calc(var(--beat) / 4) linear infinite alternate; }
+  .playing .scene .pad { animation: pad var(--beat) steps(2) infinite; }
+  @keyframes bob { to { transform: translateY(-1.6px); } }
+  @keyframes hit { to { transform: rotate(-16deg); } }
+  @keyframes shake { from { transform: translate(0, -1px); } to { transform: translate(1.4px, 1px); } }
+  @keyframes pad { 50% { opacity: .25; } }
+  @keyframes flick { from { transform: scaleY(.86) skewX(-3deg); } to { transform: scaleY(1.06) skewX(3deg); } }
+  @keyframes twinkle { from { opacity: .35; } to { opacity: 1; } }
+  @keyframes fly { from { transform: translate(0, 0); opacity: .2; } to { transform: translate(6px, -5px); opacity: 1; } }
+  @keyframes float { to { transform: translateY(-2.5px); } }
+  .ghostkey { fill: none; stroke: var(--soft); stroke-width: .9; stroke-dasharray: 1.6 1.4; }
+
+  /* band + moods sheets */
+  .card.buddy-card { display: flex; align-items: center; gap: 12px; text-align: left; width: 100%; }
+  .buddy-card[aria-pressed="true"] { background: var(--card-2); border-width: 2.5px; }
+  .portrait { width: 64px; height: 72px; flex: none; background: #2a2144; border-radius: 12px; }
+  .buddy-card b { display: block; font-family: var(--hand); font-size: 24px; line-height: 1; }
+  .buddy-card span { font-size: 13px; color: var(--soft); font-weight: 700; }
+  .moods { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+  .mood-btn { text-align: left; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); padding: 7px 11px; }
+  .mood-btn b { display: block; font-family: var(--hand); font-size: 21px; line-height: 1; }
+  .mood-btn span { font-family: var(--type); font-size: 11.5px; color: var(--soft); }
+  .subhead { margin: 6px 0 0; font-family: var(--hand); font-weight: 700; font-size: 22px; }
+
   /* ---------- sheets ---------- */
   .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; }
   .sheet {
@@ -276,7 +328,7 @@
   .tog input { accent-color: var(--lh); width: 18px; height: 18px; margin: 0; }
   .round { width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); font-weight: 800; font-size: 18px; line-height: 1; display: inline-grid; place-items: center; }
 
-  .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) rotate(-1deg); z-index: 30; background: var(--lamp); color: var(--on-color); font-family: var(--hand); font-weight: 700; font-size: 18px; padding: 5px 14px; box-shadow: var(--shadow); white-space: nowrap; }
+  .toast { position: fixed; left: 50%; bottom: calc(170px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) rotate(-1deg); z-index: 30; background: var(--lamp); color: var(--on-color); font-family: var(--hand); font-weight: 700; font-size: 18px; padding: 5px 14px; box-shadow: var(--shadow); white-space: nowrap; }
 
   @media (min-width: 700px) {
     .tile { flex-basis: 120px; }
@@ -309,10 +361,11 @@
 <div class="app">
   <header class="top">
     <h1 class="wordmark">pixie chords<span>.</span></h1>
-    <div class="modes" role="group" aria-label="Mode">
-      <button id="tabWrite" type="button" aria-pressed="true">write</button>
-      <button id="tabFind" type="button" aria-pressed="false">name a chord</button>
-    </div>
+    <nav class="toplinks">
+      <button class="link" type="button" id="openSongs">songs</button>
+      <button class="link" type="button" id="openMoods">moods</button>
+      <button class="link" type="button" id="tabFind" aria-pressed="false">name it</button>
+    </nav>
   </header>
 
   <p class="sound-hint" id="soundHint" role="status" hidden>No sound yet. Tap play again, turn the volume up, and on an iPhone flip the silent switch off.</p>
@@ -320,10 +373,8 @@
   <section class="view" id="writeView">
     <div class="songline">
       <input id="songTitle" class="song-title" type="text" aria-label="Song title" spellcheck="false">
-      <button class="link" type="button" id="openSongs">songs</button>
-      <button class="link" type="button" id="openLib">library</button>
+      <div class="sections" id="sections"></div>
     </div>
-    <div class="sections" id="sections"></div>
     <nav class="strip" id="strip" aria-label="Chords in this section"></nav>
     <div class="entry">
       <label for="prog">chords</label>
@@ -339,6 +390,11 @@
 </div>
 
 <footer class="deck" id="deck">
+  <div class="scene-wrap" id="sceneWrap">
+    <div id="scene"></div>
+    <button class="buddy-hit" type="button" id="buddyHit" aria-label="Choose who plays with you"></button>
+    <button class="say" type="button" id="say" title="Tap for another tip"></button>
+  </div>
   <div class="deck-in">
     <div class="cassette">
       <div class="reels" aria-hidden="true">
@@ -349,7 +405,7 @@
     </div>
     <button class="dbtn play" id="playAll" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2v12l10-6z" fill="currentColor"/></svg></button>
     <button class="dbtn" id="loop" type="button" aria-pressed="true" aria-label="Loop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.5a3 3 0 0 1 3-3h6.5M11 1.5l2 2-2 2M13 9.5a3 3 0 0 1-3 3H3.5M5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <select class="groove" id="groove" aria-label="Groove"></select>
+    <select class="groove" id="style" aria-label="How to play the notes"></select>
     <button class="dbtn" id="openKnobs" type="button" aria-label="Knobs"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg></button>
   </div>
 </footer>
@@ -964,6 +1020,155 @@
   };
 
   // =========================================================
+  // Accompanists: each one drums, sets a scene, and teaches
+  // chords and keys in their own voice
+  // =========================================================
+  const BUDDIES = {
+    dusty: {
+      name: "Dusty", who: "a cowboy pixie", kit: "brushes", voice: "saloon",
+      blurb: "Brushes on a snare, a hay bale in the desert, plain talk about chords.",
+      hello: "Howdy, partner. Pick a chord and I'll keep the beat.",
+      major: {
+        0: "That's the I chord, home on the range. Every song rides back here sooner or later.",
+        2: "The ii chord. A little mosey away from home. It likes to lead on to V.",
+        4: "iii is a quiet one. Shares two notes with I and usually drifts on to vi.",
+        5: "IV feels like the trail opening up. Head home to I, or push on to V.",
+        7: "V's the pull, partner. Your ear wants I right after it.",
+        9: "vi is I's lonesome cousin. Same family, sadder campfire.",
+        11: "vii° is all nerves. Treat it like a V that lost its hat."
+      },
+      minor: {
+        0: "Home, but in minor. A campfire after sundown.",
+        2: "ii° is jumpy. It wants to get over to V quick.",
+        3: "III is the sunny side of this minor town. It's the relative major.",
+        5: "iv is a long sigh. After that, it's off to V.",
+        7: "V in a minor key borrows one raised note so it can pull home hard.",
+        8: "VI is wide open country. Rides nice into III or VII.",
+        10: "VII sits a step below home and loves to climb back up to i."
+      },
+      borrowed: n => `Well now, ${n} ain't from these parts. It's borrowed, and borrowed chords are what give a song its twang.`,
+      minorIV: "A minor iv in a major key. Aches like an old fiddle, then heads on home.",
+      flat7: "♭VII is borrowed from the minor side. Sounds like a great big sky.",
+      secondary: n => `${n} points at the next chord like a signpost. Folks call that a secondary dominant.`,
+      build: {
+        maj: "Major chords: a major 3rd, then a minor 3rd on top. Bright as noon.",
+        min: "Minor flips it: minor 3rd first, then major. Instant sundown.",
+        dim: "Diminished stacks two minor 3rds. Tight as new boots.",
+        aug: "Augmented stacks two major 3rds. Shimmery, like a mirage.",
+        sus: "Sus chords skip the 3rd. They just hang there, like a tumbleweed waiting on wind."
+      },
+      stay: (k, m) => `${k} held over from the last chord, so only ${m} moving. Easy riding.`,
+      mood: m => `Here's a ${m} one for you, partner.`,
+      surprise: "Let's try something a little different."
+    },
+    ghost: {
+      name: "Static", who: "a ghost from 1986", kit: "lofi", voice: "neon",
+      blurb: "A drum machine in a neon bedroom, and a real nerd about numbers.",
+      hello: "Whoa, a visitor! I've been haunting this keyboard since 1986. Let's jam.",
+      major: {
+        0: "The I chord! Home base. Totally where the song wants to crash at the end.",
+        2: "ii is always on its way to V. Classic setup move.",
+        4: "iii is low-key. Two notes in common with I, like a stunt double.",
+        5: "IV! That lift is pure power ballad. From here, go home or go to V.",
+        7: "V is major tension, dude. Your ears are begging for I next.",
+        9: "vi is the relative minor. Same notes as I, extra moody, like a mall in the rain.",
+        11: "vii° is basically a V7 with no root. Spooky. I approve."
+      },
+      minor: {
+        0: "Minor home base. Very synthwave at midnight.",
+        2: "ii° is tiny and tense. It's dying to hit V.",
+        3: "III is the relative major, the neon sign in the dark.",
+        5: "iv is the slow-dance chord. Then off to V.",
+        7: "In minor, V sneaks in one raised note so it can yank you home. Gnarly.",
+        8: "VI is huge and cinematic. Big movie-ending energy.",
+        10: "VII is one step under home. It loves to climb back up to i."
+      },
+      borrowed: n => `${n} is borrowed from another key, like a cassette you never gave back. Totally allowed.`,
+      minorIV: "A minor iv in a major key! Half the power ballads of my era did this. Instant heartache.",
+      flat7: "♭VII, borrowed from the minor side. Pure arena rock.",
+      secondary: n => `${n} is a secondary dominant: the V of the next chord, pointing right at it.`,
+      build: {
+        maj: "Major = 4 half steps up, then 3 more. Count 'em on the keys.",
+        min: "Minor = 3 half steps, then 4. Same parts, flipped.",
+        dim: "Diminished = 3 and 3. Tight and haunted, like me.",
+        aug: "Augmented = 4 and 4. Floaty and weird.",
+        sus: "Sus means no 3rd at all. It hovers, not happy, not sad."
+      },
+      stay: (k, m) => `${k} stay put from the last chord. Only ${m} to move. Efficient. Radical.`,
+      mood: m => `One ${m} progression, fresh off the tape.`,
+      surprise: "Hold on, let me rewind that one."
+    },
+    wren: {
+      name: "Wren", who: "a wandering minstrel", kit: "shaker", voice: "felt",
+      blurb: "A shaker by the campfire, and quiet thoughts about how chords feel.",
+      hello: "Hello. I'll keep a quiet rhythm while you find your way across the keys.",
+      major: {
+        0: "The I chord is home: the tent, the fire, the kettle on.",
+        2: "ii takes a few steps down the path. It usually wanders on to V.",
+        4: "iii is soft and unsure, like a morning before the fog lifts. It leans toward vi.",
+        5: "IV feels like the trees opening onto a meadow. From here, home, or onward to V.",
+        7: "V is the path turning toward home. You can feel the pull.",
+        9: "vi is the same forest in the rain. Nearly I's notes, but wistful.",
+        11: "vii° is a narrow bridge. Cross it quickly and home is on the other side."
+      },
+      minor: {
+        0: "Home, in a minor key. Lantern light and long shadows.",
+        2: "ii° is small and uneasy. It wants to move on to V.",
+        3: "III is the relative major, a clearing where the sun gets through.",
+        5: "iv is a sigh by the river. After it comes V.",
+        7: "V in minor raises one note so the way home feels certain.",
+        8: "VI is wide and warm, like an evening sky. It drifts to III or VII.",
+        10: "VII sits just below home and climbs gently back to it."
+      },
+      borrowed: n => `${n} comes from somewhere else, a traveler passing through. Borrowed chords give a song its stories.`,
+      minorIV: "A minor iv, borrowed from the minor key. One note falls and the meadow goes gray for a moment.",
+      flat7: "♭VII is borrowed from the minor side. It sounds like a wide horizon.",
+      secondary: n => `${n} is a signpost pointing at the next chord. Musicians call it a secondary dominant.`,
+      build: {
+        maj: "Major chords stack a major 3rd, then a minor 3rd. They feel like daylight.",
+        min: "Minor chords stack a minor 3rd, then a major 3rd. They feel like dusk.",
+        dim: "Diminished chords stack two minor 3rds. A held breath.",
+        aug: "Augmented chords stack two major 3rds. Like a dream you can't quite remember.",
+        sus: "Sus chords leave out the 3rd. They hover, like mist."
+      },
+      stay: (k, m) => `${k} stay where they were, and only ${m} need to move. Let your hand rest.`,
+      mood: m => `Something ${m}, for the road.`,
+      surprise: "Let's wander off the path a little."
+    }
+  };
+
+  function buddyRole(b, ch, a, k) {
+    const n = pretty(ch.rootName) + ch.qual;
+    if (a.secondary) return b.secondary(n);
+    if (!a.inKey || a.fn === "surprise") {
+      if (!k.minor && a.iv === 5 && a.bq === "min") return b.minorIV;
+      if (!k.minor && a.iv === 10) return b.flat7;
+      return b.borrowed(n);
+    }
+    return (k.minor ? b.minor : b.major)[a.iv] || "";
+  }
+
+  // =========================================================
+  // Moods: progressions written into your key
+  // steps are [semitones above the major tonic, chord quality]
+  // =========================================================
+  const MOODS = [
+    { id: "hopeful", name: "hopeful", steps: [[0, ""], [7, ""], [9, "m"], [5, ""]], why: "I, V, vi, IV. The most-loved loop there is: home, a lift, a little shadow, then open sky." },
+    { id: "wistful", name: "wistful", steps: [[9, "m"], [5, ""], [0, ""], [7, ""]], why: "vi, IV, I, V. The same four chords as hopeful, started from the sad one." },
+    { id: "cozy", name: "cozy", steps: [[2, "m7"], [7, "7"], [0, "maj7"], [9, "m7"]], why: "ii, V, I, vi with 7ths. The jazz walk home, with the lamp on." },
+    { id: "dreamy", name: "dreamy", steps: [[5, "maj7"], [4, "m7"], [2, "m7"], [0, "maj7"]], why: "IV, iii, ii, I, stepping down with soft 7ths. It floats down the stairs." },
+    { id: "bittersweet", name: "bittersweet", steps: [[0, ""], [5, ""], [5, "m"], [0, ""]], why: "I, IV, iv, I. The IV turns minor for one chord, and that single falling note does the aching." },
+    { id: "brave", name: "brave", steps: [[0, ""], [10, ""], [5, ""], [0, ""]], why: "I, ♭VII, IV, I. The borrowed ♭VII sounds like standing on a hill." },
+    { id: "spooky", name: "spooky", minor: true, steps: [[0, "m"], [8, ""], [3, ""], [7, "7"]], why: "i, ♭VI, ♭III, V7 in minor. Dark, then darker, then the V7 drags you back." },
+    { id: "lullaby", name: "lullaby", steps: [[0, ""], [4, "m"], [5, ""], [0, ""]], why: "I, iii, IV, I. Gentle steps that never go far from home." }
+  ];
+  function moodProg(mood, k) {
+    const major = k.minor ? { tonic: mod(k.tonic + 3), minor: false } : k;
+    const base = mood.minor ? { tonic: k.minor ? k.tonic : k.tonic, minor: true } : major;
+    return mood.steps.map(([iv, q]) => scaleNote(base, iv) + q).join(" ");
+  }
+
+  // =========================================================
   // Drawing
   // =========================================================
   const BLACK = new Set([1, 3, 6, 8, 10]);
@@ -1017,6 +1222,12 @@
       keys += `<rect class="kb${cls(m)}"${hit(m)} x="${bx(m)}" y=".5" width="${BW}" height="${BH}" rx="1.1"/>`;
       if (labelled && cls(m) && !o.fingers) marks += `<text class="kl" x="${xOf(m)}" y="${BH - 3.2}" style="font-size:3.2px">${o.label(m)}</text>`;
     }
+    // the chord coming up next, as dotted outlines
+    if (o.next) o.next.forEach(m => {
+      if (lh.has(m) || rh.has(m) || m < lo || m > hi) return;
+      if (isBlack(m)) { if (pos.has(m - 1)) marks += `<rect class="ghostkey" x="${bx(m) + 1}" y="1.5" width="${BW - 2}" height="${BH - 2}" rx="1"/>`; }
+      else if (pos.has(m)) marks += `<rect class="ghostkey" x="${pos.get(m) * W + 2}" y="${BH + 2}" width="${W - 3}" height="${H - BH - 4}" rx="1.4"/>`;
+    });
     if (o.fingers) {
       const put = (notes, hand) => fingering(notes, hand).forEach((f, i) => {
         const m = notes[i], x = xOf(m), y = yOf(m);
@@ -1032,6 +1243,129 @@
       <defs><filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="1" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.3"/></filter></defs>
       <g filter="url(#rough)">${keys}</g>${marks}</svg>`;
   }
+
+  // =========================================================
+  // Scenes: a lo-fi strip along the top of the tape deck
+  // Drawn 1200 wide so wide screens see more of the world;
+  // the accompanist always sits at the left.
+  // =========================================================
+  const stars = (n, seed, h = 34) => {
+    let s = "", r = seed;
+    const rnd = () => (r = (r * 9301 + 49297) % 233280) / 233280;
+    for (let i = 0; i < n; i++) s += `<circle class="twinkle" style="animation-delay:${(-rnd() * 3).toFixed(2)}s" cx="${(rnd() * 1200).toFixed(0)}" cy="${(3 + rnd() * h).toFixed(0)}" r="${(0.5 + rnd() * 0.8).toFixed(1)}" fill="#f5ecd8"/>`;
+    return s;
+  };
+
+  function dustySVG(x, y, s = 1) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="bob">
+      <ellipse cx="-9" cy="-20" rx="5.5" ry="10" transform="rotate(-28 -9 -20)" fill="#d6ecf2" fill-opacity=".9" stroke="${INK}" stroke-width=".7"/>
+      <ellipse cx="9" cy="-20" rx="5.5" ry="10" transform="rotate(28 9 -20)" fill="#d6ecf2" fill-opacity=".9" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-3-1-2 8M3-1 6 8" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M-4.6 7.4h4.4v2.6h-5.6zM4.2 7.4h4.4l1.4 2.6h-5.8z" fill="#6b3f2a" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-6 0h12l-1-13h-10z" fill="#7aa6c9" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-6 0h4l-.4-13h-2.6zM6 0H2l.4-13H5z" fill="#9a6a3f" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-5.2-13.2h10.4L0-8.6z" fill="#d9534f" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-6.8-21.6-10-24-6.4-18.6zM6.8-21.6 10-24 6.4-18.6z" fill="#f3d2b8" stroke="${INK}" stroke-width=".6"/>
+      <circle cx="0" cy="-20" r="7" fill="#f3d2b8" stroke="${INK}" stroke-width=".8"/>
+      <circle cx="-2.6" cy="-20.4" r=".9" fill="${INK}"/><circle cx="2.6" cy="-20.4" r=".9" fill="${INK}"/>
+      <path d="M-3.8-17.6h.1M-3-17h.1M3-17.6h.1M3.8-17h.1" stroke="#b8704f" stroke-width=".8" stroke-linecap="round"/>
+      <path d="M-1.6-16.4q1.6 1.4 3.2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
+      <path d="M-6.4-25.6q-.6-8 3.8-7.6 1.4 1.4 2.6 1.4t2.6-1.4q4.4-.4 3.8 7.6z" fill="#a8703f" stroke="${INK}" stroke-width=".7"/>
+      <rect x="-6.3" y="-27.4" width="12.6" height="1.8" fill="#5a3a22"/>
+      <ellipse cx="0" cy="-25.4" rx="12" ry="2.6" fill="#a8703f" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-5-10-11-4" stroke="#7aa6c9" stroke-width="2.4" stroke-linecap="round"/>
+      <g class="hit"><path d="M5-10 12-5" stroke="#7aa6c9" stroke-width="2.4" stroke-linecap="round"/><path d="M12-5 23 3" stroke="#d9c8a0" stroke-width="1.1"/><path d="M23 3l2.4-.6M23 3l1.8 1.8M23 3l.4 2.4" stroke="#8a7a5a" stroke-width=".6"/></g>
+    </g></g>`;
+  }
+
+  function ghostSVG(x, y, s = 1) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="float">
+      <ellipse cx="0" cy="14" rx="10" ry="2" fill="#3fd9b9" opacity=".25"/>
+      <path d="M-11 4Q-12-14-10-21-6-33 0-33T10-21Q12-14 11 4Q8 1 5.5 4 3 1 0 4-3 1-5.5 4-8 1-11 4z" fill="#eaf6ff" fill-opacity=".93" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-10.4-25.6h20.8" stroke="#ff6fa9" stroke-width="3"/>
+      <path d="M-11.5-20Q-11-37 0-37T11.5-20" fill="none" stroke="#3fd9b9" stroke-width="1.8"/>
+      <rect x="-14" y="-23" width="4.2" height="7" rx="1.6" fill="#3fd9b9" stroke="${INK}" stroke-width=".6"/>
+      <rect x="9.8" y="-23" width="4.2" height="7" rx="1.6" fill="#3fd9b9" stroke="${INK}" stroke-width=".6"/>
+      <ellipse cx="-3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/><ellipse cx="3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/>
+      <circle cx="-6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/><circle cx="6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/>
+      <ellipse cx="0" cy="-12.6" rx="1.4" ry="1.7" fill="${INK}"/>
+      <g class="hit"><ellipse cx="12.5" cy="-6" rx="3.4" ry="2.2" transform="rotate(25 12.5 -6)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/></g>
+      <ellipse cx="-12" cy="-7" rx="3.2" ry="2.1" transform="rotate(-20 -12 -7)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/>
+    </g></g>`;
+  }
+
+  function wrenSVG(x, y, s = 1) {
+    return `<g transform="translate(${x} ${y}) scale(${s})"><g class="bob">
+      <path d="M-3 0-2 7M3 0 5 7" stroke="#4a3b2e" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M-4.6 6.6h4.6v2.6h-5.8zM3.6 6.6h4.4l1 2.6h-5.4z" fill="#3a2e24" stroke="${INK}" stroke-width=".6"/>
+      <path d="M-8 1h16l-2.2-17h-11.6z" fill="#6f8a6a" stroke="${INK}" stroke-width=".8"/>
+      <path d="M0 1v-17" stroke="${INK}" stroke-width=".5" opacity=".5"/>
+      <path d="M-5.8-16.4h11.6l-.6 3h-10.4z" fill="#c9a24a" stroke="${INK}" stroke-width=".6"/>
+      <path d="M3-14.2 5-7.6" stroke="#c9a24a" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="0" cy="-21" r="6" fill="#f1d5bf" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-5.8-21.6q1.4-1.2 1.2 1M5.8-21.6q-1.4-1.2-1.2 1" fill="#6b4a33"/>
+      <path d="M-3.4-20.4q1 .8 2 0M1.4-20.4q1 .8 2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
+      <path d="M-1.2-17.6q1.2.9 2.4 0" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
+      <path d="M-7.2-24.6Q-3-33 4-46q-.4 12 3.4 21.4z" fill="#5f8a55" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>
+      <path d="M5.8-29q4-3 6.4-1.2-3 .2-5.6 3z" fill="#d9534f" stroke="${INK}" stroke-width=".5"/>
+      <ellipse cx="0" cy="-24.6" rx="13.5" ry="3" fill="#5f8a55" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-6-11-10-4" stroke="#6f8a6a" stroke-width="2.6" stroke-linecap="round"/>
+      <g class="hit shake"><path d="M6-11 11-7" stroke="#6f8a6a" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="12.6" cy="-7.6" rx="2.4" ry="3.2" fill="#e9b44c" stroke="${INK}" stroke-width=".6"/></g>
+    </g></g>`;
+  }
+
+  const SCENES = {
+    dusty: () => `
+      <defs><linearGradient id="skyD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#342c58"/><stop offset=".62" stop-color="#b8707a"/><stop offset="1" stop-color="#e9a56f"/></linearGradient></defs>
+      <rect width="1200" height="84" fill="url(#skyD)"/>${stars(26, 7, 26)}
+      <circle cx="330" cy="18" r="8.5" fill="#f5e6c4"/><circle cx="334" cy="15.5" r="7.6" fill="#3d3160"/>
+      <path d="M0 62V56h40l8-9h54l8 9h180l10-14h60l10 14h240l6-8h70l6 8h200l10-12h50l10 12h198v6z" fill="#6b4a5e"/>
+      <rect y="61" width="1200" height="23" fill="#8c5a4e"/>
+      <path d="M0 70h1200M0 77h1200" stroke="#7a4d44" stroke-width="1" stroke-dasharray="6 9"/>
+      ${[250, 640, 980].map(cx => `<path d="M${cx} 62v-22q0-3 3-3t3 3v22zM${cx} 50h-4q-2 0-2-2v-6q0-2 1.4-2t1.4 2v4h3.2zM${cx + 6} 46h4v-5q0-2 1.4-2t1.4 2v6q0 2-2 2h-4.8z" fill="#4f6b4a" stroke="${INK}" stroke-width=".7"/>`).join("")}
+      <rect x="10" y="58" width="52" height="18" rx="3" fill="#d9b25c" stroke="${INK}" stroke-width=".8"/>
+      <path d="M14 63h44M14 68h44M14 73h44M28 58v18M44 58v18" stroke="#b08a3c" stroke-width=".7"/>
+      <ellipse cx="84" cy="62" rx="12" ry="3" fill="#efe8d8" stroke="${INK}" stroke-width=".7"/>
+      <path d="M72 62v7q12 4.4 24 0v-7" fill="#c8453f" stroke="${INK}" stroke-width=".7"/>
+      <path d="M72 66q12 4.4 24 0" fill="none" stroke="#efe8d8" stroke-width=".8"/>
+      ${dustySVG(38, 57, 1.25)}`,
+    ghost: () => `
+      <rect width="1200" height="84" fill="#2a2144"/>
+      <path d="M0 18h1200" stroke="#35295a" stroke-width="14"/>
+      <rect x="170" y="8" width="96" height="44" rx="2" fill="#1d1733" stroke="#140f24" stroke-width="3"/>
+      <defs><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a78"/><stop offset=".7" stop-color="#ff6fa9"/><stop offset="1" stop-color="#ffb46b"/></linearGradient></defs>
+      <rect x="172" y="10" width="92" height="40" fill="url(#skyG)"/>
+      <circle cx="218" cy="36" r="10" fill="#ffd36b"/>
+      <path d="M172 38h92M172 43h92M172 47h92M190 38l-10 12M218 38v12M246 38l10 12" stroke="#3fd9b9" stroke-width=".8" class="neon"/>
+      <path d="M218 10v40M172 30h92" stroke="#140f24" stroke-width="2"/>
+      <rect x="330" y="14" width="30" height="40" fill="#ff6fa9" transform="rotate(-4 345 34)"/><path d="M336 24l18 22M354 24l-18 22" stroke="#2a2144" stroke-width="2" transform="rotate(-4 345 34)"/>
+      <rect x="420" y="20" width="22" height="30" fill="#3fd9b9" transform="rotate(3 431 35)"/>
+      <rect y="64" width="1200" height="20" fill="#3b2d55"/>
+      <path d="M0 64h1200" stroke="#4a3a6a" stroke-width="2"/>
+      <rect x="520" y="46" width="46" height="18" rx="3" fill="#c9c2d6" stroke="${INK}" stroke-width=".8"/><circle cx="531" cy="55" r="5" fill="#2a2144"/><circle cx="555" cy="55" r="5" fill="#2a2144"/><rect x="538" y="49" width="10" height="4" fill="#2a2144"/>
+      <rect x="760" y="30" width="60" height="34" fill="#453669"/><rect x="900" y="40" width="80" height="24" fill="#453669"/>
+      <rect x="62" y="56" width="50" height="8" fill="#5b4a3a" stroke="${INK}" stroke-width=".7"/>
+      <path d="M66 64v14M108 64v14" stroke="#5b4a3a" stroke-width="3"/>
+      <rect x="66" y="48" width="42" height="9" rx="1.5" fill="#d8d0c0" stroke="${INK}" stroke-width=".7"/>
+      ${[0, 1, 2, 3, 4, 5].map(i => `<rect class="pad" style="animation-delay:${(i % 3) * .12}s" x="${69 + i * 6.4}" y="50.4" width="4.6" height="4" rx=".8" fill="${["#ff6fa9", "#3fd9b9", "#ffd36b"][i % 3]}"/>`).join("")}
+      ${ghostSVG(42, 49, 1.2)}`,
+    wren: () => `
+      <defs><linearGradient id="skyW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18222e"/><stop offset="1" stop-color="#2f4640"/></linearGradient>
+      <radialGradient id="glowW"><stop offset="0" stop-color="#f2a44b" stop-opacity=".55"/><stop offset="1" stop-color="#f2a44b" stop-opacity="0"/></radialGradient></defs>
+      <rect width="1200" height="84" fill="url(#skyW)"/>${stars(30, 3, 30)}
+      <path d="${Array.from({ length: 30 }, (_, i) => { const x = i * 42 + (i % 3) * 7, h = 26 + ((i * 37) % 22); return `M${x} 66l14-${h}l14 ${h}z`; }).join("")}" fill="#162520"/>
+      <rect y="64" width="1200" height="20" fill="#253a2f"/>
+      <path d="M560 66l22-26 22 26z" fill="#b0764a" stroke="${INK}" stroke-width=".8"/><path d="M582 40v26" stroke="${INK}" stroke-width=".6"/><path d="M576 66l6-10 6 10z" fill="#3a2a1e"/>
+      <circle cx="96" cy="64" r="26" fill="url(#glowW)"/>
+      <path d="M84 72l24-6M84 66l24 6" stroke="#6b4a33" stroke-width="3" stroke-linecap="round"/>
+      <path class="flick" d="M96 70q-8-5-3-13 1 5 4 3-2-6 3-10 0 6 4 9 2 5-2 11z" fill="#f2a44b"/>
+      <path class="flick" style="animation-delay:-.2s" d="M96 70q-4-3-1-8 1 3 2 2 0-3 2-5 1 5 2 7-1 3-5 4z" fill="#ffd36b"/>
+      ${[[140, 30], [210, 50], [300, 24], [420, 44], [700, 34], [860, 22], [1000, 46]].map(([cx, cy], i) => `<circle class="fly" style="animation-delay:${-i * .7}s" cx="${cx}" cy="${cy}" r="1.3" fill="#e9f28a"/>`).join("")}
+      <rect x="14" y="62" width="50" height="9" rx="4.5" fill="#6b4a33" stroke="${INK}" stroke-width=".8"/><circle cx="18.5" cy="66.5" r="3" fill="#8a6446" stroke="${INK}" stroke-width=".5"/>
+      ${wrenSVG(40, 61, 1.2)}`
+  };
+  const scene = id => `<svg class="scene" viewBox="0 0 1200 84" preserveAspectRatio="xMinYMax slice" aria-hidden="true">${(SCENES[id] || SCENES.dusty)()}</svg>`;
+  const portrait = id => `<svg class="portrait" viewBox="-4 -58 64 72" aria-hidden="true">${({ dusty: dustySVG, ghost: ghostSVG, wren: wrenSVG })[id](26, 4, 1.15)}</svg>`;
   // ---------- audio ----------
   let ac = null, master = null, silentEl = null;
 
@@ -1111,25 +1445,40 @@
     master.gain.value = 0.85;
     master.connect(warmth);
   }
+  // Piano voices, all synthesized
+  const VOICES = {
+    tape: { name: "tape piano", oscs: [["triangle", 1, 0, 1], ["sine", 2, 0, .22]], a: .008, d: .35, s: .35, lp: [8, 2] },
+    felt: { name: "felt piano", oscs: [["sine", 1, 0, 1], ["triangle", 1, 0, .3], ["sine", 2, 0, .06]], a: .018, d: .5, s: .3, lp: [3.2, 1.4], gain: 1.15 },
+    saloon: { name: "saloon upright", oscs: [["triangle", 1, -9, .8], ["triangle", 1, 9, .8], ["square", 2, 0, .05]], a: .004, d: .22, s: .25, lp: [10, 3] },
+    neon: { name: "neon synth", oscs: [["sawtooth", 1, -7, .5], ["sawtooth", 1, 7, .5], ["sine", .5, 0, .35]], a: .03, d: .6, s: .55, lp: [1.6, 2.4], sweep: 5, gain: .6 }
+  };
+  let VOICE = "tape";
   function tone(midi, t, dur, vel) {
+    const V = VOICES[VOICE] || VOICES.tape;
     const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const peak = vel * (V.gain || 1);
     const g = ac.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(vel, t + 0.008);
-    g.gain.exponentialRampToValueAtTime(vel * 0.35, t + 0.35);
+    g.gain.exponentialRampToValueAtTime(peak, t + V.a);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak * V.s, 0.0002), t + V.a + V.d);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.9);
     const lp = ac.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.setValueAtTime(Math.min(f * 8, 12000), t);
-    lp.frequency.exponentialRampToValueAtTime(Math.max(f * 2, 400), t + dur + 0.6);
-    const o1 = ac.createOscillator(); o1.type = "triangle"; o1.frequency.value = f;
-    const o2 = ac.createOscillator(); o2.type = "sine"; o2.frequency.value = f * 2;
-    const g2 = ac.createGain(); g2.gain.value = 0.22;
-    if (wobble) { wobble.connect(o1.detune); wobble.connect(o2.detune); }
-    o1.connect(lp); o2.connect(g2); g2.connect(lp); lp.connect(g); g.connect(master);
+    lp.frequency.setValueAtTime(Math.min(f * V.lp[0], 12000), t);
+    if (V.sweep) lp.frequency.exponentialRampToValueAtTime(Math.min(f * V.sweep, 12000), t + 0.09);
+    lp.frequency.exponentialRampToValueAtTime(Math.min(Math.max(f * V.lp[1], 300), 12000), t + dur + 0.6);
+    lp.connect(g); g.connect(master);
     const end = t + dur + 1;
-    o1.start(t); o2.start(t); o1.stop(end); o2.stop(end);
+    V.oscs.forEach(([type, mult, det, lvl]) => {
+      const o = ac.createOscillator();
+      o.type = type; o.frequency.value = f * mult; o.detune.value = det;
+      if (wobble) wobble.connect(o.detune);
+      const og = ac.createGain(); og.gain.value = lvl;
+      o.connect(og); og.connect(lp);
+      o.start(t); o.stop(end);
+    });
   }
+
 
   // Vinyl crackle: soft hiss with the odd pop, looped while playing
   let crackleSrc = null;
@@ -1253,15 +1602,15 @@
   }
   const strum = (v, t, dur) => { v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2)); v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15)); };
 
-  // Grooves pair a playing pattern with a drum kit
-  const GROOVES = {
-    plain: { name: "just chords", pattern: "block", drum: "off" },
-    lofi: { name: "lo-fi", pattern: "ballad", drum: "lofi" },
-    dreamy: { name: "dreamy", pattern: "broken", drum: "brushes" },
-    waltz: { name: "waltz", pattern: "waltz", drum: "brushes" },
-    pop: { name: "bouncy", pattern: "pop", drum: "click" },
-    shaker: { name: "campfire", pattern: "broken", drum: "shaker" }
+  // Ways to play the notes
+  const STYLES = {
+    block: "block chords",
+    broken: "rolling",
+    ballad: "pulsing",
+    pop: "bouncy",
+    waltz: "waltzing"
   };
+  const GROOVE_TO_STYLE = { plain: "block", lofi: "ballad", dreamy: "broken", waltz: "waltz", pop: "pop", shaker: "broken" };
 
   // =========================================================
   // App state
@@ -1278,7 +1627,9 @@
   try { localStorage.setItem("pixie:probe", "1"); localStorage.removeItem("pixie:probe"); } catch { storageOK = false; }
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 
-  const prefs = Object.assign({ fingers: true, tips: true, sevenths: false, crackle: true, wholeSong: false }, readJSON("prefs", {}));
+  const prefs = Object.assign({ fingers: true, tips: true, sevenths: false, crackle: true, wholeSong: false, buddy: "dusty", drums: true, next: true }, readJSON("prefs", {}));
+  if (!BUDDIES[prefs.buddy]) prefs.buddy = "dusty";
+  const B = () => BUDDIES[prefs.buddy];
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
 
   const FEELS = [
@@ -1287,21 +1638,20 @@
     { id: "open", name: "lush", note: "wide and airy" },
     { id: "jazzy", name: "jazzy", note: "color notes on top" }
   ];
-  const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, groove: "lofi", bpm: 84, beats: 4, key: "auto" };
+  const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, style: "ballad", voice: null, bpm: 84, beats: 4, key: "auto" };
   const SECTION_NAMES = ["Verse", "Chorus", "Bridge", "Pre-chorus", "Intro", "Outro", "Solo", "Hook"];
   const uid = () => "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   function newSong(title, prog, settings = {}) {
     return { id: uid(), title, sections: [{ name: "Verse", prog }], settings: { ...DEFAULT_SETTINGS, ...settings }, updated: Date.now() };
   }
-  // library entries name a pattern; find the groove that plays it
-  const grooveFor = pattern => (Object.entries(GROOVES).find(([, g]) => g.pattern === pattern) || ["lofi"])[0];
 
   let songs = readJSON("songs", []);
   if (!Array.isArray(songs) || !songs.length) songs = [newSong("my first song", store.get("prog") || "C Am F G")];
   songs.forEach(s => {
     s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) };
     if (!FEELS.some(f => f.id === s.settings.level)) s.settings.level = "smooth";
-    if (!GROOVES[s.settings.groove]) s.settings.groove = s.settings.pattern ? grooveFor(s.settings.pattern) : "lofi";
+    if (!STYLES[s.settings.style]) s.settings.style = GROOVE_TO_STYLE[s.settings.groove] || s.settings.pattern || "ballad";
+    if (!STYLES[s.settings.style]) s.settings.style = "ballad";
     if (!s.sections?.length) s.sections = [{ name: "Verse", prog: "" }];
   });
   let song = songs.find(s => s.id === store.get("current")) || songs[0];
@@ -1316,6 +1666,7 @@
   }
 
   let loopOn = store.get("loop") !== "0";
+  let finding = false;
   const overrides = new Map();
   let items = [], current = [], range = [48, 72], K = { tonic: 0, minor: false };
   let sel = 0, tipIdx = 0, tipOverride = null, lastSurprise = null;
@@ -1377,6 +1728,7 @@
     const r = compute(song.sections[secIdx].prog, S(), secIdx);
     items = r.items; current = r.current; K = r.key;
     range = computeRange(current);
+    VOICE = S().voice || B().voice;
     if (sel >= current.length) sel = Math.max(0, current.length - 1);
     renderSections();
     renderPalette();
@@ -1421,13 +1773,17 @@
   }
 
   function tipsFor(c) {
-    const list = [roleTip(c.ch, c.a, K), fingerTip(c.v, c.ch), BUILD_TIPS[baseQuality(c.ch.ivs)]];
-    if (c.j > 0 || (loopOn && current.length > 1)) {
-      const moved = allNotes(c.v).length - c.stay.size;
-      list.push(c.stay.size ? `${c.stay.size} ${c.stay.size === 1 ? "key stays" : "keys stay"} down from the chord before (the gold rings). Only ${moved} ${moved === 1 ? "finger moves" : "fingers move"}.` : "Nothing carries over from the chord before, so lift and land in one move.");
-    }
+    const b = B();
+    const list = [buddyRole(b, c.ch, c.a, K), fingerTip(c.v, c.ch), b.build[baseQuality(c.ch.ivs)]];
+    if (c.stay.size) list.push(b.stay(`${c.stay.size} ${c.stay.size === 1 ? "key" : "keys"}`, String(allNotes(c.v).length - c.stay.size)));
     return list.filter(Boolean);
   }
+  function say(text) {
+    const el = $("say");
+    el.textContent = text || "";
+    el.classList.toggle("quiet", !prefs.tips || !text);
+  }
+  function renderScene() { $("scene").innerHTML = scene(prefs.buddy); }
 
   function renderStage() {
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
@@ -1441,6 +1797,7 @@
     if (!c) {
       stageEl.style.removeProperty("--fn");
       stageEl.innerHTML = `<p class="empty">type some chords, or tap one below the box to start the ${esc(song.sections[secIdx].name.toLowerCase())}</p>`;
+      if (!finding) say(tipOverride || B().hello);
       return;
     }
     stageEl.style.setProperty("--fn", `var(--${c.a.fn})`);
@@ -1452,13 +1809,15 @@
     const tip = tipOverride || tips[tipIdx % tips.length];
     const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
     const moved = allNotes(c.v).length - c.stay.size;
+    const nextC = current[sel + 1] || (loopOn && current.length > 1 ? current[0] : null);
+    const nextSet = prefs.next && nextC && nextC !== c ? new Set(allNotes(nextC.v)) : null;
     stageEl.innerHTML = `
       <div class="stage-top">
         <div class="chord-name">${symbolHTML(c.ch)}</div>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
         <button class="pill" type="button" data-act="beats" title="Tap to change how long it lasts">${c.beats} beat${c.beats === 1 ? "" : "s"}</button>
       </div>
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), fingers: prefs.fingers })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), fingers: prefs.fingers, next: nextSet })}</div>
       <div class="shape-row">
         <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
         <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
@@ -1468,15 +1827,16 @@
       <div class="actions">
         <button class="btn surprise" type="button" data-act="surprise">✦ surprise me</button>
         ${undo ? `<button class="undo" type="button" data-act="undo">undo</button>` : ""}
-      </div>
-      ${prefs.tips ? `<button class="note-tip" type="button" data-act="tip" title="Tap for another tip">${pixieBadge()}<span>${esc(tip)}</span></button>` : ""}`;
+      </div>`;
+    if (!finding) say(tip);
   }
 
   function renderDeck() {
     const sec = song.sections[secIdx];
     $("deckTitle").textContent = (prefs.wholeSong ? (song.title || "untitled") : sec.name).toLowerCase();
     $("deckInfo").textContent = `${S().bpm} bpm · ${pretty(keyName(K))}`;
-    $("groove").value = S().groove;
+    $("style").value = S().style;
+    $("sceneWrap").style.setProperty("--beat", (60 / S().bpm).toFixed(3) + "s");
   }
 
   // =========================================================
@@ -1524,10 +1884,10 @@
     }
     const c = list[step];
     const B = 60 / S().bpm;
-    const g = GROOVES[S().groove] || GROOVES.plain;
-    const meter = g.pattern === "waltz" ? 3 : 4;
-    playChord(c.v, nextT, c.beats, B, g.pattern);
-    if (g.drum !== "off") for (let b = 0; b < c.beats; b++) drumBeat(g.drum, nextT + b * B, B, (beatCount + b) % meter, meter);
+    const pattern = S().style, kit = prefs.drums ? BUDDIES[prefs.buddy].kit : "off";
+    const meter = pattern === "waltz" ? 3 : 4;
+    playChord(c.v, nextT, c.beats, B, pattern);
+    if (kit !== "off") for (let b = 0; b < c.beats; b++) drumBeat(kit, nextT + b * B, B, (beatCount + b) % meter, meter);
     beatCount += c.beats;
     const at = nextT, j = c.j, sIdx = playSec;
     later(() => {
@@ -1542,6 +1902,11 @@
   }
   function finish() { later(() => setPlaying(false), (nextT - ac.currentTime) * 1000); }
   async function playAll() {
+    if (finding) {
+      const notes = [...picked].sort((a, b) => a - b);
+      if (notes.length && await audioReady()) strum({ lh: [], rh: notes }, ac.currentTime + 0.02, 1.5);
+      return;
+    }
     if (playing) { stop(); return; }
     if (!current.length && !prefs.wholeSong) { input.focus(); return; }
     setPlaying(true);
@@ -1605,7 +1970,7 @@
     const keepSel = sel;
     setProg(replaceToken(song.sections[secIdx].prog, c.i, raw), true);
     sel = keepSel;
-    tipOverride = `${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
+    tipOverride = `${B().surprise} ${pretty(c.tok)} → ${pretty(pick.tok)}. ${pick.why}`;
     renderStage();
     playOne(sel);
   }
@@ -1687,7 +2052,8 @@
         <button class="btn" type="button" data-act="fclear"${notes.length ? "" : " disabled"}>clear</button>
         <button class="btn surprise" type="button" data-act="fadd"${top ? "" : " disabled"}>add to ${esc(song.sections[secIdx].name.toLowerCase())}</button>
       </div>
-      <div class="note-tip">${pixieBadge()}<span>${esc(tip)}</span></div>`;
+      `;
+    say(tip);
   }
 
   // =========================================================
@@ -1754,17 +2120,31 @@
         <div class="knob"><label class="lbl" for="kBeats">beats per chord</label>
           <select id="kBeats">${[1, 2, 3, 4, 6, 8].map(b => `<option${b === S().beats ? " selected" : ""}>${b}</option>`).join("")}</select>
         </div>
+        <div class="knob"><span class="lbl">piano voice</span>
+          <div class="choices">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s favorite</small>` : ""}</button>`).join("")}</div>
+        </div>
         <div class="knob"><span class="lbl">extras</span>
           <div class="toggles">
+            <label class="tog"><input type="checkbox" data-pref="drums"${prefs.drums ? " checked" : ""}> ${esc(B().name)} drums along</label>
+            <label class="tog"><input type="checkbox" data-pref="tips"${prefs.tips ? " checked" : ""}> ${esc(B().name)} talks</label>
+            <label class="tog"><input type="checkbox" data-pref="next"${prefs.next ? " checked" : ""}> show the next chord</label>
             <label class="tog"><input type="checkbox" data-pref="fingers"${prefs.fingers ? " checked" : ""}> finger numbers</label>
-            <label class="tog"><input type="checkbox" data-pref="tips"${prefs.tips ? " checked" : ""}> pixie notes</label>
             <label class="tog"><input type="checkbox" data-pref="crackle"${prefs.crackle ? " checked" : ""}> vinyl crackle</label>
             <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song</label>
           </div>
         </div>`;
-    } else if (sheetMode === "lib") {
-      $("sheetTitle").textContent = "library";
-      body.innerHTML = `<p class="note">Progressions to borrow, each with a mood, a little poem and the theory underneath.</p>` + LIBRARY.map((e, i) => `
+    } else if (sheetMode === "band") {
+      $("sheetTitle").textContent = "who's playing with you";
+      body.innerHTML = Object.entries(BUDDIES).map(([id, b]) => `
+        <button class="card buddy-card" type="button" data-buddy="${id}" aria-pressed="${prefs.buddy === id}">
+          ${portrait(id)}
+          <div><b>${esc(b.name)}</b><span>${esc(b.who)} · plays ${esc(({ brushes: "brushes", lofi: "a drum machine", shaker: "a shaker" })[b.kit])} · ${esc(VOICES[b.voice].name)}</span><br><span>${esc(b.blurb)}</span></div>
+        </button>`).join("");
+    } else if (sheetMode === "moods") {
+      $("sheetTitle").textContent = "moods";
+      body.innerHTML = `<p class="note">Pick a mood and ${esc(B().name)} will write it in ${esc(pretty(keyName(K)))}, right into the ${esc(song.sections[secIdx].name.toLowerCase())}.</p>
+        <div class="moods">${MOODS.map(m => `<button class="mood-btn" type="button" data-mood="${m.id}"><b>${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`).join("")}</div>
+        <h3 class="subhead">from the library</h3>` + LIBRARY.map((e, i) => `
         <article class="card" style="${fnVar(e.fn)}">
           <h3>${esc(e.name.toLowerCase())}<span class="mood">${esc(e.mood)}</span></h3>
           <div class="prog">${esc(pretty(e.prog))}</div>
@@ -1803,8 +2183,14 @@
   // =========================================================
   // Wiring
   // =========================================================
-  Object.entries(GROOVES).forEach(([k, g]) => $("groove").insertAdjacentHTML("beforeend", `<option value="${k}">${g.name}</option>`));
-  $("groove").addEventListener("change", e => setting("groove", e.target.value));
+  Object.entries(STYLES).forEach(([k, n]) => $("style").insertAdjacentHTML("beforeend", `<option value="${k}">${n}</option>`));
+  $("style").addEventListener("change", e => setting("style", e.target.value));
+  $("buddyHit").addEventListener("click", () => openSheet("band"));
+  $("say").addEventListener("click", () => {
+    if (finding) return;
+    if (tipOverride) tipOverride = null; else tipIdx++;
+    renderStage();
+  });
 
   input.addEventListener("input", () => { song.sections[secIdx].prog = input.value; saveSongs(); renderAll(); });
   input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
@@ -1813,7 +2199,7 @@
   $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
   $("openKnobs").addEventListener("click", () => openSheet("knobs"));
   $("openSongs").addEventListener("click", () => openSheet("songs"));
-  $("openLib").addEventListener("click", () => openSheet("lib"));
+  $("openMoods").addEventListener("click", () => openSheet("moods"));
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
 
@@ -1891,6 +2277,36 @@
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
     if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
+    const voice = e.target.closest("[data-voice]"), buddy = e.target.closest("[data-buddy]"), mood = e.target.closest("[data-mood]");
+    if (voice) {
+      setting("voice", voice.dataset.voice === B().voice ? null : voice.dataset.voice);
+      VOICE = S().voice || B().voice;
+      renderSheet();
+      if (current[sel]) playOne(sel);
+      return;
+    }
+    if (buddy) {
+      prefs.buddy = buddy.dataset.buddy; savePrefs();
+      setting("voice", null);
+      renderScene();
+      tipOverride = B().hello;
+      renderAll();
+      renderSheet();
+      toast(`${B().name} brought the ${VOICES[B().voice].name}`);
+      return;
+    }
+    if (mood) {
+      const m = MOODS.find(x => x.id === mood.dataset.mood);
+      const prog = moodProg(m, K);
+      overrides.clear();
+      sel = 0;
+      setProg(prog, true);
+      tipOverride = `${B().mood(m.name)} ${m.why}`;
+      renderStage();
+      closeSheet();
+      playOne(0);
+      return;
+    }
     const b = e.target.closest("[data-lib],[data-song]");
     if (!b) return;
     if (b.dataset.lib != null) {
@@ -1898,7 +2314,7 @@
       const extra = { key: en.key || "auto" };
       ["level", "bpm", "beats"].forEach(k => { if (en[k] != null) extra[k] = en[k]; });
       if (extra.level === "simple") extra.level = "smooth";
-      if (en.pattern) extra.groove = grooveFor(en.pattern);
+      if (en.pattern) extra.style = en.pattern;
       if (b.dataset.how === "hear") {
         if (playing || !(await audioReady())) return;
         const r = compute(en.prog, { ...S(), ...extra }, -1);
@@ -1968,15 +2384,15 @@
   });
 
   function showView(find) {
-    $("tabWrite").setAttribute("aria-pressed", !find);
+    finding = find;
+    $("tabFind").textContent = find ? "write" : "name it";
     $("tabFind").setAttribute("aria-pressed", find);
     $("writeView").hidden = find;
     $("findView").hidden = !find;
-    $("deck").hidden = find;
     if (find) { if (playing) stop(); renderFinder(); }
+    else renderStage();
   }
-  $("tabWrite").addEventListener("click", () => showView(false));
-  $("tabFind").addEventListener("click", () => showView(true));
+  $("tabFind").addEventListener("click", () => showView(!finding));
 
   finderEl.addEventListener("click", async e => {
     const k = e.target.closest("[data-m]");
@@ -2016,6 +2432,8 @@
   });
 
   applySettings();
+  renderScene();
+  tipOverride = B().hello;
   renderAll();
   store.set("current", song.id);
 })();
