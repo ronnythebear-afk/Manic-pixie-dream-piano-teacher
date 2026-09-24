@@ -566,7 +566,7 @@
   .stage-top .pill { margin-left: auto; flex: none; }
   .stage-top .icon-btn { flex: none; }
   .undo-btn { flex: none; width: 28px; height: 28px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--card-2); color: var(--surprise); font-weight: 800; font-size: 16px; line-height: 1; padding: 0; }
-  @media (max-width: 480px) { .stage-top .role span { display: none; } }
+
   .cknob { flex: none; width: 38px; height: 38px; border: 0; padding: 0; background: none; touch-action: none; cursor: grab; }
   .cknob svg { width: 100%; height: 100%; display: block; overflow: visible; }
   .cknob .dial { fill: var(--card-2); stroke: var(--line); stroke-width: 1.5; }
@@ -610,7 +610,15 @@
   .shape-name b { font-size: 19px; }
   .shape-name span { font-size: 12.5px; }
   .nudges { flex: none; display: flex; gap: 6px; }
-  .stage-top .cknob { margin-left: auto; }
+  .chord-name.as-btn { border: 0; background: none; padding: 0 2px 2px 0; color: inherit; font-family: var(--hand); font-weight: 700; display: inline-flex; align-items: baseline; gap: 2px; }
+  .chord-name .caret { font-size: 16px; color: var(--soft); transform: translateY(-4px); }
+  .chord-name.as-btn:hover .caret { color: var(--ink); }
+  .stage-top .undo-btn { margin-left: auto; }
+  .colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .color-chip { border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); padding: 6px 8px; text-align: left; display: grid; gap: 1px; }
+  .color-chip b { font-family: var(--hand); font-size: 21px; line-height: 1; }
+  .color-chip small { font-size: 11.5px; color: var(--soft); font-weight: 700; line-height: 1.15; }
+  .color-chip.on { background: color-mix(in srgb, var(--lamp) 50%, var(--card)); }
   .shape-name span { line-height: 1.25; }
   .seg .cnt { font-size: 10.5px; }
 
@@ -3579,20 +3587,14 @@
     const keep = arrows ? new Set(allNotes(c.v).filter(m => allNotes(nextC.v).includes(m))) : c.stay;
     stageEl.innerHTML = `
       <div class="stage-top">
-        <div class="chord-name${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}">${symbolHTML(c.ch)}</div>
+        <button class="chord-name as-btn${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}" type="button" data-act="chord" title="Colors and surprises for this chord">${symbolHTML(c.ch)}<span class="caret" aria-hidden="true">▾</span></button>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
         ${L("ribbon") ? "" : `<button class="pill" type="button" data-act="beats" title="How long it lasts. Tap to change.">${c.beats}${glyph(Mtr)}</button>`}
-        ${(() => { const ld = ladderOf(c.ch); return ld && ld.L.length > 1 ? `<button class="cknob" type="button" id="knob" data-act="knob" role="slider" aria-label="Chord color" aria-valuemin="0" aria-valuemax="${ld.L.length - 1}" aria-valuenow="${ld.i}" aria-valuetext="${esc(c.tok)}" title="Turn for more color">${knobSVG(ld.L.length, ld.i)}</button>` : ""; })()}
-        <button class="icon-btn" type="button" data-act="surprise" title="Swap this chord for a surprise">✦</button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
       <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: keep, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, quiet: true, band: L("arrows"), tall: prefs.view === "bare" })}</div>
       <div class="shape-row">
-        <div class="stairs" role="radiogroup" aria-label="How fancy the shapes are">
-          <span class="steps">${FEELS.map((f, k) => `<button class="st${S().level === f.id ? " on" : ""}" type="button" role="radio" aria-checked="${S().level === f.id}" data-ladder="${f.id}" style="--h:${7 + k * 5}px" title="${f.name}: ${f.note}" aria-label="${f.name}"></button>`).join("")}</span>
-          <span class="st-lbl">${esc((FEELS.find(f => f.id === S().level) || FEELS[1]).name)}</span>
-        </div>
         <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${arrows ? `<br>${keep.size ? `${keep.size} stay for ${esc(pretty(nextC.tok))}` : `all move for ${esc(pretty(nextC.tok))}`}` : ""}</span></div>
         <div class="nudges">
           <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
@@ -3621,7 +3623,7 @@
     sel = keep;
     tipOverride = `${pretty(c.ch.rootName + q)}: ${COLOR_WORDS[q] || ""}.`;
     renderStage();
-    $("knob")?.focus({ preventScroll: true });
+    if (sheetMode === "chord") renderSheet();
     playOne(sel);
   }
   function turnKnob(d, undoable = true) {
@@ -4440,6 +4442,15 @@
         <audio controls src="${tapeURL}"></audio>
         <div class="row"><button class="btn surprise" type="button" data-tape="save">save the tape</button><button class="btn" type="button" data-tape="again">record again</button></div>
         <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Turn on “play the whole song” in knobs to tape everything.`}</p></div>`;
+    } else if (sheetMode === "chord") {
+      const c = current[sel];
+      if (!c) { closeSheet(); return; }
+      const ld = ladderOf(c.ch);
+      $("sheetTitle").innerHTML = symbolHTML(c.ch);
+      body.innerHTML = `
+        ${ld && ld.L.length > 1 ? `<div class="knob"><span class="lbl">colors · tap to hear each one</span>
+          <div class="colors">${ld.L.map((q, k) => `<button class="color-chip${k === ld.i ? " on" : ""}" type="button" data-color="${esc(q)}" aria-pressed="${k === ld.i}"><b>${symbolHTML(parseChord(c.ch.rootName + q))}</b><small>${esc(COLOR_WORDS[q] || "")}</small></button>`).join("")}</div></div>` : ""}
+        <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button></div>`;
     } else if (sheetMode === "library") {
       $("sheetTitle").textContent = "library";
       body.innerHTML = LIBRARY.map((e, i) => `
@@ -4744,6 +4755,7 @@
     else if (act === "reset" && c) { overrides.delete(c.key); renderAll(); playOne(sel); }
     else if (act === "beats") { cycleBeats(); refocus('[data-act="beats"]'); }
     else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
+    else if (act === "chord" && c) openSheet("chord");
     else if (act === "undo") {
       const u = undoStack.pop();
       if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
@@ -4911,6 +4923,9 @@
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
     if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
+    const colorB = e.target.closest("[data-color]"), chordAct = e.target.closest("[data-chordact]");
+    if (colorB && current[sel]) { setColor(current[sel], colorB.dataset.color, true); return; }
+    if (chordAct) { if (chordAct.dataset.chordact === "surprise") { surprise(); renderSheet(); } else playOne(sel); return; }
     const tapeB = e.target.closest("[data-tape]");
     if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
     const addTok = e.target.closest("[data-addtok]"), addMood = e.target.closest("[data-addmood]"), addAct = e.target.closest("[data-addact]");
