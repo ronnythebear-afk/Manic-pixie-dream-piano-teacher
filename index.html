@@ -539,6 +539,27 @@
   .has-bd:not(.bd-light) .logo .lg-a, .has-bd:not(.bd-light) .logo .lg-b { text-shadow: 2px 2px 0 #14121b; }
   .mood-chip { flex: none; border: 1.5px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--surprise) 50%, var(--card)); color: var(--on-color); font-family: var(--hand); font-weight: 700; font-size: 16px; line-height: 1; padding: 5px 10px 4px; }
 
+  /* ---------- the song map ---------- */
+  .sections { gap: 6px; padding: 3px 2px 5px; }
+  .blk { flex: none; position: relative; height: 36px; display: flex; flex-direction: column; justify-content: space-between; gap: 3px; padding: 4px 7px 5px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); text-align: left; touch-action: pan-y; box-shadow: var(--shadow); }
+  .blk b { font-family: var(--type); font-size: 11.5px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .blk .mini { display: flex; height: 7px; gap: 1px; border-radius: 3px; overflow: hidden; }
+  .blk .mini i { display: block; min-width: 2px; }
+  .blk .mini .none { flex: 1; background: repeating-linear-gradient(90deg, var(--soft) 0 2px, transparent 2px 5px); opacity: .45; }
+  .blk.on { background: var(--lamp); color: var(--on-color); border-width: 2px; }
+  .blk.same { outline: 2px dashed var(--lamp); outline-offset: 1px; }
+  .blk.lift { z-index: 3; opacity: .92; box-shadow: 0 10px 18px -8px rgba(0, 0, 0, .5); }
+  .blk.add { width: 36px; align-items: center; justify-content: center; border-style: dashed; background: transparent; box-shadow: none; color: var(--soft); font-family: var(--hand); font-weight: 700; font-size: 22px; }
+  .has-bd .blk.add { color: var(--on-bg); border-color: var(--on-bg); }
+  @media (max-width: 480px) { .song-title { flex-basis: 11.5ch; min-width: 9ch; font-size: 18px; } }
+  /* the add sheet */
+  .grow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; font-family: var(--hand); font-weight: 700; font-size: 22px; }
+  .grow > span { border-bottom: 3px solid var(--fn, var(--soft)); line-height: 1.1; }
+  .grow .none { color: var(--soft); border: 0; }
+  .add-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .pal.big { padding: 8px 16px 6px; }
+  .pal.big b { font-size: 27px; }
+
   /* ---------- views: bare, writer, story ---------- */
   .no-talk .say { display: none; }
   .no-lyrics .lane-row { display: none; }
@@ -3086,10 +3107,31 @@
   const LENGTHS = { bar: "a bar", half: "half a bar", two: "two bars" };
   const DEFAULT_SETTINGS = { level: "smooth", oneHand: false, style: "ballad", voice: null, bpm: 84, beats: "bar", key: "auto" };
   const SECTION_NAMES = ["Verse", "Chorus", "Bridge", "Pre-chorus", "Intro", "Outro", "Solo", "Hook"];
+  // what each part of a song usually does, and chords (as steps from home) it tends to start on
+  const ROLES = {
+    verse: { note: "tells the story", hint: "Verses usually start at home, on I or vi.", start: [0, 9, 5] },
+    chorus: { note: "the big feeling, comes back", hint: "A chorus often lifts off IV, or lands hard on I.", start: [5, 0, 7] },
+    bridge: { note: "goes somewhere new", hint: "Bridges start away from home. Try IV, vi or ii.", start: [5, 9, 2] },
+    "pre-chorus": { note: "builds toward the chorus", hint: "Climb toward the chorus: ii or IV, then V.", start: [2, 5, 7] },
+    intro: { note: "sets the mood", hint: "One or two chords is plenty for an intro.", start: [0, 5] },
+    outro: { note: "brings it home", hint: "End by coming home: IV to I.", start: [5, 0] },
+    solo: { note: "a loop to play over", hint: "Keep it to a short loop you can repeat.", start: [9, 5, 0] },
+    hook: { note: "the catchy bit", hint: "A hook is a short loop that sticks.", start: [0, 7, 9] }
+  };
+  const roleOf = n => ROLES[(n || "").toLowerCase()] || ROLES.verse;
   const uid = () => "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const newSection = (name, prog = "", meter = "4/4") => ({ name, prog, words: [], melody: [], meter });
+  const newSection = (name, prog = "", meter = "4/4") => ({ id: uid(), name, prog, words: [], melody: [], meter });
   function newSong(title, prog, settings = {}, meter = "4/4") {
-    return { id: uid(), title, sections: [newSection("Verse", prog, meter)], settings: { ...DEFAULT_SETTINGS, ...settings }, beats: {}, updated: Date.now() };
+    const first = newSection("Verse", prog, meter);
+    return { id: uid(), title, sections: [first], order: [first.id], settings: { ...DEFAULT_SETTINGS, ...settings }, beats: {}, updated: Date.now() };
+  }
+  // the song map plays sections in this order; a section can appear more than once
+  function fixOrder(s) {
+    s.sections.forEach(x => { if (!x.id || s.sections.filter(y => y.id === x.id).length > 1) x.id = uid() + Math.random().toString(36).slice(2, 4); });
+    const ids = new Set(s.sections.map(x => x.id));
+    if (!Array.isArray(s.order)) s.order = [];
+    s.order = s.order.filter(id => ids.has(id));
+    s.sections.forEach(x => { if (!s.order.includes(x.id)) s.order.push(x.id); });
   }
   const defaultCounts = (M, b) => (b === "two" ? M.n * 2 : b === "half" && M.n % 2 === 0 ? M.n / 2 : M.n);
   const lengthSteps = M => [...new Set([1, 2, 3, M.n, M.n * 2].concat(M.n % 2 ? [] : [M.n / 2, M.n * 1.5]))].filter(x => x >= 1 && x <= 16).sort((a, b) => a - b);
@@ -3118,6 +3160,7 @@
       if (!Array.isArray(x.melody)) x.melody = [];
       if (!METERS[x.meter]) x.meter = meter0;
     });
+    fixOrder(s);
     if (!s.beats || typeof s.beats !== "object" || Array.isArray(s.beats)) s.beats = {};
     if (s.beat && Array.isArray(s.beat.rows)) s.beats["4/4"] = s.beat;
     delete s.beat;
@@ -3127,7 +3170,8 @@
     });
   });
   let song = songs.find(s => s.id === store.get("current")) || songs[0];
-  let secIdx = 0;
+  let secIdx = 0, ordPos = 0;
+  const idxOf = id => song.sections.findIndex(x => x.id === id);
   const S = () => song.settings;
   const sec = () => song.sections[secIdx];
   const words = () => sec().words;
@@ -3164,7 +3208,9 @@
       return { raw, tok: chord, beats, i, key: sIdx + "|" + i + ":" + chord, ch: parseChord(chord) };
     });
     const valid = its.filter(x => x.ch);
-    const key = parseKeySetting(settings.key) || detectKey(valid.map(x => x.ch));
+    // a part with only a chord or two takes its key from the whole song
+    const songChords = () => song.sections.flatMap(x => tokenize(x.prog).map(t => parseChord(splitBeats(t).chord)).filter(Boolean));
+    const key = parseKeySetting(settings.key) || detectKey(valid.length >= 3 || !song ? valid.map(x => x.ch) : songChords());
     const cfg = { trim: settings.level === "starter", oneHand: settings.oneHand };
     const opts = valid.map(x => options(x.ch, cfg));
     const ovr = valid.map(x => overrides.get(x.key));
@@ -3253,11 +3299,20 @@
     renderScene();
   }
 
+  // the song map: every part of the song in order, each tinted by its chords
   function renderSections() {
-    $("sections").innerHTML = song.sections.map((s, i) => i === secIdx && song.sections.length > 1
-      ? `<span class="sec-edit"><select data-act="rename" aria-label="Section name">${SECTION_NAMES.concat(SECTION_NAMES.includes(s.name) ? [] : [s.name]).map(n => `<option${n === s.name ? " selected" : ""}>${esc(n.toLowerCase())}</option>`).join("")}</select><button class="x" type="button" data-act="delsec" aria-label="Remove ${esc(s.name)}">×</button></span>`
-      : `<button class="sec" type="button" data-sec="${i}" aria-current="${i === secIdx}">${esc(s.name)}</button>`
-    ).join("") + `<button class="sec add" type="button" data-act="addsec">+ section</button>`;
+    const looks = new Map();
+    song.sections.forEach((x, i) => {
+      const d = i === secIdx ? { list: current, T: total } : sectionData(i);
+      looks.set(x.id, d);
+    });
+    $("sections").innerHTML = song.order.map((id, p) => {
+      const x = song.sections[idxOf(id)], d = looks.get(id), T = Math.max(1, d.T);
+      const strip = d.list.length ? d.list.map(c => `<i style="flex:${c.beats};background:var(--${c.a.fn})"></i>`).join("") : `<i class="none"></i>`;
+      const on = p === ordPos, same = !on && id === sec().id;
+      const w = Math.max(52, Math.min(110, 40 + T * 2.2));
+      return `<button class="blk${on ? " on" : ""}${same ? " same" : ""}" type="button" data-pos="${p}" style="width:${w.toFixed(0)}px" aria-current="${on}" aria-label="${esc(x.name)}${on ? ", open. Tap for options" : ""}"><b>${esc(x.name.toLowerCase())}</b><span class="mini">${strip}</span></button>`;
+    }).join("") + `<button class="blk add" type="button" data-act="addsec" aria-label="Add a part">+</button>`;
   }
 
   function renderPalette() {
@@ -3269,7 +3324,7 @@
       const hint = !borrowed && next.has(c.iv) && !(minorIV && c.iv !== 0);
       return `<button class="pal${hint ? " next" : ""}${borrowed ? " borrowed" : ""}" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
     };
-    palEl.innerHTML = `<button class="mood-chip" type="button" data-act="moods" title="Whole progressions for a feeling">✦ moods</button><button class="keychip" type="button" data-act="key">${esc(pretty(keyName(K)))}</button>`
+    palEl.innerHTML = `<button class="keychip" type="button" data-act="key">${esc(pretty(keyName(K)))}</button>`
       + p.di.map(c => chip(c, false)).join("")
       + `<span class="sep" title="Borrowed chords">·</span>` + p.borrowed.map(c => chip(c, true)).join("")
       + `<label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> 7ths</label>`;
@@ -3375,8 +3430,8 @@
       stageEl.style.removeProperty("--fn");
       $("tint").style.removeProperty("--fn");
       stageEl.innerHTML = `<p class="empty">nothing in the ${esc(sec().name.toLowerCase())} yet</p>
-        <button class="btn surprise start-btn" type="button" data-act="wizard">✦ start from a note</button>
-        <p class="empty" style="margin:0;font-size:16px">${L("palette") ? "or tap a chord above" : "or tap + to type chords"}</p>`;
+        <button class="btn surprise start-btn" type="button" data-act="add">+ add chords</button>
+        <p class="empty" style="margin:0;font-size:16px">${esc(roleOf(sec().name).hint)}</p>`;
       if (!finding) say(tipOverride || B().hello);
       return;
     }
@@ -3559,7 +3614,7 @@
   // =========================================================
   // Playback
   // =========================================================
-  let playing = false, step = 0, nextT = 0, playSec = 0, passNo = 0;
+  let playing = false, step = 0, nextT = 0, playSec = 0, playPos = 0, passNo = 0;
   const timers = new Set();
   const later = (fn, ms) => { const id = setTimeout(() => { timers.delete(id); fn(); }, Math.max(0, ms)); timers.add(id); };
   const playBtn = $("playAll");
@@ -3629,13 +3684,14 @@
     let d = sectionData(playSec), guard = 0;
     while (step >= d.list.length) {
       if (whole) {
-        playSec++;
-        if (playSec >= song.sections.length) { if (!loopOn) return finish(); playSec = 0; }
+        playPos++;
+        if (playPos >= song.order.length) { if (!loopOn) return finish(); playPos = 0; }
+        playSec = Math.max(0, idxOf(song.order[playPos]));
       } else if (!loopOn || !d.list.length) return finish();
       step = 0;
       passNo++;
       d = sectionData(playSec);
-      if (++guard > song.sections.length + 1) return finish();
+      if (++guard > song.order.length + 1) return finish();
     }
     const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
     playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
@@ -3646,10 +3702,10 @@
       later(() => { if (playing) beatLight(pos, M); }, (nextT + k * cl - ac.currentTime) * 1000);
     }
     if (mel) singChord(c, mel, nextT, cl, playSec);
-    const at = nextT, j = c.j, sIdx = playSec;
+    const at = nextT, j = c.j, sIdx = playSec, pos = playPos;
     later(() => {
       if (!playing) return;
-      if (sIdx !== secIdx && !busy()) switchSection(sIdx);
+      if ((sIdx !== secIdx || pos !== ordPos) && !busy()) switchSection(sIdx, pos);
       if (sIdx !== secIdx) return;
       stripEl.querySelectorAll(".tile.now").forEach(el => el.classList.remove("now"));
       if (busy()) {
@@ -3743,7 +3799,7 @@
     if (!current.length && !prefs.wholeSong) { openEntry(); return; }
     setPlaying(true);
     if (!(await audioReady())) { setPlaying(false); return; }
-    playSec = secIdx;
+    playSec = secIdx; playPos = ordPos;
     step = prefs.wholeSong && !current.length ? 0 : sel;
     passNo = 0;
     nextT = ac.currentTime + 0.08;
@@ -3777,8 +3833,9 @@
     let k = -1;
     return text.replace(/[^\s,|]+/g, t => (++k === n ? raw : t));
   }
-  function switchSection(i) {
+  function switchSection(i, pos) {
     secIdx = i;
+    ordPos = pos ?? (song.order[ordPos] === sec().id ? ordPos : Math.max(0, song.order.indexOf(sec().id)));
     input.value = sec().prog;
     sel = 0; tipOverride = null; tipIdx = 0; editingLyric = false;
     renderAll();
@@ -3790,7 +3847,7 @@
   }
   function openSong(s) {
     if (playing) stop();
-    song = s; secIdx = 0; sel = 0; overrides.clear(); undoStack.length = 0; editingLyric = false;
+    song = s; ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); sel = 0; overrides.clear(); undoStack.length = 0; editingLyric = false;
     store.set("current", song.id);
     applySettings();
     renderAll();
@@ -3970,7 +4027,9 @@
     sheetMode = null; confirmDel = null;
   }
   function songText(s) {
-    return `Title: ${s.title}\n` + s.sections.map(x => `[${x.name}${x.meter && x.meter !== "4/4" ? " · " + x.meter : ""}]\n${x.prog}` + ((x.words || []).some(Boolean) ? `\n~ ${tokenize(x.prog).map((_, i) => x.words[i] || "").join(" / ")}` : "")).join("\n");
+    const names = s.order.map(id => s.sections.find(x => x.id === id)?.name).filter(Boolean);
+    const order = names.length !== s.sections.length ? `Order: ${names.join(", ")}\n` : "";
+    return `Title: ${s.title}\n` + order + s.sections.map(x => `[${x.name}${x.meter && x.meter !== "4/4" ? " · " + x.meter : ""}]\n${x.prog}` + ((x.words || []).some(Boolean) ? `\n~ ${tokenize(x.prog).map((_, i) => x.words[i] || "").join(" / ")}` : "")).join("\n");
   }
   function parseSongText(t) {
     const title = (t.match(/^\s*Title:\s*(.+)$/mi) || [])[1]?.trim() || "pasted song";
@@ -3985,7 +4044,7 @@
         secs.push(cur);
       }
       else if (/^\s*~/.test(line)) { if (cur) cur.words = line.replace(/^\s*~\s?/, "").split(" / "); }
-      else if (!/^\s*Title:/i.test(line) && line.trim()) {
+      else if (!/^\s*(Title|Order):/i.test(line) && line.trim()) {
         if (!cur) { cur = newSection("Verse"); secs.push(cur); }
         cur.prog = (cur.prog + " " + line.trim()).trim();
       }
@@ -3993,6 +4052,9 @@
     if (!secs.length) return null;
     const s = newSong(title.slice(0, 60), "");
     s.sections = secs;
+    const ord = (t.match(/^\s*Order:\s*(.+)$/mi) || [])[1];
+    s.order = ord ? ord.split(",").map(n => secs.find(x => x.name.toLowerCase() === n.trim().toLowerCase())?.id).filter(Boolean) : [];
+    fixOrder(s);
     return s;
   }
 
@@ -4099,6 +4161,55 @@
           <div><b>${esc(b.name)}</b><span>${esc(b.who)} · sings like a ${esc(VOCALS[id].name)} · ${esc(VOICES[b.voice].name)}</span><br><span>${esc(b.blurb)}</span></div>
         </button>`;
       }).join("");
+    } else if (sheetMode === "add") {
+      const x = sec(), role = roleOf(x.name), ideas = nextIdeas();
+      $("sheetTitle").textContent = `add to the ${x.name.toLowerCase()}`;
+      const chip = (c, big) => `<button class="pal${big ? " big" : ""}" type="button" data-addtok="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
+      body.innerHTML = `
+        <div class="grow">${current.map(c => `<span style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span>`).join("") || `<span class="none">empty</span>`}<span class="none">+</span>${current.length ? `<button class="undo" type="button" data-addact="pop">take back the last one</button>` : ""}</div>
+        <div class="knob"><span class="lbl">${current.length ? `could come next, in ${esc(pretty(keyName(K)))}` : `good first chords for a ${esc(x.name.toLowerCase())}`}</span>
+          <p class="note">${esc(current.length ? B().name + " would try one of these. Tap to add, tap again to keep going." : role.hint)}</p>
+          <div class="add-row">${ideas.pick.map(c => chip(c, true)).join("")}</div></div>
+        <div class="knob"><span class="lbl">every chord in the key</span>
+          <div class="add-row">${ideas.all.map(c => chip(c)).join("")}<span class="sep">·</span>${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
+        <div class="knob"><span class="lbl">or a whole mood, ${current.length ? "added on the end" : "four bars at once"}</span>
+          <div class="moods">${MOODS.map(m => `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`).join("")}</div></div>
+        <div class="row">
+          <button class="btn" type="button" data-open="library">from the library</button>
+          <button class="btn" type="button" data-addact="wizard">start from a note</button>
+          <button class="btn" type="button" data-addact="type">type chords</button>
+        </div>`;
+    } else if (sheetMode === "addsec") {
+      $("sheetTitle").textContent = "add a part";
+      body.innerHTML = `
+        <p class="note">It goes right after the ${esc(sec().name.toLowerCase())}. Drag parts in the map to reorder them.</p>
+        <div class="moods">${SECTION_NAMES.map(n => `<button class="mood-btn" type="button" data-newpart="${n}"><b>${n.toLowerCase()}</b><span>${esc(roleOf(n).note)}</span></button>`).join("")}</div>
+        <h3 class="subhead">play a part again</h3>
+        <p class="note">Same chords and words. Change one and every copy changes.</p>
+        <div class="row">${song.sections.map(x => `<button class="choice" type="button" data-repeat="${x.id}">↻ ${esc(x.name.toLowerCase())}</button>`).join("")}</div>`;
+    } else if (sheetMode === "secedit") {
+      const x = sec(), copies = song.order.filter(id => id === x.id).length;
+      $("sheetTitle").textContent = x.name.toLowerCase();
+      body.innerHTML = `
+        <div class="knob"><span class="lbl">call it</span>
+          <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">place in the song</span>
+          <div class="row"><button class="btn" type="button" data-move="-1"${ordPos ? "" : " disabled"}>‹ earlier</button><button class="btn" type="button" data-move="1"${ordPos < song.order.length - 1 ? "" : " disabled"}>later ›</button><button class="btn" type="button" data-repeat="${x.id}">↻ play it again after this</button></div></div>
+        ${song.order.length > 1 ? `<div class="row"><button class="btn" type="button" data-secact="remove">${copies > 1 ? "remove this copy" : "remove this part"}</button></div>` : ""}`;
+    } else if (sheetMode === "library") {
+      $("sheetTitle").textContent = "library";
+      body.innerHTML = LIBRARY.map((e, i) => `
+        <article class="card" style="${fnVar(e.fn)}">
+          <h3>${esc(e.name.toLowerCase())}<span class="mood">${esc(e.mood)}</span></h3>
+          <div class="prog">${esc(pretty(e.prog))}</div>
+          <p class="poem">${esc(e.poem)}</p>
+          <p class="theory">${esc(e.theory)}</p>
+          <div class="row">
+            <button class="btn" type="button" data-lib="${i}" data-how="hear">▶</button>
+            <button class="btn" type="button" data-lib="${i}" data-how="here">use in ${esc(sec().name.toLowerCase())}</button>
+            <button class="btn" type="button" data-lib="${i}" data-how="new">new song</button>
+          </div>
+        </article>`).join("");
     } else if (sheetMode === "moods") {
       $("sheetTitle").textContent = "moods";
       body.innerHTML = `<p class="note">Pick a mood and ${esc(B().name)} will write it in ${esc(pretty(keyName(K)))}, right into the ${esc(sec().name.toLowerCase())}.</p>
@@ -4172,28 +4283,96 @@
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
 
+  // ---------- the song map: tap to open a part, tap it again for options, drag to reorder ----------
+  let mapDrag = null, mapBlock = false;
   $("sections").addEventListener("click", e => {
-    const b = e.target.closest("[data-sec],[data-act]");
+    if (mapBlock) return;
+    const b = e.target.closest("[data-pos],[data-act]");
     if (!b) return;
-    if (b.dataset.sec != null) switchSection(+b.dataset.sec);
-    else if (b.dataset.act === "addsec") {
-      const used = new Set(song.sections.map(s => s.name));
-      song.sections.push(newSection(SECTION_NAMES.find(n => !used.has(n)) || "Part " + (song.sections.length + 1), "", sec().meter));
-      saveSongs();
-      switchSection(song.sections.length - 1);
-      if (L("entry")) input.focus();
-    } else if (b.dataset.act === "delsec" && song.sections.length > 1) {
-      song.sections.splice(secIdx, 1);
-      saveSongs();
-      switchSection(Math.max(0, secIdx - 1));
-    }
+    if (b.dataset.act === "addsec") { openSheet("addsec"); return; }
+    const p = +b.dataset.pos;
+    if (p === ordPos) { openSheet("secedit"); return; }
+    switchSection(idxOf(song.order[p]), p);
   });
-  $("sections").addEventListener("change", e => {
-    if (e.target.dataset.act === "rename") {
-      const n = SECTION_NAMES.find(x => x.toLowerCase() === e.target.value) || e.target.value;
-      sec().name = n; saveSongs(); renderSections(); renderDeck();
-    }
+  $("sections").addEventListener("pointerdown", e => {
+    const b = e.target.closest("[data-pos]");
+    if (!b || e.button > 0) return;
+    mapDrag = { b, from: +b.dataset.pos, x0: e.clientX, on: false, id: e.pointerId };
   });
+  $("sections").addEventListener("pointermove", e => {
+    if (!mapDrag || e.pointerId !== mapDrag.id) return;
+    const dx = e.clientX - mapDrag.x0;
+    if (!mapDrag.on && Math.abs(dx) < 10) return;
+    if (!mapDrag.on) { mapDrag.on = true; try { mapDrag.b.setPointerCapture(e.pointerId); } catch {} mapDrag.b.classList.add("lift"); }
+    mapDrag.b.style.transform = `translateX(${dx}px)`;
+  });
+  const endMap = e => {
+    if (!mapDrag || e.pointerId !== mapDrag.id) return;
+    const d = mapDrag;
+    mapDrag = null;
+    if (!d.on) return;
+    mapBlock = true; setTimeout(() => { mapBlock = false; }, 0);
+    const blocks = [...$("sections").querySelectorAll("[data-pos]")];
+    let to = blocks.findIndex(el => { const r = el.getBoundingClientRect(); return e.clientX < r.left + r.width / 2; });
+    if (to < 0) to = blocks.length;
+    if (to > d.from) to--;
+    if (e.type === "pointerup" && to !== d.from) {
+      const [id] = song.order.splice(d.from, 1);
+      song.order.splice(to, 0, id);
+      if (ordPos === d.from) ordPos = to;
+      else if (d.from < ordPos && to >= ordPos) ordPos--;
+      else if (d.from > ordPos && to <= ordPos) ordPos++;
+      saveSongs();
+    }
+    renderSections();
+  };
+  $("sections").addEventListener("pointerup", endMap);
+  $("sections").addEventListener("pointercancel", endMap);
+
+  function addPart(name) {
+    const x = newSection(name, "", sec().meter);
+    song.sections.push(x);
+    song.order.splice(ordPos + 1, 0, x.id);
+    saveSongs();
+    switchSection(song.sections.length - 1, ordPos + 1);
+  }
+  function repeatPart(id) {
+    song.order.splice(ordPos + 1, 0, id);
+    saveSongs();
+    switchSection(idxOf(id), ordPos + 1);
+  }
+  function removeOccurrence() {
+    if (song.order.length < 2) return;
+    const id = song.order[ordPos];
+    song.order.splice(ordPos, 1);
+    if (!song.order.includes(id)) song.sections.splice(idxOf(id), 1);
+    const p = Math.min(ordPos, song.order.length - 1);
+    saveSongs();
+    switchSection(idxOf(song.order[p]), p);
+  }
+  function movePart(d) {
+    const to = ordPos + d;
+    if (to < 0 || to >= song.order.length) return;
+    [song.order[ordPos], song.order[to]] = [song.order[to], song.order[ordPos]];
+    ordPos = to;
+    saveSongs();
+    renderSections();
+  }
+  // adding chords: what could come next here
+  function nextIdeas() {
+    const p = palette(K, prefs.sevenths), last = current[current.length - 1];
+    const ivs = last ? suggestNext(last.ch, K).slice(0, 4) : roleOf(sec().name).start;
+    const pick = ivs.map(iv => p.di.find(c => c.iv === iv)).filter(Boolean);
+    return { pick: pick.length ? pick : p.di.slice(0, 3), all: p.di, borrowed: p.borrowed };
+  }
+  function addChord(tok) {
+    const t = sec().prog.trim();
+    setProg((t ? t + " " : "") + tok, true);
+    sel = current.length - 1;
+    renderStage();
+    requestAnimationFrame(() => { stripEl.scrollLeft = stripEl.scrollWidth; });
+    playOne(sel);
+  }
 
   palEl.addEventListener("click", e => {
     if (e.target.closest('[data-act="key"]')) { openSheet("knobs"); return; }
@@ -4211,7 +4390,7 @@
 
   const pickChord = j => { sel = j; tipIdx = 0; tipOverride = null; editingLyric = false; renderStage(); playOne(sel); };
   stripEl.addEventListener("click", e => {
-    if (e.target.closest('[data-act="plus"]')) { openEntry(); return; }
+    if (e.target.closest('[data-act="plus"]')) { openSheet("add"); return; }
     const t = e.target.closest(".tile[data-j]");
     if (t) pickChord(+t.dataset.j);
   });
@@ -4327,6 +4506,7 @@
       if (L("sing")) previewSing();
     }
     else if (act === "wizard") { wiz = { mode: "here", tonic: null, minor: null }; openSheet("start"); }
+    else if (act === "add") openSheet("add");
   });
   stageEl.addEventListener("keydown", e => {
     if (e.target.id === "lane" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); startLyric(); return; }
@@ -4431,6 +4611,28 @@
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
     if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
+    const addTok = e.target.closest("[data-addtok]"), addMood = e.target.closest("[data-addmood]"), addAct = e.target.closest("[data-addact]");
+    const newPart = e.target.closest("[data-newpart]"), rep = e.target.closest("[data-repeat]"), ren = e.target.closest("[data-rename]"), mv = e.target.closest("[data-move]"), secAct = e.target.closest("[data-secact]");
+    if (addTok) { addChord(addTok.dataset.addtok); renderSheet(); return; }
+    if (addMood) {
+      const m = MOODS.find(x => x.id === addMood.dataset.addmood), t = sec().prog.trim(), was = current.length;
+      setProg((t ? t + " " : "") + moodProg(m, K), true);
+      sel = was; tipOverride = `${B().mood(m.name)} ${m.why}`;
+      closeSheet(); renderStage(); playOne(sel);
+      return;
+    }
+    if (addAct) {
+      const a = addAct.dataset.addact;
+      if (a === "pop") { const toks = tokenize(sec().prog); toks.pop(); setProg(toks.join(" "), true); renderSheet(); }
+      else if (a === "type") { closeSheet(); openEntry(); }
+      else if (a === "wizard") { wiz = { mode: "here", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
+      return;
+    }
+    if (newPart) { addPart(newPart.dataset.newpart); sheetMode = "add"; renderSheet(); return; }
+    if (rep) { repeatPart(rep.dataset.repeat); closeSheet(); toast(`${sec().name.toLowerCase()} again`); return; }
+    if (ren) { sec().name = ren.dataset.rename; saveSongs(); renderSections(); renderDeck(); renderSheet(); return; }
+    if (mv) { movePart(+mv.dataset.move); renderSheet(); return; }
+    if (secAct) { removeOccurrence(); closeSheet(); return; }
     const meterB = e.target.closest("[data-meter]"), lenB = e.target.closest("[data-len]"), viewB = e.target.closest("[data-view]"), openB = e.target.closest("[data-open]");
     if (meterB) { setMeter(meterB.dataset.meter); renderSheet(); return; }
     if (e.target.closest('[data-act="meter"]')) { cycleMeter(); renderSheet(); return; }
@@ -4684,6 +4886,7 @@
     ro.observe($("sceneWrap"));
   } catch { addEventListener("resize", () => { measureDeck(); placeHits(); }); }
 
+  secIdx = Math.max(0, idxOf(song.order[0]));
   applySettings();
   applyView();
   tipOverride = B().hello;
