@@ -200,8 +200,10 @@
   .stay { fill: var(--lamp); stroke: var(--key-edge); stroke-width: .7; }
   .ring { fill: none; stroke: var(--lamp); stroke-width: 1.5; }
   .fdot { stroke: var(--key-edge); stroke-width: .7; fill: var(--key-w); }
-  .fnum { fill: #2f2a3d; font-family: var(--hand); font-weight: 700; font-size: 6.4px; text-anchor: middle; }
-  .kl { fill: #2f2a3d; font-family: var(--type); font-weight: 700; font-size: 3.9px; text-anchor: middle; }
+  .kl { fill: var(--soft); font-family: var(--type); font-weight: 700; font-size: 3.5px; text-anchor: middle; pointer-events: none; }
+  .kl.on { fill: #2f2a3d; font-size: 4px; }
+  .kl.bl { fill: var(--key-w); opacity: .6; font-size: 2.6px; }
+  .kl.bl.on { fill: #2f2a3d; opacity: 1; font-size: 2.9px; }
   .oct { fill: var(--soft); font-family: var(--type); font-size: 4.2px; text-anchor: middle; }
   [data-m] { cursor: pointer; }
 
@@ -509,12 +511,33 @@
 
   /* ---------- arrows: where your fingers go next ---------- */
   .arrows { transition: opacity .35s ease; }
-  .arrows .arc { fill: none; stroke-width: 1.15; stroke-linecap: round; }
-  .arrows .arc.lh { stroke: var(--lh); } .arrows .arc.rh { stroke: var(--rh); }
-  .arrows .head.lh { fill: var(--lh); } .arrows .head.rh { fill: var(--rh); }
+  .mv { --c: var(--rh); } .mv.lh { --c: var(--lh); }
+  .mv .shaft { fill: none; stroke: var(--c); stroke-width: 1.9; stroke-linecap: round; }
+  .mv .stem { fill: none; stroke: var(--c); stroke-width: .8; opacity: .55; }
+  .mv .drop { fill: none; stroke: var(--c); stroke-width: .8; stroke-dasharray: 1 1; }
+  .mv .from { fill: var(--card); stroke: var(--c); stroke-width: .8; }
+  .mv .head { fill: var(--c); stroke: var(--ink); stroke-width: .3; stroke-linejoin: round; }
   .nextlbl { font-family: var(--hand); font-weight: 700; font-size: 5.8px; fill: var(--soft); }
   .kbd.wait .arrows { opacity: 0; }
   .kbd.soon .arrows { opacity: 1; transition: opacity var(--fade, .6s) ease-in var(--delay, 0s); }
+
+  /* ---------- the accompanist's world behind everything ---------- */
+  .backdrop { display: none; position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .has-bd .backdrop { display: block; }
+  .has-bd { background: #1c1a26; }
+  .bd-layer { position: absolute; inset: 0; }
+  .bd-layer.fresh { animation: fadein 1.1s ease both; }
+  .bd-stars { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .bd-orb { position: absolute; left: calc(50% - 14px); width: 64px; height: 64px; opacity: .95; }
+  @media (min-width: 1000px) { .bd-orb { left: calc(50% - 60px); width: 96px; height: 96px; } }
+  .bd-ground { position: absolute; left: 0; right: 0; bottom: calc(var(--deck-h, 152px) - 4px); width: 100%; height: 150px; }
+  .bd-window { position: absolute; right: -26px; top: 70px; width: 170px; height: 170px; opacity: .85; }
+  .bd-spot { position: absolute; left: 50%; top: -10%; width: 70vmax; height: 120vh; transform: translateX(-50%); background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.09), transparent 60%); }
+  .bd-lights { position: absolute; left: 0; right: 0; top: 0; width: 100%; height: 44px; }
+  .has-bd .toplinks .link, .has-bd .song-title, .has-bd .keychip, .has-bd .sep, .has-bd .mini-switch, .has-bd .sec.add, .has-bd .story-cap .say, .has-bd .story-cap .who { color: var(--on-bg); }
+  .has-bd .sec.add { border-color: var(--on-bg); opacity: .8; }
+  .has-bd:not(.bd-light) .logo .lg-a, .has-bd:not(.bd-light) .logo .lg-b { text-shadow: 2px 2px 0 #14121b; }
+  .mood-chip { flex: none; border: 1.5px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--surprise) 50%, var(--card)); color: var(--on-color); font-family: var(--hand); font-weight: 700; font-size: 16px; line-height: 1; padding: 5px 10px 4px; }
 
   /* ---------- views: bare, writer, story ---------- */
   .no-talk .say { display: none; }
@@ -618,12 +641,12 @@
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
 </style>
+<div class="backdrop" id="backdrop" aria-hidden="true"></div>
 <div class="app">
   <header class="top">
     <h1 class="logo" aria-label="Pixie Chords"><span class="lg-a">Pixie</span><span class="lg-b">Chords</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .5l1.9 5.6L15.5 8l-5.6 1.9L8 15.5l-1.9-5.6L.5 8l5.6-1.9z"/></svg></h1>
     <nav class="toplinks">
       <button class="link" type="button" id="openSongs">songs</button>
-      <button class="link" type="button" id="openMoods">moods</button>
       <button class="link" type="button" id="tabFind" aria-pressed="false">name it</button>
       <button class="link" type="button" id="openView">view</button>
     </nav>
@@ -1584,8 +1607,8 @@
     return b.map(m => [a.reduce((best, x) => (Math.abs(x - m) < Math.abs(best - m) ? x : best), a[0]), m]);
   }
 
-  // o: stay, label, fingers, picked (Set, finder), interactive,
-  //    nextV (the voicing coming up), arrows, nextName
+  // o: stay, label (m, inChord) → name, picked (Set, finder), interactive,
+  //    nextV (the voicing coming up), arrows, nextName, tall
   function keyboard(v, lo, hi, o = {}) {
     const stay = o.stay || new Set();
     const lh = new Set(v.lh), rh = new Set(v.rh);
@@ -1597,65 +1620,70 @@
     const pos = new Map(whites.map((m, i) => [m, i]));
     const bx = m => (pos.get(m - 1) + 1) * W + .5 - BW / 2;
     const xOf = m => isBlack(m) ? bx(m) + BW / 2 : pos.get(m) * W + .5 + W / 2;
-    const yOf = m => isBlack(m) ? BH - 7 : H - 15;
+    const yOf = m => isBlack(m) ? BH - 9 : H - 14;
     const has = m => isBlack(m) ? pos.has(m - 1) : pos.has(m);
     const low = picked && picked.size ? Math.min(...picked) : null;
     const cls = m => picked ? (picked.has(m) ? (m === low ? " lh" : " rh") : "") : (lh.has(m) ? " lh" : rh.has(m) ? " rh" : "");
     const hit = m => o.interactive ? ` data-m="${m}"` : "";
     const width = whites.length * W + 1;
     const nv = o.nextV;
-    // room above the keys for the arrows
-    const T = nv && o.arrows ? 11 : 0;
+
+    // arrows: each finger that moves gets a straight arrow in its own lane
+    // above the keys, from the key it's on to the key it goes to
+    const pairs = [];
+    if (nv && o.arrows) {
+      const hand = (a, b, cl) => moves(a, b).forEach(([p, q]) => { if (p !== q && has(p) && has(q)) pairs.push({ p, q, cl, a: Math.min(xOf(p), xOf(q)), b: Math.max(xOf(p), xOf(q)) }); });
+      if (v.lh.length && nv.lh.length) { hand(v.lh, nv.lh, "lh"); hand(v.rh, nv.rh, "rh"); }
+      else hand(allNotes(v), allNotes(nv), "rh");
+    }
+    const lanes = [];
+    pairs.sort((x, y) => x.a - y.a).forEach(pr => {
+      let k = lanes.findIndex(end => end < pr.a - 4);
+      if (k < 0) { k = lanes.length; lanes.push(0); }
+      lanes[k] = pr.b;
+      pr.lane = k;
+    });
+    const LANE = 6;
+    const T = nv && o.arrows ? Math.max(1, lanes.length) * LANE + 3 : 0;
+
     let keys = "", marks = "", over = "";
+    const name = (m, on) => labelled ? o.label(m, on) : "";
     whites.forEach((m, i) => {
       keys += `<rect class="kw${cls(m)}"${hit(m)} data-k="${m}" x="${i * W + .5}" y=".5" width="${W}" height="${H}" rx="1.6"/>`;
-      if (labelled && cls(m)) marks += `<text class="kl" x="${xOf(m)}" y="${H - 3.6}">${o.label(m)}</text>`;
+      if (labelled) marks += `<text class="kl${cls(m) ? " on" : ""}" x="${xOf(m)}" y="${H - 3.4}">${name(m, !!cls(m))}</text>`;
       if (labelled && mod(m) === 0) marks += `<text class="oct" x="${xOf(m)}" y="${H + 7.2}">C${m / 12 - 1}</text>`;
     });
     for (let m = lo; m <= hi; m++) {
       if (!isBlack(m) || !pos.has(m - 1)) continue;
       keys += `<rect class="kb${cls(m)}"${hit(m)} data-k="${m}" x="${bx(m)}" y=".5" width="${BW}" height="${BH}" rx="1.1"/>`;
-      if (labelled && cls(m) && !o.fingers) marks += `<text class="kl" x="${xOf(m)}" y="${BH - 3.2}" style="font-size:3.2px">${o.label(m)}</text>`;
+      if (labelled) marks += `<text class="kl bl${cls(m) ? " on" : ""}" x="${xOf(m)}" y="${BH - 2.6}">${name(m, !!cls(m))}</text>`;
     }
     // the chord coming up next, as dotted outlines
     if (nv) allNotes(nv).forEach(m => {
       if (lh.has(m) || rh.has(m) || m < lo || m > hi) return;
       if (isBlack(m)) { if (pos.has(m - 1)) marks += `<rect class="ghostkey" x="${bx(m) + 1}" y="1.5" width="${BW - 2}" height="${BH - 2}" rx="1"/>`; }
-      else if (pos.has(m)) marks += `<rect class="ghostkey" x="${pos.get(m) * W + 2}" y="${BH + 2}" width="${W - 3}" height="${H - BH - 4}" rx="1.4"/>`;
+      else if (pos.has(m)) marks += `<rect class="ghostkey" x="${pos.get(m) * W + 2}" y="${BH + 2}" width="${W - 3}" height="${H - BH - 10}" rx="1.4"/>`;
     });
-    if (o.fingers) {
-      const put = (notes, hand) => fingering(notes, hand).forEach((f, i) => {
-        const m = notes[i], x = xOf(m), y = yOf(m);
-        if (stay.has(m)) marks += `<circle class="ring" cx="${x}" cy="${y}" r="5.4"/>`;
-        marks += `<circle class="fdot" cx="${x}" cy="${y}" r="4"/><text class="fnum" x="${x}" y="${y + 2.2}">${f}</text>`;
-      });
-      put(v.lh, "lh");
-      put(v.rh, "rh");
-    } else {
-      stay.forEach(m => { if (has(m)) marks += `<circle class="stay" cx="${xOf(m)}" cy="${labelled ? yOf(m) : (isBlack(m) ? BH - 5 : H - 6)}" r="${labelled ? 2.4 : 2.8}"/>`; });
-    }
-    // arrows: small arcs above the keys, from where each finger is to where it goes
+    // keys that stay down into the next chord
+    stay.forEach(m => { if (has(m)) marks += `<circle class="stay" cx="${xOf(m)}" cy="${labelled ? yOf(m) : (isBlack(m) ? BH - 5 : H - 6)}" r="${labelled ? 2.2 : 2.8}"/>`; });
     if (T) {
-      const pairs = [];
-      const hand = (a, b, cl) => moves(a, b).forEach(([p, q]) => { if (p !== q && has(p) && has(q)) pairs.push([p, q, cl]); });
-      if (v.lh.length && nv.lh.length) { hand(v.lh, nv.lh, "lh"); hand(v.rh, nv.rh, "rh"); }
-      else hand(allNotes(v), allNotes(nv), "rh");
-      let arcs = "", leftBusy = false;
-      pairs.forEach(([p, q, cl]) => {
-        const x0 = xOf(p), x1 = xOf(q), dx = Math.abs(x1 - x0);
-        const y0 = -0.7, peak = Math.min(8.6, 2.6 + dx * 0.12);
-        const cx = (x0 + x1) / 2, cy = y0 - peak * 2;
-        // arrowhead along the curve's last direction
-        const ang = Math.atan2(y0 - cy, x1 - cx), s = 2.1;
-        const hx = x1, hy = y0 + 0.4;
-        const l = [hx - s * Math.cos(ang - 0.5), hy - s * Math.sin(ang - 0.5)];
-        const r = [hx - s * Math.cos(ang + 0.5), hy - s * Math.sin(ang + 0.5)];
-        arcs += `<path class="arc ${cl}" d="M${x0.toFixed(1)} ${y0}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x1.toFixed(1)} ${(y0 - 0.2).toFixed(1)}"/>`
-          + `<path class="head ${cl}" d="M${hx.toFixed(1)} ${hy.toFixed(1)}L${l[0].toFixed(1)} ${l[1].toFixed(1)}L${r[0].toFixed(1)} ${r[1].toFixed(1)}z"/>`;
-        if (Math.min(x0, x1) < 46) leftBusy = true;
+      let arr = "";
+      pairs.forEach(pr => {
+        const x0 = xOf(pr.p), x1 = xOf(pr.q), dir = Math.sign(x1 - x0), y = -(pr.lane * LANE + 3.2);
+        const h = 3.2, tip = x1 - dir * 0.2, base = tip - dir * h;
+        arr += `<g class="mv ${pr.cl}">`
+          + `<path class="stem" d="M${x0.toFixed(1)} -.3V${y.toFixed(1)}"/>`
+          + `<circle class="from" cx="${x0.toFixed(1)}" cy="${y.toFixed(1)}" r="1.1"/>`
+          + `<path class="shaft" d="M${x0.toFixed(1)} ${y.toFixed(1)}H${base.toFixed(1)}"/>`
+          + `<path class="head" d="M${tip.toFixed(1)} ${y.toFixed(1)}L${base.toFixed(1)} ${(y - h * 0.62).toFixed(1)}L${base.toFixed(1)} ${(y + h * 0.62).toFixed(1)}z"/>`
+          + `<path class="drop" d="M${x1.toFixed(1)} ${(y + 1.2).toFixed(1)}V-.3"/></g>`;
       });
-      const label = o.nextName ? `<text class="nextlbl" x="${leftBusy ? width - 1 : 1}" y="${5.4 - T}" text-anchor="${leftBusy ? "end" : "start"}">next: ${o.nextName}${pairs.length ? "" : ", same keys"}</text>` : "";
-      over = `<g class="arrows">${arcs}${label}</g>`;
+      // "next" note: in the top lane, on whichever side is free
+      const top = pairs.filter(pr => pr.lane === lanes.length - 1);
+      const leftFree = !top.some(pr => pr.a < 44), rightFree = !top.some(pr => pr.b > width - 44);
+      const lbl = o.nextName ? `next: ${o.nextName}${pairs.length ? "" : " · same keys"}` : "";
+      if (lbl && (leftFree || rightFree || !pairs.length)) arr += `<text class="nextlbl" x="${leftFree ? 1 : width - 1}" y="${(-T + 4.4).toFixed(1)}" text-anchor="${leftFree ? "start" : "end"}">${lbl}</text>`;
+      over = `<g class="arrows">${arr}</g>`;
     }
     return `<svg viewBox="0 ${-T} ${width} ${H + (labelled ? 9 : 1) + T}" aria-hidden="true">
       <defs><filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="1" seed="4"/><feDisplacementMap in="SourceGraphic" scale="1.3"/></filter></defs>
@@ -1996,6 +2024,33 @@
     }
     if (k.minor) { const [x, y] = pt(nowH, R - 26); s += `<text class="dial-min" x="${x.toFixed(1)}" y="${(y + 18).toFixed(1)}">${esc(pretty(MIN_NAMES[k.tonic]))}m</text>`; }
     return `<svg class="dial" viewBox="0 0 160 160" aria-hidden="false">${s}</svg>`;
+  }
+
+  // =========================================================
+  // The whole page sits inside the accompanist's world
+  // =========================================================
+  const ROOMS = { ghost: ["#241c3e", "#3b2d55"], oona: ["#111115", "#26262d"], lulu: ["#361934", "#5c2c4a"] };
+  function backdrop(id, sky, u) {
+    const room = ROOMS[id];
+    const light = !room && sky.night < 0.45;
+    let bg = room ? `linear-gradient(${room[0]}, ${room[1]})` : `linear-gradient(${sky.top}, ${sky.bot} 85%)`;
+    let inner = "";
+    if (!room) {
+      inner += `<svg class="bd-stars" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${starsIn(46, 17, 0, 0, 400, 560, sky.night)}</svg>`;
+      inner += `<svg class="bd-orb" style="top:${(2 + (1 - sky.el) * 16).toFixed(1)}px" viewBox="-20 -20 40 40" aria-hidden="true">${orb(0, 0, 9, sky, "b" + u)}</svg>`;
+      const hill = id === "wren" ? hexMix("#6f9a86", "#162520", Math.min(1, sky.night * 1.1)) : hexMix("#8a93b8", "#262a4a", sky.night);
+      const ground = id === "wren"
+        ? `M0 120V70${Array.from({ length: 16 }, (_, i) => `L${i * 80 + 40} ${30 + ((i * 37) % 30)}L${i * 80 + 80} 72`).join("")}V120z`
+        : `M0 120V80${Array.from({ length: 30 }, (_, i) => { const x = i * 40, h = 20 + ((i * 53) % 40); return `H${x}V${80 - h}H${x + 30}V80`; }).join("")}H1200V120z`;
+      inner += `<svg class="bd-ground" viewBox="0 0 1200 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path d="${ground}" fill="${hill}" opacity=".85"/>${id === "dusty" ? `<g opacity="${(0.15 + sky.night * 0.6).toFixed(2)}">${Array.from({ length: 40 }, (_, i) => `<rect x="${8 + (i * 97) % 1180}" y="${50 + (i * 13) % 24}" width="3" height="4" fill="#ffd36b"/>`).join("")}</g>` : ""}</svg>`;
+    } else {
+      if (id === "lulu") bg = `radial-gradient(circle, rgba(255,158,187,.14) 1.2px, transparent 1.6px) 0 0 / 22px 22px, ${bg}`;
+      const win = id === "ghost" ? `<circle cx="60" cy="60" r="56"/>` : `<rect x="4" y="4" width="112" height="112"/>`;
+      inner += `<svg class="bd-window ${id}" viewBox="0 0 120 120" aria-hidden="true">${skyPatch(4, 4, 112, 112, sky, "w" + u, win)}${id === "ghost" ? `<circle cx="60" cy="60" r="56" fill="none" stroke="#140f24" stroke-width="6"/><circle cx="60" cy="60" r="59" fill="none" stroke="#3fd9b9" stroke-width="1.2" class="neon"/><path d="M60 4v112M4 60h112" stroke="#140f24" stroke-width="3"/>` : id === "lulu" ? `<rect x="4" y="4" width="112" height="112" fill="none" stroke="#2a1426" stroke-width="6"/><path d="M60 4v112M4 60h112" stroke="#2a1426" stroke-width="4"/>` : `<rect x="2" y="2" width="116" height="116" fill="none" stroke="#e9e6dc" stroke-width="3"/>`}</svg>`;
+      if (id === "oona") inner += `<div class="bd-spot"></div>`;
+      if (id === "lulu") inner += `<svg class="bd-lights" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path d="M0 6Q100 30 200 8T400 8" fill="none" stroke="#1a0c18" stroke-width="1"/>${Array.from({ length: 14 }, (_, i) => { const x = 14 + i * 28; return `<circle class="twinkle" style="animation-delay:${-(i % 5) * .5}s" cx="${x}" cy="${(8 + 12 * Math.sin(x / 400 * Math.PI) * (x < 200 ? 1 : 0.2)).toFixed(1)}" r="2.6" fill="${["#ffd35c", "#ff7aa8", "#7fd6b0", "#b57cff"][i % 4]}"/>`; }).join("")}</svg>`;
+    }
+    return { html: `<div class="bd-layer" style="background:${bg}">${inner}</div>`, onBg: light ? "#2f2a3d" : "#f3ecdf", light };
   }
 
   // =========================================================
@@ -2991,16 +3046,16 @@
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 
   // ---------- what's on screen and what you hear ----------
-  const LAYERS = ["scene", "talk", "lyrics", "ribbon", "palette", "entry", "fingers", "arrows", "fx", "drums", "sing", "crackle"];
+  const LAYERS = ["scene", "talk", "lyrics", "ribbon", "palette", "entry", "arrows", "fx", "drums", "sing", "crackle"];
   const LAYER_NAMES = {
     scene: "the scene", talk: "talking", lyrics: "words + tune", ribbon: "chord lengths", palette: "chord buttons", entry: "type chords",
-    fingers: "finger numbers", arrows: "where to go next", fx: "sparkles", drums: "drums", sing: "singing", crackle: "vinyl crackle"
+    arrows: "where to go next", fx: "sparkles", drums: "drums", sing: "singing", crackle: "vinyl crackle"
   };
   const HEAR = ["drums", "sing", "crackle"];
   const VIEWS = {
-    bare: { name: "bare", note: "keys and chords, nothing else", on: ["palette", "entry", "fingers", "arrows"] },
+    bare: { name: "bare", note: "keys and chords, nothing else", on: ["palette", "entry", "arrows"] },
     writer: { name: "writer", note: "write, loop, sing", on: LAYERS.filter(l => l !== "entry") },
-    story: { name: "story", note: "a big scene and your words", on: ["scene", "talk", "lyrics", "fingers", "arrows", "fx", "drums", "sing", "crackle"] },
+    story: { name: "story", note: "a big scene and your words", on: ["scene", "talk", "lyrics", "arrows", "fx", "drums", "sing", "crackle"] },
     all: { name: "everything", note: "every switch on", on: LAYERS }
   };
   const layersFor = v => Object.fromEntries(LAYERS.map(l => [l, VIEWS[v].on.includes(l)]));
@@ -3214,7 +3269,7 @@
       const hint = !borrowed && next.has(c.iv) && !(minorIV && c.iv !== 0);
       return `<button class="pal${hint ? " next" : ""}${borrowed ? " borrowed" : ""}" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
     };
-    palEl.innerHTML = `<button class="keychip" type="button" data-act="key">${esc(pretty(keyName(K)))}</button>`
+    palEl.innerHTML = `<button class="mood-chip" type="button" data-act="moods" title="Whole progressions for a feeling">✦ moods</button><button class="keychip" type="button" data-act="key">${esc(pretty(keyName(K)))}</button>`
       + p.di.map(c => chip(c, false)).join("")
       + `<span class="sep" title="Borrowed chords">·</span>` + p.borrowed.map(c => chip(c, true)).join("")
       + `<label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> 7ths</label>`;
@@ -3280,7 +3335,20 @@
       [...host.children].filter(el => el !== fresh).forEach(el => setTimeout(() => el.remove(), 1200));
     }
     $("buddyMini").innerHTML = portrait(prefs.buddy);
+    renderBackdrop(h, first);
     if (!$("egg").hidden) renderEgg();
+  }
+  // the accompanist's world stretched behind the whole page
+  let bdN = 0;
+  function renderBackdrop(h, instant) {
+    const host = $("backdrop"), bd = backdrop(prefs.buddy, skyFor(h), "d" + (++bdN));
+    document.documentElement.style.setProperty("--on-bg", bd.onBg);
+    document.body.classList.toggle("bd-light", bd.light);
+    if (instant || reduceMotion) { host.innerHTML = bd.html; return; }
+    host.insertAdjacentHTML("beforeend", bd.html);
+    const fresh = host.lastElementChild;
+    fresh.classList.add("fresh");
+    [...host.children].filter(el => el !== fresh).forEach(el => setTimeout(() => el.remove(), 1200));
   }
   // tap targets over the character and the patch of sky
   function placeHits() {
@@ -3330,7 +3398,7 @@
         ${undo ? `<button class="undo" type="button" data-act="undo">undo</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: m => noteName(c.ch, m), fingers: L("fingers"), nextV: arrows ? nextC.v : null, arrows, nextName: arrows ? esc(pretty(nextC.tok)) : "", tall: prefs.view === "bare" })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: c.stay, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, nextName: arrows ? esc(pretty(nextC.tok)) : "", tall: prefs.view === "bare" })}</div>
       <div class="shape-row">
         <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
         <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}</b><span>${esc(blurb)} · ${c.opt + 1} of ${c.len}${c.j > 0 || c.stay.size ? ` · ${c.stay.size} stay` : ""}${ovr ? `<button class="reset" type="button" data-act="reset">auto</button>` : ""}</span></div>
@@ -3462,6 +3530,7 @@
     const story = prefs.view === "story" && L("scene");
     b.classList.toggle("view-story", story);
     b.classList.toggle("view-bare", prefs.view === "bare");
+    b.classList.toggle("has-bd", L("scene") && prefs.view !== "bare");
     b.classList.toggle("tight", L("entry") && L("palette") && L("ribbon") && L("lyrics") && L("scene"));
     const wrap = $("sceneWrap"), sayEl = $("say"), dock = $("sayDock");
     if (story) { $("storyHero").appendChild(wrap); $("storyCap").appendChild(sayEl); }
@@ -3788,6 +3857,7 @@
   const cycleMeter = () => setMeter(METER_ORDER[(METER_ORDER.indexOf(sec().meter) + 1) % METER_ORDER.length]);
 
   const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+  const NAMES_IN = k => namesFor(k);
   const SHARPS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
   // spell chord roots the way the new key does
   function namesFor(k) {
@@ -4098,7 +4168,6 @@
   $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
   $("openKnobs").addEventListener("click", () => openSheet("knobs"));
   $("openSongs").addEventListener("click", () => openSheet("songs"));
-  $("openMoods").addEventListener("click", () => openSheet("moods"));
   $("openView").addEventListener("click", () => openSheet("view"));
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
@@ -4128,6 +4197,7 @@
 
   palEl.addEventListener("click", e => {
     if (e.target.closest('[data-act="key"]')) { openSheet("knobs"); return; }
+    if (e.target.closest('[data-act="moods"]')) { openSheet("moods"); return; }
     const b = e.target.closest("[data-add]");
     if (!b) return;
     const t = sec().prog.trim();
