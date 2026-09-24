@@ -567,13 +567,13 @@
   .stage-top .icon-btn { flex: none; }
   .undo-btn { flex: none; width: 28px; height: 28px; border: 1.5px solid var(--line); border-radius: 50%; background: var(--card-2); color: var(--surprise); font-weight: 800; font-size: 16px; line-height: 1; padding: 0; }
   @media (max-width: 480px) { .stage-top .role span { display: none; } }
-  .knob { flex: none; width: 38px; height: 38px; border: 0; padding: 0; background: none; touch-action: none; cursor: grab; }
-  .knob svg { width: 100%; height: 100%; display: block; overflow: visible; }
-  .knob .dial { fill: var(--card-2); stroke: var(--line); stroke-width: 1.5; }
-  .knob .tk { stroke: var(--soft); stroke-width: 1.4; stroke-linecap: round; }
-  .knob .tk.on { stroke: var(--tension); stroke-width: 2.2; }
-  .knob .ptr { stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; transition: transform .15s ease; transform-origin: 20px 20px; }
-  .knob:active { cursor: grabbing; }
+  .cknob { flex: none; width: 38px; height: 38px; border: 0; padding: 0; background: none; touch-action: none; cursor: grab; }
+  .cknob svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .cknob .dial { fill: var(--card-2); stroke: var(--line); stroke-width: 1.5; }
+  .cknob .tk { stroke: var(--soft); stroke-width: 1.4; stroke-linecap: round; }
+  .cknob .tk.on { stroke: var(--tension); stroke-width: 2.2; }
+  .cknob .ptr { stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; transition: transform .15s ease; transform-origin: 20px 20px; }
+  .cknob:active { cursor: grabbing; }
   /* ---------- the tape recorder ---------- */
   button.reels { border: 0; color: inherit; position: relative; cursor: pointer; }
   .recdot { position: absolute; right: 3px; top: 3px; width: 7px; height: 7px; border-radius: 50%; background: #e0453a; box-shadow: 0 0 0 1.5px rgba(0,0,0,.35); }
@@ -911,14 +911,23 @@
   const bassMidi = pc => 41 + mod(pc - 5); // F2 .. E3
 
   // Starter level keeps just root, third and fifth
+  // easy shapes: drop the 5th, keep what gives the chord its color
+  // (the 7th or 6th, then the highest extra note)
   function trimIvs(ivs) {
     const third = ivs.find(iv => iv === 3 || iv === 4) ?? ivs.find(iv => iv === 2 || iv === 5);
     const fifth = ivs.find(iv => iv === 7) ?? ivs.find(iv => iv === 6 || iv === 8);
+    const colors = ivs.filter(iv => iv !== 0 && iv !== third && iv !== fifth);
     const out = [0];
     if (third != null) out.push(third);
-    out.push(fifth ?? 7);
-    return out;
+    if (!colors.length) { out.push(fifth ?? 7); return out; }
+    if (fifth === 6 || fifth === 8 || third == null) out.push(fifth ?? 7);
+    const sev = colors.find(iv => iv === 9 || iv === 10 || iv === 11);
+    const top = colors.filter(iv => iv !== sev).pop();
+    if (sev != null) out.push(sev);
+    if (top != null) out.push(top);
+    return out.sort((a, b) => a - b);
   }
+
 
   function rhTones(ivs, keepRoot) {
     let t = ivs.slice();
@@ -940,7 +949,7 @@
       const rot = tones.slice(r).concat(tones.slice(0, r));
       let pcs = rot.map(iv => mod(ch.rootPc + iv));
       if (one && !onRoot) pcs = [ch.bassPc, ...pcs.filter(pc => pc !== ch.bassPc)];
-      out.push({ kind: "inv", r, pcs, name: cfg.trim ? (r ? INV[r] : "Starter triad") : INV[r], lh: one ? [] : [bass], rh: placeNear(pcs, invCenter), spark: [] });
+      out.push({ kind: "inv", r, pcs, name: cfg.trim ? (r ? INV[r] : "Easy shape") : INV[r], lh: one ? [] : [bass], rh: placeNear(pcs, invCenter), spark: [] });
     });
     if (one && !onRoot) {
       // with the bass on the bottom, inversions collapse into one shape
@@ -3147,7 +3156,7 @@
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
 
   const FEELS = [
-    { id: "starter", name: "easy", note: "three notes, barely moving" },
+    { id: "starter", name: "easy", note: "fewest notes, barely moving" },
     { id: "smooth", name: "smooth", note: "every note, closest shapes" },
     { id: "open", name: "lush", note: "wide and airy" },
     { id: "jazzy", name: "jazzy", note: "color notes on top" }
@@ -3527,7 +3536,7 @@
         <div class="chord-name${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}">${symbolHTML(c.ch)}</div>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
         <button class="pill" type="button" data-act="beats" title="How long it lasts. Tap to change.">${c.beats}${glyph(Mtr)}</button>
-        ${(() => { const ld = ladderOf(c.ch); return ld && ld.L.length > 1 ? `<button class="knob" type="button" id="knob" data-act="knob" role="slider" aria-label="Chord color" aria-valuemin="0" aria-valuemax="${ld.L.length - 1}" aria-valuenow="${ld.i}" aria-valuetext="${esc(c.tok)}" title="Turn for more color">${knobSVG(ld.L.length, ld.i)}</button>` : ""; })()}
+        ${(() => { const ld = ladderOf(c.ch); return ld && ld.L.length > 1 ? `<button class="cknob" type="button" id="knob" data-act="knob" role="slider" aria-label="Chord color" aria-valuemin="0" aria-valuemax="${ld.L.length - 1}" aria-valuenow="${ld.i}" aria-valuetext="${esc(c.tok)}" title="Turn for more color">${knobSVG(ld.L.length, ld.i)}</button>` : ""; })()}
         <button class="icon-btn" type="button" data-act="surprise" title="Swap this chord for a surprise">✦</button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
