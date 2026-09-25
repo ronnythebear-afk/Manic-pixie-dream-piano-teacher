@@ -890,7 +890,7 @@
   .eo-row { display: inline-flex; gap: 4px; margin: 0 2px; vertical-align: baseline; }
   .eo { font-family: var(--hand); font-weight: 700; font-size: 15px; color: var(--soft); opacity: .55; text-decoration: line-through; text-decoration-thickness: 1px; }
   .eo.on { color: inherit; opacity: 1; text-decoration: none; border-bottom: 2.5px solid var(--rh); }
-  .h-kbd svg { display: block; width: 100%; max-width: 420px; height: auto; }
+  .h-kbd svg { display: block; width: 100%; max-width: 260px; height: auto; }
   .h-foot { justify-content: flex-end; }
   .chip { border: 1.5px solid var(--line); border-radius: 999px; background: var(--card); color: inherit; padding: 3px 10px; font-family: var(--hand); font-weight: 700; font-size: 15px; cursor: pointer; }
   @media (min-width: 760px) {
@@ -898,6 +898,25 @@
     .house > .street, .house > .street2, .house > .h-foot { grid-column: 1 / -1; }
     .house-svg { max-height: 66vh; }
   }
+  /* the little house in the chord row */
+  .palette { gap: 12px; overflow: visible; padding: 4px 2px 2px; }
+  .mini-house { flex: none; width: min(250px, 64vw); height: auto; display: block; filter: drop-shadow(1.5px 2px 0 rgba(20, 16, 28, .35)); }
+  .mh-win { cursor: pointer; }
+  .mh-win > rect:first-child { transition: fill .2s; }
+  .mh-win .mh-tint { fill: var(--fn); opacity: .8; }
+  .mh-win .mh-name { font-family: var(--hand); font-weight: 700; font-size: 14px; text-anchor: middle; fill: #2f2a3d; pointer-events: none; }
+  .mh-win .mh-num { font-family: var(--type); font-weight: 700; font-size: 6.5px; text-anchor: middle; fill: #2f2a3d; opacity: .7; pointer-events: none; }
+  .mh-win .mh-next { font-size: 8px; text-anchor: middle; fill: #e0a52a; pointer-events: none; }
+  .mh-win.now > rect:first-child { fill: #fff6c8; stroke-width: 2.6; filter: drop-shadow(0 0 3px #ffe38a); }
+  .mh-win:hover > rect:first-child { fill: #fff; }
+  .mh-win:focus { outline: none; } .mh-win:focus-visible > rect:first-child { stroke: var(--lh); stroke-width: 3; }
+  .mh-side { display: grid; gap: 6px; justify-items: start; align-content: center; min-width: 0; }
+  .mh-side .keychip { font-size: 14px; }
+  .mh-side .pal { padding: 4px 12px; min-height: 0; white-space: nowrap; }
+  .mh-side .pal-lbl { font-size: 11px; line-height: 1.25; }
+  .h-room.kin .h-glass { opacity: 1; fill: color-mix(in srgb, var(--surprise) 30%, #fff); }
+  .house .h-detail { min-height: 60px; }
+  .h-floor { font-size: 8.5px; font-weight: 700; opacity: 1; fill: #fffaf0; paint-order: stroke; stroke: rgba(30, 20, 30, .7); stroke-width: 2.2px; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -3716,9 +3735,9 @@
   // street, the parallel key lives across it, and borrowed chords visit the garden.
   // =========================================================
   const FLOORS = [
-    { name: "the attic", note: "tension. These chords want to come back down to the front door.", degs: [4, 6] },
-    { name: "upstairs", note: "stepping out. These chords leave home and head somewhere.", degs: [1, 3] },
-    { name: "the ground floor", note: "home. The song can rest in any of these rooms.", degs: [5, 0, 2] }
+    { name: "the attic", tag: "the attic · tension, wants to come home", label: "tension", degs: [4, 6] },
+    { name: "upstairs", tag: "upstairs · stepping out", label: "stepping out", degs: [1, 3] },
+    { name: "the ground floor", tag: "downstairs · home", label: "home", degs: [5, 0, 2] }
   ];
   // room boxes in the house drawing, by floor then position (x, y, w, h)
   const ROOM_BOX = [
@@ -3770,7 +3789,7 @@
   // ---------- each friend's house ----------
   const HOUSE_STYLES = {
     dusty: {
-      title: "Dusty's honky-tonk", wall: "#b87a4b", wall2: "#9c6238", trim: "#5a3522", glass: "#ffd98a", sky: ["#f4b77a", "#7a5c8f"], ground: "#8a6a3a",
+      roofColor: "#c8453f", title: "Dusty's honky-tonk", wall: "#b87a4b", wall2: "#9c6238", trim: "#5a3522", glass: "#ffd98a", sky: ["#f4b77a", "#7a5c8f"], ground: "#8a6a3a",
       roof: () => `<path d="M60 64 170 12 280 64z" fill="#c8453f" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
         <path d="M84 53 170 20 256 53" fill="none" stroke="#e8756c" stroke-width="1" opacity=".7"/>
         ${Array.from({ length: 11 }, (_, i) => `<circle class="twinkle" style="animation-delay:${-i * .3}s" cx="${70 + i * 20}" cy="${64 - Math.max(0, 5 - Math.abs(i - 5)) * 9.6 + 4}" r="2.4" fill="${["#ffd36b", "#ff9ebb", "#8fe0d0"][i % 3]}"/>`).join("")}
@@ -3780,7 +3799,7 @@
       yard: () => `<g transform="translate(300 300)"><path d="M0 0v-26M0-14h-7v-8M0-18h6v-6" stroke="#5e8a4a" stroke-width="5" stroke-linecap="round" fill="none"/></g>`
     },
     ghost: {
-      title: "Static's apartment", wall: "#4a3a72", wall2: "#3a2d5c", trim: "#1a1433", glass: "#8ff5e4", sky: ["#2a2144", "#120d22"], ground: "#2e2548",
+      roofColor: "#3a2d5c", title: "Static's apartment", wall: "#4a3a72", wall2: "#3a2d5c", trim: "#1a1433", glass: "#8ff5e4", sky: ["#2a2144", "#120d22"], ground: "#2e2548",
       roof: () => `<rect x="70" y="52" width="200" height="12" fill="#3a2d5c" stroke="${INK}" stroke-width="1.6"/>
         <path d="M120 52V20M110 26h20M114 34h12" stroke="#b9b3cc" stroke-width="1.6" stroke-linecap="round"/>
         <g transform="translate(214 40)"><path d="M0 12a14 14 0 0 1 20-14z" fill="#c9c2d6" stroke="${INK}" stroke-width="1.2"/><path d="M8 4l8-8" stroke="${INK}"/><circle cx="17" cy="-5" r="2" fill="#ff6fa9"/></g>
@@ -3791,7 +3810,7 @@
       yard: () => `<g transform="translate(296 300)"><rect x="-10" y="-18" width="20" height="16" rx="2" fill="#c9c2d6" stroke="${INK}"/><rect x="-7" y="-15" width="14" height="10" fill="#3fd9b9" class="neon"/></g>`
     },
     wren: {
-      title: "Wren's treehouse", wall: "#d8c49c", wall2: "#bfa77a", trim: "#6b4a33", glass: "#ffe7a8", sky: ["#bfe0d0", "#6f9a86"], ground: "#6f8f4f",
+      roofColor: "#5f8a55", title: "Wren's treehouse", wall: "#d8c49c", wall2: "#bfa77a", trim: "#6b4a33", glass: "#ffe7a8", sky: ["#bfe0d0", "#6f9a86"], ground: "#6f8f4f",
       roof: () => `<path d="M58 66Q170-6 282 66z" fill="#5f8a55" stroke="${INK}" stroke-width="1.6"/>
         ${[1, 2, 3].map(r => `<path d="M${66 + r * 12} 66Q170 ${4 + r * 15} ${274 - r * 12} 66" fill="none" stroke="#4b7042" stroke-width="1"/>`).join("")}
         <rect x="226" y="18" width="14" height="26" fill="#8a6446" stroke="${INK}" stroke-width="1.2"/>
@@ -3801,7 +3820,7 @@
       yard: () => `<g transform="translate(300 300)"><path d="M0 0v-12" stroke="#6a8a4a" stroke-width="1.4"/><circle cx="0" cy="-15" r="4" fill="#b78ad6"/><circle cx="-8" cy="-6" r="3" fill="#f2a44b"/><path d="M-8-3v3" stroke="#6a8a4a"/></g>`
     },
     oona: {
-      title: "Oona's gallery", wall: "#f4f1ea", wall2: "#dcd8ce", trim: "#1b1b21", glass: "#f7f2df", sky: ["#2a2a30", "#111115"], ground: "#26262c",
+      roofColor: "#1b1b21", title: "Oona's gallery", wall: "#f4f1ea", wall2: "#dcd8ce", trim: "#1b1b21", glass: "#f7f2df", sky: ["#2a2a30", "#111115"], ground: "#26262c",
       roof: () => `<rect x="70" y="56" width="200" height="8" fill="#1b1b21"/>
         <path d="M104 56V38h8M236 56V38h-8" stroke="#55555e" stroke-width="1.4" fill="none"/><path d="M112 38l14 12M228 38l-14 12" stroke="#fff" stroke-width=".6" opacity=".3"/>
         <text x="170" y="48" text-anchor="middle" font-family="var(--type), monospace" font-size="8" letter-spacing="2" fill="#dcd8ce">GALLERY</text>`,
@@ -3810,7 +3829,7 @@
       yard: () => `<g transform="translate(300 300)"><rect x="-6" y="-16" width="12" height="16" fill="#f4f1ea" stroke="#1b1b21"/><circle cx="0" cy="-22" r="5" fill="#e0453a" stroke="#1b1b21"/></g>`
     },
     lulu: {
-      title: "Lulu's party house", wall: "#ff8fb6", wall2: "#f06d9c", trim: "#7a2a4a", glass: "#fff0a8", sky: ["#ffd1e1", "#b57cff"], ground: "#7fd6b0",
+      roofColor: "#b57cff", title: "Lulu's party house", wall: "#ff8fb6", wall2: "#f06d9c", trim: "#7a2a4a", glass: "#fff0a8", sky: ["#ffd1e1", "#b57cff"], ground: "#7fd6b0",
       roof: () => `<path d="M62 64Q86 40 110 64Q134 40 158 64Q182 40 206 64Q230 40 254 64Q268 48 280 64z" fill="#b57cff" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
         <path d="M70 30l40 14 40-10 40 10 40-12 40 12" fill="none" stroke="${INK}" stroke-width=".8"/>
         ${Array.from({ length: 10 }, (_, i) => `<path d="M${76 + i * 20} ${33 + (i % 2) * 3}l6 10 6-10z" fill="${["#ffd35c", "#7fd6b0", "#ff5f9e"][i % 3]}" stroke="${INK}" stroke-width=".5"/>`).join("")}
@@ -3836,12 +3855,13 @@
     body += `<path class="stairs" d="M316 268h-8v-8h-8v-8h-8v-8M292 190h-8v-8h-8v-8h-8v-8" fill="none" stroke="${st.trim}" stroke-width="2" opacity=".55"/>`;
     s += `<g class="cutout" filter="url(#papercut)">${st.roof()}${body}`;
     // floor labels
-    [["attic", 66, 68], ["upstairs", 44, 134], ["ground", 20, 202]].forEach(([t, x, y]) => { s += `<text class="h-floor" x="${x + 3}" y="${y + 3}">${t}</text>`; });
+    [[0, 66, 68], [1, 40, 134], [2, 16, 202]].forEach(([fi, x, y]) => { s += `<text class="h-floor" x="${x + 4}" y="${y + 2}">${FLOORS[fi].label}</text>`; });
     // rooms
     rooms.forEach(r => {
       const [x, y, w, h] = boxOf(r.d), n = use.get(r.d) || 0;
       const inStone = stonePc != null && r.pcs.includes(stonePc);
-      const cls = ["h-room", `fn-${r.fn}`, n ? "used" : "", selD === r.d ? "sel" : "", inStone ? "has-note" : ""].filter(Boolean).join(" ");
+      const kin = selD != null && selD !== r.d && r.pcs.filter(p => rooms[selD].pcs.includes(p)).length >= 2;
+      const cls = ["h-room", `fn-${r.fn}`, n ? "used" : "", selD === r.d ? "sel" : "", inStone ? "has-note" : "", kin ? "kin" : ""].filter(Boolean).join(" ");
       s += `<g class="${cls}" data-room="${r.d}" role="button" tabindex="0" aria-label="${esc(r.num + ", " + pretty(r.name))}" style="--fn:var(--${r.fn === "surprise" ? "tension" : r.fn})">
         <rect class="h-glass" x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${st.glass}"/>
         <rect class="h-frame" x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="none" stroke="${st.trim}" stroke-width="2.4"/>
@@ -3885,20 +3905,6 @@
     return `<svg class="house-svg" viewBox="0 0 340 330" role="group" aria-label="${esc(st.title)}">${s}</svg>`;
   }
 
-  // the street: keys that share six of seven notes live next door
-  function streetHTML(k) {
-    const around = [-2, -1, 0, 1, 2].map(n => ({ tonic: mod(k.tonic + n * 7), minor: k.minor, n }));
-    const sel = houseSel && houseSel.kind === "street" ? houseSel : null;
-    return `<div class="street" role="group" aria-label="Neighboring keys">
-      <span class="street-end">♭ side</span>
-      ${around.map(h => `<button class="st-house${h.n ? "" : " home"}${sel && sel.tonic === h.tonic && sel.minor === h.minor ? " sel" : ""}" type="button" data-street="${h.tonic}${h.minor ? "m" : "M"}" aria-label="${esc(keyLabel(h))}"><b>${esc(shortKey(h))}</b><small>${esc(sigText(sigOf(h)))}</small></button>`).join("")}
-      <span class="street-end">♯ side</span></div>
-      <div class="street2">
-        <button class="st-link${sel && sel.across ? " sel" : ""}" type="button" data-street="${k.tonic}${k.minor ? "M" : "m"}" data-across="1">across the street: <b>${esc(keyLabel(parOf(k)))}</b></button>
-        <button class="st-link" type="button" data-backdoor="1">${houseRel ? "front door" : "same house, back door"}: <b>${esc(keyLabel(relOf(k)))}</b></button>
-      </div>`;
-  }
-
   // the three notes of a chord, found by skipping every other note of the key
   function everyOther(k, r) {
     const S = scaleOf(k), names = [];
@@ -3919,74 +3925,101 @@
     return keyboard({ lh: [], rh: [...pick] }, start, end, { label: (m, on) => (sc.has(mod(m)) ? noteOf(k, mod(m)) : ""), tall: false });
   }
 
+  // the street, kept small: next door either way, across the street, the back door
+  function streetHTML(k) {
+    const sel = houseSel && houseSel.kind === "street" ? houseSel : null;
+    const flat = { tonic: mod(k.tonic + 5), minor: k.minor, n: -1 }, sharp = { tonic: mod(k.tonic + 7), minor: k.minor, n: 1 };
+    const chip = (h, label, extra = "") => `<button class="st-link${sel && sel.tonic === h.tonic && sel.minor === h.minor ? " sel" : ""}" type="button" data-street="${h.tonic}${h.minor ? "m" : "M"}"${extra}>${label} <b>${esc(shortKey(h))}</b></button>`;
+    return `<div class="street2"><span class="lbl">the neighbors</span>
+      ${chip(flat, "←")}${chip(sharp, "→")}
+      ${chip(parOf(k), "across the street", ` data-across="1"`)}
+      <button class="st-link" type="button" data-backdoor="1">${houseRel ? "front door" : "back door"} <b>${esc(shortKey(relOf(k)))}</b></button></div>`;
+  }
   function detailHTML(k) {
-    const rooms = roomsOf(k), b = B(), { use, guests } = songUse(k), st = hstyle();
-    const add = tok => `<button class="btn" type="button" data-hadd="${esc(tok)}">+ add ${esc(pretty(tok))} to the song</button>`;
-    if (!houseSel) {
-      return `<div class="h-detail"><p class="h-lead">${esc(st.title)}, in ${esc(keyLabel(k))}. Seven rooms, one for each note of the key. Tap a room to go in, a stone to hear a note, or a house down the street.</p>
-        <ul class="h-legend">${FLOORS.map(fl => `<li><b>${esc(fl.name)}</b> ${esc(fl.note)}</li>`).join("")}<li><b>the foundation</b> the ${scaleOf(k).steps.length} notes every room is built from. Most are a whole step apart; the ½ marks the two half steps.</li></ul>
-        <p class="note">Lit windows are rooms your song uses. Press play and ${esc(b.name)} walks from room to room.</p></div>`;
-    }
+    const rooms = roomsOf(k), b = B(), { guests } = songUse(k);
+    const add = tok => `<button class="btn" type="button" data-hadd="${esc(tok)}">+ add ${esc(pretty(tok))}</button>`;
+    if (!houseSel) return `<p class="h-lead">Tap a room to hear it and see its notes. Home is downstairs, tension is in the attic.</p>`;
     if (houseSel.kind === "room") {
-      const r = rooms[houseSel.d], fl = FLOORS[floorOf(r.d)], n = use.get(r.d) || 0;
-      const line = (k.minor ? b.minor : b.major)[r.iv] || "";
-      const degs = [0, 2, 4].map(j => (r.d + j) % 7 + 1);
-      const home = rooms[0];
-      const sib = rooms.filter(o => o.d !== r.d).map(o => ({ ...o, shared: r.pcs.filter(p => o.pcs.includes(p)) })).filter(o => o.shared.length >= 2);
-      return `<div class="h-detail">
-        <div class="h-title"><span class="h-big" style="--fn:var(--${r.fn})">${esc(r.num)}</span><div><b>${esc(pretty(r.name))}</b><span>${esc(fl.name)} · ${esc(fl.note)}</span></div></div>
-        ${line ? `<p class="h-say">“${esc(line)}” <small>${esc(b.name)}</small></p>` : ""}
-        <p class="h-how">Built on the <b>${ORDINAL[r.d]}</b> note of the key. Start there and take every other note: <span class="eo-row">${everyOther(k, r)}</span> That's notes ${degs.join(", ")}.${r.pcs.some(p => !scalePcs(k).includes(p)) ? " In minor, this room borrows one raised note so it pulls harder toward home." : ""}</p>
+      const r = rooms[houseSel.d], fl = FLOORS[floorOf(r.d)], line = (k.minor ? b.minor : b.major)[r.iv] || "";
+      const names = r.midis.map(m => noteName(r.ch, m)).join(" ");
+      const degs = [0, 2, 4].map(j => (r.d + j) % 7 + 1).join(", ");
+      return `<div class="h-title"><span class="h-big" style="--fn:var(--${r.fn})">${esc(r.num)}</span><div><b>${esc(pretty(r.name))}</b><span>${esc(fl.tag)}</span></div></div>
+        ${line ? `<p class="h-say">“${esc(line)}”</p>` : ""}
+        <p class="h-how"><b>${esc(names)}</b>: stones ${degs}, every other one. Glowing rooms share two of its notes.</p>
         <div class="h-kbd">${miniKeys(k, r.midis)}</div>
-        ${sib.length ? `<p class="h-how">Close relatives: ${sib.map(o => `<button class="chip sib" type="button" data-room="${o.d}">${esc(o.num)} ${esc(pretty(o.name))}</button> shares ${o.shared.map(p => esc(noteOf(k, p))).join(" and ")}`).join("; ")}. Chords that share two notes can stand in for each other, and moving between them feels smooth.</p>` : ""}
-        <p class="note">${esc(qualWord(r))}${n ? ` · your song visits ${n === 1 ? "once" : n + " times"}` : " · your song hasn't been here yet"}</p>
-        <div class="row"><button class="btn surprise" type="button" data-hplay="room">▶ hear it</button>${r.d ? `<button class="btn" type="button" data-hplay="home">▶ then walk home to ${esc(pretty(home.name))}</button>` : ""}${add(r.name)}</div></div>`;
+        <div class="row"><button class="btn surprise" type="button" data-hplay="room">▶ hear</button>${r.d ? `<button class="btn" type="button" data-hplay="home">▶ walk home</button>` : ""}${add(r.name)}</div>`;
     }
     if (houseSel.kind === "stone") {
       const pc = houseSel.pc, d = scalePcs(k).indexOf(pc), holders = rooms.filter(r => r.pcs.includes(pc));
-      const role = r => ["the root", "the middle", "the top"][r.pcs.indexOf(pc)];
-      return `<div class="h-detail">
-        <div class="h-title"><span class="h-big">${esc(noteOf(k, pc))}</span><div><b>note ${d + 1} of ${esc(keyLabel(k))}</b><span>${d === 0 ? "the key's home note" : `${ORDINAL[d]} step up from ${esc(noteOf(k, k.tonic))}`}</span></div></div>
-        <p class="h-how">${esc(noteOf(k, pc))} lives in ${holders.length} rooms: ${holders.map(r => `<b>${esc(r.num)}</b> (${esc(pretty(r.name))}, as ${role(r)})`).join(", ")}. A note shared by two chords is a thread between them: moving from one to the other, that key can stay down.</p>
-        <div class="h-kbd">${miniKeys(k, [60 + pc])}</div>
-        <div class="row"><button class="btn surprise" type="button" data-hplay="stone">▶ hear it</button><button class="btn" type="button" data-hplay="scale">▶ hear the whole foundation</button></div></div>`;
+      return `<div class="h-title"><span class="h-big">${esc(noteOf(k, pc))}</span><div><b>note ${d + 1}</b><span>lives in ${holders.map(r => esc(pretty(r.name))).join(", ")}</span></div></div>
+        <p class="h-how">The lit rooms all hold this note, so moving between them it can stay down.</p>
+        <div class="row"><button class="btn surprise" type="button" data-hplay="stone">▶ hear it</button><button class="btn" type="button" data-hplay="scale">▶ all seven</button></div>`;
     }
     if (houseSel.kind === "street") {
       const nk = { tonic: houseSel.tonic, minor: houseSel.minor }, a = scalePcs(k), bb = scalePcs(nk);
       const gone = a.filter(p => !bb.includes(p)), came = bb.filter(p => !a.includes(p));
-      const shared = roomsOf(nk).filter(r => rooms.some(x => x.name === r.name));
-      const same = nk.tonic === k.tonic && nk.minor === k.minor;
-      const pairs = gone.map(p => { const to = came.find(q => Math.abs(((q - p + 18) % 12) - 6) === 1) ?? came[0]; return `${noteOf(k, p)} becomes ${noteOf(nk, to)}`; });
-      const where = houseSel.across ? "across the street" : same ? "this house" : `${Math.abs(houseSel.n)} door${Math.abs(houseSel.n) > 1 ? "s" : ""} toward the ${houseSel.n > 0 ? "♯" : "♭"} side`;
-      return `<div class="h-detail">
-        <div class="h-title"><span class="h-big">${esc(shortKey(nk))}</span><div><b>${esc(keyLabel(nk))}</b><span>${esc(where)} · ${esc(sigText(sigOf(nk)))}</span></div></div>
-        ${same ? `<p class="h-how">This is home. Each house to the right adds a sharp, each to the left adds a flat, and next-door neighbors share all but one note.</p>` : `<p class="h-how">Shares ${7 - gone.length} of 7 notes with ${esc(keyLabel(k))}.${pairs.length ? ` What changes: ${pairs.map(esc).join(", ")}.` : ""} ${shared.length ? `Chords you'd find in both houses: ${shared.map(r => `<b>${esc(pretty(r.name))}</b>`).join(", ")}.` : ""}</p>
-        ${houseSel.across ? `<p class="note">Its chords are the usual visitors in your garden. Try one:</p><div class="row">${palette(k, false).borrowed.map(c => `<button class="chip" type="button" data-hadd="${esc(c.tok)}">${esc(c.num)} ${esc(pretty(c.tok))}</button>`).join("")}</div>` : ""}`}
-        <div class="row">${same ? "" : `<button class="btn surprise" type="button" data-hplay="compare">▶ hear both foundations</button>`}${same || houseSel.across ? "" : `<button class="btn" type="button" data-hmove="${nk.tonic}${nk.minor ? "m" : "M"}">move the song to ${esc(keyLabel(nk))}</button>`}</div></div>`;
+      const pairs = gone.map(p => { const to = came.find(q => Math.abs(((q - p + 18) % 12) - 6) === 1) ?? came[0]; return `${noteOf(k, p)} → ${noteOf(nk, to)}`; });
+      return `<div class="h-title"><span class="h-big">${esc(shortKey(nk))}</span><div><b>${esc(keyLabel(nk))}</b><span>${houseSel.across ? "same home note, darker" : `next door · shares ${7 - gone.length} of 7 notes`}</span></div></div>
+        <p class="h-how">What changes: <b>${pairs.map(esc).join(", ")}</b>.</p>
+        ${houseSel.across ? `<div class="row">${palette(k, false).borrowed.slice(0, 4).map(c => `<button class="chip" type="button" data-hadd="${esc(c.tok)}">+ ${esc(pretty(c.tok))}</button>`).join("")}</div>` : ""}
+        <div class="row"><button class="btn surprise" type="button" data-hplay="compare">▶ hear both</button>${houseSel.across ? "" : `<button class="btn" type="button" data-hmove="${nk.tonic}${nk.minor ? "m" : "M"}">move the song here</button>`}</div>`;
     }
     if (houseSel.kind === "guest") {
       const g = guests.find(x => x.tok === houseSel.tok);
       if (!g) { houseSel = null; return detailHTML(k); }
       const iv = mod(g.ch.rootPc - k.tonic), par = parOf(k), fromPar = scaleOf(par).steps.includes(iv);
-      const line = iv === 5 && !k.minor && baseQuality(g.ch.ivs) === "min" ? b.minorIV : iv === 10 && !k.minor ? b.flat7 : b.borrowed(g.num);
-      return `<div class="h-detail">
-        <div class="h-title"><span class="h-big" style="--fn:var(--surprise)">${esc(g.num)}</span><div><b>${esc(pretty(g.tok))}</b><span>a visitor · not one of the seven rooms</span></div></div>
-        <p class="h-say">“${esc(line)}” <small>${esc(b.name)}</small></p>
-        <p class="h-how">${fromPar ? `It lives across the street in ${esc(keyLabel(par))}, which shares the same home note. Borrowing from there adds a shadow without leaving home.` : `Its notes don't all fit the foundation, so it's a guest from further away. That's the surprise you hear.`}</p>
-        <div class="h-kbd">${miniKeys(k, g.ch.ivs.slice(0, 3).map(x => 60 + g.ch.rootPc + x))}</div>
-        <div class="row"><button class="btn surprise" type="button" data-hplay="guest">▶ hear it</button></div></div>`;
+      return `<div class="h-title"><span class="h-big" style="--fn:var(--surprise)">${esc(g.num)}</span><div><b>${esc(pretty(g.tok))}</b><span>a visitor${fromPar ? ` from ${esc(keyLabel(par))}, across the street` : " from further away"}</span></div></div>
+        <div class="row"><button class="btn surprise" type="button" data-hplay="guest">▶ hear it</button></div>`;
     }
     return "";
   }
-
   function houseHTML() {
     const k = houseKey();
     return `<div class="house">
-      ${streetHTML(k)}
       <div class="house-wrap" id="houseWrap">${houseSVG(k)}</div>
-      <div id="houseDetail">${detailHTML(k)}</div>
-      <div class="row h-foot"><button class="btn" type="button" data-open="knobs">key and feel settings</button></div>
+      <div class="h-detail" id="houseDetail">${detailHTML(k)}</div>
+      ${streetHTML(k)}
     </div>`;
+  }
+
+  // ---------- the little house on the main screen: the key's seven chords, as windows ----------
+  const MINI = {
+    rows: [[4, 6], [1, 3], [5, 0, 2]],
+    box: (f, j) => { const n = [2, 2, 3][f], w = [58, 70, 68][f], gap = 5, x0 = (240 - (n * w + (n - 1) * gap)) / 2; return [x0 + j * (w + gap), [15, 36, 57][f], w, [18, 18, 21][f]]; }
+  };
+  function miniRoof(id, st) {
+    const c = st.roofColor || "#c8453f";
+    if (id === "ghost") return `<rect x="52" y="7" width="136" height="6" fill="${c}" stroke="${INK}"/><path d="M76 7V0M71 2h10" stroke="#b9b3cc" stroke-width="1.2"/>`;
+    if (id === "oona") return `<rect x="52" y="8" width="136" height="5" fill="${c}"/>`;
+    if (id === "wren") return `<path d="M46 13Q120-10 194 13z" fill="${c}" stroke="${INK}" stroke-width="1.2"/><rect x="160" y="0" width="7" height="8" fill="#8a6446" stroke="${INK}" stroke-width=".8"/>`;
+    if (id === "lulu") return `<path d="M48 13Q64 3 80 13Q96 3 112 13Q128 3 144 13Q160 3 176 13Q184 6 192 13z" fill="${c}" stroke="${INK}" stroke-width="1.2"/>`;
+    return `<path d="M48 13 120 0 192 13z" fill="${c}" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`;
+  }
+  function miniHouseHTML(ideas) {
+    const k = { tonic: K.tonic, minor: K.minor }, rooms = roomsOf(k), st = hstyle(), id = prefs.buddy;
+    const nextSet = new Set(ideas.pick.slice(0, 3).map(c => c.iv));
+    const c = current[sel], curD = c && c.a.inKey && c.a.fn !== "surprise" ? scaleOf(k).steps.indexOf(mod(c.ch.rootPc - k.tonic)) : -1;
+    let s = miniRoof(id, st);
+    s += `<rect x="52" y="12" width="136" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="38" y="33" width="164" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="8" y="54" width="224" height="27" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/>`;
+    MINI.rows.forEach((row, f) => row.forEach((d, j) => {
+      const r = rooms[d], [x, y, w, h] = MINI.box(f, j), tok = palette(k, prefs.sevenths).di[d].tok;
+      s += `<g class="mh-win fn-${r.fn}${d === curD ? " now" : ""}" data-add="${esc(tok)}" data-mroom="${d}" role="button" tabindex="0" aria-label="Add ${esc(pretty(tok))}, ${esc(r.num)}" style="--fn:var(--${r.fn})">
+        <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" fill="${st.glass}" stroke="${st.trim}" stroke-width="1.6"/>
+        <rect class="mh-tint" x="${x + 1}" y="${y + h - 4}" width="${w - 2}" height="3" rx="1"/>
+        <text class="mh-name" x="${x + w / 2}" y="${y + h * 0.7}">${esc(pretty(tok))}</text>
+        ${nextSet.has(r.iv) && d !== curD ? `<text class="mh-next" x="${x + w - 5}" y="${y + 8}">✦</text>` : ""}
+      </g>`;
+    }));
+    return `<svg class="mini-house" viewBox="0 0 240 83" role="group" aria-label="The chords of ${esc(keyLabel(k))}">${s}</svg>`;
+  }
+  // during playback the lit window follows the song
+  function miniFollow(c) {
+    const svg = document.querySelector(".mini-house");
+    if (!svg) return;
+    svg.querySelectorAll(".mh-win.now").forEach(el => el.classList.remove("now"));
+    if (!c || !c.a.inKey || c.a.fn === "surprise") return;
+    const d = scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic));
+    svg.querySelector(`.mh-win[data-mroom="${d}"]`)?.classList.add("now");
   }
 
   // walk the tenant into a room (stop-motion hops, not a glide)
@@ -4401,10 +4434,10 @@
   // the next row: your best next chords, big, and "more" for everything else
   function renderPalette() {
     const ideas = nextIdeas();
-    palEl.innerHTML = `<button class="keychip" type="button" data-act="key" title="Key">${esc(pretty(keyName(K)))}</button>`
-      + `<span class="pal-lbl">${current.length ? "next" : "start on"}</span>`
-      + ideas.pick.slice(0, 3).map(c => `<button class="pal nx" type="button" data-add="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`).join("")
-      + `<button class="pal more" type="button" data-act="more">more…</button>`;
+    // the key's house: every chord of the key is a window; tap one to add it
+    palEl.innerHTML = miniHouseHTML(ideas)
+      + `<div class="mh-side"><button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${esc(pretty(keyName(K)))}">⌂ ${esc(pretty(keyName(K)))}</button>
+        <button class="pal more" type="button" data-act="more">more…</button></div>`;
   }
   function renderPaletteOld() {
     const p = palette(K, prefs.sevenths);
@@ -4452,7 +4485,7 @@
 
   function tipsFor(c) {
     const b = B(), role = buddyRole(b, c.ch, c.a, K);
-    const house = prefs.sawHouse ? null : `Tap “${pretty(keyName(K))}” by the chord buttons to see the house this key lives in.`;
+    const house = prefs.sawHouse ? null : `Each window of the little house is a chord in ${pretty(keyName(K))}. Tap one to add it, ✦ marks a nice next one, and ⌂ takes you inside.`;
     if (b.feelings) return [role, house, b.feelings[c.i % b.feelings.length], b.feelings[(c.i + 3) % b.feelings.length]].filter(Boolean);
     const out = [role, house, fingerTip(c.v, c.ch)];
     if (b.ideas) out.push(b.ideas[c.i % b.ideas.length], b.ideas[(c.i + 5) % b.ideas.length]);
@@ -4507,6 +4540,7 @@
   }
 
   function renderStage() {
+    if (!playing) miniFollow(current[sel]);
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelectorAll(".seg.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelector(`.seg[data-j="${sel}"]`)?.classList.add("sel");
@@ -4833,7 +4867,7 @@
     }
     const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
     playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
-    if (sheetMode === "house" && playSec === secIdx) later(() => { if (playing) houseFollow(c); }, (nextT - ac.currentTime) * 1000);
+    if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") ? melodyChain(playSec).get(c.i) : null;
     playReply(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
     if (L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel);
@@ -5815,6 +5849,7 @@
     requestAnimationFrame(() => { stripEl.scrollLeft = stripEl.scrollWidth; });
     playOne(sel);
   });
+  palEl.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-mroom]")) { e.preventDefault(); e.target.closest("[data-mroom]").dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
   palEl.addEventListener("change", e => { if (e.target.id === "sev") { prefs.sevenths = e.target.checked; savePrefs(); renderPalette(); } });
 
   const pickChord = j => { sel = j; tipIdx = 0; tipOverride = null; editingLyric = false; renderStage(); playOne(sel); };
