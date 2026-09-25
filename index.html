@@ -3023,7 +3023,7 @@
     g.gain.exponentialRampToValueAtTime(Math.max(level, 0.0002), a + rise);
     g.gain.setValueAtTime(Math.max(level, 0.0002), Math.max(a + rise, b - 0.015));
     g.gain.exponentialRampToValueAtTime(0.0001, b);
-    nz.connect(f); f.connect(g); g.connect(master);
+    nz.connect(f); f.connect(g); g.connect(tapOut || master); // past the warm tape filter, so s and t stay crisp
     nz.start(a, Math.random() * 0.5); nz.stop(b + 0.02);
   }
 
@@ -3167,10 +3167,238 @@
   }
 
   // a single word sung on its own: "hey!", "whoo!"
-  function singWord(word, midi, t, dur, who) {
+  function singWordOld(word, midi, t, dur, who) {
     const sy = lineSyllables(word);
     const each = dur / Math.max(1, sy.length);
     sy.forEach((s, i) => singNote(midi + (i ? -2 : 0), t + i * each, each * 0.95, s, who, { glide: true }));
+  }
+
+  // =========================================================
+  // The singer, take two: one continuous voice per line.
+  // A throat (a soft glottal pulse) feeds a mouth (four moving
+  // resonances). Pitch glides between notes, the mouth flows from
+  // sound to sound, and consonants are made the way a mouth makes
+  // them: closures, bursts, hiss, hum and breath.
+  // =========================================================
+  const glottalCache = {};
+  // a pulse whose harmonics fall away gently: breathy voices fall faster
+  function glottalWave(slope, odd) {
+    const key = slope + (odd ? "o" : "");
+    if (glottalCache[key]) return glottalCache[key];
+    const n = 80, re = new Float32Array(n), im = new Float32Array(n);
+    for (let k = 1; k < n; k++) {
+      if (odd && k % 2 === 0) continue;
+      // a little dip around the 3rd-4th harmonic, like a real open glottis
+      im[k] = Math.pow(k, -slope) * (k === 3 || k === 4 ? 0.8 : 1);
+    }
+    return (glottalCache[key] = ac.createPeriodicWave(re, im, { disableNormalization: false }));
+  }
+
+  // how each accompanist sings
+  const TIMBRE = {
+    // bright nasal twang, slides into notes, lazy country diphthongs
+    dusty: { slope: 1.1, twang: [2750, 5, 7], vib: [5.4, 22], vibDelay: 0.22, glide: 0.07, breath: 0.05, shift: 1.05, gain: 0.18, cons: 1.1, drawl: true },
+    // a vocoder robot: odd harmonics, a fifth above, a metallic comb, notes snap
+    ghost: { slope: 0.85, odd: true, fifth: 0.4, comb: 0.0032, vib: [9, 26], vibDelay: 0.05, glide: 0.012, breath: 0, shift: 1.1, gain: 0.23, cons: 0.9, robot: true },
+    // soft and airy, more breath than tone
+    wren: { slope: 2.0, vib: [4.6, 12], vibDelay: 0.3, glide: 0.06, breath: 0.55, shift: 0.98, gain: 0.28, cons: 0.8 },
+    // deadpan: almost no vibrato, crisp consonants, an octave-down double
+    oona: { slope: 1.45, harm: 0.55, vib: [4.2, 5], vibDelay: 0.4, glide: 0.03, breath: 0.1, shift: 0.9, gain: 0.095, cons: 1.3, clip: 0.82 },
+    // a belter: bright, wide vibrato, scoops up into notes, sometimes cracks
+    lulu: { slope: 1.0, vib: [6.2, 34], vibDelay: 0.15, glide: 0.08, scoop: 90, crack: 0.12, breath: 0.14, shift: 1.12, gain: 0.12, cons: 1.15, lean: 18 }
+  };
+  const F4 = 3400;
+  const BWQ = [6, 11, 14, 14];
+  const LEVELS = [1, 0.62, 0.34, 0.2];
+  const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function singPhrase(mel, t0, cl, who) {
+    const V = TIMBRE[who] || TIMBRE.wren, sh = V.shift, notes = mel.notes;
+    if (!notes.length || !ac) return;
+    const now = ac.currentTime;
+    const q = t => Math.max(now + 0.005, t);
+    // ---- the throat
+    const src = ac.createOscillator();
+    src.setPeriodicWave(glottalWave(V.slope, V.odd));
+    const srcs = [[src, 1]];
+    if (V.harm) { const o = ac.createOscillator(); o.setPeriodicWave(glottalWave(V.slope + 0.2)); srcs.push([o, 0.5, V.harm]); }
+    if (V.fifth) { const o = ac.createOscillator(); o.setPeriodicWave(glottalWave(V.slope, V.odd)); srcs.push([o, 1.5, V.fifth]); }
+    const voiceIn = ac.createGain();
+    srcs.forEach(([o, , lvl]) => { if (lvl) { const g = ac.createGain(); g.gain.value = lvl; o.connect(g); g.connect(voiceIn); } else o.connect(voiceIn); });
+    const amp = ac.createGain(); amp.gain.value = 0.0001; // how much voice (closed for stops, low for hums)
+    voiceIn.connect(amp);
+    // vibrato and a little natural wobble
+    const lfo = ac.createOscillator(); lfo.frequency.value = V.vib[0];
+    const vibG = ac.createGain(); vibG.gain.value = 0;
+    lfo.connect(vibG);
+    const j1 = ac.createOscillator(), jg = ac.createGain();
+    j1.frequency.value = 5.3 + Math.random() * 2; jg.gain.value = V.robot ? 0 : 4;
+    j1.connect(jg);
+    srcs.forEach(([o]) => { vibG.connect(o.detune); jg.connect(o.detune); if (wobble) wobble.connect(o.detune); });
+    // ---- breath: noise shaped by the mouth (h, aspiration, airy voices)
+    const breathSrc = noise(), breath = ac.createGain(); breath.gain.value = 0.0001;
+    breathSrc.connect(breath);
+    // ---- the mouth
+    const out = ac.createGain(); out.gain.value = V.gain;
+    const bands = LEVELS.map((lvl, fi) => {
+      const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = BWQ[fi];
+      bp.frequency.value = [VF.ax[0], VF.ax[1], VF.ax[2], F4][fi] * sh;
+      const g = ac.createGain(); g.gain.value = lvl * 3.4;
+      amp.connect(bp); breath.connect(bp); bp.connect(g); g.connect(out);
+      return { f: bp.frequency, g: g.gain, lvl };
+    });
+    // hum: the nose, used on m, n, ng
+    const nasBp = ac.createBiquadFilter(); nasBp.type = "bandpass"; nasBp.frequency.value = 260; nasBp.Q.value = 4;
+    const nas = ac.createGain(); nas.gain.value = 0.0001;
+    amp.connect(nasBp); nasBp.connect(nas); nas.connect(out);
+    // hiss: fricatives go straight out, not through the mouth
+    const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain();
+    hissBp.type = "bandpass"; hissBp.frequency.value = 5000; hissBp.Q.value = 1.2; hiss.gain.value = 0.0001;
+    hissSrc.connect(hissBp); hissBp.connect(hiss); hiss.connect(tapOut || master); // skips the warm tape filter
+    // character color on the way out
+    let tail = out;
+    if (V.twang) { const pk = ac.createBiquadFilter(); pk.type = "peaking"; pk.frequency.value = V.twang[0]; pk.Q.value = V.twang[1]; pk.gain.value = V.twang[2]; out.connect(pk); tail = pk; }
+    if (V.comb) {
+      const d = ac.createDelay(0.05), fb = ac.createGain(), mix = ac.createGain();
+      d.delayTime.value = V.comb; fb.gain.value = 0.45; mix.gain.value = 0.7;
+      tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(master);
+    }
+    tail.connect(master);
+
+    // ---- automation helpers
+    const setF = (t, F, tau) => bands.forEach((b, fi) => b.f.setTargetAtTime((fi < 3 ? F[fi] : F4) * sh, q(t), tau));
+    const setAmp = (t, a, tau = 0.012) => amp.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
+    const setBreath = (t, a, tau = 0.012) => breath.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
+    const setNas = (t, a, tau = 0.015) => { nas.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); [1, 2].forEach(fi => bands[fi].g.setTargetAtTime(bands[fi].lvl * 3.4 * (a > 0.1 ? 0.25 : 1), q(t), tau)); };
+    const setHiss = (t, band, Q, a, tau = 0.01) => { if (band) { hissBp.frequency.setValueAtTime(band * Math.min(1.1, sh), q(t)); hissBp.Q.setValueAtTime(Q, q(t)); } hiss.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); };
+    const setPitch = (t, f, tau) => srcs.forEach(([o, mult]) => o.frequency.setTargetAtTime(f * mult, q(t), tau));
+    const jumpPitch = (t, f) => srcs.forEach(([o, mult]) => o.frequency.setValueAtTime(f * mult, q(t)));
+    const burst = (t, C, soft) => fricNoise(q(t), q(t) + 0.018, C.band, C.q, 0.055 * V.cons * (C.v ? 0.55 : 1) * (soft ? 0.6 : 1));
+    const B0 = V.breath * 0.35;
+    const cLen = C => (C.k === "fri" || C.k === "aff" ? 0.075 : C.k === "stop" ? 0.055 : C.k === "asp" ? 0.05 : 0.05) * (0.85 + 0.15 * V.cons);
+
+    const first = notes[0], tStart = t0 + first.start * cl;
+    jumpPitch(tStart - 0.2, mf(first.midi));
+    let prevEnd = tStart - 0.25, lastF = VF.ax;
+    const startT = tStart - 0.2;
+
+    notes.forEach((nt, i) => {
+      const ph = (mel.sy[nt.s] || {}).ph || { on: [], nuc: ["ah"], co: [] };
+      const nuc = ph.nuc.length ? ph.nuc : ["ah"];
+      let V1 = VF[nuc[0]] || VF.ah, V2 = nuc[1] ? VF[nuc[1]] : null;
+      // Dusty's drawl: "I" leans to "ah", glides late and lazily
+      if (V.drawl && nuc[0] === "aa" && nuc[1] === "iy") V2 = V1.map((x, k) => x + (VF.iy[k] - x) * 0.45);
+      const ts = t0 + nt.start * cl;
+      const dur = Math.max(0.1, nt.dur * cl * (V.clip && i < notes.length - 1 ? V.clip : 1));
+      const te = ts + dur;
+      const f = mf(nt.midi);
+      const stressed = (mel.sy[nt.s] || {}).stress;
+      // ---- consonants before the note
+      const onC = ph.on.map(p => [p, CONS[p]]).filter(([, C]) => C);
+      const want = onC.reduce((a, [, C]) => a + cLen(C), 0);
+      const from = Math.max(ts - want, prevEnd + 0.004);
+      const scale = want ? Math.min(1, (ts - from) / want) : 1;
+      let t = ts - want * scale;
+      // pitch moves with the first voiced sound of the syllable
+      const glide = nt.glide ? V.glide * 1.6 : V.glide;
+      if (V.scoop && stressed) { const fs = f * Math.pow(2, -V.scoop / 1200); setPitch(Math.max(t, prevEnd), fs, glide / 3); setPitch(ts, f, 0.045); }
+      else if (V.robot) jumpPitch(Math.max(t, prevEnd), f);
+      else setPitch(Math.max(t, prevEnd) - 0.01, f, glide / 3);
+      if (nt.hop && V.robot) { jumpPitch(ts, f * 2); jumpPitch(ts + 0.03, f); }
+      onC.forEach(([p, C], k) => {
+        const len = cLen(C) * scale, a = t, b = t + len, touching = k === onC.length - 1;
+        if (C.k === "fri") {
+          setAmp(a, C.v ? 0.28 : 0); setBreath(a, 0); setNas(a, 0);
+          setHiss(a, C.band, C.q, 0.12 * C.g * V.cons);
+          setHiss(b - 0.006, 0, 0, 0, 0.008);
+          setF(a, V1, 0.02);
+        } else if (C.k === "aff") {
+          setAmp(a, C.v ? 0.15 : 0); setNas(a, 0); setHiss(a, 0, 0, 0);
+          burst(a + len * 0.35, { band: C.band, q: 2, v: C.v });
+          setHiss(a + len * 0.35, C.band, C.q, 0.1 * C.g * V.cons);
+          setHiss(b - 0.006, 0, 0, 0, 0.008);
+          setF(a, V1, 0.02);
+        } else if (C.k === "stop") {
+          // the lips or tongue close, pressure builds, then a pop
+          setAmp(a, C.v ? 0.1 : 0, 0.008); setHiss(a, 0, 0, 0); setNas(a, 0); setBreath(a, 0);
+          setF(a, [260, C.locus, V1[2]], 0.015);
+          burst(b - 0.01, C);
+          if (!C.v && touching) { setBreath(b, 0.5 * V.cons); setBreath(b + 0.03, B0, 0.02); }
+        } else if (C.k === "asp") {
+          setAmp(a, 0.03); setHiss(a, 0, 0, 0); setNas(a, 0);
+          setF(a, V1, 0.015); setBreath(a, 0.7 * V.cons); setBreath(b, B0, 0.02);
+        } else if (C.k === "nas") {
+          setHiss(a, 0, 0, 0); setAmp(a, 0.55, 0.015); setBreath(a, B0 * 0.5);
+          setF(a, C.F, 0.02); setNas(a, 0.9);
+        } else {
+          setHiss(a, 0, 0, 0); setNas(a, 0); setAmp(a, C.k === "liq" ? 0.62 : 0.7, 0.015);
+          setF(a, C.F, 0.02); setBreath(a, B0);
+        }
+        t = b;
+      });
+      // ---- the vowel, on the beat
+      const codaObs = ph.co.filter(p => CONS[p] && !SONORANT.has(CONS[p].k)), codaSon = ph.co.filter(p => CONS[p] && SONORANT.has(CONS[p].k));
+      const codaWant = codaObs.reduce((a, p) => a + cLen(CONS[p]) * 0.9, 0) + codaSon.length * 0.06;
+      const codaLen = Math.min(codaWant, dur * 0.4);
+      const vEnd = te - codaLen;
+      const loud = (stressed ? 1 : 0.82) * (V.lean && nt.midi > 74 ? 1.1 : 1);
+      setHiss(ts, 0, 0, 0); setNas(ts, 0);
+      setAmp(ts, loud, onC.length ? 0.012 : 0.03);
+      setBreath(ts, B0 * loud);
+      setF(ts, V1, onC.length ? 0.022 : 0.04);
+      if (V2) setF(ts + (vEnd - ts) * (V.drawl ? 0.65 : 0.5), V2, Math.max(0.02, (vEnd - ts) * 0.15));
+      // vibrato blooms on held notes
+      const vd = Math.min(V.vibDelay, dur * 0.5);
+      vibG.gain.setValueAtTime(0, q(ts));
+      if (dur > 0.25) { vibG.gain.setValueAtTime(0, q(ts + vd)); vibG.gain.linearRampToValueAtTime(V.vib[1], q(ts + vd + 0.2)); }
+      // Lulu's voice cracks on the odd long high note
+      if (V.crack && dur > 0.35 && nt.midi > 72 && Math.random() < V.crack) { jumpPitch(ts + dur * 0.55, f * 1.5); setPitch(ts + dur * 0.55 + 0.05, f, 0.02); }
+      // ---- consonants that close the syllable
+      let c = vEnd;
+      codaSon.forEach(p => {
+        const C = CONS[p];
+        setF(c, C.F, 0.02); setAmp(c, 0.55, 0.02);
+        if (C.k === "nas") setNas(c, 0.9);
+        c += 0.06 * Math.min(1, codaLen / Math.max(codaWant, 0.001));
+      });
+      codaObs.forEach(p => {
+        const C = CONS[p], len = cLen(C) * 0.9 * Math.min(1, codaLen / Math.max(codaWant, 0.001));
+        setNas(c, 0);
+        if (C.k === "fri" || C.k === "aff") {
+          setAmp(c, C.v ? 0.25 : 0); setBreath(c, 0);
+          if (C.k === "aff") burst(c, { band: C.band, q: 2, v: C.v });
+          setHiss(c + (C.k === "aff" ? 0.015 : 0), C.band, C.q, 0.1 * C.g * V.cons);
+          setHiss(c + len, 0, 0, 0, 0.012);
+        } else if (C.k === "stop") {
+          setAmp(c, C.v ? 0.08 : 0, 0.008); setBreath(c, 0);
+          setF(c, [260, C.locus, V1[2]], 0.015);
+          burst(c + len * 0.85, C, true); // a clear release: enunciate the ends of words
+        }
+        c += len;
+      });
+      prevEnd = Math.max(vEnd, c);
+      // a breath between words when there's room
+      const next = notes[i + 1];
+      const nextT = next ? t0 + next.start * cl : Infinity;
+      if (nextT - prevEnd > 0.16) { setAmp(prevEnd, 0, 0.035); setBreath(prevEnd, 0, 0.03); setNas(prevEnd, 0); }
+      lastF = V2 || V1;
+    });
+    // let the last sound ring out, then stop
+    const end = prevEnd + 0.25;
+    setAmp(prevEnd, 0, 0.05); setBreath(prevEnd, 0, 0.04); setHiss(prevEnd + 0.02, 0, 0, 0, 0.02); setNas(prevEnd, 0, 0.03);
+    const st = q(startT);
+    srcs.forEach(([o]) => { o.start(st); o.stop(end); });
+    [lfo, j1].forEach(o => { o.start(st); o.stop(end); });
+    breathSrc.start(st, Math.random() * 0.5); breathSrc.stop(end);
+    hissSrc.start(st, Math.random() * 0.5); hissSrc.stop(end);
+  }
+
+  // a single shout into a fill: "hey!", "whoo!"
+  function singWord(word, midi, t, dur, who) {
+    const sy = lineSyllables(word);
+    if (!sy.length) return;
+    const each = dur / sy.length;
+    singPhrase({ sy, notes: sy.map((s, i) => ({ midi: midi + (i ? -2 : 0), start: i * each, dur: each * 0.95, s: i, glide: true })) }, t, 1, who);
   }
 
   // =========================================================
@@ -3959,9 +4187,9 @@
   }
   // the accompanist sings this chord's words, with karaoke and a moving mouth
   function singChord(c, mel, t0, cl, sIdx = secIdx) {
+    singPhrase(mel, t0, cl, prefs.buddy);
     mel.notes.forEach(nt => {
       const t = t0 + nt.start * cl, dur = Math.max(0.12, nt.dur * cl);
-      singNote(nt.midi, t, dur, mel.sy[nt.s], prefs.buddy, { glide: nt.glide, hop: nt.hop });
       later(() => {
         const lane = $("lane");
         if (lane && +lane.dataset.i === c.i && +lane.dataset.sec === sIdx) lane.querySelectorAll(".syl").forEach(el => el.classList.toggle("sung", +el.dataset.s === nt.s));
