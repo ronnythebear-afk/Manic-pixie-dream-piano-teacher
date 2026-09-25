@@ -6391,6 +6391,9 @@
           </div>
         </div>
         <div class="knob"><label class="lbl" for="kBpm">tempo · <span id="kBpmVal">${S().bpm}</span> bpm</label><input type="range" id="kBpm" min="50" max="150" value="${S().bpm}"></div>
+        <div class="knob"><span class="lbl">each chord lasts</span>
+          <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
+          <p class="note">For the whole song. To stretch just one chord, tap its name above the keyboard.</p></div>
         <div class="knob"><span class="lbl">what key the song is in</span>
           <div class="row"><select id="kKey" aria-label="Key">${keyOpts}</select>
             <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
@@ -6517,9 +6520,6 @@
           <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">time signature</span>
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div></div>
-        <div class="knob"><span class="lbl">each new chord lasts</span>
-          <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
-          <p class="note">To change just one chord, tap it and pick a length.</p></div>
         <div class="knob"><span class="lbl">place in the song</span>
           <div class="row"><button class="btn" type="button" data-move="-1"${ordPos ? "" : " disabled"}>‹ earlier</button><button class="btn" type="button" data-move="1"${ordPos < song.order.length - 1 ? "" : " disabled"}>later ›</button><button class="btn" type="button" data-repeat="${x.id}">↻ play it again after this</button></div></div>
         ${song.order.length > 1 ? `<div class="row"><button class="btn" type="button" data-secact="remove">${copies > 1 ? "remove this copy" : "remove this part"}</button></div>` : ""}`;
