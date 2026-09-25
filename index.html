@@ -920,15 +920,11 @@
 
   /* ---------- modes ---------- */
   #openView { font-weight: 700; border: 1.5px solid currentColor; border-radius: 999px; padding: 1px 9px; text-decoration: none; }
-  .modes { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .view-presets.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modes .vp { border-radius: 16px; }
+  .style-btn { display: none !important; }
   .fine summary { cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--soft); padding: 4px 0; }
   .fine[open] { display: grid; gap: 10px; }
-  /* show mode: a stage you can only play */
-  .mode-show .tile.plus, .mode-show .blk.add, .mode-show .lane-row, .mode-show .ribbon { display: none !important; }
-  .show-card { display: grid; justify-items: center; gap: 8px; padding: 18px 12px; text-align: center; }
-  .show-card small { font-family: var(--type); font-size: 12px; color: var(--soft); }
-  .show-chord { font-family: var(--serif, Georgia), serif; font-size: 78px; font-weight: 700; line-height: 1; border-bottom: 5px solid var(--fn); padding: 0 10px; }
-  .show-words { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 28px; line-height: 1.15; min-height: 1.2em; }
   /* studio: the desk sits where the little house goes */
   .desk { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; width: min(270px, 68vw); flex: none; background: color-mix(in srgb, var(--card) 88%, transparent); border: 1.5px solid var(--line); border-radius: 12px; padding: 7px 9px; box-shadow: 1.5px 2px 0 rgba(20, 16, 28, .35); }
   .fader { display: grid; grid-template-columns: 42px 1fr 26px; align-items: center; gap: 4px; font-family: var(--type); font-size: 9.5px; font-weight: 700; color: var(--ink); }
@@ -1000,7 +996,7 @@
     <h1 class="logo" aria-label="Pixie Chords"><span class="lg-a">Pixie</span><span class="lg-b">Chords</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .5l1.9 5.6L15.5 8l-5.6 1.9L8 15.5l-1.9-5.6L.5 8l5.6-1.9z"/></svg></h1>
     <nav class="toplinks">
       <button class="link" type="button" id="openSongs">songs</button>
-      <button class="link" type="button" id="tabFind" aria-pressed="false">name it</button>
+      <button class="link" type="button" id="tabFind" aria-pressed="false" hidden>← back to the song</button>
       <button class="link" type="button" id="openView">view</button>
     </nav>
   </header>
@@ -1055,8 +1051,8 @@
     <button class="dbtn play" id="playAll" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2v12l10-6z" fill="currentColor"/></svg></button>
     <button class="dbtn" id="loop" type="button" aria-pressed="true" aria-label="Loop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.5a3 3 0 0 1 3-3h6.5M11 1.5l2 2-2 2M13 9.5a3 3 0 0 1-3 3H3.5M5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button class="dbtn style-btn" id="style" type="button" aria-label="How to play the notes, tap to change">block</button>
-    <button class="dbtn" id="openBeat" type="button" aria-label="Beat box"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" fill="currentColor"/></svg></button>
-    <button class="dbtn" id="openKnobs" type="button" aria-label="Knobs"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg></button>
+    <button class="dbtn" id="openBeat" type="button" aria-label="The band: piano, beat and fills"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" fill="currentColor"/></svg></button>
+    <button class="dbtn" id="openKnobs" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg></button>
   </div>
 </footer>
 
@@ -4266,7 +4262,7 @@
   }
   const castHTML = st => `<span class="cast">${st.cast.map(id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, id === "oona" ? 8 : 4, id === "oona" ? 1.08 : 1.15)}</svg>`).join("")}</span>`;
   function storiesHTML() {
-    const read = readStories(), show = prefs.view === "show";
+    const read = readStories(), show = false;
     if (storyAt == null) {
       return `<p class="h-lead">Your five friends are neighbors on Pixie Street, and every house on it is a key. Each story walks a famous route through the rooms.</p>
         <div class="story-list">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="story-card${read.includes(i) ? " read" : ""}" type="button" data-story="${i}">
@@ -4394,19 +4390,6 @@
   }
 
   // =========================================================
-  // Show mode: a stage you can only play
-  // =========================================================
-  function showStageHTML(c) {
-    const w = c ? (words()[c.i] || "").trim() : "";
-    return `<div class="show-card">
-      <small>${esc((song.title || "untitled").toLowerCase())} · ${esc(sec().name.toLowerCase())}</small>
-      <div class="show-chord" style="--fn:var(--${c ? c.a.fn : "home"})">${c ? symbolHTML(c.ch) : "·"}</div>
-      <p class="show-words">${esc(w || (c ? "♪" : "nothing here yet"))}</p>
-      <div class="row"><button class="btn surprise" type="button" data-act="showplay">${playing ? "■ stop" : "▶ play the song"}</button><button class="btn" type="button" data-act="stories">✦ stories from the street</button></div>
-    </div>`;
-  }
-
-  // =========================================================
   // Small secrets
   // =========================================================
   let sameTok = null, sameN = 0, lateSaid = false;
@@ -4466,10 +4449,9 @@
     simple: { name: "simple", icon: "◻", note: "just chords and their shapes", on: ["palette", "arrows"] },
     learn: { name: "learning", icon: "✦", note: "the house, the stories, why chords work", on: ["scene", "talk", "palette", "arrows", "fx", "drums"] },
     write: { name: "writing", icon: "✎", note: "the songbook and your song's parts", on: ["scene", "talk", "lyrics", "palette", "arrows", "fx", "drums", "sing", "lead"] },
-    studio: { name: "studio", icon: "◉", note: "mix it, warm it up, tape it", on: ["scene", "lyrics", "palette", "drums", "sing", "lead", "crackle"] },
-    show: { name: "show", icon: "★", note: "the story and your friends; play only", on: ["scene", "talk", "lyrics", "fx", "drums", "sing", "lead", "crackle"] }
+    studio: { name: "studio", icon: "◉", note: "mix it, warm it up, tape it", on: ["scene", "lyrics", "palette", "drums", "sing", "lead", "crackle"] }
   };
-  const OLD_VIEWS = { bare: "simple", writer: "write", story: "show", all: "learn" };
+  const OLD_VIEWS = { bare: "simple", writer: "write", story: "write", all: "learn", show: "learn" };
   const layersFor = v => Object.fromEntries(LAYERS.map(l => [l, VIEWS[v].on.includes(l)]));
 
   const oldPrefs = readJSON("prefs", {});
@@ -4793,9 +4775,9 @@
     const mode = prefs.view, kname = esc(pretty(keyName(K)));
     const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
     const side = {
-      simple: inside + `<button class="pal more" type="button" data-act="more">more…</button>`,
+      simple: inside + `<button class="pal more" type="button" data-act="more">+ more</button>`,
       learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">more…</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ more</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
       studio: `<button class="pal mh-in" type="button" data-act="taperec" aria-label="Tape a take">● tape</button><button class="pal more" type="button" data-act="mixreset" aria-label="Reset the desk">flat</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas)) + `<div class="mh-side">${side}</div>`;
@@ -4846,7 +4828,7 @@
 
   function tipsFor(c) {
     const b = B(), role = buddyRole(b, c.ch, c.a, K);
-    const house = prefs.sawHouse ? null : `Each window of the little house is a chord in ${pretty(keyName(K))}. Tap one to add it, ✦ marks a nice next one, and ⌂ takes you inside.`;
+    const house = prefs.sawHouse || !L("palette") || prefs.view === "studio" ? null : `Each window of the little house is a chord in ${pretty(keyName(K))}. Tap one to add it; ✦ marks a nice next one.${prefs.view === "write" ? "" : " ⌂ takes you inside."}`;
     if (b.feelings) return [role, house, b.feelings[c.i % b.feelings.length], b.feelings[(c.i + 3) % b.feelings.length]].filter(Boolean);
     const out = [role, house, fingerTip(c.v, c.ch)];
     if (b.ideas) out.push(b.ideas[c.i % b.ideas.length], b.ideas[(c.i + 5) % b.ideas.length]);
@@ -4903,15 +4885,6 @@
   function renderStage() {
     if (!playing) miniFollow(current[sel]);
     secretWords(); secretLate();
-    if (prefs.view === "show") {
-      stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
-      stripEl.querySelector(`.tile[data-j="${sel}"]`)?.classList.add("sel");
-      const c = current[sel];
-      stageEl.style.setProperty("--fn", `var(--${c ? c.a.fn : "home"})`);
-      stageEl.innerHTML = showStageHTML(c);
-      if (!finding) say(tipOverride || (c ? tipsFor(c)[0] : B().hello));
-      return;
-    }
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelectorAll(".seg.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelector(`.seg[data-j="${sel}"]`)?.classList.add("sel");
@@ -5125,13 +5098,12 @@
   function applyView() {
     const b = document.body;
     LAYERS.forEach(l => b.classList.toggle("no-" + l, !L(l)));
-    const story = prefs.view === "show" && L("scene");
+    const story = false;
     b.classList.toggle("view-story", story);
     Object.keys(VIEWS).forEach(v => b.classList.toggle("mode-" + v, prefs.view === v));
     b.classList.toggle("view-bare", prefs.view === "simple");
     b.classList.toggle("has-bd", L("scene") && prefs.view !== "simple");
     $("openView").textContent = `${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name}`;
-    $("songTitle").readOnly = prefs.view === "show";
     b.classList.toggle("tight", L("entry") && L("palette") && L("ribbon") && L("lyrics") && L("scene"));
     const wrap = $("sceneWrap"), sayEl = $("say"), dock = $("sayDock");
     if (story) { $("storyHero").appendChild(wrap); $("storyCap").appendChild(sayEl); }
@@ -5874,7 +5846,6 @@
     learn: `<path class="sc" d="M18 16 30 5 42 16z"/><rect class="kk" x="20" y="16" width="20" height="14"/><rect x="4" y="33" width="52" height="3" rx="1"/>`,
     write: `<rect x="4" y="3" width="52" height="5" rx="1"/><rect class="ln" x="4" y="11" width="52" height="3" rx="1"/><rect class="ln" x="4" y="16" width="44" height="3" rx="1"/><rect class="ln" x="4" y="21" width="48" height="3" rx="1"/><rect class="kk" x="4" y="27" width="52" height="10" rx="2"/>`,
     studio: `<rect x="6" y="6" width="3" height="28" rx="1"/><rect x="18" y="6" width="3" height="28" rx="1"/><rect x="30" y="6" width="3" height="28" rx="1"/><rect x="42" y="6" width="3" height="28" rx="1"/><rect class="kk" x="3" y="12" width="9" height="5" rx="1"/><rect class="kk" x="15" y="22" width="9" height="5" rx="1"/><rect class="kk" x="27" y="9" width="9" height="5" rx="1"/><rect class="kk" x="39" y="18" width="9" height="5" rx="1"/>`,
-    show: `<rect class="sc" x="0" y="1" width="60" height="26"/><rect x="10" y="30" width="40" height="3" rx="1"/><circle class="kk" cx="30" cy="16" r="6"/>`
   };
 
   const fillKnob = () => `<div class="knob fill-knob"><label class="lbl" for="kFills">fills · <span id="kFillsVal">${FILL_LEVELS[prefs.fills]}</span></label>
@@ -5884,7 +5855,7 @@
   function renderSheet() {
     const body = $("sheetBody");
     if (sheetMode === "knobs") {
-      $("sheetTitle").textContent = "knobs";
+      $("sheetTitle").textContent = "settings";
       const auto = !parseKeySetting(S().key);
       let keyOpts = `<option value="auto"${auto ? " selected" : ""}>guess it (${esc(pretty(keyName(K)))})</option>`;
       for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
@@ -5907,27 +5878,22 @@
             <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
             <button class="round" type="button" data-shift="1" aria-label="Move everything up a half step">+</button></div>
         </div>
-        <div class="knob"><span class="lbl">time signature for the ${esc(sec().name.toLowerCase())}</span>
-          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${sec().meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
-        </div>
-        <div class="knob"><span class="lbl">each chord lasts</span>
-          <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
-          <p class="note">Drag the edge of a chord in the strip under the cards to make just that one longer or shorter.</p>
-        </div>
-        <div class="knob"><span class="lbl">piano voice</span>
-          <div class="choices">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s favorite</small>` : ""}</button>`).join("")}</div>
-        </div>
-        ${fillKnob()}
         <div class="knob"><span class="lbl">extras</span>
           <div class="toggles">
-            <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song</label>
-            <button class="link" type="button" data-open="view">more switches in view</button>
+            <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song, not just this part</label>
+            <button class="link" type="button" data-open="beat">the band: piano sound, beat, fills</button>
+            <button class="link" type="button" data-open="view">what shows: ${esc(VIEWS[prefs.view].name)} mode</button>
           </div>
         </div>`;
     } else if (sheetMode === "beat") {
       const b = B(), M = Mtr, bt = beatFor(M.id), sp = stepsPer(M), presets = beatPresets(prefs.buddy, M.id);
-      $("sheetTitle").textContent = `${b.name.toLowerCase()}'s beat box`;
+      $("sheetTitle").textContent = `${b.name.toLowerCase()}'s band`;
       body.innerHTML = `
+        <div class="knob"><span class="lbl">the piano plays</span>
+          <div class="presets">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${S().style === k}">${esc(v)}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">piano sound</span>
+          <div class="presets">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s pick</small>` : ""}</button>`).join("")}</div></div>
+        <span class="lbl">the beat <label class="mini-switch"><input type="checkbox" data-layer="drums"${L("drums") ? " checked" : ""}> on</label></span>
         <p class="note">Tap pads to build a beat for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>. Tap a sound's name to hear it.</p>
         <div class="presets">${Object.keys(presets).map(n => `<button class="choice" type="button" data-preset="${esc(n)}" aria-pressed="${!bt.custom && bt.name === n}">${esc(n)}</button>`).join("")}
           <button class="choice" type="button" data-beatact="shuffle">✦ roll one</button>
@@ -5936,8 +5902,7 @@
           <div class="brow r${r}"><button class="lbl" type="button" data-hear="${r}">${esc(label)}</button>
             ${Array.from({ length: M.n }, (_, g) => `<div class="bgroup${g && M.groups.includes(g) ? " grp" : ""}">${Array.from({ length: sp }, (_, q) => { const i = g * sp + q; return `<button class="pad${bt.rows[r][i] ? " on" : ""}" type="button" data-r="${r}" data-i="${i}" aria-label="${esc(label)} step ${i + 1}" aria-pressed="${bt.rows[r][i]}"></button>`; }).join("")}</div>`).join("")}
           </div>`).join("")}</div>
-        ${fillKnob()}
-        <label class="tog"><input type="checkbox" data-layer="drums"${L("drums") ? " checked" : ""}> drums on</label>`;
+        ${fillKnob()}`;
     } else if (sheetMode === "view") {
       $("sheetTitle").textContent = "mode";
       const see = LAYERS.filter(l => !HEAR.includes(l));
@@ -5945,8 +5910,7 @@
         <div class="view-presets modes">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.icon} ${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
         <details class="fine"><summary>fine-tune what shows</summary>
           <div class="knob"><span class="lbl">what you see</span><div class="layer-grid">${see.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
-          <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
-          ${fillKnob()}</details>`;
+          <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div></details>`;
     } else if (sheetMode === "stories") {
       $("sheetTitle").textContent = storyAt == null ? "stories from the street" : `chapter ${storyAt + 1}`;
       body.innerHTML = storiesHTML();
@@ -5954,7 +5918,7 @@
       $("sheetTitle").textContent = "song sheet";
       body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
         <p class="note">Your words with the chords over them, signed by ${esc(B().name)}. Good for keeping by a real piano.</p>
-        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button></div>`;
+        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button></div>`;
       makeSongSheet();
     } else if (sheetMode === "start") {
       const t = wiz.tonic, nm = t == null ? null : pretty(FALLBACK[t]);
@@ -6001,6 +5965,7 @@
           <button class="btn" type="button" data-open="library">from the library</button>
           <button class="btn" type="button" data-addact="wizard">start from a note</button>
           <button class="btn" type="button" data-addact="type">type chords</button>
+          <button class="btn" type="button" data-addact="find">name a chord from its keys</button>
         </div>`;
     } else if (sheetMode === "addsec") {
       $("sheetTitle").textContent = "add a part";
@@ -6016,6 +5981,11 @@
       body.innerHTML = `
         <div class="knob"><span class="lbl">call it</span>
           <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">time signature</span>
+          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">each new chord lasts</span>
+          <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
+          <p class="note">To change just one chord, tap it and pick a length.</p></div>
         <div class="knob"><span class="lbl">place in the song</span>
           <div class="row"><button class="btn" type="button" data-move="-1"${ordPos ? "" : " disabled"}>‹ earlier</button><button class="btn" type="button" data-move="1"${ordPos < song.order.length - 1 ? "" : " disabled"}>later ›</button><button class="btn" type="button" data-repeat="${x.id}">↻ play it again after this</button></div></div>
         ${song.order.length > 1 ? `<div class="row"><button class="btn" type="button" data-secact="remove">${copies > 1 ? "remove this copy" : "remove this part"}</button></div>` : ""}`;
@@ -6025,7 +5995,7 @@
         <svg class="cass" viewBox="0 0 180 110" aria-hidden="true"><rect x="3" y="3" width="174" height="104" rx="10" fill="#2f2a3d"/><rect x="18" y="14" width="144" height="46" rx="4" fill="#f7f1e6"/><text x="90" y="34" text-anchor="middle" font-family="Gaegu, cursive" font-weight="700" font-size="17" fill="#2f2a3d">${esc((song.title || "untitled").slice(0, 22))}</text><text x="90" y="52" text-anchor="middle" font-family="Courier Prime, monospace" font-size="10" fill="#6f6782">${esc(B().name.toLowerCase())} · ${esc(pretty(keyName(K)))}</text><circle cx="56" cy="80" r="13" fill="#f7f1e6"/><circle cx="124" cy="80" r="13" fill="#f7f1e6"/><circle cx="56" cy="80" r="4" fill="#2f2a3d"/><circle cx="124" cy="80" r="4" fill="#2f2a3d"/><rect x="72" y="74" width="36" height="12" rx="3" fill="#4a4458"/></svg>
         <audio controls src="${tapeURL}"></audio>
         <div class="row"><button class="btn surprise" type="button" data-tape="save">save the tape</button><button class="btn" type="button" data-tape="again">record again</button></div>
-        <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Turn on “play the whole song” in knobs to tape everything.`}</p></div>`;
+        <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Turn on “play the whole song” in settings to tape everything.`}</p></div>`;
     } else if (sheetMode === "house") {
       $("sheetTitle").textContent = `${keyLabel(houseKey())} · the house`;
       body.innerHTML = houseHTML();
@@ -6043,8 +6013,6 @@
           <div class="colors">${ld.L.map((q, k) => `<button class="color-chip${k === ld.i ? " on" : ""}" type="button" data-color="${esc(q)}" aria-pressed="${k === ld.i}"><b>${symbolHTML(parseChord(c.ch.rootName + q))}</b><small>${esc(COLOR_WORDS[q] || "")}</small></button>`).join("")}</div></div>` : ""}
         <div class="knob"><span class="lbl">how long it lasts</span>
           <div class="presets">${lengthSteps(Mtr).map(n => `<button class="choice" type="button" data-setlen="${n}" aria-pressed="${c.beats === n}">${n} ${glyph(Mtr)}${n === Mtr.n ? "<small>a bar</small>" : n === Mtr.n * 2 ? "<small>two bars</small>" : ""}</button>`).join("")}</div></div>
-        <div class="knob"><span class="lbl">time signature for the ${esc(sec().name.toLowerCase())}</span>
-          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${sec().meter === m}">${m}</button>`).join("")}</div></div>
         <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button><button class="btn" type="button" data-chordact="house">⌂ visit its room</button></div>`;
     } else if (sheetMode === "library") {
       $("sheetTitle").textContent = "library";
@@ -6080,7 +6048,7 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-song="lyrics">✎ lyric sheet</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
         <p class="note">${storageOK ? "Songs save in this browser as you go. Copy one as text below if you want a backup." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
@@ -6142,7 +6110,6 @@
     if (!b) return;
     if (b.dataset.act === "addsec") { openSheet("addsec"); return; }
     const p = +b.dataset.pos;
-    if (prefs.view === "show") { if (p !== ordPos) switchSection(idxOf(song.order[p]), p); return; }
     if (p === ordPos) { openSheet("secedit"); return; }
     switchSection(idxOf(song.order[p]), p);
   });
@@ -6367,7 +6334,6 @@
     else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
     else if (act === "chord" && c) openSheet("chord");
     else if (act === "words") openSheet("book");
-    else if (act === "showplay") { if (playing) stop(); else { sel = 0; playAll(); } }
     else if (act === "stories") { storyAt = null; openSheet("stories"); }
     else if (act === "undo") {
       const u = undoStack.pop();
@@ -6546,6 +6512,7 @@
       const a = addAct.dataset.addact;
       if (a === "pop") { const toks = tokenize(sec().prog); toks.pop(); setProg(toks.join(" "), true); renderSheet(); }
       else if (a === "type") { closeSheet(); openEntry(); }
+      else if (a === "find") { closeSheet(); showView(true); }
       else if (a === "wizard") { wiz = { mode: "here", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
       return;
     }
@@ -6621,6 +6588,13 @@
       closeSheet();
       renderStage();
       playOne(0);
+      return;
+    }
+    const styleB = e.target.closest("[data-style]");
+    if (styleB) {
+      setting("style", styleB.dataset.style); renderDeck(); renderSheet();
+      const c = current[sel];
+      if (c && !playing && await audioReady()) playChord(c.v, ac.currentTime + 0.03, c.beats, countSec(Mtr, S().bpm), S().style, { M: Mtr, pos0: c.pos0 });
       return;
     }
     const voice = e.target.closest("[data-voice]"), buddy = e.target.closest(".buddy-card[data-buddy]"), mood = e.target.closest("[data-mood]");
@@ -6777,7 +6751,8 @@
   function showView(find) {
     finding = find;
     closeEgg();
-    $("tabFind").textContent = find ? "write" : "name it";
+    $("tabFind").textContent = "← back to the song";
+    $("tabFind").hidden = !find;
     $("tabFind").setAttribute("aria-pressed", find);
     $("writeView").hidden = find;
     $("findView").hidden = !find;
