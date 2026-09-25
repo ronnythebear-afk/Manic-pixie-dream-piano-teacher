@@ -917,6 +917,65 @@
   .h-room.kin .h-glass { opacity: 1; fill: color-mix(in srgb, var(--surprise) 30%, #fff); }
   .house .h-detail { min-height: 60px; }
   .h-floor { font-size: 8.5px; font-weight: 700; opacity: 1; fill: #fffaf0; paint-order: stroke; stroke: rgba(30, 20, 30, .7); stroke-width: 2.2px; }
+
+  /* ---------- modes ---------- */
+  #openView { font-weight: 700; border: 1.5px solid currentColor; border-radius: 999px; padding: 1px 9px; text-decoration: none; }
+  .modes { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .fine summary { cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--soft); padding: 4px 0; }
+  .fine[open] { display: grid; gap: 10px; }
+  /* show mode: a stage you can only play */
+  .mode-show .tile.plus, .mode-show .blk.add, .mode-show .lane-row, .mode-show .ribbon { display: none !important; }
+  .show-card { display: grid; justify-items: center; gap: 8px; padding: 18px 12px; text-align: center; }
+  .show-card small { font-family: var(--type); font-size: 12px; color: var(--soft); }
+  .show-chord { font-family: var(--serif, Georgia), serif; font-size: 78px; font-weight: 700; line-height: 1; border-bottom: 5px solid var(--fn); padding: 0 10px; }
+  .show-words { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 28px; line-height: 1.15; min-height: 1.2em; }
+  /* studio: the desk sits where the little house goes */
+  .desk { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; width: min(270px, 68vw); flex: none; background: color-mix(in srgb, var(--card) 88%, transparent); border: 1.5px solid var(--line); border-radius: 12px; padding: 7px 9px; box-shadow: 1.5px 2px 0 rgba(20, 16, 28, .35); }
+  .fader { display: grid; grid-template-columns: 42px 1fr 26px; align-items: center; gap: 4px; font-family: var(--type); font-size: 9.5px; font-weight: 700; color: var(--ink); }
+  .fader input { width: 100%; min-width: 0; height: 14px; accent-color: var(--lh); }
+  .fader output { text-align: right; font-size: 9px; color: var(--soft); }
+  /* stories from the street */
+  .mh-story { background: color-mix(in srgb, var(--surprise) 30%, var(--card)); }
+  .story-list { display: grid; gap: 8px; }
+  .story-card { display: flex; align-items: center; gap: 10px; text-align: left; border: 1.5px solid var(--line); border-radius: var(--wob); background: var(--card); color: inherit; padding: 8px 10px; cursor: pointer; box-shadow: var(--shadow); }
+  .story-card.read { background: var(--card-2); }
+  .story-card.read b::after { content: " ✓"; color: var(--lh); }
+  .sc-text { display: grid; gap: 1px; min-width: 0; }
+  .sc-text small, .story-head small { font-family: var(--type); font-size: 11px; color: var(--soft); }
+  .sc-text b { font-family: var(--hand); font-size: 21px; line-height: 1.05; }
+  .sc-text span { font-family: var(--type); font-size: 11.5px; color: var(--soft); }
+  .cast { display: inline-flex; flex: none; }
+  .cast-face { width: 34px; height: 36px; background: #2a2144; border-radius: 9px; border: 1.5px solid var(--line); }
+  .cast-face + .cast-face { margin-left: -10px; transform: rotate(4deg); }
+  .story { display: grid; gap: 10px; }
+  .story-head { display: flex; align-items: center; gap: 12px; }
+  .story-head b { display: block; font-family: var(--hand); font-size: 28px; line-height: 1; }
+  .story-head .cast-face { width: 46px; height: 48px; }
+  .story-p { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 19px; line-height: 1.3; }
+  .route { border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--card-2) 70%, #2a2144); padding: 6px; }
+  .route-svg { display: block; width: 100%; max-width: 420px; margin: 0 auto; height: auto; }
+  .rt-win .mh-name { font-family: var(--hand); font-weight: 700; font-size: 13px; text-anchor: middle; fill: #2f2a3d; }
+  .mode-write .mh-side { gap: 4px; } .mode-write .mh-side .pal { padding: 2px 11px; }
+  .rt-win.on > rect { fill: #fff6c8; stroke-width: 2.4; filter: drop-shadow(0 0 3px #ffe38a); }
+  .rt-path { fill: none; stroke: var(--surprise); stroke-width: 1.6; stroke-dasharray: 2 3; stroke-linecap: round; }
+  .rt-step circle { fill: var(--surprise); stroke: #fffaf0; stroke-width: 1; }
+  .rt-step text, .rt-guest text { font-family: var(--type); font-weight: 700; font-size: 6.5px; text-anchor: middle; fill: #fff; }
+  .rt-guest text { fill: #2f2a3d; font-family: var(--hand); font-size: 7.5px; }
+  .rt-step.on circle { fill: var(--tension); r: 7; }
+  .story-lesson { margin: 0; background: var(--card); border: 1.5px dashed var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+  .story-lesson b { display: block; font-family: var(--hand); font-size: 17px; }
+  .story-nav { justify-content: space-between; }
+  /* the song sheet preview */
+  .songsheet img { display: block; width: 100%; height: auto; border-radius: 6px; box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .5); background: #f6efe0; min-height: 200px; }
+  /* small secrets */
+  .mh-roof { cursor: pointer; }
+  .dozing .scene .cutout { animation: doze 2.4s ease-in-out infinite alternate; }
+  @keyframes doze { to { transform: rotate(-6deg) translateY(2px); } }
+  .moonlit .scene-wrap::before, .starry .scene-wrap::before { content: ""; position: absolute; z-index: 1; pointer-events: none; filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, .35)); animation: rise 3s steps(6, jump-end) both; }
+  .moonlit .scene-wrap::before { right: 18%; top: 8px; width: 40px; height: 40px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M26 4a16 16 0 1 0 10 26A13 13 0 0 1 26 4z' fill='%23fff3c4' stroke='%23fffaf0' stroke-width='2.4'/%3E%3C/svg%3E") center / contain no-repeat; }
+  .starry:not(.moonlit) .scene-wrap::before { right: 12%; top: 6px; width: 120px; height: 60px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cg fill='%23fff3c4' stroke='%23fffaf0' stroke-width='1'%3E%3Cpath d='M20 8l2 5 5 .6-4 3.4 1.3 5-4.3-2.8-4.3 2.8 1.3-5-4-3.4 5-.6z'/%3E%3Cpath d='M70 20l1.4 3.4 3.6.4-2.8 2.4 1 3.6-3.2-2-3.2 2 1-3.6-2.8-2.4 3.6-.4z'/%3E%3Cpath d='M104 6l1.6 4 4 .5-3 2.7 1 4-3.6-2.2-3.6 2.2 1-4-3-2.7 4-.5z'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat; }
+  @keyframes rise { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .late .mh-win:not(.now) > rect:first-child { fill: #a39ab4; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -2434,6 +2493,13 @@
 
   // Everything runs through a warm low-pass, like an old tape deck
   let wobble = null, warmth = null, tapOut = null;
+  // the studio desk: a level for each part, a low and high shelf, a small room
+  let eqLow = null, eqHigh = null, roomSend = null, pianoBus = null, drumBus = null, voiceBus = null, voiceTap = null, leadOut = null;
+  function roomIR() {
+    const n = Math.floor(ac.sampleRate * 1.8), buf = ac.createBuffer(2, n, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.6); }
+    return buf;
+  }
   function freshMaster() {
     const comp = ac.createDynamicsCompressor();
     if (!warmth) {
@@ -2451,10 +2517,20 @@
       wobble.gain.value = 7; // cents
       lfo.connect(wobble);
       lfo.start();
+      eqLow = ac.createBiquadFilter(); eqLow.type = "lowshelf"; eqLow.frequency.value = 220;
+      eqHigh = ac.createBiquadFilter(); eqHigh.type = "highshelf"; eqHigh.frequency.value = 3200;
+      eqLow.connect(eqHigh); eqHigh.connect(warmth);
+      const conv = ac.createConvolver(); conv.buffer = roomIR();
+      roomSend = ac.createGain(); roomSend.gain.value = 0;
+      warmth.connect(roomSend); roomSend.connect(conv); conv.connect(comp);
     }
     master = ac.createGain();
-    master.gain.value = 0.85;
-    master.connect(warmth);
+    master.gain.value = new Date().getHours() < 5 ? 0.68 : 0.85; // after midnight everyone plays softer
+    master.connect(eqLow);
+    const bus = () => { const g = ac.createGain(); g.connect(master); return g; };
+    pianoBus = bus(); drumBus = bus(); voiceBus = bus(); leadOut = bus();
+    voiceTap = ac.createGain(); voiceTap.connect(tapOut);
+    applyMix();
   }
 
   // =========================================================
@@ -2485,7 +2561,7 @@
     lp.frequency.setValueAtTime(Math.min(f * V.lp[0], 12000), t);
     if (V.sweep) lp.frequency.exponentialRampToValueAtTime(Math.min(f * V.sweep, 12000), t + 0.09);
     lp.frequency.exponentialRampToValueAtTime(Math.min(Math.max(f * V.lp[1], 300), 12000), t + dur + 0.6);
-    lp.connect(g); g.connect(master);
+    lp.connect(g); g.connect(pianoBus || master);
     const end = t + dur + 1;
     V.oscs.forEach(([type, mult, det, lvl]) => {
       const o = ac.createOscillator();
@@ -2537,7 +2613,7 @@
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
-    g.connect(master);
+    g.connect(drumBus || master);
     return g;
   }
   function hitNoise(t, { type = "highpass", freq = 7000, q = 0.7, peak = 0.1, attack = 0.002, decay = 0.05 }) {
@@ -2705,8 +2781,8 @@
     const out = ac.createGain(); out.gain.value = L0.level;
     const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = L0.lp; lp.Q.value = 0.6;
     lp.connect(out);
-    if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = L0.pan; out.connect(p); p.connect(master); }
-    else out.connect(master);
+    if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = L0.pan; out.connect(p); p.connect(leadOut || master); }
+    else out.connect(leadOut || master);
     return lp;
   }
   // notes: [{ midi, start, dur }] in beats; t0 and cl in seconds
@@ -3470,13 +3546,13 @@
   // how each accompanist sings
   const TIMBRE = {
     // a low country baritone: gentle twang, Southern vowels, easy slides
-    dusty: { slope: 1.2, twang: [2400, 3, 4], vib: [5, 16], vibDelay: 0.25, glide: 0.06, breath: 0.05, shift: 0.92, gain: 0.29, cons: 1.1, drawl: true, south: true, jit: 4 },
+    dusty: { slope: 1.2, twang: [2400, 3, 4], vib: [5, 16], vibDelay: 0.25, glide: 0.06, breath: 0.05, shift: 0.92, gain: 0.34, cons: 1.1, drawl: true, south: true, jit: 4 },
     // auto-tuned heartbreak: a clear human voice, hard pitch snaps, a soft octave double
     ghost: { slope: 1.15, harm: 0.22, vib: [0, 0], vibDelay: 1, glide: 0.006, breath: 0.05, shift: 1.0, gain: 0.33, cons: 1.1, robot: true, jit: 0 },
     // soft and clear, a little air around it
-    wren: { slope: 1.3, vib: [4.8, 13], vibDelay: 0.28, glide: 0.05, breath: 0.08, shift: 1.08, gain: 0.41, cons: 1.15, jit: 4 },
+    wren: { slope: 1.3, vib: [4.8, 13], vibDelay: 0.28, glide: 0.05, breath: 0.08, shift: 1.08, gain: 0.63, cons: 1.15, jit: 4 },
     // half spoken: pitch drifts down through each word like talking, quick unstressed syllables
-    oona: { slope: 1.35, vib: [0, 0], vibDelay: 1, glide: 0.05, breath: 0.12, shift: 0.92, gain: 0.21, cons: 1.3, speak: true, jit: 9 },
+    oona: { slope: 1.35, vib: [0, 0], vibDelay: 1, glide: 0.05, breath: 0.12, shift: 0.92, gain: 0.19, cons: 1.3, speak: true, jit: 9 },
     // a wackadoodle belter: clear words, big scoops, yodel flips, hiccups, a dramatic fall at the end
     lulu: { slope: 1.1, vib: [6.5, 30], vibDelay: 0.15, glide: 0.07, scoop: 110, crack: 0.3, hiccup: 0.15, warble: true, fall: true, breath: 0.12, shift: 1.1, gain: 0.225, cons: 1.3, jit: 5 }
   };
@@ -3531,16 +3607,16 @@
     // hiss: fricatives go straight out, not through the mouth
     const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain();
     hissBp.type = "bandpass"; hissBp.frequency.value = 5000; hissBp.Q.value = 1.2; hiss.gain.value = 0.0001;
-    hissSrc.connect(hissBp); hissBp.connect(hiss); hiss.connect(tapOut || master); // skips the warm tape filter
+    hissSrc.connect(hissBp); hissBp.connect(hiss); hiss.connect(voiceTap || tapOut || master); // skips the warm tape filter
     // character color on the way out
     let tail = out;
     if (V.twang) { const pk = ac.createBiquadFilter(); pk.type = "peaking"; pk.frequency.value = V.twang[0]; pk.Q.value = V.twang[1]; pk.gain.value = V.twang[2]; out.connect(pk); tail = pk; }
     if (V.comb) {
       const d = ac.createDelay(0.05), fb = ac.createGain(), mix = ac.createGain();
       d.delayTime.value = V.comb; fb.gain.value = 0.45; mix.gain.value = 0.7;
-      tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(master);
+      tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(voiceBus || master);
     }
-    tail.connect(master);
+    tail.connect(voiceBus || master);
 
     // ---- automation helpers
     const setF = (t, F, tau) => bands.forEach((b, fi) => b.f.setTargetAtTime((fi < 3 ? F[fi] : F4) * sh, q(t), tau));
@@ -3999,7 +4075,7 @@
     const k = { tonic: K.tonic, minor: K.minor }, rooms = roomsOf(k), st = hstyle(), id = prefs.buddy;
     const nextSet = new Set(ideas.pick.slice(0, 3).map(c => c.iv));
     const c = current[sel], curD = c && c.a.inKey && c.a.fn !== "surprise" ? scaleOf(k).steps.indexOf(mod(c.ch.rootPc - k.tonic)) : -1;
-    let s = miniRoof(id, st);
+    let s = `<g class="mh-roof" data-roof="1"><title>ring the doorbell</title>${miniRoof(id, st)}</g>`;
     s += `<rect x="52" y="12" width="136" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="38" y="33" width="164" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="8" y="54" width="224" height="27" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/>`;
     MINI.rows.forEach((row, f) => row.forEach((d, j) => {
       const r = rooms[d], [x, y, w, h] = MINI.box(f, j), tok = palette(k, prefs.sevenths).di[d].tok;
@@ -4088,6 +4164,281 @@
   }
 
   // =========================================================
+  // The studio desk: levels, tone and room, kept with each song
+  // =========================================================
+  const MIX_DEFAULT = { piano: 1, drums: 1, voice: 1, lead: 1, low: 0, high: 0, tape: 0.5, room: 0 };
+  const DESK = [
+    ["piano", "piano", 0, 1.6, 0.05], ["low", "low end", -9, 9, 1],
+    ["drums", "drums", 0, 1.6, 0.05], ["high", "sparkle", -9, 9, 1],
+    ["voice", "singer", 0, 1.6, 0.05], ["tape", "tape", 0, 1, 0.05],
+    ["lead", "lead", 0, 1.6, 0.05], ["room", "room", 0, 1, 0.05]
+  ];
+  const mixOf = () => Object.assign({}, MIX_DEFAULT, (song && song.mix) || {});
+  function applyMix() {
+    if (!ac || !pianoBus) return;
+    const m = mixOf(), t = ac.currentTime, set = (p, v) => p.setTargetAtTime(v, t, 0.03);
+    set(pianoBus.gain, m.piano); set(drumBus.gain, m.drums); set(voiceBus.gain, m.voice); set(voiceTap.gain, m.voice); set(leadOut.gain, m.lead);
+    set(eqLow.gain, m.low); set(eqHigh.gain, m.high);
+    // more tape: darker and a little more flutter
+    set(warmth.frequency, 9000 - m.tape * 6800); set(wobble.gain, 3 + m.tape * 9);
+    set(roomSend.gain, m.room * 0.55);
+  }
+  function deskHTML() {
+    const m = mixOf();
+    const shown = (id, v) => (["low", "high"].includes(id) ? `${v > 0 ? "+" : ""}${v}` : id === "tape" || id === "room" ? `${Math.round(v * 100)}` : `${Math.round(v * 100)}%`);
+    return `<div class="desk" role="group" aria-label="The studio desk">${DESK.map(([id, label, lo, hi, st]) => `<label class="fader"><span>${label}</span>
+      <input type="range" data-mix="${id}" min="${lo}" max="${hi}" step="${st}" value="${m[id]}" aria-label="${label}"><output>${shown(id, m[id])}</output></label>`).join("")}</div>`;
+  }
+
+  // =========================================================
+  // Stories from Pixie Street: the friends are neighbors, every house is a
+  // key, and each chapter walks one famous route through the rooms.
+  // Each chapter is also a mood you can drop into your song.
+  // =========================================================
+  const STORIES = [
+    { mood: "hopeful", title: "The flat tire", cast: ["dusty", "ghost"],
+      text: ["Dusty's truck gave out on Pixie Street at dusk, right in front of apartment 4B. A ghost in headphones leaned out the window.",
+        "“Every radio in 1986 played the same four chords,” Static said. “Want to hear them while you wait for the tow?”",
+        "They walked it together: out the front door, straight up to the attic, down into the sad room, then upstairs to the big window. By the time the tow truck came, Dusty had a chorus."],
+      lesson: "I, V, vi, IV. Home, tension, the home-floor room with a shadow in it, then out upstairs. It never quite lands, so it can loop forever. Thousands of songs live on this route." },
+    { mood: "wistful", title: "The party starts sad", cast: ["lulu", "wren"],
+      text: ["Nobody had come to Lulu's party yet. Lulu sat on the stairs and played the saddest room in the house.",
+        "Wren came in with a shaker and listened for a while. “That's Dusty's four chords,” Wren said. “You just came in the back door.”",
+        "Same rooms, same order, a different first step. Starting in the sad room made the whole thing ache, and then the doorbell rang."],
+      lesson: "vi, IV, I, V is the flat-tire route started from the sad room. Where you begin changes how the same chords feel. The relative minor lives in the same house; it just uses the back door." },
+    { mood: "cozy", title: "Three stairs", cast: ["oona", "ghost"],
+      text: ["Oona opened a show at the gallery called Three Stairs. It was three stairs.",
+        "Static floated down them one at a time. Each step fell five notes, like walking down the street toward home.",
+        "“That's the whole piece,” Oona said. “The last step is the only one that sits down.”"],
+      lesson: "ii7, V7, Imaj7: each root falls a fifth, the strongest pull toward home there is. The 7ths are lamps left on in each room, which is why it sounds like a late-night club." },
+    { mood: "dreamy", title: "Floating down", cast: ["wren", "lulu"],
+      text: ["Wren couldn't sleep and walked the house barefoot, one room lower each time.",
+        "Nothing pushed and nothing pulled. Lulu watched from a doorway, half asleep, and said it sounded like clouds."],
+      lesson: "IV, iii, ii, I with 7ths: the roots walk down the foundation stones one at a time. Each chord shares notes with the next, so the movement feels gentle." },
+    { mood: "bittersweet", title: "One note falls", cast: ["oona", "dusty"],
+      text: ["Dusty asked Oona why a pedal steel always makes people cry.",
+        "Oona played the upstairs chord, then borrowed its minor twin from the house across the street. Only the middle note moved, down one key.",
+        "“That's it,” Oona said. “One note falls and everybody remembers something.”"],
+      lesson: "I, IV, iv, I. The minor iv is a visitor from across the street, the minor key with the same home. Only one note changes, and that small drop is the ache." },
+    { mood: "brave", title: "Up on the hill", cast: ["dusty", "lulu"],
+      text: ["Lulu dragged Dusty up the hill behind the street to yell at the sky.",
+        "Dusty played home, then a chord that isn't in the house at all, a whole step below home, borrowed from across the street. It sounded like an amp turned all the way up.",
+        "Then upstairs, then home. Lulu yelled the whole time. It counted as singing."],
+      lesson: "I, ♭VII, IV, I. The ♭VII is a garden visitor. The route never goes up to the attic, so it comes home without the usual tension, which is why it sounds open and loud." },
+    { mood: "spooky", title: "The midnight elevator", cast: ["ghost", "oona"],
+      text: ["The elevator in Static's building only runs after midnight, and only goes down.",
+        "It starts in a minor home, drops to VI, drifts to III, and then something grabs it: a chord with one raised note that isn't in the minor house at all.",
+        "“That note is the hand on your shoulder,” Static said. Oona called it the best installation in the city."],
+      lesson: "i, VI, III, V7 in minor. The V7 borrows a raised note so it drags you home. Minor keys do this all the time; without it, minor songs drift." },
+    { mood: "lullaby", title: "Never far from home", cast: ["wren", "lulu"],
+      text: ["Near the end of the party Lulu fell asleep on the rug, and Wren played something that never left the ground floor.",
+        "Home, the quiet roommate, one step upstairs, and home again. No attic. No visitors.",
+        "The street went dark one window at a time."],
+      lesson: "I, iii, IV, I. With no tension chord and nothing borrowed, music feels safe. Lullabies and hymns love this." }
+  ];
+  let storyAt = null, storyTimers = [];
+  // the same key moodProg uses: minor routes live across the street (same home note)
+  const storyKey = st => { const m = MOODS.find(x => x.id === st.mood); return m.minor ? { tonic: K.tonic, minor: true } : (K.minor ? { tonic: mod(K.tonic + 3), minor: false } : { tonic: K.tonic, minor: false }); };
+  const storyToks = st => moodProg(MOODS.find(x => x.id === st.mood), K).split(/\s+/).filter(Boolean);
+  const readStories = () => (Array.isArray(prefs.read) ? prefs.read : []);
+
+  // the chapter's route, drawn on the little house, with footprints
+  function routeSVG(st) {
+    const k = storyKey(st), rooms = roomsOf(k), toks = storyToks(st), sty = hstyle(), id = prefs.buddy;
+    let s = miniRoof(id, sty) + `<rect x="52" y="12" width="136" height="22" fill="${sty.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="38" y="33" width="164" height="22" fill="${sty.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="8" y="54" width="224" height="27" fill="${sty.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="0" y="84" width="240" height="22" fill="${sty.ground}"/>`;
+    MINI.rows.forEach((row, f) => row.forEach((d, j) => {
+      const [x, y, w, h] = MINI.box(f, j), r = rooms[d];
+      s += `<g class="rt-win" data-d="${d}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" fill="${sty.glass}" stroke="${sty.trim}" stroke-width="1.4"/><text class="mh-name" x="${x + w / 2}" y="${y + h * 0.7}">${esc(pretty(r.name))}</text></g>`;
+    }));
+    // each step of the route: in a room, or a visitor on the lawn
+    const pts = toks.map((tok, i) => {
+      const ch = parseChord(tok), iv = mod(ch.rootPc - k.tonic), d = scaleOf(k).steps.indexOf(iv);
+      const inRoom = d >= 0 && baseQuality(ch.ivs) === baseQuality(rooms[d].ch.ivs);
+      if (inRoom) { const f = floorOf(d), [x, y, w, h] = MINI.box(f, FLOORS[f].degs.indexOf(d)); return { x: x + 7, y: y + 4, d, tok }; }
+      return { x: 196 + (i % 2) * 20, y: 94, d: -1, tok, guest: true };
+    });
+    s += `<path class="rt-path" d="${pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("")}"/>`;
+    pts.forEach((p, i) => {
+      if (p.guest) s += `<g class="rt-guest" data-step="${i}"><rect x="${p.x - 12}" y="${p.y - 7}" width="24" height="12" rx="2" fill="#fffaf0" stroke="${INK}" stroke-width=".7"/><text x="${p.x}" y="${p.y + 1.8}">${esc(pretty(p.tok))}</text></g>`;
+      s += `<g class="rt-step" data-step="${i}"><circle cx="${p.x}" cy="${p.y}" r="5.6"/><text x="${p.x}" y="${p.y + 2.3}">${i + 1}</text></g>`;
+    });
+    return `<svg class="route-svg" viewBox="0 0 240 106" aria-hidden="true">${s}</svg>`;
+  }
+  const castHTML = st => `<span class="cast">${st.cast.map(id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, id === "oona" ? 8 : 4, id === "oona" ? 1.08 : 1.15)}</svg>`).join("")}</span>`;
+  function storiesHTML() {
+    const read = readStories(), show = prefs.view === "show";
+    if (storyAt == null) {
+      return `<p class="h-lead">Your five friends are neighbors on Pixie Street, and every house on it is a key. Each story walks a famous route through the rooms.</p>
+        <div class="story-list">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="story-card${read.includes(i) ? " read" : ""}" type="button" data-story="${i}">
+          ${castHTML(st)}<span class="sc-text"><small>chapter ${i + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b><span>${esc(pretty(moodProg(m, K)))}</span></span></button>`; }).join("")}</div>`;
+    }
+    const st = STORIES[storyAt], m = MOODS.find(x => x.id === st.mood);
+    return `<div class="story">
+      <div class="story-head">${castHTML(st)}<div><small>chapter ${storyAt + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b></div></div>
+      ${st.text.map(p => `<p class="story-p">${esc(p)}</p>`).join("")}
+      <div class="route">${routeSVG(st)}</div>
+      <p class="story-lesson"><b>What the route teaches</b> ${esc(st.lesson)}</p>
+      <div class="row"><button class="btn surprise" type="button" data-storyact="walk">▶ walk the route</button>${show ? "" : `<button class="btn" type="button" data-storyact="use">+ put it in my song</button>`}</div>
+      <div class="row story-nav"><button class="btn" type="button" data-storyact="list">all the stories</button>${storyAt < STORIES.length - 1 ? `<button class="btn" type="button" data-story="${storyAt + 1}">next: ${esc(STORIES[storyAt + 1].title)} →</button>` : ""}</div>
+    </div>`;
+  }
+  async function walkRoute() {
+    if (storyAt == null || !(await audioReady())) return;
+    storyTimers.forEach(clearTimeout); storyTimers = [];
+    const st = STORIES[storyAt], toks = storyToks(st), svg = document.querySelector(".route-svg"), gap = 1.25;
+    const t0 = ac.currentTime + 0.05;
+    toks.forEach((tok, i) => {
+      const ch = parseChord(tok), root = 48 + ch.rootPc - (ch.rootPc > 6 ? 12 : 0);
+      strum({ lh: [root - 12 < 36 ? root : root - 12], rh: ch.ivs.slice(0, 4).map(x => root + 12 + x) }, t0 + i * gap, gap * 0.95);
+      storyTimers.push(setTimeout(() => {
+        if (!svg) return;
+        svg.querySelectorAll(".on").forEach(el => el.classList.remove("on"));
+        svg.querySelector(`.rt-step[data-step="${i}"]`)?.classList.add("on");
+        const k = storyKey(st), d = scaleOf(k).steps.indexOf(mod(ch.rootPc - k.tonic));
+        svg.querySelector(`.rt-win[data-d="${d}"]`)?.classList.add("on");
+      }, (t0 + i * gap - ac.currentTime) * 1000));
+    });
+    storyTimers.push(setTimeout(() => svg && svg.querySelectorAll(".on").forEach(el => el.classList.remove("on")), (toks.length * gap + 0.4) * 1000));
+  }
+  function markRead(i) { const r = readStories(); if (!r.includes(i)) { r.push(i); prefs.read = r; savePrefs(); } }
+
+  // =========================================================
+  // The song sheet: words with chords over them, on paper, signed on Pixie Street
+  // =========================================================
+  const SIGN_OFF = {
+    dusty: "Play it loud, play it wrong, play it again.",
+    ghost: "Recorded live in apartment 4B.",
+    wren: "Carry it somewhere with a view.",
+    oona: "This sheet is also a sculpture.",
+    lulu: "Sing it to someone tonight!!"
+  };
+  const cssVar = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+  async function songSheetCanvas() {
+    const W = 1240, pad = 80, hand = cssVar("--hand") || "cursive", type = cssVar("--type") || "monospace";
+    const cv = document.createElement("canvas"), g = cv.getContext("2d");
+    const blocks = song.order.map(id => {
+      const x = song.sections[idxOf(id)], d = sectionData(idxOf(id));
+      return { name: x.name, chords: d.list.map(c => ({ tok: pretty(c.tok.replace(/:\d+$/, "")), num: c.a.num, fn: c.a.fn, words: (x.words[c.i] || "").trim() })) };
+    });
+    // measure: chord blocks flow across the page like a lead sheet
+    g.font = `700 34px ${hand}`;
+    const layout = [];
+    let y = 250;
+    blocks.forEach(b => {
+      layout.push({ kind: "sec", y, text: b.name.toLowerCase() }); y += 50;
+      let x = pad;
+      b.chords.forEach(c => {
+        g.font = `700 34px ${hand}`; const wc = g.measureText(c.tok).width;
+        g.font = `26px ${hand}`; const ww = g.measureText(c.words).width;
+        const w = Math.max(wc + 20, ww + 26, 90);
+        if (x + w > W - pad) { x = pad; y += 104; }
+        layout.push({ kind: "ch", x, y, w, c }); x += w;
+      });
+      y += 128;
+    });
+    const H = Math.max(620, y + 170);
+    cv.width = W; cv.height = H;
+    // paper, a little grain, a strip of tape
+    g.fillStyle = "#f6efe0"; g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(90,70,40,${Math.random() * 0.06})`; g.fillRect(Math.random() * W, Math.random() * H, 2, 2); }
+    g.save(); g.translate(W / 2, 26); g.rotate(-0.03); g.fillStyle = "rgba(233,180,76,.55)"; g.fillRect(-90, -16, 180, 34); g.restore();
+    g.fillStyle = "#2f2a3d"; g.textBaseline = "alphabetic";
+    g.font = `700 64px ${hand}`; g.fillText(song.title || "untitled", pad, 130);
+    g.font = `700 22px ${type}`; g.fillStyle = "#6f6782";
+    g.fillText(`${pretty(keyName(K))} · ${S().bpm} bpm · ${Mtr.id}`, pad, 172);
+    g.strokeStyle = "#2f2a3d"; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, 198); g.lineTo(W - pad, 198); g.stroke();
+    const col = { home: cssVar("--home") || "#e9b44c", away: cssVar("--away") || "#86acd9", tension: cssVar("--tension") || "#e0703f", surprise: cssVar("--surprise") || "#a98bd8" };
+    layout.forEach(it => {
+      if (it.kind === "sec") { g.font = `700 24px ${type}`; g.fillStyle = "#6f6782"; g.fillText(it.text, pad, it.y); return; }
+      const { x, y: yy, c } = it;
+      g.fillStyle = col[c.fn] || col.home; g.fillRect(x, yy + 8, Math.min(it.w - 16, 60), 5);
+      g.fillStyle = "#2f2a3d"; g.font = `700 34px ${hand}`; g.fillText(c.tok, x, yy + 44);
+      g.font = `700 15px ${type}`; g.fillStyle = "#6f6782"; g.fillText(c.num, x + g.measureText(c.tok).width * 0 + 2, yy + 64);
+      g.font = `26px ${hand}`; g.fillStyle = "#2f2a3d"; g.fillText(c.words || "", x, yy + 94);
+    });
+    // the sign-off, with a little portrait of your friend
+    const fy = H - 110;
+    g.strokeStyle = "rgba(47,42,61,.35)"; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(pad, fy - 22); g.lineTo(W - pad, fy - 22); g.stroke(); g.setLineDash([]);
+    try {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -58 72 76" width="144" height="152">${CHAR_SVG[prefs.buddy](26, prefs.buddy === "oona" ? 8 : 4, prefs.buddy === "oona" ? 1.08 : 1.15)}</svg>`;
+      const img = new Image();
+      await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
+      g.drawImage(img, W - pad - 110, fy - 30, 104, 110);
+    } catch {}
+    g.fillStyle = "#2f2a3d"; g.font = `700 30px ${hand}`;
+    g.fillText(`“${SIGN_OFF[prefs.buddy] || ""}”`, pad, fy + 26);
+    g.font = `700 18px ${type}`; g.fillStyle = "#6f6782";
+    g.fillText(`written on Pixie Street with ${B().name}`, pad, fy + 60);
+    return cv;
+  }
+  let sheetURL = null, sheetBlob = null;
+  async function makeSongSheet() {
+    const cv = await songSheetCanvas();
+    sheetBlob = await new Promise(r => cv.toBlob(r, "image/png"));
+    if (sheetURL) URL.revokeObjectURL(sheetURL);
+    sheetURL = URL.createObjectURL(sheetBlob);
+    const img = $("sheetImg");
+    if (img) img.src = sheetURL;
+  }
+  async function saveSongSheet() {
+    if (!sheetBlob) await makeSongSheet();
+    const name = `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"} song sheet.png`;
+    const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]) : null;
+    if (dl) {
+      try { await dl.save({ filename: name, data: sheetBlob }); toast("song sheet saved"); }
+      catch (err) { if (err?.code !== "declined") toast("couldn't save it here"); }
+      return;
+    }
+    const a = document.createElement("a"); a.href = sheetURL; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // =========================================================
+  // Show mode: a stage you can only play
+  // =========================================================
+  function showStageHTML(c) {
+    const w = c ? (words()[c.i] || "").trim() : "";
+    return `<div class="show-card">
+      <small>${esc((song.title || "untitled").toLowerCase())} · ${esc(sec().name.toLowerCase())}</small>
+      <div class="show-chord" style="--fn:var(--${c ? c.a.fn : "home"})">${c ? symbolHTML(c.ch) : "·"}</div>
+      <p class="show-words">${esc(w || (c ? "♪" : "nothing here yet"))}</p>
+      <div class="row"><button class="btn surprise" type="button" data-act="showplay">${playing ? "■ stop" : "▶ play the song"}</button><button class="btn" type="button" data-act="stories">✦ stories from the street</button></div>
+    </div>`;
+  }
+
+  // =========================================================
+  // Small secrets
+  // =========================================================
+  let sameTok = null, sameN = 0, lateSaid = false;
+  function secretSame(c) {
+    if (!c) return;
+    sameN = c.tok === sameTok ? sameN + 1 : 1; sameTok = c.tok;
+    if (sameN === 8) {
+      document.body.classList.add("dozing");
+      say(`${B().name} nodded off. Eight of the same chord will do that.`);
+      const r = $("sceneWrap")?.getBoundingClientRect();
+      if (r && r.height) flourish(r.left + 70, r.top + 30, ["z", "z", "Z"], "#fffaf0");
+      setTimeout(() => document.body.classList.remove("dozing"), 6500);
+    }
+  }
+  function secretWords() {
+    const all = (sec().words || []).join(" ").toLowerCase();
+    document.body.classList.toggle("moonlit", /\bmoon/.test(all));
+    document.body.classList.toggle("starry", /\bstars?\b/.test(all));
+  }
+  function secretLate() {
+    const late = new Date().getHours() < 5;
+    document.body.classList.toggle("late", late);
+    if (late && !lateSaid) { lateSaid = true; tipOverride = `It's late. ${B().name} is playing softer so the neighbors can sleep.`; }
+  }
+  function doorbell() {
+    if (!ac || !audioOK) { audioReady().then(ok => ok && doorbell()); return; }
+    const t = ac.currentTime + 0.02;
+    tone(76, t, 0.5, 0.12); tone(72, t + 0.42, 0.8, 0.12);
+    say({ dusty: "Door's open, y'all.", ghost: "Come in, come in. Mind the static.", wren: "Oh! Come sit by the fire.", oona: "The door is part of the piece.", lulu: "WHO IS IT?? Oh my gosh come in!!" }[prefs.buddy] || "Coming!");
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -4110,20 +4461,24 @@
     arrows: "where to go next", fx: "sparkles", drums: "drums", sing: "singing", lead: "their lead", crackle: "vinyl crackle"
   };
   const HEAR = ["drums", "sing", "lead", "crackle"];
+  // five modes: each decides what the one screen shows
   const VIEWS = {
-    bare: { name: "bare", note: "keys and chords, nothing else", on: ["palette", "entry", "arrows"] },
-    writer: { name: "writer", note: "write, loop, sing", on: LAYERS.filter(l => l !== "entry" && l !== "ribbon") },
-    story: { name: "story", note: "a big scene and your words", on: ["scene", "talk", "lyrics", "arrows", "fx", "drums", "sing", "lead", "crackle"] },
-    all: { name: "everything", note: "every switch on", on: LAYERS }
+    simple: { name: "simple", icon: "◻", note: "just chords and their shapes", on: ["palette", "arrows"] },
+    learn: { name: "learning", icon: "✦", note: "the house, the stories, why chords work", on: ["scene", "talk", "palette", "arrows", "fx", "drums"] },
+    write: { name: "writing", icon: "✎", note: "the songbook and your song's parts", on: ["scene", "talk", "lyrics", "palette", "arrows", "fx", "drums", "sing", "lead"] },
+    studio: { name: "studio", icon: "◉", note: "mix it, warm it up, tape it", on: ["scene", "lyrics", "palette", "drums", "sing", "lead", "crackle"] },
+    show: { name: "show", icon: "★", note: "the story and your friends; play only", on: ["scene", "talk", "lyrics", "fx", "drums", "sing", "lead", "crackle"] }
   };
+  const OLD_VIEWS = { bare: "simple", writer: "write", story: "show", all: "learn" };
   const layersFor = v => Object.fromEntries(LAYERS.map(l => [l, VIEWS[v].on.includes(l)]));
 
   const oldPrefs = readJSON("prefs", {});
   const prefs = Object.assign({ sevenths: false, wholeSong: false, buddy: "dusty", fills: 2, view: "writer" }, oldPrefs);
-  if (!VIEWS[prefs.view]) prefs.view = "writer";
+  if (OLD_VIEWS[prefs.view]) { prefs.view = OLD_VIEWS[prefs.view]; prefs.layers = null; }
+  if (!VIEWS[prefs.view]) prefs.view = "write";
   if (!prefs.layers || typeof prefs.layers !== "object") {
     // carry over the old switches
-    prefs.layers = layersFor("writer");
+    prefs.layers = layersFor(prefs.view);
     [["tips", "talk"], ["sing", "sing"], ["drums", "drums"], ["fingers", "fingers"], ["next", "arrows"], ["crackle", "crackle"]]
       .forEach(([o, n]) => { if (typeof oldPrefs[o] === "boolean") prefs.layers[n] = oldPrefs[o]; });
   }
@@ -4435,9 +4790,15 @@
   function renderPalette() {
     const ideas = nextIdeas();
     // the key's house: every chord of the key is a window; tap one to add it
-    palEl.innerHTML = miniHouseHTML(ideas)
-      + `<div class="mh-side"><button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${esc(pretty(keyName(K)))}">⌂ ${esc(pretty(keyName(K)))}</button>
-        <button class="pal more" type="button" data-act="more">more…</button></div>`;
+    const mode = prefs.view, kname = esc(pretty(keyName(K)));
+    const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
+    const side = {
+      simple: inside + `<button class="pal more" type="button" data-act="more">more…</button>`,
+      learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">more…</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      studio: `<button class="pal mh-in" type="button" data-act="taperec" aria-label="Tape a take">● tape</button><button class="pal more" type="button" data-act="mixreset" aria-label="Reset the desk">flat</button>`
+    }[mode] || inside;
+    palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas)) + `<div class="mh-side">${side}</div>`;
   }
   function renderPaletteOld() {
     const p = palette(K, prefs.sevenths);
@@ -4541,6 +4902,16 @@
 
   function renderStage() {
     if (!playing) miniFollow(current[sel]);
+    secretWords(); secretLate();
+    if (prefs.view === "show") {
+      stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
+      stripEl.querySelector(`.tile[data-j="${sel}"]`)?.classList.add("sel");
+      const c = current[sel];
+      stageEl.style.setProperty("--fn", `var(--${c ? c.a.fn : "home"})`);
+      stageEl.innerHTML = showStageHTML(c);
+      if (!finding) say(tipOverride || (c ? tipsFor(c)[0] : B().hello));
+      return;
+    }
     stripEl.querySelectorAll(".tile.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelectorAll(".seg.sel").forEach(el => el.classList.remove("sel"));
     ribbonEl.querySelector(`.seg[data-j="${sel}"]`)?.classList.add("sel");
@@ -4754,10 +5125,13 @@
   function applyView() {
     const b = document.body;
     LAYERS.forEach(l => b.classList.toggle("no-" + l, !L(l)));
-    const story = prefs.view === "story" && L("scene");
+    const story = prefs.view === "show" && L("scene");
     b.classList.toggle("view-story", story);
-    b.classList.toggle("view-bare", prefs.view === "bare");
-    b.classList.toggle("has-bd", L("scene") && prefs.view !== "bare");
+    Object.keys(VIEWS).forEach(v => b.classList.toggle("mode-" + v, prefs.view === v));
+    b.classList.toggle("view-bare", prefs.view === "simple");
+    b.classList.toggle("has-bd", L("scene") && prefs.view !== "simple");
+    $("openView").textContent = `${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name}`;
+    $("songTitle").readOnly = prefs.view === "show";
     b.classList.toggle("tight", L("entry") && L("palette") && L("ribbon") && L("lyrics") && L("scene"));
     const wrap = $("sceneWrap"), sayEl = $("say"), dock = $("sayDock");
     if (story) { $("storyHero").appendChild(wrap); $("storyCap").appendChild(sayEl); }
@@ -5042,6 +5416,7 @@
   async function playOne(j) {
     const c = current[j];
     if (!c || playing || !(await audioReady())) return;
+    secretSame(c);
     strum(c.v, ac.currentTime + 0.02, 1.4);
     if (j === sel) fx(c);
   }
@@ -5377,7 +5752,7 @@
       <textarea id="verseText" class="verse-in" rows="4" spellcheck="true" placeholder="write the ${esc(section.name.toLowerCase())} a line at a time&#10;it flows onto your chords as you go">${esc(section.verse)}</textarea>
       <div class="flow" id="flow">${flowHTML()}</div>
       <p class="note">tap a line to turn to its page · ${esc(B().name)} picks the tune and answers each line on the ${esc(leadName())}</p>
-      <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear the ${esc(section.name.toLowerCase())}</button></div>
+      <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear the ${esc(section.name.toLowerCase())}</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
       ${pagerHTML()}</div>`;
     const c = current[bookPage - 1], pick = (section.licks || [])[c.i], cur = lickIdFor(section, c), rb = replyBeats(c);
     const cards = rb ? [...lickSet(), ["rest", "let it breathe"]].map(([id, name]) => `<button class="lick${cur === id ? " on" : ""}" type="button" data-lick="${id}" aria-pressed="${cur === id}">${lickArt(id, c)}<span>${esc(name)}</span></button>`).join("") : "";
@@ -5444,6 +5819,7 @@
   function openSheet(mode) {
     closeEgg();
     // the songbook opens on the page for the chord you're on, or the cover
+    if (mode === "stories" && sheetMode !== "stories") storyAt = null;
     if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
     $("sheet").classList.toggle("wide", mode === "house");
     if (mode === "book") bookPage = current[sel] && (words()[current[sel].i] || "").trim() ? sel + 1 : 0;
@@ -5494,11 +5870,13 @@
 
   // little drawings of each view for the view sheet
   const VIEW_ART = {
-    bare: `<rect x="4" y="3" width="52" height="4" rx="1"/><rect x="4" y="9" width="40" height="3" rx="1"/><rect class="kk" x="4" y="15" width="52" height="22" rx="2"/>`,
-    writer: `<rect x="4" y="2" width="52" height="6" rx="1"/><rect x="4" y="9.5" width="52" height="2" rx="1"/><rect x="4" y="13" width="52" height="3" rx="1"/><rect class="ln" x="4" y="17.5" width="52" height="4" rx="1"/><rect class="kk" x="4" y="23" width="52" height="8" rx="1.5"/><rect class="sc" x="0" y="33" width="60" height="7"/>`,
-    story: `<rect class="sc" x="0" y="1" width="60" height="15"/><rect x="4" y="17.5" width="40" height="2" rx="1"/><rect x="4" y="21" width="52" height="4" rx="1"/><rect class="ln" x="4" y="26.5" width="52" height="4" rx="1"/><rect class="kk" x="4" y="32" width="52" height="7" rx="1.5"/>`,
-    all: `<rect x="4" y="2" width="52" height="5" rx="1"/><rect x="4" y="8" width="52" height="2" rx="1"/><rect x="4" y="11" width="52" height="2" rx="1"/><rect x="4" y="14" width="52" height="3" rx="1"/><rect class="ln" x="4" y="18" width="52" height="4" rx="1"/><rect class="kk" x="4" y="23.5" width="52" height="8" rx="1.5"/><rect class="sc" x="0" y="33" width="60" height="7"/>`
+    simple: `<rect x="4" y="3" width="52" height="4" rx="1"/><rect class="kk" x="4" y="12" width="52" height="24" rx="2"/>`,
+    learn: `<path class="sc" d="M18 16 30 5 42 16z"/><rect class="kk" x="20" y="16" width="20" height="14"/><rect x="4" y="33" width="52" height="3" rx="1"/>`,
+    write: `<rect x="4" y="3" width="52" height="5" rx="1"/><rect class="ln" x="4" y="11" width="52" height="3" rx="1"/><rect class="ln" x="4" y="16" width="44" height="3" rx="1"/><rect class="ln" x="4" y="21" width="48" height="3" rx="1"/><rect class="kk" x="4" y="27" width="52" height="10" rx="2"/>`,
+    studio: `<rect x="6" y="6" width="3" height="28" rx="1"/><rect x="18" y="6" width="3" height="28" rx="1"/><rect x="30" y="6" width="3" height="28" rx="1"/><rect x="42" y="6" width="3" height="28" rx="1"/><rect class="kk" x="3" y="12" width="9" height="5" rx="1"/><rect class="kk" x="15" y="22" width="9" height="5" rx="1"/><rect class="kk" x="27" y="9" width="9" height="5" rx="1"/><rect class="kk" x="39" y="18" width="9" height="5" rx="1"/>`,
+    show: `<rect class="sc" x="0" y="1" width="60" height="26"/><rect x="10" y="30" width="40" height="3" rx="1"/><circle class="kk" cx="30" cy="16" r="6"/>`
   };
+
   const fillKnob = () => `<div class="knob fill-knob"><label class="lbl" for="kFills">fills · <span id="kFillsVal">${FILL_LEVELS[prefs.fills]}</span></label>
     <input type="range" id="kFills" min="0" max="4" step="1" value="${prefs.fills}" aria-valuetext="${FILL_LEVELS[prefs.fills]}">
     <div class="ends"><span>none</span><span>a few</span><span>some</span><span>lots</span><span>wild</span></div></div>`;
@@ -5561,13 +5939,23 @@
         ${fillKnob()}
         <label class="tog"><input type="checkbox" data-layer="drums"${L("drums") ? " checked" : ""}> drums on</label>`;
     } else if (sheetMode === "view") {
-      $("sheetTitle").textContent = "view";
+      $("sheetTitle").textContent = "mode";
       const see = LAYERS.filter(l => !HEAR.includes(l));
       body.innerHTML = `
-        <div class="view-presets">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
-        <div class="knob"><span class="lbl">what you see</span><div class="layer-grid">${see.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
-        <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
-        ${fillKnob()}`;
+        <div class="view-presets modes">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.icon} ${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
+        <details class="fine"><summary>fine-tune what shows</summary>
+          <div class="knob"><span class="lbl">what you see</span><div class="layer-grid">${see.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
+          <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
+          ${fillKnob()}</details>`;
+    } else if (sheetMode === "stories") {
+      $("sheetTitle").textContent = storyAt == null ? "stories from the street" : `chapter ${storyAt + 1}`;
+      body.innerHTML = storiesHTML();
+    } else if (sheetMode === "songsheet") {
+      $("sheetTitle").textContent = "song sheet";
+      body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
+        <p class="note">Your words with the chords over them, signed by ${esc(B().name)}. Good for keeping by a real piano.</p>
+        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button></div>`;
+      makeSongSheet();
     } else if (sheetMode === "start") {
       const t = wiz.tonic, nm = t == null ? null : pretty(FALLBACK[t]);
       const pk = new Set(t == null ? [] : [60 + t]);
@@ -5606,8 +5994,9 @@
           <div class="add-row">${ideas.pick.map(c => chip(c, true)).join("")}</div></div>
         <div class="knob"><span class="lbl">every chord in the key <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></span>
           <div class="add-row">${ideas.all.map(c => chip(c)).join("")}<span class="sep">·</span>${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
-        <div class="knob"><span class="lbl">or a whole mood, ${current.length ? "added on the end" : "four bars at once"}</span>
-          <div class="moods">${MOODS.map(m => `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">or a whole route from the street stories, ${current.length ? "added on the end" : "four bars at once"}</span>
+          <div class="moods">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(st.title)} · ${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
+          <button class="link" type="button" data-open="stories">read the stories</button></div>
         <div class="row">
           <button class="btn" type="button" data-open="library">from the library</button>
           <button class="btn" type="button" data-addact="wizard">start from a note</button>
@@ -5691,7 +6080,7 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-song="lyrics">✎ lyric sheet</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-song="lyrics">✎ lyric sheet</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
         <p class="note">${storageOK ? "Songs save in this browser as you go. Copy one as text below if you want a backup." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
@@ -5753,6 +6142,7 @@
     if (!b) return;
     if (b.dataset.act === "addsec") { openSheet("addsec"); return; }
     const p = +b.dataset.pos;
+    if (prefs.view === "show") { if (p !== ordPos) switchSection(idxOf(song.order[p]), p); return; }
     if (p === ordPos) { openSheet("secedit"); return; }
     switchSection(idxOf(song.order[p]), p);
   });
@@ -5840,6 +6230,12 @@
     if (e.target.closest('[data-act="key"]')) { openSheet("house"); return; }
     if (e.target.closest('[data-act="moods"]')) { openSheet("moods"); return; }
     if (e.target.closest('[data-act="more"]')) { openSheet("add"); return; }
+    if (e.target.closest('[data-act="stories"]')) { storyAt = null; openSheet("stories"); return; }
+    if (e.target.closest('[data-act="songsheet"]')) { openSheet("songsheet"); return; }
+    if (e.target.closest('[data-act="words"]')) { openSheet("book"); return; }
+    if (e.target.closest('[data-act="taperec"]')) { $("rec").click(); return; }
+    if (e.target.closest('[data-act="mixreset"]')) { song.mix = { ...MIX_DEFAULT }; saveSongs(); applyMix(); renderPalette(); toast("the desk is back to flat"); return; }
+    if (e.target.closest("[data-roof]")) { doorbell(); return; }
     const b = e.target.closest("[data-add]");
     if (!b) return;
     const t = sec().prog.trim();
@@ -5850,6 +6246,14 @@
     playOne(sel);
   });
   palEl.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.closest("[data-mroom]")) { e.preventDefault(); e.target.closest("[data-mroom]").dispatchEvent(new MouseEvent("click", { bubbles: true })); } });
+  palEl.addEventListener("input", e => {
+    const f = e.target.closest("[data-mix]");
+    if (!f) return;
+    song.mix = { ...mixOf(), [f.dataset.mix]: +f.value };
+    saveSongs(); applyMix();
+    const out = f.parentElement.querySelector("output"), id = f.dataset.mix, v = +f.value;
+    if (out) out.textContent = ["low", "high"].includes(id) ? `${v > 0 ? "+" : ""}${v}` : id === "tape" || id === "room" ? `${Math.round(v * 100)}` : `${Math.round(v * 100)}%`;
+  });
   palEl.addEventListener("change", e => { if (e.target.id === "sev") { prefs.sevenths = e.target.checked; savePrefs(); renderPalette(); } });
 
   const pickChord = j => { sel = j; tipIdx = 0; tipOverride = null; editingLyric = false; renderStage(); playOne(sel); };
@@ -5963,6 +6367,8 @@
     else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
     else if (act === "chord" && c) openSheet("chord");
     else if (act === "words") openSheet("book");
+    else if (act === "showplay") { if (playing) stop(); else { sel = 0; playAll(); } }
+    else if (act === "stories") { storyAt = null; openSheet("stories"); }
     else if (act === "undo") {
       const u = undoStack.pop();
       if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
@@ -6063,6 +6469,21 @@
 
   $("sheetBody").addEventListener("click", async e => {
     if (sheetMode === "house" && houseClick(e)) return;
+    const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
+    if (storyB) { storyAt = +storyB.dataset.story; markRead(storyAt); storyTimers.forEach(clearTimeout); renderSheet(); $("sheetBody").scrollTop = 0; return; }
+    if (storyAct) {
+      const a = storyAct.dataset.storyact;
+      if (a === "list") { storyAt = null; renderSheet(); }
+      else if (a === "walk") walkRoute();
+      else if (a === "use") {
+        const st = STORIES[storyAt], m = MOODS.find(x => x.id === st.mood), t = sec().prog.trim(), was = current.length;
+        setProg((t ? t + " " : "") + moodProg(m, K), true);
+        sel = was; tipOverride = `${st.title}: ${m.why}`;
+        closeSheet(); renderStage(); playOne(sel);
+      }
+      return;
+    }
+    if (sheetAct) { saveSongSheet(); return; }
     const feel = e.target.closest("[data-feel]"), hands = e.target.closest("[data-hands]"), shift = e.target.closest("[data-shift]");
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
@@ -6137,7 +6558,7 @@
     if (meterB) { setMeter(meterB.dataset.meter); renderSheet(); return; }
     if (e.target.closest('[data-act="meter"]')) { cycleMeter(); renderSheet(); return; }
     if (lenB) { setting("beats", lenB.dataset.len); renderAll(); renderSheet(); return; }
-    if (viewB) { setView(viewB.dataset.view); renderSheet(); toast(`${VIEWS[prefs.view].name} view`); return; }
+    if (viewB) { setView(viewB.dataset.view); closeSheet(); toast(`${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name} mode`); return; }
     if (openB) { openSheet(openB.dataset.open); return; }
     const pad = e.target.closest(".pad"), preset = e.target.closest("[data-preset]"), bact = e.target.closest("[data-beatact]"), hear = e.target.closest("[data-hear]");
     if (pad) {
