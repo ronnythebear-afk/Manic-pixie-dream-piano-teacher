@@ -6213,6 +6213,11 @@
           <div class="presets">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${S().style === k}">${esc(v)}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">piano sound</span>
           <div class="presets">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s pick</small>` : ""}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">also playing</span>
+          <div class="toggles">
+            <label class="tog"><input type="checkbox" data-layer="lead"${L("lead") ? " checked" : ""}> ${esc(b.name)}'s ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)} answering each line</label>
+            <label class="tog"><input type="checkbox" data-layer="crackle"${L("crackle") ? " checked" : ""}> vinyl crackle</label>
+          </div></div>
         <span class="lbl">the beat <label class="mini-switch"><input type="checkbox" data-layer="drums"${L("drums") ? " checked" : ""}> on</label></span>
         <p class="note">Tap pads to build a beat for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>. Tap a sound's name to hear it.</p>
         <div class="presets">${Object.keys(presets).map(n => `<button class="choice" type="button" data-preset="${esc(n)}" aria-pressed="${!bt.custom && bt.name === n}">${esc(n)}</button>`).join("")}
