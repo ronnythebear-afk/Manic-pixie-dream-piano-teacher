@@ -1142,6 +1142,24 @@
   .recording .onair::after { content: "on air"; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: #ff8f9a; }
   .mh-side .pal.vibe { flex-direction: column; gap: 0; min-height: 38px; background: linear-gradient(135deg, color-mix(in srgb, var(--rh) 40%, var(--card)), color-mix(in srgb, var(--surprise) 40%, var(--card))); }
   .pal.vibe small { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--soft); }
+
+  /* ---------- editing a part: one row that is the part ---------- */
+  .part-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; background: var(--card-2); border-radius: 16px; padding: 10px; }
+  .part-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  .part-chips .none { color: var(--soft); font-weight: 700; padding: 6px 4px; }
+  .pchip { display: inline-flex; align-items: center; gap: 2px; background: var(--card); border-radius: 999px; padding: 3px 3px 3px 11px; box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--fn) 70%, transparent); }
+  .pchip b { font-weight: 900; font-size: 16px; }
+  .pchip button { border: 0; background: none; width: 24px; height: 24px; border-radius: 50%; color: var(--soft); font-size: 16px; line-height: 1; cursor: pointer; }
+  .pchip button:hover { background: var(--chip); color: var(--ink); }
+  .part-acts { display: flex; gap: 6px; flex: none; }
+  .add-foot { text-align: center; }
+  .btn.danger { color: #b3413c; }
+  .chord-edit { border-top: 1px solid var(--edge); padding-top: 12px; }
+  .toast.has-undo { display: inline-flex; align-items: center; gap: 12px; padding-right: 6px; }
+  .toast-undo { border: 0; border-radius: 999px; background: rgba(36, 35, 58, .14); color: inherit; font: inherit; font-weight: 900; padding: 4px 12px; cursor: pointer; }
+  .toast { pointer-events: auto; }
+  .t-sym.mid { font-size: 21px; } .t-sym.long { font-size: 17px; }
+  .t-sym .q { font-size: .8em; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -4452,7 +4470,7 @@
       ${st.text.map(p => `<p class="story-p">${esc(p)}</p>`).join("")}
       <div class="route">${routeSVG(st)}</div>
       <p class="story-lesson"><b>What the route teaches</b> ${esc(st.lesson)}</p>
-      <div class="row"><button class="btn surprise" type="button" data-storyact="walk">▶ walk the route</button>${show ? "" : `<button class="btn" type="button" data-storyact="use">+ put it in my song</button>`}</div>
+      <div class="row"><button class="btn surprise" type="button" data-storyact="walk">▶ walk the route</button>${show ? "" : `<button class="btn" type="button" data-storyact="use">use it for the ${esc(sec().name.toLowerCase())}</button>`}</div>
       <div class="row story-nav"><button class="btn" type="button" data-storyact="list">all the stories</button>${storyAt < STORIES.length - 1 ? `<button class="btn" type="button" data-story="${storyAt + 1}">next: ${esc(STORIES[storyAt + 1].title)} →</button>` : ""}</div>
     </div>`;
   }
@@ -5089,9 +5107,9 @@
     const mode = prefs.view, kname = esc(pretty(keyName(K)));
     const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
     const side = {
-      simple: inside + `<button class="pal more" type="button" data-act="more">+ more</button>`,
+      simple: inside + `<button class="pal more" type="button" data-act="more">+ chords</button>`,
       learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ more</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
       studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
@@ -5119,7 +5137,7 @@
       const c = byIndex.get(it.i);
       if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span></div><span class="t-foot">not a chord I know</span></div>`;
       return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}">
-        <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${STICKERS[c.a.fn] || ""}${esc(c.a.num)}</span></span>
+        <span class="t-head"><span class="t-sym${c.tok.replace(/:\d+$/, "").length > 4 ? " long" : c.tok.replace(/:\d+$/, "").length > 2 ? " mid" : ""}">${symbolHTML(c.ch)}</span><span class="t-num">${STICKERS[c.a.fn] || ""}${esc(c.a.num)}</span></span>
         ${keyboard(c.v, range[0], range[1])}
         <span class="t-foot"><span class="t-words">${esc(words()[it.i] || (Array.isArray(sec().melody[it.i]) ? "~" : "·"))}</span><span>${c.beats}${g}</span></span>
       </button>`;
@@ -5733,6 +5751,40 @@
     let k = -1;
     return text.replace(/[^\s,|]+/g, t => (++k === n ? raw : t));
   }
+  // one way to change a part: single chords go on the end, whole progressions
+  // replace it (with undo), and any chord can be removed or moved
+  const partToks = () => (sec().prog.match(/[^\s,|]+/g) || []);
+  function removeChord(n) {
+    const toks = partToks(), gone = toks[n];
+    if (gone == null) return;
+    toks.splice(n, 1);
+    setProg(toks.join(" "), true);
+    sel = Math.max(0, Math.min(sel, current.length - 1));
+    renderStage();
+    toast(`took out ${pretty(gone.replace(/:\d+$/, ""))}`, true);
+  }
+  function moveChord(n, dir) {
+    const toks = partToks(), m = n + dir;
+    if (m < 0 || m >= toks.length) return;
+    [toks[n], toks[m]] = [toks[m], toks[n]];
+    setProg(toks.join(" "), true);
+    sel = current.findIndex(c => c.i === m);
+    renderStage();
+  }
+  function clearPart() {
+    if (!partToks().length) return;
+    setProg("", true); sel = 0; renderStage();
+    toast(`the ${sec().name.toLowerCase()} is empty`, true);
+  }
+  function replacePart(prog, label) {
+    overrides.clear();
+    setProg(prog, true); sel = 0; renderStage();
+    toast(`${label} is in the ${sec().name.toLowerCase()}`, true);
+  }
+  function undoLast() {
+    const u = undoStack.pop();
+    if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.max(0, Math.min(k, current.length - 1)); tipOverride = "Back the way it was."; renderStage(); if (sheetMode === "add") renderSheet(); }
+  }
   function switchSection(i, pos) {
     secIdx = i;
     ordPos = pos ?? (song.order[ordPos] === sec().id ? ordPos : Math.max(0, song.order.indexOf(sec().id)));
@@ -5841,12 +5893,14 @@
   }
 
   let toastTimer;
-  function toast(msg) {
+  function toast(msg, undoable) {
     const t = $("toast");
     t.textContent = msg;
+    if (undoable) { const u = document.createElement("button"); u.type = "button"; u.className = "toast-undo"; u.textContent = "undo"; u.onclick = () => { t.hidden = true; undoLast(); }; t.appendChild(u); }
+    t.classList.toggle("has-undo", !!undoable);
     t.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => (t.hidden = true), 2200);
+    toastTimer = setTimeout(() => (t.hidden = true), undoable ? 4500 : 2200);
   }
 
   // ---------- the sky clock (tap the sun or the moon) ----------
@@ -6273,25 +6327,25 @@
         </button>`;
       }).join("");
     } else if (sheetMode === "add") {
-      const x = sec(), role = roleOf(x.name), ideas = nextIdeas();
-      $("sheetTitle").textContent = `add to the ${x.name.toLowerCase()}`;
+      const x = sec(), role = roleOf(x.name), ideas = nextIdeas(), nm = x.name.toLowerCase();
+      const canUndo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
+      $("sheetTitle").textContent = `chords in the ${nm}`;
       const chip = (c, big) => `<button class="pal${big ? " big" : ""}" type="button" data-addtok="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
       body.innerHTML = `
-        <div class="grow">${current.map(c => `<span style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span>`).join("") || `<span class="none">empty</span>`}<span class="none">+</span>${current.length ? `<button class="undo" type="button" data-addact="pop">take back the last one</button>` : ""}</div>
-        <div class="knob"><span class="lbl">${current.length ? `could come next, in ${esc(pretty(keyName(K)))}` : `good first chords for a ${esc(x.name.toLowerCase())}`}</span>
-          <p class="note">${esc(current.length ? B().name + " would try one of these. Tap to add, tap again to keep going." : role.hint)}</p>
+        <div class="part-row">
+          <div class="part-chips">${current.map(c => `<span class="pchip" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><button type="button" data-rmchord="${c.i}" aria-label="Remove ${esc(pretty(c.tok))}">×</button></span>`).join("") || `<span class="none">no chords yet</span>`}</div>
+          <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">clear</button>` : ""}</div>
+        </div>
+        <div class="knob"><span class="lbl">tap to add ${current.length ? "on the end" : "the first chord"}</span>
+          <p class="note">${esc(current.length ? `${B().name} would try one of these next.` : role.hint)}</p>
           <div class="add-row">${ideas.pick.map(c => chip(c, true)).join("")}</div></div>
-        <div class="knob"><span class="lbl">every chord in the key <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></span>
+        <div class="knob"><span class="lbl">every chord in ${esc(pretty(keyName(K)))} <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></span>
           <div class="add-row">${ideas.all.map(c => chip(c)).join("")}<span class="sep">·</span>${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
-        <div class="knob"><span class="lbl">or a whole route from the street stories, ${current.length ? "added on the end" : "four bars at once"}</span>
-          <div class="moods">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(st.title)} · ${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
-          <button class="link" type="button" data-open="stories">read the stories</button></div>
-        <div class="row">
-          <button class="btn" type="button" data-open="library">from the library</button>
-          <button class="btn" type="button" data-addact="wizard">start from a note</button>
-          <button class="btn" type="button" data-addact="type">type chords</button>
-          <button class="btn" type="button" data-addact="find">name a chord from its keys</button>
-        </div>`;
+        <div class="knob"><span class="lbl">or start from a ready-made one</span>
+          <p class="note">${current.length ? `These replace what's in the ${esc(nm)}. You can undo.` : "Four chords at once, each from a street story."}</p>
+          <div class="moods">${STORIES.map(st => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
+          <div class="row"><button class="btn" type="button" data-open="library">from the library</button><button class="btn" type="button" data-addact="wizard">start from a note</button></div></div>
+        <p class="note add-foot">Also: <button class="link" type="button" data-addact="type">type chords</button> · <button class="link" type="button" data-addact="find">name a chord from its keys</button></p>`;
     } else if (sheetMode === "addsec") {
       $("sheetTitle").textContent = "add a part";
       body.innerHTML = `
@@ -6338,7 +6392,8 @@
           <div class="colors">${ld.L.map((q, k) => `<button class="color-chip${k === ld.i ? " on" : ""}" type="button" data-color="${esc(q)}" aria-pressed="${k === ld.i}"><b>${symbolHTML(parseChord(c.ch.rootName + q))}</b><small>${esc(COLOR_WORDS[q] || "")}</small></button>`).join("")}</div></div>` : ""}
         <div class="knob"><span class="lbl">how long it lasts</span>
           <div class="presets">${lengthSteps(Mtr).map(n => `<button class="choice" type="button" data-setlen="${n}" aria-pressed="${c.beats === n}">${n} ${glyph(Mtr)}${n === Mtr.n ? "<small>a bar</small>" : n === Mtr.n * 2 ? "<small>two bars</small>" : ""}</button>`).join("")}</div></div>
-        <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button><button class="btn" type="button" data-chordact="house">⌂ visit its room</button></div>`;
+        <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button><button class="btn" type="button" data-chordact="house">⌂ visit its room</button></div>
+        <div class="row chord-edit"><button class="btn" type="button" data-chordact="left"${c.j ? "" : " disabled"} aria-label="Move it earlier">← earlier</button><button class="btn" type="button" data-chordact="right"${c.j < current.length - 1 ? "" : " disabled"} aria-label="Move it later">later →</button><button class="btn danger" type="button" data-chordact="remove">remove it</button></div>`;
     } else if (sheetMode === "library") {
       $("sheetTitle").textContent = "library";
       body.innerHTML = LIBRARY.map((e, i) => `
@@ -6672,10 +6727,7 @@
     else if (act === "chord" && c) openSheet("chord");
     else if (act === "words") openSheet("book");
     else if (act === "stories") { storyAt = null; openSheet("stories"); }
-    else if (act === "undo") {
-      const u = undoStack.pop();
-      if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.min(k, current.length - 1); tipOverride = "Back the way it was."; renderStage(); }
-    }
+    else if (act === "undo") undoLast();
     else if (act === "sing") {
       prefs.layers.sing = !L("sing"); savePrefs(); applyView();
       tipOverride = L("sing") ? B().sing : null;
@@ -6779,10 +6831,9 @@
       if (a === "list") { storyAt = null; renderSheet(); }
       else if (a === "walk") walkRoute();
       else if (a === "use") {
-        const st = STORIES[storyAt], m = MOODS.find(x => x.id === st.mood), t = sec().prog.trim(), was = current.length;
-        setProg((t ? t + " " : "") + moodProg(m, K), true);
-        sel = was; tipOverride = `${st.title}: ${m.why}`;
-        closeSheet(); renderStage(); playOne(sel);
+        const st = STORIES[storyAt], m = MOODS.find(x => x.id === st.mood);
+        closeSheet(); replacePart(moodProg(m, K), `“${st.title}”`);
+        tipOverride = `${st.title}: ${m.why}`; renderStage(); playOne(0);
       }
       return;
     }
@@ -6797,6 +6848,8 @@
     if (lenB2 && current[sel]) { setLength(current[sel], +lenB2.dataset.setlen, true); renderSheet(); playOne(sel); return; }
     if (chordAct) {
       const a = chordAct.dataset.chordact, c = current[sel];
+      if (a === "remove" && c) { closeSheet(); removeChord(c.i); return; }
+      if ((a === "left" || a === "right") && c) { moveChord(c.i, a === "left" ? -1 : 1); renderSheet(); return; }
       if (a === "house" && c) {
         openSheet("house");
         const d = scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic));
@@ -6835,19 +6888,21 @@
     }
     const tapeB = e.target.closest("[data-tape]");
     if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
+    const rmB = e.target.closest("[data-rmchord]");
+    if (rmB) { removeChord(+rmB.dataset.rmchord); renderSheet(); return; }
     const addTok = e.target.closest("[data-addtok]"), addMood = e.target.closest("[data-addmood]"), addAct = e.target.closest("[data-addact]");
     const newPart = e.target.closest("[data-newpart]"), rep = e.target.closest("[data-repeat]"), ren = e.target.closest("[data-rename]"), mv = e.target.closest("[data-move]"), secAct = e.target.closest("[data-secact]");
     if (addTok) { addChord(addTok.dataset.addtok); renderSheet(); return; }
     if (addMood) {
-      const m = MOODS.find(x => x.id === addMood.dataset.addmood), t = sec().prog.trim(), was = current.length;
-      setProg((t ? t + " " : "") + moodProg(m, K), true);
-      sel = was; tipOverride = `${B().mood(m.name)} ${m.why}`;
-      closeSheet(); renderStage(); playOne(sel);
+      const m = MOODS.find(x => x.id === addMood.dataset.addmood);
+      closeSheet(); replacePart(moodProg(m, K), `the ${m.name} route`);
+      tipOverride = `${B().mood(m.name)} ${m.why}`; renderStage(); playOne(0);
       return;
     }
     if (addAct) {
       const a = addAct.dataset.addact;
-      if (a === "pop") { const toks = tokenize(sec().prog); toks.pop(); setProg(toks.join(" "), true); renderSheet(); }
+      if (a === "undo") { undoLast(); renderSheet(); }
+      else if (a === "clear") { clearPart(); renderSheet(); }
       else if (a === "type") { closeSheet(); openEntry(); }
       else if (a === "find") { closeSheet(); showView(true); }
       else if (a === "wizard") { wiz = { mode: "here", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
@@ -6916,9 +6971,7 @@
         openSong(sg);
       } else {
         setting("key", keySet);
-        overrides.clear();
-        sel = 0;
-        setProg(prog, true);
+        replacePart(prog, `a ${m.name} progression`);
       }
       tipOverride = `${B().mood(m.name)} ${m.why}`;
       saveSongs();
@@ -6990,8 +7043,7 @@
         Object.assign(S(), extra);
         overrides.clear();
         sec().meter = meter;
-        setProg(en.prog, true);
-        toast(`${en.name.toLowerCase()} is in the ${sec().name.toLowerCase()}`);
+        replacePart(en.prog, en.name.toLowerCase());
       }
       saveSongs();
       closeSheet();
