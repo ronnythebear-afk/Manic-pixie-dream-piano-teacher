@@ -972,6 +972,111 @@
   .starry:not(.moonlit) .scene-wrap::before { right: 12%; top: 6px; width: 120px; height: 60px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cg fill='%23fff3c4' stroke='%23fffaf0' stroke-width='1'%3E%3Cpath d='M20 8l2 5 5 .6-4 3.4 1.3 5-4.3-2.8-4.3 2.8 1.3-5-4-3.4 5-.6z'/%3E%3Cpath d='M70 20l1.4 3.4 3.6.4-2.8 2.4 1 3.6-3.2-2-3.2 2 1-3.6-2.8-2.4 3.6-.4z'/%3E%3Cpath d='M104 6l1.6 4 4 .5-3 2.7 1 4-3.6-2.2-3.6 2.2 1-4-3-2.7 4-.5z'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat; }
   @keyframes rise { from { transform: translateY(60px); opacity: 0; } to { transform: none; opacity: 1; } }
   .late .mh-win:not(.now) > rect:first-child { fill: #a39ab4; }
+
+  /* =========================================================
+     Design pass: cooler paper, one family of controls.
+     Paper objects (chord cards, stage, houses) keep their hand-cut edges;
+     everything you tap is a clean pill in one typeface.
+     ========================================================= */
+  :root {
+    --bg: #e4e6ee; --card: #f6f7fa; --card-2: #eceef4; --ink: #24233a; --soft: #676883; --line: #24233a;
+    --chip: color-mix(in srgb, var(--ink) 10%, var(--card));
+    --chip-hover: color-mix(in srgb, var(--ink) 16%, var(--card));
+    --edge: color-mix(in srgb, var(--ink) 18%, transparent);
+    --pick: color-mix(in srgb, var(--lh) 24%, var(--card));
+    --shadow: 0 1px 0 rgba(36, 35, 58, .06), 0 8px 16px -12px rgba(36, 35, 58, .32);
+  }
+  :root[data-buddy="dusty"] { --bg: #e8e3e2; --card: #f8f5f4; --card-2: #efe9e8; }
+  :root[data-buddy="ghost"] { --bg: #e2e0ee; --card: #f6f5fb; --card-2: #ebe8f5; }
+  :root[data-buddy="wren"] { --bg: #dfe6e2; --card: #f4f7f5; --card-2: #e7eee9; }
+  :root[data-buddy="oona"] { --bg: #e4e4e8; --card: #f7f7f9; --card-2: #ececf0; }
+  :root[data-buddy="lulu"] { --bg: #eee3ea; --card: #fbf6f9; --card-2: #f4e9ef; }
+
+  /* every button, one voice */
+  .btn, .pal, .chip, .st-link, .pen-btn, .toplinks .link, #openView {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 36px; padding: 0 15px; border: 0; border-radius: 999px;
+    background: var(--chip); color: var(--ink); box-shadow: none; transform: none;
+    font-family: var(--body); font-weight: 700; font-size: 14px; line-height: 1.1; letter-spacing: 0;
+    text-decoration: none; white-space: nowrap; cursor: pointer; transition: background .15s, transform .1s;
+  }
+  .btn:hover, .pal:hover, .chip:hover, .st-link:hover, .pen-btn:hover { background: var(--chip-hover); }
+  .btn:active, .pal:active, .chip:active, .st-link:active { transform: translateY(1px); }
+  .btn:focus-visible, .pal:focus-visible, .chip:focus-visible, .st-link:focus-visible, .choice:focus-visible, .round:focus-visible, .dbtn:focus-visible { outline: 2px solid var(--lh); outline-offset: 2px; }
+  /* the one thing to do on a sheet */
+  .btn.surprise { background: var(--ink); color: var(--card); }
+  .btn.surprise:hover { background: color-mix(in srgb, var(--ink) 86%, var(--card)); }
+  .btn[aria-pressed="true"] { background: var(--pick); color: var(--ink); }
+  .chip, .st-link, .toplinks .link, #openView { min-height: 30px; padding: 0 12px; font-size: 13px; }
+  .chip b, .st-link b { font: inherit; font-weight: 800; }
+  .st-link.sel { background: color-mix(in srgb, var(--surprise) 30%, var(--card)); }
+  .toplinks { gap: 6px; }
+  .toplinks .link, #openView { min-height: 26px; padding: 0 11px; font-size: 12.5px; }
+  .has-bd .toplinks .link, .has-bd #openView { background: color-mix(in srgb, var(--on-bg) 14%, transparent); color: var(--on-bg); }
+  .has-bd .toplinks .link:hover, .has-bd #openView:hover { background: color-mix(in srgb, var(--on-bg) 24%, transparent); }
+
+  /* beside the little house: paper pills that read on any sky */
+  .mh-side { gap: 6px; }
+  .mh-side .pal { min-height: 30px; padding: 0 13px; background: var(--card-2); color: var(--ink); font-size: 13px; box-shadow: 1px 2px 0 rgba(20, 16, 28, .25); }
+  .mh-side .pal.mh-in { background: var(--card); font-weight: 800; }
+  .mh-side .pal.mh-story { background: color-mix(in srgb, var(--surprise) 34%, var(--card)); }
+  .mode-write .mh-side { gap: 4px; } .mode-write .mh-side .pal { padding: 0 11px; min-height: 26px; font-size: 12.5px; }
+  .mh-side .pal:hover { background: var(--card); }
+
+  /* chord chips keep their color: a bar in the chord's role color */
+  .sheet .pal { min-height: 0; padding: 7px 14px 6px; border-radius: 14px; flex-direction: column; gap: 2px; background: var(--chip); box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--fn) 70%, transparent); }
+  .sheet .pal b { font-family: var(--body); font-weight: 800; font-size: 17px; }
+  .sheet .pal.big b { font-size: 22px; }
+  .sheet .pal small { font-family: var(--body); font-weight: 700; font-size: 10.5px; }
+  .sheet .mini-switch { color: var(--soft); text-transform: none; letter-spacing: 0; font-weight: 700; }
+  .undo { color: var(--soft); font-family: var(--body); font-weight: 700; }
+  .mood-btn { border: 1.5px solid var(--edge); border-radius: 14px; background: var(--card); box-shadow: none; padding: 9px 12px; }
+  .mood-btn b { font-family: var(--body); font-weight: 800; font-size: 15px; }
+  .mood-btn span { font-family: var(--body); font-size: 12px; color: var(--soft); }
+  .mood-btn:hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); }
+  /* choices you pick between */
+  .choice, .color-chip, .lick, .vp, .story-card {
+    border: 1.5px solid var(--edge); border-radius: 14px; background: var(--card); box-shadow: none; color: var(--ink);
+    font-family: var(--body); font-weight: 700; font-size: 14px; line-height: 1.2;
+  }
+  .choice, .presets .choice { padding: 8px 12px; }
+  .choice small, .vp small, .color-chip small { font-family: var(--body); font-weight: 600; font-size: 11.5px; color: var(--soft); }
+  .choice[aria-pressed="true"], .color-chip.on, .lick.on, .vp[aria-pressed="true"] { border-color: var(--ink); background: var(--pick); }
+  .choice[aria-pressed="true"] small { color: var(--ink); }
+  .choice:hover, .color-chip:hover, .lick:hover, .vp:hover, .story-card:hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); }
+  .vp b { font-family: var(--body); font-weight: 800; font-size: 15px; }
+  .lick { font-size: 13px; }
+  .story-card.read { background: var(--card-2); }
+
+  /* labels over groups: quiet small caps */
+  .knob > .lbl, .sky-head .lbl, .street2 .lbl, .house .lbl, span.lbl {
+    font-family: var(--body); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--soft);
+  }
+  .knob { gap: 8px; }
+  .link { font-family: var(--body); font-weight: 700; font-size: 13px; color: var(--soft); text-decoration: underline; text-decoration-style: solid; text-decoration-color: var(--edge); text-underline-offset: 3px; }
+  .tog { font-weight: 700; }
+  .note { font-weight: 600; }
+
+  /* round icon buttons */
+  .round, .sing-btn { width: 34px; height: 34px; border: 0; background: var(--chip); color: var(--ink); }
+  .round:hover, .sing-btn:hover { background: var(--chip-hover); }
+  .sing-btn[aria-pressed="true"] { background: var(--lamp); color: #24233a; }
+  .lane-edit { border: 0; background: var(--chip); }
+
+  /* sheets sit like a card lifted off the desk */
+  .sheet { border: 0; border-radius: 24px 24px 0 0; box-shadow: 0 -18px 40px -16px rgba(20, 16, 30, .45); gap: 12px; }
+  .sheet-head h2 { font-size: 26px; }
+  .sheet-body { gap: 16px; }
+
+  /* the deck: calmer, one bright button */
+  .deck { background: #1e1c28; border-top: 0; box-shadow: 0 -10px 26px -14px rgba(0, 0, 0, .6); }
+  .dbtn { border-radius: 14px; background: rgba(239, 231, 220, .08); }
+  .dbtn:hover { background: rgba(239, 231, 220, .14); }
+  .dbtn.play { background: var(--rh); color: #24233a; }
+  .dbtn[aria-pressed="true"]:not(.play) { background: rgba(239, 231, 220, .2); color: #efe7dc; box-shadow: inset 0 -3px 0 var(--lh); }
+  .reels { background: rgba(239, 231, 220, .08); border-radius: 12px; }
+  /* short phones with the lyric lane open: the keyboard gives up a little height */
+  @media (max-width: 520px) and (max-height: 900px) { .stage:has(.lane-row) .kbd svg { max-height: 80px; } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
