@@ -4029,7 +4029,8 @@
     if (!(await audioReady())) return;
     if (!current.length && !prefs.wholeSong) { openSheet("add"); return; }
     if (playing) stop();
-    const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+    // mp4 plays almost everywhere: AAC inside if the browser can, then any mp4, then webm (Firefox)
+    const types = ["audio/mp4;codecs=mp4a.40.2", "audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
     const type = types.find(t => MediaRecorder.isTypeSupported(t)) || "";
     tapeExt = /mp4/.test(type) ? "mp4" : "webm";
     const dest = ac.createMediaStreamDestination();
