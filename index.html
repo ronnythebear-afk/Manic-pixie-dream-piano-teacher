@@ -1207,6 +1207,32 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
+
+  /* learning a song by ear */
+  .hear-say { margin: 0; font-family: var(--voice); font-size: 20px; line-height: 1.25; }
+  .hear-say b { font-family: var(--body); font-size: 14px; font-weight: 900; margin-right: 4px; }
+  .hear-drop { display: grid; justify-items: center; gap: 4px; padding: 26px 16px; border: 2px dashed var(--line); border-radius: var(--wob); background: color-mix(in srgb, var(--lamp) 14%, var(--card)); cursor: pointer; text-align: center; transition: transform .15s, background .15s; }
+  .hear-drop:hover, .hear-drop.over { transform: rotate(-.6deg) scale(1.01); background: color-mix(in srgb, var(--lamp) 28%, var(--card)); }
+  .hear-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .hear-drop:focus-within { outline: 3px solid var(--surprise); outline-offset: 2px; }
+  .hear-icon { font-size: 34px; line-height: 1; }
+  .hear-drop b { font-size: 17px; font-weight: 900; }
+  .hear-drop small { color: var(--soft); font-weight: 700; }
+  .lbar { height: 14px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--card); overflow: hidden; }
+  .lbar i { display: block; height: 100%; background: repeating-linear-gradient(-45deg, var(--lamp) 0 8px, color-mix(in srgb, var(--lamp) 70%, var(--card)) 8px 16px); transition: width .25s; animation: lbar 1s linear infinite; background-size: 22.6px 22.6px; }
+  @keyframes lbar { to { background-position: 22.6px 0; } }
+  @media (prefers-reduced-motion: reduce) { .lbar i { animation: none; } }
+  .hear-work { display: grid; gap: 10px; }
+  .hear-tl { display: flex; flex: none; min-height: 74px; align-items: flex-start; gap: 4px; overflow-x: auto; overflow-y: hidden; padding: 20px 4px 8px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .hbar { position: relative; flex: 0 0 auto; display: flex; gap: 3px; align-items: center; min-width: 46px; height: 42px; margin-top: 3px; padding: 4px 8px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: color-mix(in srgb, var(--fn) 30%, var(--card)); color: var(--ink); font: 900 14px var(--body); cursor: pointer; scroll-snap-align: center; }
+  .hbar b + b { padding-left: 4px; border-left: 1.5px dotted var(--line); }
+  .hbar.now { background: var(--fn); transform: translateY(-3px) rotate(-1deg); box-shadow: var(--shadow); }
+  .hpart { position: absolute; left: 2px; top: -16px; font: 700 12px var(--body); font-style: normal; color: var(--soft); white-space: nowrap; }
+  .hear-transport { align-items: center; }
+  .hear-along { display: flex; gap: 6px; align-items: center; font-weight: 800; font-size: 14px; }
+  .hear-part h3 { margin: 0; display: flex; justify-content: space-between; gap: 8px; }
+  .hear-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .hear-chips .pal { cursor: default; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -5065,6 +5091,563 @@
   }
 
   // =========================================================
+  // Learning a song by ear: a recording → its beat, key, chords
+  // and the parts that repeat. Everything happens on this device.
+  // =========================================================
+  const HEAR_SR = 11025;
+  function fftInit(N) {
+    const lv = Math.log2(N), rev = new Uint32Array(N), cs = new Float32Array(N / 2), sn = new Float32Array(N / 2), win = new Float32Array(N);
+    for (let i = 0; i < N; i++) { let r = 0; for (let b = 0; b < lv; b++) r |= ((i >> b) & 1) << (lv - 1 - b); rev[i] = r; win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N); }
+    for (let i = 0; i < N / 2; i++) { cs[i] = Math.cos(2 * Math.PI * i / N); sn[i] = -Math.sin(2 * Math.PI * i / N); }
+    return { N, rev, cs, sn, win, re: new Float32Array(N), im: new Float32Array(N) };
+  }
+  // the loudness of each frequency in one slice of the recording
+  function fftMag(F, x, start, out) {
+    const { N, rev, cs, sn, win, re, im } = F;
+    for (let i = 0; i < N; i++) { const k = start + i, j = rev[i]; re[j] = k >= 0 && k < x.length ? x[k] * win[i] : 0; im[j] = 0; }
+    for (let size = 2; size <= N; size <<= 1) {
+      const half = size >> 1, step = N / size;
+      for (let i = 0; i < N; i += size) for (let j = 0; j < half; j++) {
+        const k = j * step, a = i + j, b = a + half;
+        const tr = re[b] * cs[k] - im[b] * sn[k], ti = re[b] * sn[k] + im[b] * cs[k];
+        re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+      }
+    }
+    for (let i = 0; i < N / 2; i++) out[i] = Math.sqrt(re[i] * re[i] + im[i] * im[i]);
+  }
+  const KS_MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+  const KS_MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+  const pearson = (a, b) => {
+    const n = a.length, ma = a.reduce((s, v) => s + v, 0) / n, mb = b.reduce((s, v) => s + v, 0) / n;
+    let num = 0, da = 0, db = 0;
+    for (let i = 0; i < n; i++) { num += (a[i] - ma) * (b[i] - mb); da += (a[i] - ma) ** 2; db += (b[i] - mb) ** 2; }
+    return num / Math.sqrt(da * db || 1);
+  };
+  const normV = v => { const s = Math.sqrt(v.reduce((a, x) => a + x * x, 0)) || 1; return v.map(x => x / s); };
+  // chords we listen for: root, then the notes above it
+  const HEAR_Q = [["", [0, 4, 7]], ["m", [0, 3, 7]]];
+
+  // x: mono samples at HEAR_SR · prog(pct, words) reports progress
+  async function hearSong(x, prog = () => {}) {
+    const sr = HEAR_SR, pause = () => new Promise(r => setTimeout(r, 0));
+    const say = async (p, m) => { prog(p, m); await pause(); };
+
+    // ---- 1. where things start: a spike each time something new is played
+    await say(0.04, "finding the beat");
+    const F1 = fftInit(1024), H1 = 256, n1 = Math.max(8, Math.floor((x.length - 1024) / H1) + 1), hop = H1 / sr;
+    const m1 = new Float32Array(512), last = new Float32Array(512), flux = new Float32Array(n1);
+    for (let f = 0; f < n1; f++) {
+      fftMag(F1, x, f * H1, m1);
+      let s = 0;
+      for (let k = 2; k < 400; k++) { const l = Math.log(1 + 1000 * m1[k]), d = l - last[k]; if (d > 0) s += d; last[k] = l; }
+      flux[f] = s;
+      if (f % 1500 === 0) await say(0.04 + 0.22 * f / n1, "finding the beat");
+    }
+    const W = 16, onset = new Float32Array(n1);
+    let acc = 0;
+    for (let f = 0; f < n1; f++) {
+      acc += flux[f] - (f >= 2 * W ? flux[f - 2 * W] : 0);
+      const mean = acc / Math.min(f + 1, 2 * W), c = f - W;
+      if (c >= 0) onset[c] = Math.max(0, flux[c] - mean);
+    }
+    const sd = Math.sqrt(onset.reduce((a, v) => a + v * v, 0) / n1) || 1;
+    for (let f = 0; f < n1; f++) onset[f] /= sd;
+
+    // ---- 2. the tempo: how far apart the spikes like to be (a nudge toward walking pace)
+    const lagOf = bpm => 60 / bpm / hop;
+    let bestLag = lagOf(100), bestSc = -Infinity;
+    const acfAt = lag => { const L = Math.round(lag); let s = 0; for (let t = L; t < n1; t++) s += onset[t] * onset[t - L]; return s / (n1 - L); };
+    for (let bpm = 58; bpm <= 150; bpm += 0.5) {
+      const lag = lagOf(bpm), prior = Math.exp(-0.5 * (Math.log2(bpm / 100) / 0.7) ** 2);
+      const sc = (acfAt(lag) + 0.5 * acfAt(lag * 2) + 0.25 * acfAt(lag / 2)) * prior;
+      if (sc > bestSc) { bestSc = sc; bestLag = lag; }
+    }
+    // ---- 3. the beats themselves: a steady pulse that lands on as many spikes as it can
+    await say(0.28, "finding the beat");
+    const P = bestLag, lo = Math.round(P / 2), hi = Math.round(P * 2);
+    const score = new Float32Array(n1), back = new Int32Array(n1).fill(-1);
+    for (let t = 0; t < n1; t++) {
+      let best = 0, arg = -1;
+      for (let pv = t - hi; pv <= t - lo; pv++) {
+        if (pv < 0) continue;
+        const v = score[pv] - 100 * Math.log((t - pv) / P) ** 2;
+        if (v > best || arg < 0) { best = v; arg = pv; }
+      }
+      score[t] = onset[t] + Math.max(0, best);
+      back[t] = arg >= 0 && best > 0 ? arg : -1;
+    }
+    let t = n1 - 1;
+    for (let k = n1 - 1; k >= Math.max(0, n1 - Math.round(P)); k--) if (score[k] > score[t]) t = k;
+    const beatF = [];
+    while (t >= 0) { beatF.unshift(t); t = back[t]; }
+    // fill any holes with the pulse, and carry it to both ends
+    const beats = [];
+    beatF.forEach((b, i) => {
+      if (i) { const gap = b - beatF[i - 1], n = Math.round(gap / P); for (let k = 1; k < n; k++) beats.push(beatF[i - 1] + gap * k / n); }
+      beats.push(b);
+    });
+    while (beats.length && beats[0] - P > 0) beats.unshift(beats[0] - P);
+    while (beats.length && beats[beats.length - 1] + P < n1) beats.push(beats[beats.length - 1] + P);
+    const bt = beats.map(f => f * hop + 512 / sr); // the middle of the analysis window
+    const gaps = bt.slice(1).map((v, i) => v - bt[i]).sort((a, b) => a - b);
+    const bpm = gaps.length ? 60 / gaps[Math.floor(gaps.length / 2)] : 100;
+
+    // ---- 4. which notes are sounding: a finer look, folded onto the twelve notes
+    await say(0.32, "hearing the notes");
+    const N2 = 4096, H2 = 512, F2 = fftInit(N2), n2 = Math.max(1, Math.floor((x.length - N2) / H2) + 1), bin = sr / N2;
+    const m2 = new Float32Array(N2 / 2);
+    // the band's tuning: real recordings are rarely exactly A440
+    const hist = new Float32Array(20);
+    for (let f = 0; f < n2; f += 6) {
+      fftMag(F2, x, f * H2, m2);
+      for (let k = Math.ceil(80 / bin); k < 2000 / bin; k++) {
+        if (m2[k] <= m2[k - 1] || m2[k] < m2[k + 1]) continue;
+        const a = m2[k - 1], b = m2[k], c = m2[k + 1], d = 0.5 * (a - c) / (a - 2 * b + c || 1);
+        const cents = 1200 * Math.log2((k + d) * bin / 440), dev = ((cents % 100) + 150) % 100 - 50;
+        hist[Math.min(19, Math.floor((dev + 50) / 5))] += b;
+      }
+    }
+    let hb = 0; hist.forEach((v, i) => { if (v > hist[hb]) hb = i; });
+    const tune = hb * 5 - 50 + 2.5;
+    // each frequency bin votes for its nearest semitone (MIDI 36–95)
+    const LOM = 36, HIM = 95, map = [];
+    for (let k = 1; k < N2 / 2; k++) {
+      const f = k * bin, p = 69 + 12 * Math.log2(f / 440) - tune / 100, m = Math.round(p);
+      if (m < LOM || m > HIM) continue;
+      const w = Math.cos(Math.PI * (p - m)) ** 2;
+      if (w > 0.05) map.push([k, m - LOM, w]);
+    }
+    const NS = HIM - LOM + 1, treb = [], bass = [], loud = [];
+    const sp = new Float32Array(NS), spc = new Float32Array(NS);
+    for (let f = 0; f < n2; f++) {
+      fftMag(F2, x, f * H2, m2);
+      sp.fill(0);
+      for (const [k, m, w] of map) sp[m] += m2[k] * w;
+      let e = 0;
+      for (let m = 0; m < NS; m++) { sp[m] = Math.log(1 + 40 * sp[m]); e += sp[m]; }
+      // lift the notes out of the hiss: subtract the average level around each one
+      spc.set(sp);
+      for (let m = 0; m < NS; m++) { let a = 0, n = 0; for (let d = -7; d <= 7; d++) { const v = spc[m + d]; if (v !== undefined && d) { a += v; n++; } } sp[m] = Math.max(0, spc[m] - a / n); }
+
+      // soften overtones: a low note's 3rd and 5th harmonics look like a fifth and a major third
+      const tr = new Float32Array(12), bs = new Float32Array(12);
+      for (let m = 0; m < NS; m++) {
+        const v = Math.max(0, sp[m] - 0.18 * (sp[m - 12] || 0) - 0.2 * (sp[m - 19] || 0) - 0.15 * (sp[m - 28] || 0));
+        const midi = m + LOM;
+        if (midi >= 48 && midi <= 84) tr[midi % 12] += v;
+        if (midi <= 55) bs[midi % 12] += v * (midi < 48 ? 1 : 0.5);
+      }
+      treb.push(tr); bass.push(bs); loud.push(e);
+      if (f % 500 === 0) await say(0.32 + 0.38 * f / n2, "hearing the notes");
+    }
+    // one picture per beat
+    const frameAt = s => Math.max(0, Math.min(n2 - 1, Math.round((s * sr - N2 / 2) / H2)));
+    const avg = (arr, a, b) => { const o = new Float32Array(arr[0].length); let n = 0; for (let f = a; f <= b; f++) { const v = arr[f]; for (let i = 0; i < o.length; i++) o[i] += v[i]; n++; } return o.map(v => v / Math.max(1, n)); };
+    const beatT = [], beatB = [], beatE = [];
+    for (let i = 0; i + 1 < bt.length; i++) {
+      const a = frameAt(bt[i]), b = Math.max(a, frameAt(bt[i + 1]) - 1);
+      beatT.push(avg(treb, a, b)); beatB.push(avg(bass, a, b));
+      let e = 0; for (let f = a; f <= b; f++) e += loud[f]; beatE.push(e / (b - a + 1));
+    }
+    if (beatT.length < 8) return null;
+
+    // ---- 5. the key: which notes the whole song leans on
+    await say(0.72, "hearing the chords");
+    const tot = new Array(12).fill(0);
+    beatT.forEach((c, i) => c.forEach((v, j) => { tot[j] += v + 0.5 * beatB[i][j]; }));
+    const keys = [];
+    for (let k = 0; k < 12; k++) {
+      keys.push({ tonic: k, minor: false, r: pearson(tot, KS_MAJ.map((_, i) => KS_MAJ[mod(i - k)])) });
+      keys.push({ tonic: k, minor: true, r: pearson(tot, KS_MIN.map((_, i) => KS_MIN[mod(i - k)])) });
+    }
+    keys.sort((a, b) => b.r - a.r);
+    let key = keys[0];
+    const scalePcs = k => new Set((k.minor ? [0, 2, 3, 5, 7, 8, 10, 11] : [0, 2, 4, 5, 7, 9, 11]).map(s => mod(k.tonic + s)));
+
+    // ---- 6. chords: compare each moment with every chord shape, then smooth it out
+    const labels = [];
+    for (let r = 0; r < 12; r++) HEAR_Q.forEach(([q, ivs]) => labels.push({ root: r, q, ivs }));
+    const tpls = labels.map(L => { const v = new Array(12).fill(0); L.ivs.forEach((iv, i) => { v[mod(L.root + iv)] = [1, 0.85, 0.75][i]; }); return normV(v); });
+    const medE = beatE.slice().sort((a, b) => a - b)[Math.floor(beatE.length / 2)] || 1;
+    const emit = (tr, bs, e) => {
+      const c = normV(Array.from(tr)), bm = Math.max(...bs) || 1, sk = scalePcs(key);
+      const out = labels.map((L, i) => {
+        let s = 0; for (let j = 0; j < 12; j++) s += c[j] * tpls[i][j];
+        s += 0.22 * bs[L.root] / bm;
+        const inKey = L.ivs.every(iv => sk.has(mod(L.root + iv)));
+        return s + (inKey ? 0.05 : 0);
+      });
+      out.push(e < medE * 0.25 ? 1.2 : 0.2); // silence
+      return out;
+    };
+    const viterbi = (em, change) => {
+      const S = em[0].length, n = em.length, dp = em[0].slice(), bk = [];
+      for (let i = 1; i < n; i++) {
+        let bi = 0; for (let s = 1; s < S; s++) if (dp[s] > dp[bi]) bi = s;
+        const row = new Array(S), b = new Int16Array(S);
+        for (let s = 0; s < S; s++) {
+          const stay = dp[s], jump = dp[bi] - change;
+          if (stay >= jump) { row[s] = stay + em[i][s]; b[s] = s; } else { row[s] = jump + em[i][s]; b[s] = bi; }
+        }
+        bk.push(b); dp.splice(0, S, ...row);
+      }
+      let s = 0; for (let k = 1; k < S; k++) if (dp[k] > dp[s]) s = k;
+      const path = [s];
+      for (let i = n - 2; i >= 0; i--) { s = bk[i][s]; path.unshift(s); }
+      return path;
+    };
+    const K1 = 10;
+    const emB = beatT.map((c, i) => emit(c, beatB[i], beatE[i]).map(v => v * K1));
+    const pathB = viterbi(emB, 4);
+    // ---- 7. the bar lines: chords change on the first beat of the bar
+    const changes = pathB.map((s, i) => (i && s !== pathB[i - 1] ? 1 : 0));
+    const share = (per, ph, half) => { let n = 0, a = 0; changes.forEach((c, i) => { if (!c) return; n++; const r = mod(i - ph) % per; if (r === 0) a += 1; else if (half && r === per / 2) a += 0.5; }); return n ? a / n : 0; };
+    let per = 4, phase = 0, best4 = -1;
+    for (let ph = 0; ph < 4; ph++) { const s = share(4, ph, true); if (s > best4) { best4 = s; phase = ph; } }
+    let best3 = -1, ph3 = 0;
+    for (let ph = 0; ph < 3; ph++) { const s = share(3, ph, false); if (s > best3) { best3 = s; ph3 = ph; } }
+    if (best3 > 0.62 && best3 > best4 * 1.25) { per = 3; phase = ph3; }
+    const ub = per === 4 ? 2 : 3; // listen in half bars (or whole bars of three)
+    // ---- 8. listen again in half bars, now that we know where the bars are
+    const units = [];
+    for (let i = phase; i + ub <= beatT.length; i += ub) {
+      const tr = new Float32Array(12), bs = new Float32Array(12); let e = 0;
+      for (let k = i; k < i + ub; k++) { for (let j = 0; j < 12; j++) { tr[j] += beatT[k][j]; bs[j] += beatB[k][j]; } e += beatE[k] / ub; }
+      units.push({ b0: i, t0: bt[i], t1: bt[i + ub], tr, bs, e });
+    }
+    if (units.length < 4) return null;
+    const emU = units.map(u => emit(u.tr, u.bs, u.e).map(v => v * K1));
+    const pathU = viterbi(emU, 2.2);
+    // the key again, from the chords: is it the major key or its relative minor?
+    const countTri = (root, minor) => pathU.filter(s => s < labels.length && labels[s].root === root && (labels[s].q === "m") === minor).length;
+    const rel = key.minor ? { tonic: mod(key.tonic + 3), minor: false } : { tonic: mod(key.tonic + 9), minor: true };
+    const endsOn = s => s < labels.length && labels[s].root === rel.tonic && (labels[s].q === "m") === rel.minor;
+    const lastReal = pathU.filter(s => s < labels.length);
+    if (countTri(rel.tonic, rel.minor) > countTri(key.tonic, key.minor) * 1.3 || (endsOn(lastReal[lastReal.length - 1]) && countTri(rel.tonic, rel.minor) >= countTri(key.tonic, key.minor))) key = rel;
+    let sure = 0;
+    units.forEach((u, i) => {
+      const e = emU[i].slice(0, labels.length).map(v => v / K1), s = pathU[i];
+      const sorted = e.slice().sort((a, b) => b - a);
+      sure += s < labels.length ? Math.min(1, Math.max(0, (e[s] - sorted[1] + 0.02) * 12)) * 0.5 + Math.max(0, e[s] - 0.6) : 0;
+    });
+    sure /= units.length;
+    // sevenths, only when they're really there
+    const seg = [];
+    pathU.forEach((s, i) => { if (!seg.length || seg[seg.length - 1].s !== s) seg.push({ s, a: i, b: i }); else seg[seg.length - 1].b = i; });
+    seg.forEach(g => {
+      if (g.s >= labels.length) { g.name = null; return; }
+      const L = labels[g.s], c = new Float32Array(12);
+      for (let i = g.a; i <= g.b; i++) for (let j = 0; j < 12; j++) c[j] += units[i].tr[j];
+      const tri = (c[L.root] + c[mod(L.root + L.ivs[1])] + c[mod(L.root + 7)]) / 3;
+      let q = L.q;
+      const b7 = c[mod(L.root + 10)], M7 = c[mod(L.root + 11)];
+      if (b7 > tri * 0.72 && b7 > M7 * 1.4) q = L.q === "m" ? "m7" : "7";
+      else if (L.q === "" && M7 > tri * 0.75 && M7 > b7 * 1.4) q = "maj7";
+      g.name = { root: L.root, q };
+    });
+    const lab = [];
+    seg.forEach(g => { for (let i = g.a; i <= g.b; i++) lab[i] = g.name; });
+    // quiet stretches: drop them at the ends, hold the last chord through the middle
+    let a = 0, z = lab.length - 1;
+    while (a < z && !lab[a]) a++;
+    while (z > a && !lab[z]) z--;
+    const U = units.slice(a, z + 1).map((u, i) => ({ t0: u.t0, t1: u.t1, ch: lab[a + i] }));
+    U.forEach((u, i) => { if (!u.ch) u.ch = i ? U[i - 1].ch : U.find(v => v.ch)?.ch; });
+    if (!U.length || !U[0].ch) return null;
+    await say(0.88, "looking for the parts that repeat");
+    return { bpm, key, per, ub, units: U, sure, tune };
+  }
+
+  // half bars → parts: cut the song into four-bar phrases and group the ones that match
+  function hearParts(res) {
+    const per = res.per, upb = per === 4 ? 2 : 1, U = res.units;
+    const nm = u => u.ch.root + u.ch.q;
+    const phLen = 4 * upb;
+    const sim = (a, b) => { let s = 0; for (let i = 0; i < phLen; i++) s += a[i] && b[i] && nm(a[i]) === nm(b[i]) ? 1 : 0; return s / phLen; };
+    // try a few starting points: an intro can push everything off by a bar or two
+    let best = null;
+    for (let off = 0; off < phLen && off < U.length; off += upb) {
+      const phr = [];
+      for (let i = off; i + phLen <= U.length; i += phLen) phr.push({ at: i, u: U.slice(i, i + phLen) });
+      if (!phr.length) continue;
+      const cl = [];
+      phr.forEach(p => {
+        let bc = null, bs = 0;
+        cl.forEach(c => { const s = sim(c.rep, p.u); if (s > bs) { bs = s; bc = c; } });
+        if (bc && bs >= 0.85) { bc.members.push(p); p.c = bc; } else { const c = { rep: p.u, members: [p] }; cl.push(c); p.c = c; }
+      });
+      const repeatScore = phr.length - cl.length - off / phLen * 0.5;
+      if (!best || repeatScore > best.score) best = { off, phr, cl, score: repeatScore };
+    }
+    if (!best) {
+      // too short for phrases: one part with everything
+      return { parts: [{ name: "Verse", units: U }], order: [0], starts: [0] };
+    }
+    const { off, phr, cl } = best;
+    // each group's own chords: the most common chord in each slot
+    cl.forEach(c => {
+      c.units = c.rep.map((_, i) => {
+        const votes = {};
+        c.members.forEach(p => { const k = nm(p.u[i]); votes[k] = (votes[k] || 0) + 1; });
+        const top = Object.keys(votes).sort((x, y) => votes[y] - votes[x])[0];
+        return c.members.map(p => p.u[i]).find(u => nm(u) === top);
+      });
+    });
+    let parts = cl.map(c => ({ units: c.units, n: c.members.length, first: c.members[0].at, bars: 4 }));
+    let order = phr.map(p => cl.indexOf(p.c)), starts = phr.map(p => p.at);
+    // two four-bar halves that always come as a pair are really one eight-bar part
+    for (let again = true; again;) {
+      again = false;
+      for (let A = 0; A < parts.length && !again; A++) for (let Bi = 0; Bi < parts.length && !again; Bi++) {
+        if (A === Bi || parts[A].bars + parts[Bi].bars > 8) continue;
+        const atA = order.map((v, i) => (v === A ? i : -1)).filter(i => i >= 0), atB = order.map((v, i) => (v === Bi ? i : -1)).filter(i => i >= 0);
+        if (!atA.length || atA.length !== atB.length || !atA.every((i, k) => atB[k] === i + 1)) continue;
+        parts[A] = { units: parts[A].units.concat(parts[Bi].units), n: parts[A].n, first: parts[A].first, bars: parts[A].bars + parts[Bi].bars };
+        const keep = order.map((v, i) => v !== Bi);
+        starts = starts.filter((_, i) => keep[i]); order = order.filter((_, i) => keep[i]);
+        parts.splice(Bi, 1); order = order.map(v => (v > Bi ? v - 1 : v));
+        again = true;
+      }
+    }
+    // real songs vary a little each time round: fold near-twins together so the map stays simple
+    const simU = (x, y) => (x.length === y.length ? x.filter((u, i) => nm(u) === nm(y[i])).length / x.length : 0);
+    while (parts.length > 4) {
+      let bi = -1, bj = -1, bs = 0;
+      for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) { const v = simU(parts[i].units, parts[j].units); if (v > bs) { bs = v; bi = i; bj = j; } }
+      if (bs < 0.5) break;
+      const [keep, drop] = parts[bi].n >= parts[bj].n ? [bi, bj] : [bj, bi];
+      parts[keep] = { ...parts[keep], n: parts[keep].n + parts[drop].n, first: Math.min(parts[keep].first, parts[drop].first) };
+      order = order.map(v => (v === drop ? keep : v)).map(v => (v > drop ? v - 1 : v));
+      parts.splice(drop, 1);
+    }
+    if (off) { parts.push({ units: U.slice(0, off), n: 1, first: 0, intro: true }); order.unshift(parts.length - 1); starts.unshift(0); }
+    const tailAt = off + phr.length * phLen;
+    if (tailAt < U.length) { parts.push({ units: U.slice(tailAt), n: 1, first: tailAt, outro: true }); order.push(parts.length - 1); starts.push(tailAt); }
+    // names: the part that comes back most is the chorus, the next the verse
+    const byN = parts.map((p, i) => i).filter(i => !parts[i].intro && !parts[i].outro).sort((x, y) => parts[y].n - parts[x].n || parts[x].first - parts[y].first);
+    const names = new Array(parts.length);
+    parts.forEach((p, i) => { if (p.intro) names[i] = "Intro"; if (p.outro) names[i] = "Outro"; });
+    if (byN.length === 1) names[byN[0]] = "Verse";
+    else if (byN.length) {
+      const [c1, c2] = byN;
+      // the verse usually shows up first
+      if (parts[c2].n >= 2) { const v = parts[c1].first < parts[c2].first ? c1 : c2; names[v] = "Verse"; names[v === c1 ? c2 : c1] = "Chorus"; }
+      else { names[c1] = "Verse"; }
+      let extra = 0;
+      const more = ["Bridge", "Pre-chorus", "Solo", "Hook"];
+      byN.forEach(i => { if (names[i]) return; names[i] = parts[i].n === 1 && order.indexOf(i) === 0 ? "Intro" : parts[i].n === 1 && order.lastIndexOf(i) === order.length - 1 ? "Outro" : (more[extra++] || "Part " + (extra + 1)); });
+    }
+    // no two parts with the same name
+    const seen = {};
+    names.forEach((n, i) => { seen[n] = (seen[n] || 0) + 1; if (seen[n] > 1) names[i] = n + " " + seen[n]; });
+    parts.forEach((p, i) => { p.name = names[i]; });
+    return { parts, order, starts };
+  }
+
+  // a part's half bars → a chord line like "G D:2 Em:2 C"
+  function unitsToProg(units, per, spell) {
+    const ub = per === 4 ? 2 : 3, toks = [];
+    units.forEach(u => {
+      const t = spell(u.ch.root) + u.ch.q, lastT = toks[toks.length - 1];
+      if (lastT && lastT.t === t && lastT.b + ub <= 16) lastT.b += ub; else toks.push({ t, b: ub });
+    });
+    return toks.map(k => k.t + (k.b === per ? "" : ":" + k.b)).join(" ");
+  }
+
+  // ---------- the "learn a song by ear" sheet ----------
+  let hear = { stage: "pick" }; // pick → work → done (or oops)
+  const HEAR_LINES = {
+    dusty: { pick: "Put a record on. I'll pick out the chords.", sure: "I'd bet my boots on most of these.", mid: "Most of these ought to be right. Check the ones that sound off.", guess: "This one's busy, so some of it's a guess. Play along and fix what rubs." },
+    ghost: { pick: "Feed me a track. I'll decode the chords.", sure: "Signal's clean. High confidence.", mid: "Mostly decoded. A few chords may be off.", guess: "Noisy signal. Treat this as a rough draft." },
+    wren: { pick: "Play me something and I'll listen for the chords.", sure: "I'm pretty sure about these.", mid: "Most of these should be right. Trust your ears where they disagree.", guess: "It's a busy one, so a lot of this is a guess. Play along and fix what sounds wrong." },
+    oona: { pick: "Bring me a recording. I'll transcribe what I can.", sure: "A clear transcription, I think.", mid: "Largely accurate. Some chords are my interpretation.", guess: "Dense material. Consider this a sketch." },
+    lulu: { pick: "OOH play me a song!! I'll figure out the chords!", sure: "Nailed it. I think. I'm pretty sure!!", mid: "I got most of 'em! Maybe fix a couple?", guess: "Okay that one was a LOT going on. Some of these are guesses, fix whatever sounds weird!" }
+  };
+  const hearLine = k => (HEAR_LINES[prefs.buddy] || HEAR_LINES.wren)[k];
+  const hearSpell = key => { const N = namesFor(key); return pc => N[pc]; };
+  const hearBars = () => {
+    const r = hear.res, upb = r.per === 4 ? 2 : 1, out = [];
+    for (let i = 0; i < r.units.length; i += upb) out.push({ i, units: r.units.slice(i, i + upb), t0: r.units[i].t0 });
+    return out;
+  };
+
+  function hearHTML() {
+    const who = `<b>${esc(B().name)}</b>`;
+    if (hear.stage === "work") return `<div class="hear-work">
+        <p class="hear-say">${who} <span id="hearMsg">${esc(hear.msg || "listening")}…</span></p>
+        <div class="lbar"><i id="hearBar" style="width:${Math.round((hear.pct || 0.03) * 100)}%"></i></div>
+        <p class="note">${esc(hear.name || "")}</p></div>`;
+    if (hear.stage === "oops") return `<p class="hear-say">${who} ${esc(hear.why)}</p>
+        <div class="row"><button class="btn surprise" type="button" data-hear="again">try another file</button></div>`;
+    if (hear.stage === "done") {
+      const r = hear.res, P = hear.parts, spell = hearSpell(r.key), nm = u => spell(u.ch.root) + u.ch.q;
+      const conf = r.sure >= 1 ? "sure" : r.sure >= 0.75 ? "mid" : "guess";
+      const partAt = new Map(P.starts.map((u, k) => [u, P.parts[P.order[k]].name]));
+      const fnOf = tok => { const ch = parseChord(tok); return ch ? analyze(ch, r.key).fn : "away"; };
+      const bars = hearBars().map((b, k) => {
+        const toks = b.units.map(nm).filter((t, i, a) => !i || t !== a[i - 1]);
+        const part = partAt.get(b.i);
+        return `<button class="hbar" type="button" data-hseek="${k}" style="${fnVar(fnOf(toks[0]))}">${part ? `<i class="hpart">${esc(part.toLowerCase())}</i>` : ""}${toks.map(t => `<b>${esc(pretty(t))}</b>`).join("")}</button>`;
+      }).join("");
+      const parts = P.parts.map((p, i) => {
+        const prog = unitsToProg(p.units, r.per, spell);
+        return `<article class="card hear-part"><h3>${esc(p.name.toLowerCase())}<span class="mood">${p.n > 1 ? `comes ${p.n} times` : "once"}</span></h3>
+          <div class="hear-chips">${tokenize(prog).map(t => { const c = splitBeats(t).chord; return `<span class="pal" style="${fnVar(fnOf(c))}"><b>${esc(pretty(c))}</b></span>`; }).join("")}</div>
+          <button class="link" type="button" data-hpart="${i}">▶ hear it in the song</button></article>`;
+      }).join("");
+      return `<p class="hear-say">${who} I think it's in ${esc(pretty(keyName(r.key)))}, about ${Math.round(r.bpm)} beats a minute${r.per === 3 ? ", counted in threes" : ""}. ${esc(hearLine(conf))}</p>
+        <div class="hear-tl" id="hearTl">${bars}</div>
+        <div class="row hear-transport"><button class="btn" type="button" data-hear="play" id="hearPlay">${hear.src ? "■ stop" : "▶ listen along"}</button>
+          <label class="hear-along"><input type="checkbox" id="hearAlong"${hear.along ? " checked" : ""}> ${esc(B().name)} plays the chords too</label></div>
+        <h3 class="subhead">the parts I heard</h3>${parts}
+        <div class="row"><button class="btn surprise" type="button" data-hear="make">make it a song</button><button class="btn" type="button" data-hear="again">try another file</button></div>
+        <p class="note">Once it's a song, tap any chord to fix it. Checking a guess by ear is great practice.</p>`;
+    }
+    return `<p class="hear-say">${who} ${esc(hearLine("pick"))}</p>
+      <label class="hear-drop" id="hearDrop"><input type="file" id="hearFile" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.mp4,.aac,.ogg,.flac,.webm">
+        <span class="hear-icon" aria-hidden="true">♫</span><b>choose a song file</b><small>mp3, wav, m4a or mp4</small></label>
+      <p class="note">The file stays on this device; nothing is uploaded. Songs with clear chords, like a guitar or piano and a voice, come out best. Busy mixes mean more guessing.</p>`;
+  }
+
+  function hearProg(p, msg) {
+    hear.pct = p; hear.msg = msg;
+    const bar = document.getElementById("hearBar"), m = document.getElementById("hearMsg");
+    if (bar) bar.style.width = Math.round(p * 100) + "%";
+    if (m) m.textContent = msg + "…";
+  }
+  // any sample rate, any channels → one channel at the listening rate
+  async function hearMono(buf, maxS) {
+    const len = Math.min(buf.duration, maxS);
+    try {
+      const oc = new OfflineAudioContext(1, Math.ceil(len * HEAR_SR), HEAR_SR);
+      const s = oc.createBufferSource(); s.buffer = buf; s.connect(oc.destination); s.start();
+      return (await oc.startRendering()).getChannelData(0);
+    } catch {
+      // older browsers: average the channels, smooth, and step through by hand
+      const r = buf.sampleRate / HEAR_SR, n = Math.floor(len * HEAR_SR), out = new Float32Array(n), chs = [];
+      for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+      const w = Math.max(1, Math.round(r));
+      for (let i = 0; i < n; i++) { const a = Math.floor(i * r); let s = 0; for (let k = 0; k < w; k++) for (const ch of chs) s += ch[a + k] || 0; out[i] = s / (w * chs.length); }
+      return out;
+    }
+  }
+  async function hearFile(file) {
+    if (!file) return;
+    hearStop();
+    const name = file.name || "a song";
+    hear = { stage: "work", name, pct: 0.02, msg: "listening" };
+    if (sheetMode === "listen") renderSheet();
+    try {
+      if (!(await audioReady())) throw new Error("I need sound switched on to listen.");
+      if (file.size > 250e6) throw new Error("That file is too big for me. Try an mp3 of the song instead.");
+      const data = await file.arrayBuffer();
+      hearProg(0.03, "opening it up");
+      let buf;
+      try { buf = await new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }); }
+      catch { throw new Error("I couldn't open that one. Try an mp3, wav or m4a."); }
+      if (buf.duration < 8) throw new Error("That's too short for me to find a song in. Try something at least 10 seconds long.");
+      const mono = await hearMono(buf, 6 * 60);
+      const res = await hearSong(mono, hearProg);
+      if (!res) throw new Error("I couldn't find a steady beat or clear chords in that one. Try a different song.");
+      hear = { stage: "done", name, buf, res, parts: hearParts(res), along: true, long: buf.duration > 6 * 60 };
+    } catch (err) {
+      hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try another file." };
+    }
+    if (sheetMode === "listen") renderSheet();
+  }
+
+  // ---------- listening along: the recording plays, its chords light up ----------
+  let hearRaf = 0, hearTimer = 0;
+  function hearStop() {
+    if (hear.src) { try { hear.src.stop(); } catch {} hear.src.disconnect(); hear.src = null; }
+    cancelAnimationFrame(hearRaf); clearInterval(hearTimer);
+    const b = document.getElementById("hearPlay");
+    if (b) b.textContent = "▶ listen along";
+    document.querySelectorAll(".hbar.now").forEach(el => el.classList.remove("now"));
+  }
+  async function hearPlay(from = 0) {
+    if (hear.stage !== "done" || !(await audioReady())) return;
+    hearStop();
+    if (playing) stop();
+    const src = ac.createBufferSource(), g = ac.createGain();
+    src.buffer = hear.buf; g.gain.value = 0.8;
+    src.connect(g); g.connect(ac.destination);
+    const when = ac.currentTime + 0.08;
+    from = Math.max(0, Math.min(from, hear.buf.duration - 0.5));
+    src.start(when, from);
+    hear.src = src;
+    src.onended = () => { if (hear.src === src) hearStop(); };
+    const b = document.getElementById("hearPlay");
+    if (b) b.textContent = "■ stop";
+    const U = hear.res.units, bars = hearBars(), tl = document.getElementById("hearTl");
+    const posAt = () => from + (ac.currentTime - when);
+    // the friend strums each chord as it comes around
+    let next = U.findIndex(u => u.t0 >= from - 0.01);
+    hearTimer = setInterval(() => {
+      if (!hear.src || next < 0) return;
+      const pos = posAt();
+      while (next < U.length && U[next].t0 < pos + 0.3) {
+        const u = U[next], prevU = U[next - 1], same = prevU && prevU.ch.root === u.ch.root && prevU.ch.q === u.ch.q && u.t0 > from + 0.05;
+        const t = when + (u.t0 - from);
+        if (hear.along && t > ac.currentTime && !same) {
+          const ch = parseChord(hearSpell(hear.res.key)(u.ch.root) + u.ch.q);
+          if (ch) {
+            const root = 48 + ch.rootPc - (ch.rootPc > 6 ? 12 : 0), len = U.slice(next).findIndex(v => v.ch.root !== u.ch.root || v.ch.q !== u.ch.q);
+            const end = len > 0 ? U[next + len - 1].t1 : u.t1;
+            strum({ lh: [root], rh: ch.ivs.slice(0, 4).map(x => root + 12 + x) }, t, Math.min(4, end - u.t0));
+          }
+        }
+        next++;
+      }
+    }, 90);
+    let lastBar = -1;
+    const step = () => {
+      if (!hear.src) return;
+      const pos = posAt();
+      let k = bars.length - 1;
+      while (k > 0 && bars[k].t0 > pos) k--;
+      if (k !== lastBar && tl) {
+        tl.querySelectorAll(".hbar.now").forEach(el => el.classList.remove("now"));
+        const el = tl.querySelector(`.hbar[data-hseek="${k}"]`);
+        if (el) { el.classList.add("now"); tl.scrollTo({ left: el.offsetLeft - tl.clientWidth / 2 + el.offsetWidth / 2, behavior: reduceMotion ? "auto" : "smooth" }); }
+        lastBar = k;
+      }
+      hearRaf = requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  // the learned song, ready to play, change and sing over
+  function hearMake() {
+    const r = hear.res, P = hear.parts, meter = r.per === 3 ? "3/4" : "4/4", spell = hearSpell(r.key);
+    const title = (hear.name || "a song").replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_]+/g, " ").trim().slice(0, 60) || "a song";
+    const s = newSong(title, "", { key: r.key.tonic + (r.key.minor ? "m" : "M"), bpm: Math.max(50, Math.min(150, Math.round(r.bpm))) }, meter);
+    s.sections = P.parts.map(p => newSection(p.name, unitsToProg(p.units, r.per, spell), meter));
+    s.order = P.order.map(i => s.sections[i].id);
+    s.heard = { from: hear.name };
+    fixOrder(s);
+    hearStop();
+    songs.push(s);
+    openSong(s);
+    saveSongs();
+    closeSheet();
+    toast(`added “${title}”. tap any chord to fix it`);
+  }
+
+  // true when the click was ours
+  function hearClick(e) {
+    const b = e.target.closest("[data-hear],[data-hseek],[data-hpart]");
+    if (!b) return false;
+    if (b.dataset.hseek != null) { const bar = hearBars()[+b.dataset.hseek]; if (bar) hearPlay(bar.t0 - 0.05); return true; }
+    if (b.dataset.hpart != null) { const i = +b.dataset.hpart, k = hear.parts.order.indexOf(i); if (k >= 0) hearPlay(hear.res.units[hear.parts.starts[k]].t0 - 0.05); return true; }
+    const a = b.dataset.hear;
+    if (a === "play") { if (hear.src) hearStop(); else hearPlay(0); }
+    else if (a === "again") { hearStop(); hear = { stage: "pick" }; renderSheet(); }
+    else if (a === "make") hearMake();
+    return true;
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -6544,6 +7127,7 @@
   let sheetMode = null, confirmDel = null;
   function openSheet(mode) {
     closeEgg();
+    if (mode !== "listen") hearStop();
     // the songbook opens on the page for the chord you're on, or the cover
     if (mode === "stories" && sheetMode !== "stories") storyAt = null;
     if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
@@ -6558,6 +7142,7 @@
     if (vt && !vt.value.trim()) vt.focus(); else $("closeSheet").focus();
   }
   function closeSheet() {
+    hearStop();
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     sheetMode = null; confirmDel = null;
@@ -6608,6 +7193,7 @@
 
   function renderSheet() {
     const body = $("sheetBody");
+    if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
       const auto = !parseKeySetting(S().key);
@@ -6708,7 +7294,8 @@
           <div class="big-choices"><button class="big-choice" type="button" data-wizminor="0" aria-pressed="${wiz.minor === false}"><span>☀</span>sunny${nm ? ` · ${nm} major` : ""}</button>
           <button class="big-choice" type="button" data-wizminor="1" aria-pressed="${wiz.minor === true}"><span>☾</span>moody${nm ? ` · ${nm} minor` : ""}</button></div></div>
         <div class="wiz-step${wiz.minor == null ? " dim" : ""}"><h3>3 · pick a vibe</h3>
-          <div class="moods">${list.map(({ m, prog }) => `<button class="mood-btn" type="button" data-wizmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(prog))}</span></button>`).join("") || `<p class="note">choose sunny or moody first</p>`}</div></div>`;
+          <div class="moods">${list.map(({ m, prog }) => `<button class="mood-btn" type="button" data-wizmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(prog))}</span></button>`).join("") || `<p class="note">choose sunny or moody first</p>`}</div></div>
+        ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
     } else if (sheetMode === "lyrics") {
       $("sheetTitle").textContent = "lyric sheet";
       body.innerHTML = `<div class="row"><button class="btn" type="button" data-song="copy">copy the whole song</button></div>
@@ -6824,7 +7411,7 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
         <p class="note">${storageOK ? "Songs save in this browser as you go. Copy one as text below if you want a backup." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
@@ -7220,6 +7807,7 @@
 
   $("sheetBody").addEventListener("click", async e => {
     if (sheetMode === "house" && houseClick(e)) return;
+    if (sheetMode === "listen" && hearClick(e)) return;
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
     if (storyB) { storyAt = +storyB.dataset.story; markRead(storyAt); storyTimers.forEach(clearTimeout); renderSheet(); $("sheetBody").scrollTop = 0; return; }
     if (storyAct) {
@@ -7515,8 +8103,13 @@
       e.target.setAttribute("aria-valuetext", FILL_LEVELS[prefs.fills]);
     }
   });
+  $("sheetBody").addEventListener("dragover", e => { if (sheetMode === "listen" && hear.stage === "pick") { e.preventDefault(); $("hearDrop")?.classList.add("over"); } });
+  $("sheetBody").addEventListener("dragleave", () => $("hearDrop")?.classList.remove("over"));
+  $("sheetBody").addEventListener("drop", e => { if (sheetMode !== "listen" || hear.stage !== "pick") return; e.preventDefault(); hearFile(e.dataTransfer.files && e.dataTransfer.files[0]); });
   $("sheetBody").addEventListener("change", e => {
     const t = e.target;
+    if (t.id === "hearFile") { hearFile(t.files && t.files[0]); return; }
+    if (t.id === "hearAlong") { hear.along = t.checked; return; }
     if (t.id === "kKey") { setting("key", t.value); renderAll(); renderSheet(); }
     else if (t.id === "sev") { prefs.sevenths = t.checked; savePrefs(); renderPalette(); renderSheet(); }
     else if (t.id === "kFills") previewFill();
