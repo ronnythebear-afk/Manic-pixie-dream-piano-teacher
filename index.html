@@ -2757,7 +2757,8 @@
   async function audioReady() {
     if (!ensureAudio()) { soundHint(true); return false; }
     for (let i = 0; i < 20 && ac.state !== "running"; i++) {
-      try { await ac.resume(); } catch {}
+      // on iPhones resume() can wait forever when it isn't called from a tap: don't wait on it
+      try { await Promise.race([ac.resume(), new Promise(r => setTimeout(r, 120))]); } catch {}
       if (ac.state !== "running") await new Promise(r => setTimeout(r, 25));
     }
     const ok = ac.state === "running";
@@ -5166,7 +5167,7 @@
       let s = 0;
       for (let k = 2; k < 400; k++) { const l = Math.log(1 + 1000 * m1[k]), d = l - last[k]; if (d > 0) s += d; last[k] = l; }
       flux[f] = s;
-      if (f % 1500 === 0) await say(0.04 + 0.22 * f / n1, "finding the beat");
+      if (f % 500 === 0) await say(0.04 + 0.22 * f / n1, "finding the beat");
     }
     const W = 16, onset = new Float32Array(n1);
     let acc = 0;
@@ -5275,7 +5276,7 @@
         if (midi <= 55) bs[midi % 12] += v * (midi < 48 ? 1 : 0.5);
       }
       treb.push(tr); bass.push(bs); loud.push(e);
-      if (f % 500 === 0) await say(0.32 + 0.38 * f / n2, "hearing the notes");
+      if (f % 200 === 0) await say(0.32 + 0.38 * f / n2, "hearing the notes");
     }
     // one picture per beat
     const frameAt = s => Math.max(0, Math.min(n2 - 1, Math.round((s * sr - N2 / 2) / H2)));
@@ -5621,7 +5622,7 @@
     try {
       const oc = new OfflineAudioContext(two ? 2 : 1, Math.ceil(len * HEAR_SR), HEAR_SR);
       const s = oc.createBufferSource(); s.buffer = buf; s.connect(oc.destination); s.start();
-      const out = await oc.startRendering();
+      const out = await Promise.race([oc.startRendering(), new Promise((_, no) => setTimeout(() => no(new Error("slow")), 30000))]);
       L = out.getChannelData(0); R = two ? out.getChannelData(1) : L;
     } catch {
       // older browsers: smooth and step through by hand
@@ -5633,6 +5634,8 @@
     if (R !== L) { mono = new Float32Array(L.length); for (let i = 0; i < L.length; i++) mono[i] = (L[i] + R[i]) / 2; }
     return { L, R, mono };
   }
+  const hearWait = (p, ms, why) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error(why)), ms))]);
+  const hearRead = file => (file.arrayBuffer ? file.arrayBuffer() : new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(r.error); r.readAsArrayBuffer(file); }));
   async function hearFile(file) {
     if (!file) return;
     hearStop();
@@ -5640,13 +5643,16 @@
     hear = { stage: "work", name, pct: 0.02, msg: "listening" };
     if (sheetMode === "listen") renderSheet();
     try {
-      if (!(await audioReady())) throw new Error("I need sound switched on to listen.");
+      // listening doesn't need sound on, only the audio engine; sound can start later
+      if (!ensureAudio()) throw new Error("This browser can't work with audio, sorry.");
       if (file.size > 250e6) throw new Error("That file is too big for me. Try an mp3 of the song instead.");
-      const data = await file.arrayBuffer();
+      hearProg(0.02, "opening it up");
+      const data = await hearWait(hearRead(file), 60000, "I couldn't read that file. Try saving it again, or use an mp3.");
       hearProg(0.03, "opening it up");
       let buf;
-      try { buf = await new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }); }
+      try { buf = await hearWait(new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }), 90000, "slow"); }
       catch { throw new Error("I couldn't open that one. Try an mp3, wav or m4a."); }
+      hearProg(0.04, "getting it ready");
       if (buf.duration < 8) throw new Error("That's too short for me to find a song in. Try something at least 10 seconds long.");
       const { L, R, mono } = await hearChannels(buf, 6 * 60);
       const res = await hearSong(mono, (p, m) => hearProg(p * 0.85, m));
@@ -5808,6 +5814,7 @@
 
   // true when the click was ours
   function hearClick(e) {
+    if (e.target.closest("#hearDrop")) { ensureAudio(); return false; }
     const b = e.target.closest("[data-hear],[data-hseek],[data-hpart]");
     if (!b) return false;
     if (b.dataset.hseek != null) { const bar = hearBars()[+b.dataset.hseek]; if (bar) hearPlay(bar.t0 - 0.05); return true; }
@@ -5951,7 +5958,7 @@
       pk.sort((x, y) => y[1] - x[1]);
       cands.push(pk.slice(0, 4));
       best[f] = pk.length ? pk[0][1] : 0;
-      if (f % 900 === 0) await prog(f / n);
+      if (f % 300 === 0) await prog(f / n);
     }
     // ---- follow one voice through the candidates: steady pitch is likely, big jumps cost
     const sorted = Array.from(best).filter(v => v > 0).sort((a, b) => a - b);
