@@ -1097,6 +1097,51 @@
   .toast { font-family: var(--body); font-weight: 800; font-size: 15px; }
   /* fewer outline styles: no dashed borders on controls */
   .lane-mini, .pal.more, .blk.add, .sec.add, .tile.plus { border-style: solid; border-color: var(--edge); }
+
+  /* ---------- learning: a line you can hear ---------- */
+  .mode-learn .say { -webkit-line-clamp: 4; }
+  .say-tag { display: block; margin-top: 3px; font-family: var(--body); font-weight: 800; font-size: 11px; letter-spacing: .04em; color: var(--soft); }
+  .say.hear .say-tag { color: #b8566b; }
+  .say.hear { animation: nudge 2.4s ease-in-out 1s 2; }
+  @keyframes nudge { 50% { transform: rotate(-.7deg) translateY(-2px); } }
+
+  /* ---------- painting the lit window ---------- */
+  #palette { position: relative; }
+  .mh-paint circle { fill: #fffaf0; stroke: var(--ink); stroke-width: .7; }
+  .mh-paint path { fill: none; stroke: var(--surprise); stroke-width: 1.3; stroke-linecap: round; }
+  .mh-win[data-paint] > rect:first-child { stroke-width: 2.4; }
+  .mh-pop { position: absolute; left: 0; top: calc(100% - 4px); z-index: 16; width: min(360px, 100%); display: grid; gap: 8px;
+    background: var(--card); border-radius: 16px; padding: 10px 12px 12px; box-shadow: 0 14px 30px -12px rgba(20, 16, 30, .5); animation: pop .18s ease-out both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(-6px) scale(.97); } }
+  .mh-pop-head { display: flex; align-items: center; justify-content: space-between; }
+  .mh-pop-head b { font-weight: 800; font-size: 14px; }
+  .mh-x { border: 0; background: var(--chip); width: 26px; height: 26px; border-radius: 50%; font-size: 16px; line-height: 1; color: var(--ink); cursor: pointer; }
+  .mh-swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .swatch { display: grid; gap: 1px; text-align: left; border: 1.5px solid var(--edge); border-radius: 12px; background: var(--card); padding: 6px 8px; color: var(--ink); cursor: pointer; font-family: var(--body); }
+  .swatch b { font-weight: 900; font-size: 16px; }
+  .swatch small { font-size: 10.5px; font-weight: 600; color: var(--soft); line-height: 1.15; }
+  .swatch.on { border-color: var(--ink); background: var(--pick); }
+  .swatch:hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); }
+  .mh-pop .link { justify-self: start; }
+
+  /* ---------- studio: a little mixing console ---------- */
+  .desk { background: linear-gradient(#2a2638, #1d1a28); border: 0; border-radius: 14px; padding: 8px 10px; box-shadow: 0 10px 20px -12px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .08); }
+  .fader { color: #e9e4f2; position: relative; }
+  .fader span { font-weight: 800; font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; opacity: .8; }
+  .fader output { color: #a9a3bc; }
+  .fader input { accent-color: #d9d4e6; }
+  .fader.ch input { accent-color: var(--c); }
+  .fader.ch span { color: var(--c); opacity: 1; }
+  /* the meter: a glow under each part's name that jumps with the sound */
+  .fader.ch::before { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: calc(var(--lvl, 0) * 42px); background: var(--c); border-radius: 2px; box-shadow: 0 0 6px var(--c); transition: width .06s linear; }
+  .mh-side .pal { flex-direction: row; }
+  .mode-studio .mh-side .pal.onair { background: #2a2638; color: #f3eef8; gap: 7px; }
+  .onair i { width: 9px; height: 9px; border-radius: 50%; background: #6d6478; box-shadow: inset 0 0 0 1.5px rgba(0, 0, 0, .3); }
+  .playing .onair i { background: #f2bd4b; box-shadow: 0 0 8px #f2bd4b; }
+  .recording .onair i { background: #ff4d5e; box-shadow: 0 0 10px #ff4d5e; animation: twinkle .8s steps(2) infinite; }
+  .recording .onair::after { content: "on air"; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: #ff8f9a; }
+  .mh-side .pal.vibe { flex-direction: column; gap: 0; min-height: 38px; background: linear-gradient(135deg, color-mix(in srgb, var(--rh) 40%, var(--card)), color-mix(in srgb, var(--surprise) 40%, var(--card))); }
+  .pal.vibe small { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--soft); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -2615,6 +2660,7 @@
   // Everything runs through a warm low-pass, like an old tape deck
   let wobble = null, warmth = null, tapOut = null;
   // the studio desk: a level for each part, a low and high shelf, a small room
+  let meters = null, meterSink = null;
   let eqLow = null, eqHigh = null, roomSend = null, pianoBus = null, drumBus = null, voiceBus = null, voiceTap = null, leadOut = null;
   function roomIR() {
     const n = Math.floor(ac.sampleRate * 1.8), buf = ac.createBuffer(2, n, ac.sampleRate);
@@ -2650,6 +2696,9 @@
     master.connect(eqLow);
     const bus = () => { const g = ac.createGain(); g.connect(master); return g; };
     pianoBus = bus(); drumBus = bus(); voiceBus = bus(); leadOut = bus();
+    if (!meterSink) { meterSink = ac.createGain(); meterSink.gain.value = 0; meterSink.connect(ac.destination); }
+    meters = {};
+    [["piano", pianoBus], ["drums", drumBus], ["voice", voiceBus], ["lead", leadOut]].forEach(([id, b]) => { const an = ac.createAnalyser(); an.fftSize = 512; b.connect(an); an.connect(meterSink); meters[id] = an; });
     voiceTap = ac.createGain(); voiceTap.connect(tapOut);
     applyMix();
   }
@@ -4200,10 +4249,12 @@
     s += `<rect x="52" y="12" width="136" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="38" y="33" width="164" height="22" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/><rect x="8" y="54" width="224" height="27" fill="${st.wall}" stroke="${INK}" stroke-width="1.2"/>`;
     MINI.rows.forEach((row, f) => row.forEach((d, j) => {
       const r = rooms[d], [x, y, w, h] = MINI.box(f, j), tok = palette(k, prefs.sevenths).di[d].tok;
-      s += `<g class="mh-win fn-${r.fn}${d === curD ? " now" : ""}" data-add="${esc(tok)}" data-mroom="${d}" role="button" tabindex="0" aria-label="Add ${esc(pretty(tok))}, ${esc(r.num)}" style="--fn:var(--${r.fn})">
+      const lit = d === curD, shown = lit ? c.tok.replace(/:\d+$/, "") : tok;
+      s += `<g class="mh-win fn-${r.fn}${d === curD ? " now" : ""}" ${lit ? `data-paint="open"` : `data-add="${esc(tok)}"`} data-mroom="${d}" role="button" tabindex="0" aria-label="${lit ? `Try ${esc(pretty(shown))} in other colors` : `Add ${esc(pretty(tok))}, ${esc(r.num)}`}" style="--fn:var(--${r.fn})">
         <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" fill="${st.glass}" stroke="${st.trim}" stroke-width="1.6"/>
         <rect class="mh-tint" x="${x + 1}" y="${y + h - 4}" width="${w - 2}" height="3" rx="1"/>
-        <text class="mh-name" x="${x + w / 2}" y="${y + h * 0.7}">${esc(pretty(tok))}</text>
+        <text class="mh-name" x="${x + w / 2}" y="${y + h * 0.7}">${esc(pretty(shown))}</text>
+        ${lit ? `<g class="mh-paint"><circle cx="${x + w - 5}" cy="${y + 5}" r="3.6"/><path d="M${x + w - 7} ${y + 6.4}q2-3.4 4-2.8" /></g>` : ""}
         ${nextSet.has(r.iv) && d !== curD ? `<text class="mh-next" x="${x + w - 5}" y="${y + 8}">✦</text>` : ""}
       </g>`;
     }));
@@ -4214,6 +4265,7 @@
     const svg = document.querySelector(".mini-house");
     if (!svg) return;
     svg.querySelectorAll(".mh-win.now").forEach(el => el.classList.remove("now"));
+    if (!playing && c === current[sel]) return void svg.querySelector(`.mh-win[data-paint]`)?.classList.add("now");
     if (!c || !c.a.inKey || c.a.fn === "surprise") return;
     const d = scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic));
     svg.querySelector(`.mh-win[data-mroom="${d}"]`)?.classList.add("now");
@@ -4289,8 +4341,8 @@
   // =========================================================
   const MIX_DEFAULT = { piano: 1, drums: 1, voice: 1, lead: 1, low: 0, high: 0, tape: 0.5, room: 0 };
   const DESK = [
-    ["piano", "piano", 0, 1.6, 0.05], ["low", "low end", -9, 9, 1],
-    ["drums", "drums", 0, 1.6, 0.05], ["high", "sparkle", -9, 9, 1],
+    ["piano", "piano", 0, 1.6, 0.05], ["low", "bass", -9, 9, 1],
+    ["drums", "drums", 0, 1.6, 0.05], ["high", "shine", -9, 9, 1],
     ["voice", "singer", 0, 1.6, 0.05], ["tape", "tape", 0, 1, 0.05],
     ["lead", "lead", 0, 1.6, 0.05], ["room", "room", 0, 1, 0.05]
   ];
@@ -4307,7 +4359,8 @@
   function deskHTML() {
     const m = mixOf();
     const shown = (id, v) => (["low", "high"].includes(id) ? `${v > 0 ? "+" : ""}${v}` : id === "tape" || id === "room" ? `${Math.round(v * 100)}` : `${Math.round(v * 100)}%`);
-    return `<div class="desk" role="group" aria-label="The studio desk">${DESK.map(([id, label, lo, hi, st]) => `<label class="fader"><span>${label}</span>
+    const CH = { piano: "var(--rh)", drums: "var(--lamp)", voice: "var(--lh)", lead: "var(--surprise)" };
+    return `<div class="desk" role="group" aria-label="The studio desk">${DESK.map(([id, label, lo, hi, st]) => `<label class="fader${CH[id] ? " ch" : ""}"${CH[id] ? ` data-ch="${id}" style="--c:${CH[id]}"` : ""}><span>${label}</span>
       <input type="range" data-mix="${id}" min="${lo}" max="${hi}" step="${st}" value="${m[id]}" aria-label="${label}"><output>${shown(id, m[id])}</output></label>`).join("")}</div>`;
   }
 
@@ -4547,6 +4600,139 @@
   }
 
   // =========================================================
+  // Learning mode: tips you can hear, and a friend who notices your song
+  // =========================================================
+  // each friend picks their own fills now
+  const FILLS_BY = { dusty: 2, ghost: 3, wren: 1, oona: 1, lulu: 4 };
+  const fillsFor = () => FILLS_BY[prefs.buddy] ?? 2;
+
+  let sayDemo = null, sayPlayed = false, noticeText = null, noticeDemo = null, noticedSig = "", demoTimers = [];
+  const diTok = d => palette(K, false).di[d].tok;
+  const degOf = c => (c.a.inKey && c.a.fn !== "surprise" ? scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic)) : -1);
+  const plainTok = c => c.tok.replace(/:\d+$/, "");
+
+  // what "hear why" plays for a chord: where it lives and where it wants to go
+  function whyToks(c) {
+    if (!c) return null;
+    const d = degOf(c), me = plainTok(c), I = diTok(0);
+    if (d < 0) {
+      // a visitor: the room's usual chord, then the visitor, then home
+      const iv = mod(c.ch.rootPc - K.tonic), dd = scaleOf(K).steps.indexOf(iv);
+      return dd >= 0 && diTok(dd) !== me ? [diTok(dd), me, I] : [I, me, I];
+    }
+    if (d === 0) return [me, diTok(3), me];            // home: step out and come back
+    if (d === 4 || d === 6) return [me, I];            // tension: fall to the front door
+    if (d === 1) return [me, diTok(4), I];             // ii: the jazz stairs
+    if (d === 3) return [me, I];                       // IV: the amen
+    return [me, I];                                    // vi, iii: home's roommates
+  }
+  // a few chords, gently, with the little house lighting up as they go
+  async function playToks(toks, gap = 1.05) {
+    if (!toks || !toks.length || !(await audioReady())) return;
+    if (playing) stop();
+    demoTimers.forEach(clearTimeout); demoTimers = [];
+    const t0 = ac.currentTime + 0.05;
+    toks.forEach((tok, i) => {
+      const ch = parseChord(tok); if (!ch) return;
+      const root = 48 + ch.rootPc - (ch.rootPc > 6 ? 12 : 0);
+      strum({ lh: [root], rh: ch.ivs.slice(0, 4).map(x => root + 12 + x) }, t0 + i * gap, gap * 0.95);
+      demoTimers.push(setTimeout(() => miniFollow({ ch, a: analyze(ch, K) }), (t0 + i * gap - ac.currentTime) * 1000));
+    });
+    demoTimers.push(setTimeout(() => miniFollow(current[sel]), (toks.length * gap + 0.3) * 1000));
+  }
+
+  // after the first time through, your friend says one true thing about your part
+  const NOTICE_OPEN = { dusty: "Heard that.", ghost: "Logged it.", wren: "Mm, nice.", oona: "An observation.", lulu: "OK I LOVE it." };
+  function noticeSong() {
+    if (prefs.view !== "learn" || current.length < 2) return;
+    const sig = current.map(plainTok).join(" ");
+    if (sig === noticedSig) return;
+    noticedSig = sig;
+    const toks = current.map(plainTok), degs = current.map(degOf), last = current[current.length - 1], dl = degs[degs.length - 1];
+    const I = diTok(0), V = diTok(4), name = t => pretty(t);
+    const guest = current.find(c => degOf(c) < 0);
+    const vi = degs.findIndex((d, i) => d === 4 && degs[(i + 1) % degs.length] === 0);
+    let text, demo;
+    if (dl === 4 || dl === 6) { text = `It ends in the attic on ${name(plainTok(last))}, so it pulls you back to the start.`; demo = [...toks.slice(-2), I]; }
+    else if (!degs.some(d => d === 4 || d === 6) && current.length >= 3) {
+      const tried = dl === 0 ? [...toks.slice(0, -1), V, I] : [...toks, V, I];
+      text = `You never visit the attic. Hear it with ${name(V)} before home.`; demo = tried.slice(-4);
+    }
+    else if (guest) { text = `${name(plainTok(guest))} is a visitor from outside the house. It's your most colorful moment.`; demo = whyToks(guest); }
+    else if (vi >= 0) { text = `${name(V)} to ${name(I)}: attic to front door, the strongest pull there is.`; demo = [V, I]; }
+    else if (dl === 0) { text = `It lands on the front door, so it feels finished.`; demo = toks.slice(-2); }
+    else { text = `It ends on ${name(plainTok(last))}: it rests, but doesn't quite close.`; demo = [...toks.slice(-2), I]; }
+    noticeText = `${NOTICE_OPEN[prefs.buddy] || ""} ${text}`.trim();
+    noticeDemo = demo;
+    tipOverride = noticeText; sayPlayed = false;
+    say(noticeText); markHear();
+  }
+  function markHear() {
+    const el = $("say");
+    const on = prefs.view === "learn" && !!sayDemo;
+    el.classList.toggle("hear", on && !sayPlayed);
+    el.classList.toggle("next", on && sayPlayed);
+    el.querySelector(".say-tag")?.remove();
+    if (on) { const t = document.createElement("span"); t.className = "say-tag"; t.textContent = sayPlayed ? "tap for the next tip ›" : "▶ tap to hear it"; el.appendChild(t); }
+  }
+
+  // =========================================================
+  // Painting a room: tap the lit window to try the chord in other colors
+  // =========================================================
+  let paintOpen = false;
+  const PAINT_MAX = 6;
+  function paintHTML() {
+    const c = current[sel], ld = c && ladderOf(c.ch);
+    if (!paintOpen || !c || !ld) return "";
+    const root = c.ch.rootName, L = ld.L.slice(0, PAINT_MAX);
+    if (!L.includes(ld.L[ld.i])) L.push(ld.L[ld.i]);
+    return `<div class="mh-pop" role="dialog" aria-label="Colors for ${esc(pretty(c.tok))}">
+      <div class="mh-pop-head"><b>${esc(pretty(root))} in other colors</b><button class="mh-x" type="button" data-paint="close" aria-label="Close">×</button></div>
+      <div class="mh-swatches">${L.map(q => `<button class="swatch${q === ld.L[ld.i] ? " on" : ""}" type="button" data-paint="${esc(q)}" aria-pressed="${q === ld.L[ld.i]}"><b>${symbolHTML(parseChord(root + q))}</b><small>${esc(COLOR_WORDS[q] || "")}</small></button>`).join("")}</div>
+      <button class="link" type="button" data-add="${esc(plainTok(c))}">or add another ${esc(pretty(plainTok(c)))}</button>
+    </div>`;
+  }
+
+  // =========================================================
+  // Studio: vibes and live meters
+  // =========================================================
+  const VIBES = [
+    { id: "flat", name: "flat", note: "nothing added", mix: {} },
+    { id: "cassette", name: "cassette", note: "warm and a bit wobbly", mix: { tape: 0.95, high: -4, low: 2, room: 0.1 } },
+    { id: "latenight", name: "late night", note: "soft drums, close voice", mix: { drums: 0.6, voice: 1.15, piano: 0.9, tape: 0.6, high: -6, low: 3, room: 0.3 } },
+    { id: "bigroom", name: "big room", note: "like a church hall", mix: { room: 0.85, high: 2, drums: 1.1 } },
+    { id: "radio", name: "old radio", note: "small and far away", mix: { low: -9, high: 3, tape: 0.35, room: 0 } },
+    { id: "punchy", name: "punchy", note: "loud drums, big bottom", mix: { drums: 1.45, low: 5, high: 3, room: 0.1, tape: 0.3 } }
+  ];
+  const vibeOf = () => VIBES.find(v => v.id === (song.mix && song.mix.vibe)) || VIBES[0];
+  function nextVibe() {
+    const i = VIBES.indexOf(vibeOf()), v = VIBES[(i + 1) % VIBES.length];
+    song.mix = { ...MIX_DEFAULT, ...v.mix, vibe: v.id };
+    saveSongs(); applyMix(); renderPalette();
+    toast(`${v.name}: ${v.note}`);
+    const c = current[sel];
+    if (c && !playing) playOne(sel);
+  }
+  let meterRaf = 0;
+  function meterLoop() {
+    cancelAnimationFrame(meterRaf);
+    if (prefs.view !== "studio" || !ac || !meters) return;
+    const buf = new Float32Array(512);
+    const step = () => {
+      if (prefs.view !== "studio") return;
+      Object.entries(meters).forEach(([id, an]) => {
+        an.getFloatTimeDomainData(buf);
+        let e = 0; for (let i = 0; i < buf.length; i++) e += buf[i] * buf[i];
+        const lvl = Math.min(1, Math.sqrt(e / buf.length) * 5);
+        const el = document.querySelector(`.fader[data-ch="${id}"]`);
+        if (el) el.style.setProperty("--lvl", lvl.toFixed(3));
+      });
+      meterRaf = requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -4592,6 +4778,9 @@
   // a calmer default: the length strip lives in the chord menu now
   if (!prefs.calm) { prefs.calm = 1; if (prefs.view === "writer") prefs.layers.ribbon = false; }
   LAYERS.forEach(l => { if (typeof prefs.layers[l] !== "boolean") prefs.layers[l] = VIEWS[prefs.view].on.includes(l); });
+  // the length strip is gone (lengths live in the chord menu), and the old fine switches with it
+  prefs.layers.ribbon = false; prefs.layers.entry = false;
+  if (prefs.tidy !== 2) { prefs.tidy = 2; prefs.layers = layersFor(prefs.view); }
   ["tips", "sing", "drums", "fingers", "next", "crackle"].forEach(k => delete prefs[k]);
   prefs.fills = Math.max(0, Math.min(4, Math.round(+prefs.fills || 0)));
   if (!BUDDIES[prefs.buddy]) prefs.buddy = "dusty";
@@ -4903,9 +5092,10 @@
       simple: inside + `<button class="pal more" type="button" data-act="more">+ more</button>`,
       learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
       write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ more</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
-      studio: `<button class="pal mh-in" type="button" data-act="taperec" aria-label="Tape a take">● tape</button><button class="pal more" type="button" data-act="mixreset" aria-label="Reset the desk">flat</button>`
+      studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
     }[mode] || inside;
-    palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas)) + `<div class="mh-side">${side}</div>`;
+    palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
+    if (mode === "studio") meterLoop();
   }
   function renderPaletteOld() {
     const p = palette(K, prefs.sevenths);
@@ -4953,7 +5143,7 @@
 
   function tipsFor(c) {
     const b = B(), role = buddyRole(b, c.ch, c.a, K);
-    const house = prefs.sawHouse || !L("palette") || prefs.view === "studio" ? null : `Each window of the little house is a chord in ${pretty(keyName(K))}. Tap one to add it; ✦ marks a nice next one.${prefs.view === "write" ? "" : " ⌂ takes you inside."}`;
+    const house = prefs.sawHouse || !L("palette") || prefs.view === "studio" ? null : `Each window of the little house is a chord in ${pretty(keyName(K))}. Tap one to add it; ✦ marks a nice next one. Tap the lit window to try it in other colors.`;
     if (b.feelings) return [role, house, b.feelings[c.i % b.feelings.length], b.feelings[(c.i + 3) % b.feelings.length]].filter(Boolean);
     const out = [role, house, fingerTip(c.v, c.ch)];
     if (b.ideas) out.push(b.ideas[c.i % b.ideas.length], b.ideas[(c.i + 5) % b.ideas.length]);
@@ -5058,7 +5248,11 @@
           <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape (${c.opt + 1} of ${c.len})" title="${c.opt + 1} of ${c.len}">›</button>
         </div>
       </div>`;
-    if (!finding) say(tip);
+    if (!finding) {
+      say(tip);
+      sayDemo = prefs.view !== "learn" ? null : tipOverride ? (tipOverride === noticeText ? noticeDemo : null) : (tipIdx % tips.length === 0 ? whyToks(c) : null);
+      markHear();
+    }
     fitLane();
     if (editingLyric) {
       const li = $("lyricInput");
@@ -5303,7 +5497,7 @@
   }
   function drumsFor(c, t0, M, T, cl, pass, sung) {
     const b = B(), rows = beatFor(M.id).rows, snds = b.sounds, n = M.n, sp = stepsPer(M);
-    const lvl = prefs.fills, fl = fillCounts(M, lvl);
+    const lvl = fillsFor(), fl = fillCounts(M, lvl);
     for (let k = 0; k < c.beats; k++) {
       const a = c.at + k, pos = a % n, bar = Math.floor(a / n), barEnd = Math.min((bar + 1) * n, T), last = barEnd >= T;
       const inFill = lvl > 0 && fillBar(bar, last, lvl) && a >= barEnd - fl;
@@ -5333,6 +5527,7 @@
       } else if (!loopOn || !d.list.length) return finish();
       step = 0;
       passNo++;
+      if (passNo === 1 && prefs.view === "learn") later(noticeSong, (nextT - ac.currentTime) * 1000 + 200);
       d = sectionData(playSec);
       if (++guard > song.order.length + 1) return finish();
     }
@@ -5357,7 +5552,7 @@
         // don't pull the page out from under someone who's typing or drawing
         stripEl.querySelector(`.tile[data-j="${j}"]`)?.classList.add("now");
       } else {
-        sel = j; tipOverride = null; tipIdx = 0;
+        sel = j; if (tipOverride !== noticeText) tipOverride = null; tipIdx = 0; sayPlayed = false;
         renderStage();
         arrowsSoon(dur);
       }
@@ -5518,8 +5713,8 @@
     if (j === sel) fx(c);
   }
   async function previewFill() {
-    if (playing || !prefs.fills || !(await audioReady())) return;
-    const M = Mtr, cl = countSec(M, S().bpm), fl = fillCounts(M, prefs.fills), sp = stepsPer(M), N = fl * sp, t0 = ac.currentTime + 0.05, b = B();
+    if (playing || !fillsFor() || !(await audioReady())) return;
+    const M = Mtr, cl = countSec(M, S().bpm), fl = fillCounts(M, fillsFor()), sp = stepsPer(M), N = fl * sp, t0 = ac.currentTime + 0.05, b = B();
     for (let i = 0; i < N; i++) FILLS[b.fill](i, N).forEach(([kind, v, off = 0, p = 1]) => drumHit(kind, t0 + (i + off) * cl / sp, v, p));
     drumHit(b.crash, t0 + fl * cl, 0.8);
   }
@@ -6006,7 +6201,7 @@
         <div class="knob"><span class="lbl">extras</span>
           <div class="toggles">
             <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song, not just this part</label>
-            <button class="link" type="button" data-open="beat">the band: piano sound, beat, fills</button>
+            <button class="link" type="button" data-open="beat">the band: piano sound and beat</button>
             <button class="link" type="button" data-open="view">what shows: ${esc(VIEWS[prefs.view].name)} mode</button>
           </div>
         </div>`;
@@ -6027,13 +6222,13 @@
           <div class="brow r${r}"><button class="lbl" type="button" data-hear="${r}">${esc(label)}</button>
             ${Array.from({ length: M.n }, (_, g) => `<div class="bgroup${g && M.groups.includes(g) ? " grp" : ""}">${Array.from({ length: sp }, (_, q) => { const i = g * sp + q; return `<button class="pad${bt.rows[r][i] ? " on" : ""}" type="button" data-r="${r}" data-i="${i}" aria-label="${esc(label)} step ${i + 1}" aria-pressed="${bt.rows[r][i]}"></button>`; }).join("")}</div>`).join("")}
           </div>`).join("")}</div>
-        ${fillKnob()}`;
+        <p class="note">${esc(B().name)} picks the drum fills.</p>`;
     } else if (sheetMode === "view") {
       $("sheetTitle").textContent = "mode";
       const see = LAYERS.filter(l => !HEAR.includes(l));
       body.innerHTML = `
         <div class="view-presets modes">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.icon} ${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
-        <details class="fine"><summary>fine-tune what shows</summary>
+        <details class="fine" hidden><summary>fine-tune what shows</summary>
           <div class="knob"><span class="lbl">what you see</span><div class="layer-grid">${see.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
           <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div></details>`;
     } else if (sheetMode === "stories") {
@@ -6210,7 +6405,9 @@
   $("skyHit").addEventListener("click", e => { e.stopPropagation(); if ($("egg").hidden) openEgg(); else closeEgg(); });
   $("say").addEventListener("click", () => {
     if (finding) return;
-    if (tipOverride) tipOverride = null; else tipIdx++;
+    if (prefs.view === "learn" && sayDemo && !sayPlayed) { sayPlayed = true; markHear(); playToks(sayDemo); return; }
+    if (tipOverride) { tipOverride = null; noticeText = null; } else tipIdx++;
+    sayPlayed = false;
     renderStage();
   });
 
@@ -6328,6 +6525,16 @@
     if (e.target.closest('[data-act="taperec"]')) { $("rec").click(); return; }
     if (e.target.closest('[data-act="mixreset"]')) { song.mix = { ...MIX_DEFAULT }; saveSongs(); applyMix(); renderPalette(); toast("the desk is back to flat"); return; }
     if (e.target.closest("[data-roof]")) { doorbell(); return; }
+    if (e.target.closest('[data-act="vibe"]')) { nextVibe(); return; }
+    const paintB = e.target.closest("[data-paint]");
+    if (paintB) {
+      const v = paintB.dataset.paint, c = current[sel];
+      if (v === "open") { paintOpen = !paintOpen; renderPalette(); if (paintOpen && c) playOne(sel); if (!prefs.sawPaint) { prefs.sawPaint = 1; savePrefs(); } }
+      else if (v === "close") { paintOpen = false; renderPalette(); }
+      else if (c) { setColor(c, v, true); renderPalette(); }
+      return;
+    }
+    if (paintOpen && e.target.closest("[data-add]")) paintOpen = false;
     const b = e.target.closest("[data-add]");
     if (!b) return;
     const t = sec().prog.trim();
@@ -6348,7 +6555,7 @@
   });
   palEl.addEventListener("change", e => { if (e.target.id === "sev") { prefs.sevenths = e.target.checked; savePrefs(); renderPalette(); } });
 
-  const pickChord = j => { sel = j; tipIdx = 0; tipOverride = null; editingLyric = false; renderStage(); playOne(sel); };
+  const pickChord = j => { sel = j; tipIdx = 0; tipOverride = null; paintOpen = false; sayPlayed = false; editingLyric = false; renderStage(); playOne(sel); };
   stripEl.addEventListener("click", e => {
     if (e.target.closest('[data-act="plus"]')) { openSheet("add"); return; }
     const t = e.target.closest(".tile[data-j]");
