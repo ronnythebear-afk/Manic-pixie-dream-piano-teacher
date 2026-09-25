@@ -3782,21 +3782,87 @@
     // auto-tuned heartbreak: a clear human voice, hard pitch snaps, a soft octave double
     ghost: { slope: 1.15, harm: 0.22, vib: [0, 0], vibDelay: 1, glide: 0.006, breath: 0.05, shift: 1.0, gain: 0.33, cons: 1.1, robot: true, jit: 0 },
     // soft and clear, a little air around it
-    wren: { slope: 1.3, vib: [4.8, 13], vibDelay: 0.28, glide: 0.05, breath: 0.08, shift: 1.08, gain: 0.63, cons: 1.15, jit: 4 },
+    wren: { slope: 1.3, vib: [4.8, 13], vibDelay: 0.28, glide: 0.05, breath: 0.08, shift: 1.08, gain: 0.5, cons: 1.15, jit: 4 },
     // half spoken: pitch drifts down through each word like talking, quick unstressed syllables
     oona: { slope: 1.35, vib: [0, 0], vibDelay: 1, glide: 0.05, breath: 0.12, shift: 0.92, gain: 0.19, cons: 1.3, speak: true, jit: 9 },
     // a wackadoodle belter: clear words, big scoops, yodel flips, hiccups, a dramatic fall at the end
     lulu: { slope: 1.1, vib: [6.5, 30], vibDelay: 0.15, glide: 0.07, scoop: 110, crack: 0.3, hiccup: 0.15, warble: true, fall: true, breath: 0.12, shift: 1.1, gain: 0.225, cons: 1.3, jit: 5 }
   };
   const VOICE_MIX = 0.35; // how loud the singers sit against the piano
+
+  // each friend's vocal sound: the room and the tricks around the voice
+  //   slap: a single quick echo · echo: a tempo echo in beats · verb: room size and amount · chorus: width
+  const VOICE_FX = {
+    dusty: { slap: 0.105, slapWet: 0.32, verb: [0.9, 0.1] },                                   // country slapback
+    ghost: { chorus: 0.55, echo: 0.75, echoFb: 0.32, echoWet: 0.17, verb: [1.6, 0.12], dark: true }, // 808s width and a dark echo
+    wren: { verb: [1.3, 0.3], warm: true },                                                    // a campfire room
+    oona: { echo: 1.5, echoFb: 0.45, echoWet: 0.27, verb: [2.3, 0.15] },                       // a long gallery echo
+    lulu: { verb: [2.4, 0.32], chorus: 0.25 }                                                  // a big party hall
+  };
+  // where each friend sits against the beat, in seconds: laid back, locked in, or rushing
+  const FEEL = { dusty: 0.028, ghost: 0, wren: 0.012, oona: 0.045, lulu: -0.018 };
+  const irCache = {};
+  function roomImpulse(len, warm) {
+    const key = len + (warm ? "w" : "");
+    if (irCache[key]) return irCache[key];
+    const n = Math.floor(ac.sampleRate * len), buf = ac.createBuffer(2, n, ac.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = buf.getChannelData(ch); let lp = 0;
+      for (let i = 0; i < n; i++) { const x = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); lp += (x - lp) * (warm ? 0.35 : 0.8); d[i] = i < 40 ? 0 : lp; }
+    }
+    return (irCache[key] = buf);
+  }
+  let fxRig = null;
+  // one shared effects rig per friend, rebuilt when the mix is rebuilt
+  function voiceSend(who) {
+    if (!ac || !voiceBus) return null;
+    if (fxRig && fxRig.bus === voiceBus && fxRig.who === who) { if (fxRig.echo) fxRig.echo.delayTime.value = Math.min(1.9, fxRig.beats * 60 / Math.max(40, S().bpm)); return fxRig.input; }
+    if (fxRig && fxRig.lfos) fxRig.lfos.forEach(o => { try { o.stop(); } catch {} });
+    const F = VOICE_FX[who] || {}, input = ac.createGain(), out = voiceBus;
+    const hp = ac.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 220; input.connect(hp);
+    const rig = { bus: voiceBus, who, input, lfos: [] };
+    if (F.slap) {
+      const d = ac.createDelay(0.5), fb = ac.createGain(), w = ac.createGain(), lp = ac.createBiquadFilter();
+      d.delayTime.value = F.slap; fb.gain.value = 0.12; w.gain.value = F.slapWet; lp.type = "lowpass"; lp.frequency.value = 3200;
+      hp.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(w); w.connect(out);
+    }
+    if (F.echo) {
+      const d = ac.createDelay(2), fb = ac.createGain(), w = ac.createGain(), lp = ac.createBiquadFilter();
+      rig.beats = F.echo; rig.echo = d;
+      d.delayTime.value = Math.min(1.9, F.echo * 60 / Math.max(40, S().bpm)); fb.gain.value = F.echoFb; w.gain.value = F.echoWet;
+      lp.type = "lowpass"; lp.frequency.value = F.dark ? 1500 : 2600;
+      hp.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(w);
+      if (ac.createStereoPanner) { const pn = ac.createStereoPanner(); pn.pan.value = 0.35; w.connect(pn); pn.connect(out); } else w.connect(out);
+    }
+    if (F.verb) {
+      const cv = ac.createConvolver(), w = ac.createGain();
+      cv.buffer = roomImpulse(F.verb[0], F.warm); w.gain.value = F.verb[1];
+      hp.connect(cv); cv.connect(w); w.connect(out);
+    }
+    if (F.chorus && ac.createStereoPanner) {
+      // two short wobbling delays, one each side: the voice gets wide
+      [-0.8, 0.8].forEach((side, k) => {
+        const d = ac.createDelay(0.05), lfo = ac.createOscillator(), dep = ac.createGain(), w = ac.createGain(), pn = ac.createStereoPanner();
+        d.delayTime.value = 0.014 + k * 0.006; lfo.frequency.value = 0.6 + k * 0.23; dep.gain.value = 0.0035;
+        lfo.connect(dep); dep.connect(d.delayTime); lfo.start(); rig.lfos.push(lfo);
+        w.gain.value = F.chorus * 0.6; pn.pan.value = side;
+        input.connect(d); d.connect(w); w.connect(pn); pn.connect(out);
+      });
+    }
+    fxRig = rig;
+    return input;
+  }
   const F4 = 3400;
   const BWQ = [7, 13, 16, 15];
   const LEVELS = [1, 0.7, 0.4, 0.2];
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
 
   // mood: { minor, fn } from the chord underneath; the voice leans into it
-  function singPhrase(mel, t0, cl, who, mood = {}) {
+  // opt: { delay, cents, pan, gain, quiet } for doubles, harmonies and backing pads
+  function singPhrase(mel, t0, cl, who, mood = {}, opt = {}) {
     const V = TIMBRE[who] || TIMBRE.wren, sh = V.shift, notes = mel.notes;
+    t0 += opt.delay || 0;
+    const quiet = !!opt.quiet;
     const sad = !!mood.minor, reach = mood.fn === "tension", human = !V.robot;
     if (!notes.length || !ac) return;
     const now = ac.currentTime;
@@ -3824,7 +3890,8 @@
     const breathSrc = noise(), breath = ac.createGain(); breath.gain.value = 0.0001;
     breathSrc.connect(breath);
     // ---- the mouth
-    const out = ac.createGain(); out.gain.value = V.gain * VOICE_MIX;
+    const out = ac.createGain(); out.gain.value = V.gain * VOICE_MIX * (opt.gain ?? 1);
+    if (opt.cents) srcs.forEach(([o]) => { o.detune.value = opt.cents; });
     const bands = LEVELS.map((lvl, fi) => {
       const bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = BWQ[fi];
       bp.frequency.value = [VF.ax[0], VF.ax[1], VF.ax[2], F4][fi] * sh;
@@ -3840,25 +3907,31 @@
     const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain();
     hissBp.type = "bandpass"; hissBp.frequency.value = 5000; hissBp.Q.value = 1.2; hiss.gain.value = 0.0001;
     hissSrc.connect(hissBp); hissBp.connect(hiss); hiss.connect(voiceTap || tapOut || master); // skips the warm tape filter
+    // where the voice goes: centered (or panned for doubles), plus the friend's room
+    let dest = voiceBus || master;
+    if (opt.pan && ac.createStereoPanner) { const pn = ac.createStereoPanner(); pn.pan.value = opt.pan; pn.connect(dest); dest = pn; }
+    const send = voiceSend(who);
     // character color on the way out
     let tail = out;
     if (V.twang) { const pk = ac.createBiquadFilter(); pk.type = "peaking"; pk.frequency.value = V.twang[0]; pk.Q.value = V.twang[1]; pk.gain.value = V.twang[2]; out.connect(pk); tail = pk; }
     if (V.comb) {
       const d = ac.createDelay(0.05), fb = ac.createGain(), mix = ac.createGain();
       d.delayTime.value = V.comb; fb.gain.value = 0.45; mix.gain.value = 0.7;
-      tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(voiceBus || master);
+      tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(dest);
     }
-    tail.connect(voiceBus || master);
+    tail.connect(dest);
+    if (send) tail.connect(send);
 
     // ---- automation helpers
     const setF = (t, F, tau) => bands.forEach((b, fi) => b.f.setTargetAtTime((fi < 3 ? F[fi] : F4) * sh, q(t), tau));
     const setAmp = (t, a, tau = 0.012) => amp.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
     const setBreath = (t, a, tau = 0.012) => breath.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
     const setNas = (t, a, tau = 0.015) => { nas.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); [1, 2].forEach(fi => bands[fi].g.setTargetAtTime(bands[fi].lvl * 3.4 * (a > 0.1 ? 0.25 : 1), q(t), tau)); };
-    const setHiss = (t, band, Q, a, tau = 0.01) => { if (band) { hissBp.frequency.setValueAtTime(band * Math.min(1.1, sh), q(t)); hissBp.Q.setValueAtTime(Q, q(t)); } hiss.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); };
+    const cm = quiet ? 0.3 : 1; // doubles keep their s and t sounds soft so they don't pile up
+    const setHiss = (t, band, Q, a, tau = 0.01) => { a *= cm; if (band) { hissBp.frequency.setValueAtTime(band * Math.min(1.1, sh), q(t)); hissBp.Q.setValueAtTime(Q, q(t)); } hiss.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); };
     const setPitch = (t, f, tau) => srcs.forEach(([o, mult]) => o.frequency.setTargetAtTime(f * mult, q(t), tau));
     const jumpPitch = (t, f) => srcs.forEach(([o, mult]) => o.frequency.setValueAtTime(f * mult, q(t)));
-    const burst = (t, C, soft) => fricNoise(q(t), q(t) + 0.018, C.band, C.q, 0.055 * V.cons * (C.v ? 0.55 : 1) * (soft ? 0.6 : 1));
+    const burst = (t, C, soft) => quiet ? null : fricNoise(q(t), q(t) + 0.018, C.band, C.q, 0.055 * V.cons * (C.v ? 0.55 : 1) * (soft ? 0.6 : 1));
     const B0 = (V.breath + (sad ? 0.12 : 0)) * 0.35;
     if (sad) { lfo.frequency.value = V.vib[0] * 0.85; }
     const cLen = C => (C.k === "fri" || C.k === "aff" ? 0.075 : C.k === "stop" ? 0.055 : C.k === "asp" ? 0.05 : 0.05) * (0.85 + 0.15 * V.cons);
@@ -3868,7 +3941,7 @@
     let prevEnd = tStart - 0.25, lastF = VF.ax;
     const startT = tStart - 0.45;
     // a soft breath in before the line
-    if (human) { setF(tStart - 0.42, VF.ah, 0.01); setBreath(tStart - 0.4, 0.22 + V.breath * 0.3, 0.05); setBreath(tStart - 0.16, 0.0001, 0.03); }
+    if (human && !quiet) { setF(tStart - 0.42, VF.ah, 0.01); setBreath(tStart - 0.4, 0.22 + V.breath * 0.3, 0.05); setBreath(tStart - 0.16, 0.0001, 0.03); }
     const hi = (SING_STYLES[who] || SING_STYLES.wren).range[1];
 
     notes.forEach((nt, i) => {
@@ -5661,7 +5734,20 @@
   }
   // the accompanist sings this chord's words, with karaoke and a moving mouth
   function singChord(c, mel, t0, cl, sIdx = secIdx) {
-    singPhrase(mel, t0, cl, prefs.buddy, { minor: ["min", "dim"].includes(baseQuality(c.ch.ivs)), fn: c.a.fn });
+    const who = prefs.buddy, mood = { minor: ["min", "dim"].includes(baseQuality(c.ch.ivs)), fn: c.a.fn };
+    const t = t0 + (FEEL[who] || 0);
+    singPhrase(mel, t, cl, who, mood);
+    // choruses open up: a double-tracked lead, a harmony above, and soft oohs underneath
+    if (/chorus|hook/i.test((song.sections[sIdx] || {}).name || "")) {
+      const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+      const above = m => { for (let x = m + 3; x <= m + 9; x++) if (pcs.has(mod(x))) return x; return m + 4; };
+      singPhrase(mel, t, cl, who, mood, { delay: 0.021, cents: 7, pan: -0.55, gain: 0.5, quiet: true });
+      singPhrase({ ...mel, notes: mel.notes.map(n => ({ ...n, midi: above(n.midi) })) }, t, cl, who, mood, { delay: 0.012, cents: -6, pan: 0.55, gain: 0.4, quiet: true });
+      const [lo] = (SING_STYLES[who] || SING_STYLES.wren).range, tones = [];
+      for (let m = lo; m < lo + 14 && tones.length < 2; m++) if (pcs.has(mod(m)) && mod(m) !== c.ch.rootPc) tones.push(m);
+      const ooh = [{ show: "ooh", ph: { on: [], nuc: ["uw"], co: [] }, stress: false }];
+      tones.forEach((m, k) => singPhrase({ sy: ooh, notes: [{ midi: m, start: 0.05, dur: Math.max(0.5, c.beats - 0.3), s: 0 }] }, t0, cl, who, mood, { pan: k ? 0.8 : -0.8, gain: 0.26, quiet: true, cents: k ? 4 : -4 }));
+    }
     mel.notes.forEach(nt => {
       const t = t0 + nt.start * cl, dur = Math.max(0.12, nt.dur * cl);
       later(() => {
