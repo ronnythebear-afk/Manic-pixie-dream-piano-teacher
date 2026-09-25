@@ -832,6 +832,72 @@
     .groove { max-width: 92px; }
     .dbtn { min-width: 44px; padding: 0 8px; }
   }
+
+  /* ---------- the house a key lives in ---------- */
+  .sheet.wide { width: min(780px, 100%); max-height: 94vh; }
+  .house { display: grid; gap: 10px; }
+  .street { display: flex; align-items: flex-end; gap: 4px; }
+  .street-end { font-family: var(--type); font-size: 10px; color: var(--soft); writing-mode: vertical-rl; transform: rotate(180deg); }
+  .st-house { flex: 1; min-width: 0; display: grid; justify-items: center; gap: 1px; padding: 14px 2px 5px; border: 1.5px solid var(--line); background: var(--card); color: inherit; cursor: pointer;
+    clip-path: polygon(50% 0, 100% 28%, 100% 100%, 0 100%, 0 28%); border-radius: 0 0 6px 6px; font-family: var(--hand); font-weight: 700; }
+  .st-house b { font-size: 18px; line-height: 1; }
+  .st-house small { font-family: var(--type); font-size: 9.5px; color: var(--soft); white-space: nowrap; }
+  .st-house.home { background: color-mix(in srgb, var(--home) 45%, var(--card)); transform: scale(1.08); transform-origin: 50% 100%; }
+  .st-house.sel { background: color-mix(in srgb, var(--lh) 40%, var(--card)); }
+  .street2 { display: flex; gap: 6px; flex-wrap: wrap; }
+  .st-link { border: 1.5px dashed var(--line); border-radius: 999px; background: none; color: inherit; padding: 3px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .st-link b { font-family: var(--hand); font-size: 15px; }
+  .st-link.sel { background: color-mix(in srgb, var(--surprise) 25%, transparent); border-style: solid; }
+  .house-wrap { border-radius: 16px; overflow: hidden; border: 1.5px solid var(--line); }
+  .house-svg { display: block; width: 100%; height: auto; max-height: 52vh; }
+  .h-floor { font-family: var(--type); font-size: 6.5px; fill: #fff; opacity: .7; letter-spacing: .06em; }
+  .h-room { cursor: pointer; }
+  .h-room .h-glass { opacity: .38; transition: opacity .3s; }
+  .h-room.used .h-glass { opacity: .95; }
+  .h-room.now .h-glass { opacity: 1; filter: drop-shadow(0 0 6px #fff3b0); }
+  .h-room .h-num { font-family: var(--hand); font-weight: 700; font-size: 19px; text-anchor: middle; fill: #2f2a3d; pointer-events: none; }
+  .h-room .h-name { font-family: var(--type); font-weight: 700; font-size: 10px; text-anchor: middle; fill: #2f2a3d; pointer-events: none; }
+  .h-room .h-frame { transition: stroke-width .2s; }
+  .h-room.sel .h-frame, .h-room:focus-visible .h-frame { stroke: var(--fn); stroke-width: 4.5; }
+  .h-room.has-note .h-glass { opacity: 1; fill: color-mix(in srgb, var(--lh) 55%, #fff); }
+  .h-room:hover .h-glass { opacity: .8; }
+  .h-room:focus { outline: none; }
+  .h-stone { cursor: pointer; }
+  .h-stone rect { fill: #e9e1cf; stroke: #2f2a3d; stroke-width: 1.2; }
+  .h-stone text { font-family: var(--hand); font-weight: 700; font-size: 11px; text-anchor: middle; fill: #2f2a3d; pointer-events: none; }
+  .h-stone .deg { font-family: var(--type); font-size: 7px; fill: #fff; opacity: .85; }
+  .h-stone.again rect { fill: #e9e1cf; opacity: .55; }
+  .h-stone.lit rect { fill: color-mix(in srgb, var(--rh) 70%, #fff); }
+  .h-stone.sel rect { fill: color-mix(in srgb, var(--lh) 70%, #fff); }
+  .h-stone:focus { outline: none; } .h-stone:focus-visible rect { stroke-width: 2.4; }
+  .h-half { font-family: var(--type); font-weight: 700; font-size: 7px; text-anchor: middle; fill: #fff; }
+  .h-guest { cursor: pointer; } .h-guest.sel .h-sign { fill: var(--tension); }
+  .h-sign { font-family: var(--hand); font-weight: 700; font-size: 10px; text-anchor: middle; fill: #2f2a3d; pointer-events: none; }
+  .h-yardnote { font-family: var(--type); font-size: 7.5px; fill: #fff; opacity: .75; }
+  .h-tenant { transition: transform .5s steps(4, jump-end), opacity .2s; pointer-events: none; }
+  .h-detail { display: grid; gap: 8px; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob); padding: 12px 14px; box-shadow: var(--shadow); }
+  .h-lead { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 19px; line-height: 1.2; }
+  .h-legend { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13.5px; }
+  .h-legend b { font-family: var(--hand); font-size: 16px; margin-right: 4px; }
+  .h-title { display: flex; align-items: center; gap: 12px; }
+  .h-big { font-family: var(--hand); font-weight: 700; font-size: 38px; line-height: 1; min-width: 52px; text-align: center; padding: 2px 8px; border-bottom: 4px solid var(--fn, var(--line)); }
+  .h-title > div > b { display: block; font-family: var(--hand); font-size: 22px; line-height: 1.05; }
+  .h-title > div > span { display: block; font-size: 13px; font-weight: 700; color: var(--soft); }
+  .h-say { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 17px; line-height: 1.2; }
+  .h-say small { font-family: var(--type); font-size: 11px; color: var(--soft); margin-left: 4px; }
+  .h-how { margin: 0; font-size: 14px; line-height: 1.4; }
+  .h-how b { font-family: var(--hand); font-size: 16px; }
+  .eo-row { display: inline-flex; gap: 4px; margin: 0 2px; vertical-align: baseline; }
+  .eo { font-family: var(--hand); font-weight: 700; font-size: 15px; color: var(--soft); opacity: .55; text-decoration: line-through; text-decoration-thickness: 1px; }
+  .eo.on { color: inherit; opacity: 1; text-decoration: none; border-bottom: 2.5px solid var(--rh); }
+  .h-kbd svg { display: block; width: 100%; max-width: 420px; height: auto; }
+  .h-foot { justify-content: flex-end; }
+  .chip { border: 1.5px solid var(--line); border-radius: 999px; background: var(--card); color: inherit; padding: 3px 10px; font-family: var(--hand); font-weight: 700; font-size: 15px; cursor: pointer; }
+  @media (min-width: 760px) {
+    .house { grid-template-columns: 1.1fr 1fr; align-items: start; }
+    .house > .street, .house > .street2, .house > .h-foot { grid-column: 1 / -1; }
+    .house-svg { max-height: 66vh; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -3642,6 +3708,353 @@
   }
 
   // =========================================================
+  // The house a key lives in
+  // Seven rooms, one for each note of the key, stacked by what the chords do:
+  // home chords on the ground floor by the front door, chords that step out
+  // upstairs, and the tension chords in the attic, wanting to come back down.
+  // The key's notes are the foundation stones. Neighboring keys live along the
+  // street, the parallel key lives across it, and borrowed chords visit the garden.
+  // =========================================================
+  const FLOORS = [
+    { name: "the attic", note: "tension. These chords want to come back down to the front door.", degs: [4, 6] },
+    { name: "upstairs", note: "stepping out. These chords leave home and head somewhere.", degs: [1, 3] },
+    { name: "the ground floor", note: "home. The song can rest in any of these rooms.", degs: [5, 0, 2] }
+  ];
+  // room boxes in the house drawing, by floor then position (x, y, w, h)
+  const ROOM_BOX = [
+    [[78, 70, 88, 52], [174, 70, 88, 52]],
+    [[50, 136, 116, 54], [174, 136, 116, 54]],
+    [[26, 204, 92, 60], [124, 204, 92, 60], [222, 204, 92, 60]]
+  ];
+  const ORDINAL = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th"];
+  let houseSel = null, houseRel = false, houseTenant = null;
+
+  // the key the house is showing: the song's key, or its relative through the back door
+  const houseKey = () => (houseRel ? (K.minor ? { tonic: mod(K.tonic + 3), minor: false } : { tonic: mod(K.tonic + 9), minor: true }) : { tonic: K.tonic, minor: K.minor });
+  const relOf = k => (k.minor ? { tonic: mod(k.tonic + 3), minor: false } : { tonic: mod(k.tonic + 9), minor: true });
+  const parOf = k => ({ tonic: k.tonic, minor: !k.minor });
+  const scaleOf = k => (k.minor ? MINOR : MAJOR);
+  const keyLabel = k => pretty(keyName(k));
+  const shortKey = k => pretty((k.minor ? MIN_NAMES : MAJ_NAMES)[k.tonic]) + (k.minor ? "m" : "");
+  // sharps (+) or flats (−) in a key signature
+  function sigOf(k) {
+    const t = k.minor ? mod(k.tonic + 3) : k.tonic, n = mod(t * 7);
+    return n <= 5 ? n : n === 6 ? (MAJ_NAMES[t].includes("b") ? -6 : 6) : n - 12;
+  }
+  const sigText = n => (n ? `${Math.abs(n)}${n > 0 ? "♯" : "♭"}` : "none");
+  function roomsOf(k) {
+    const S = scaleOf(k);
+    return S.steps.map((iv, d) => {
+      const name = scaleNote(k, iv) + S.tri[d], ch = parseChord(name);
+      const root = 60 + mod(k.tonic + iv) - (mod(k.tonic + iv) > 7 ? 12 : 0);
+      const midis = ch.ivs.slice(0, 3).map(x => root + x);
+      return { d, iv, name, ch, num: S.num[d], midis, pcs: midis.map(m => mod(m)), fn: fnOfDegree(k, iv) };
+    });
+  }
+  const scalePcs = k => scaleOf(k).steps.map(iv => mod(k.tonic + iv));
+  const noteOf = (k, pc) => pretty(scaleNote(k, mod(pc - k.tonic)));
+  const floorOf = d => FLOORS.findIndex(f => f.degs.includes(d));
+  function boxOf(d) { const f = floorOf(d); return ROOM_BOX[f][FLOORS[f].degs.indexOf(d)]; }
+  // which rooms the song uses, and which chord is playing
+  function songUse(k) {
+    const use = new Map(), guests = [];
+    current.forEach(c => {
+      const iv = mod(c.ch.rootPc - k.tonic), d = scaleOf(k).steps.indexOf(iv);
+      const a = analyze(c.ch, k);
+      if (d >= 0 && a.inKey && a.fn !== "surprise") use.set(d, (use.get(d) || 0) + 1);
+      else if (!guests.some(g => g.tok === c.tok)) guests.push({ tok: c.tok, ch: c.ch, num: a.num, c });
+    });
+    return { use, guests };
+  }
+
+  // ---------- each friend's house ----------
+  const HOUSE_STYLES = {
+    dusty: {
+      title: "Dusty's honky-tonk", wall: "#b87a4b", wall2: "#9c6238", trim: "#5a3522", glass: "#ffd98a", sky: ["#f4b77a", "#7a5c8f"], ground: "#8a6a3a",
+      roof: () => `<path d="M60 64 170 12 280 64z" fill="#c8453f" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M84 53 170 20 256 53" fill="none" stroke="#e8756c" stroke-width="1" opacity=".7"/>
+        ${Array.from({ length: 11 }, (_, i) => `<circle class="twinkle" style="animation-delay:${-i * .3}s" cx="${70 + i * 20}" cy="${64 - Math.max(0, 5 - Math.abs(i - 5)) * 9.6 + 4}" r="2.4" fill="${["#ffd36b", "#ff9ebb", "#8fe0d0"][i % 3]}"/>`).join("")}
+        <g transform="translate(236 18)"><rect x="-2" y="0" width="34" height="14" rx="3" fill="#2a1f22" stroke="${INK}"/><text x="15" y="10.5" text-anchor="middle" font-family="Shrikhand, Georgia, serif" font-size="9" fill="#ff9ebb" class="neon">open</text></g>`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#b87a4b" stroke="${INK}" stroke-width="1.6"/>${Array.from({ length: Math.floor(h / 9) }, (_, i) => `<path d="M${x} ${y + 9 + i * 9}h${w}" stroke="#9c6238" stroke-width=".8"/>`).join("")}`,
+      door: (x, y) => `<path d="M${x - 11} ${y - 30}h10v30h-10zM${x + 1} ${y - 30}h10v30h-10z" fill="#e0b06a" stroke="${INK}" stroke-width="1.2"/><path d="M${x - 11} ${y - 22}h22" stroke="${INK}" stroke-width=".7"/>`,
+      yard: () => `<g transform="translate(300 300)"><path d="M0 0v-26M0-14h-7v-8M0-18h6v-6" stroke="#5e8a4a" stroke-width="5" stroke-linecap="round" fill="none"/></g>`
+    },
+    ghost: {
+      title: "Static's apartment", wall: "#4a3a72", wall2: "#3a2d5c", trim: "#1a1433", glass: "#8ff5e4", sky: ["#2a2144", "#120d22"], ground: "#2e2548",
+      roof: () => `<rect x="70" y="52" width="200" height="12" fill="#3a2d5c" stroke="${INK}" stroke-width="1.6"/>
+        <path d="M120 52V20M110 26h20M114 34h12" stroke="#b9b3cc" stroke-width="1.6" stroke-linecap="round"/>
+        <g transform="translate(214 40)"><path d="M0 12a14 14 0 0 1 20-14z" fill="#c9c2d6" stroke="${INK}" stroke-width="1.2"/><path d="M8 4l8-8" stroke="${INK}"/><circle cx="17" cy="-5" r="2" fill="#ff6fa9"/></g>
+        <circle cx="290" cy="22" r="10" fill="#f1ecd8" stroke="${INK}" stroke-width="1"/><circle cx="286" cy="19" r="2" fill="#d8d0b8"/>`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#4a3a72" stroke="${INK}" stroke-width="1.6"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#hsDots)"/>`,
+      door: (x, y) => `<rect x="${x - 10}" y="${y - 30}" width="20" height="30" rx="2" fill="#1a1433" stroke="#3fd9b9" stroke-width="1.2"/><circle cx="${x + 5}" cy="${y - 15}" r="1.4" fill="#3fd9b9"/>`,
+      defs: `<pattern id="hsDots" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r=".7" fill="#7a68b0" opacity=".6"/></pattern>`,
+      yard: () => `<g transform="translate(296 300)"><rect x="-10" y="-18" width="20" height="16" rx="2" fill="#c9c2d6" stroke="${INK}"/><rect x="-7" y="-15" width="14" height="10" fill="#3fd9b9" class="neon"/></g>`
+    },
+    wren: {
+      title: "Wren's treehouse", wall: "#d8c49c", wall2: "#bfa77a", trim: "#6b4a33", glass: "#ffe7a8", sky: ["#bfe0d0", "#6f9a86"], ground: "#6f8f4f",
+      roof: () => `<path d="M58 66Q170-6 282 66z" fill="#5f8a55" stroke="${INK}" stroke-width="1.6"/>
+        ${[1, 2, 3].map(r => `<path d="M${66 + r * 12} 66Q170 ${4 + r * 15} ${274 - r * 12} 66" fill="none" stroke="#4b7042" stroke-width="1"/>`).join("")}
+        <rect x="226" y="18" width="14" height="26" fill="#8a6446" stroke="${INK}" stroke-width="1.2"/>
+        <path class="float" d="M233 16q-6-6 0-10t0-10" fill="none" stroke="#e8e0d0" stroke-width="2" stroke-linecap="round" opacity=".8"/>`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#d8c49c" stroke="${INK}" stroke-width="1.6"/>${Array.from({ length: Math.floor(w / 14) }, (_, i) => `<path d="M${x + 7 + i * 14} ${y}v${h}" stroke="#c4ad82" stroke-width=".8"/>`).join("")}`,
+      door: (x, y) => `<path d="M${x - 11} ${y}v-20a11 11 0 0 1 22 0v20z" fill="#8a6446" stroke="${INK}" stroke-width="1.2"/><circle cx="${x + 5}" cy="${y - 12}" r="1.3" fill="#e9b44c"/>`,
+      yard: () => `<g transform="translate(300 300)"><path d="M0 0v-12" stroke="#6a8a4a" stroke-width="1.4"/><circle cx="0" cy="-15" r="4" fill="#b78ad6"/><circle cx="-8" cy="-6" r="3" fill="#f2a44b"/><path d="M-8-3v3" stroke="#6a8a4a"/></g>`
+    },
+    oona: {
+      title: "Oona's gallery", wall: "#f4f1ea", wall2: "#dcd8ce", trim: "#1b1b21", glass: "#f7f2df", sky: ["#2a2a30", "#111115"], ground: "#26262c",
+      roof: () => `<rect x="70" y="56" width="200" height="8" fill="#1b1b21"/>
+        <path d="M104 56V38h8M236 56V38h-8" stroke="#55555e" stroke-width="1.4" fill="none"/><path d="M112 38l14 12M228 38l-14 12" stroke="#fff" stroke-width=".6" opacity=".3"/>
+        <text x="170" y="48" text-anchor="middle" font-family="var(--type), monospace" font-size="8" letter-spacing="2" fill="#dcd8ce">GALLERY</text>`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#f4f1ea" stroke="#1b1b21" stroke-width="1.6"/>`,
+      door: (x, y) => `<rect x="${x - 9}" y="${y - 32}" width="18" height="32" fill="#1b1b21"/><circle cx="${x + 13}" cy="${y - 26}" r="2.4" fill="#e0453a"/>`,
+      yard: () => `<g transform="translate(300 300)"><rect x="-6" y="-16" width="12" height="16" fill="#f4f1ea" stroke="#1b1b21"/><circle cx="0" cy="-22" r="5" fill="#e0453a" stroke="#1b1b21"/></g>`
+    },
+    lulu: {
+      title: "Lulu's party house", wall: "#ff8fb6", wall2: "#f06d9c", trim: "#7a2a4a", glass: "#fff0a8", sky: ["#ffd1e1", "#b57cff"], ground: "#7fd6b0",
+      roof: () => `<path d="M62 64Q86 40 110 64Q134 40 158 64Q182 40 206 64Q230 40 254 64Q268 48 280 64z" fill="#b57cff" stroke="${INK}" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M70 30l40 14 40-10 40 10 40-12 40 12" fill="none" stroke="${INK}" stroke-width=".8"/>
+        ${Array.from({ length: 10 }, (_, i) => `<path d="M${76 + i * 20} ${33 + (i % 2) * 3}l6 10 6-10z" fill="${["#ffd35c", "#7fd6b0", "#ff5f9e"][i % 3]}" stroke="${INK}" stroke-width=".5"/>`).join("")}
+        ${[[60, 22, "#ffd35c"], [282, 16, "#7fd6b0"], [296, 30, "#ff5f9e"]].map(([x, y, c], i) => `<g class="float" style="animation-delay:${-i * .7}s"><path d="M${x} ${y + 9}q-3 12 1 24" fill="none" stroke="${INK}" stroke-width=".5"/><ellipse cx="${x}" cy="${y}" rx="7" ry="9" fill="${c}" stroke="${INK}"/></g>`).join("")}`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="#ff8fb6" stroke="${INK}" stroke-width="1.6"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="url(#hsPolka)"/>`,
+      door: (x, y) => `<path d="M${x - 11} ${y}v-22a11 11 0 0 1 22 0v22z" fill="#ffd35c" stroke="${INK}" stroke-width="1.2"/><path d="M${x} ${y - 24}l2 4 4 .5-3 3 .8 4-3.8-2-3.8 2 .8-4-3-3 4-.5z" fill="#ff5f9e"/>`,
+      defs: `<pattern id="hsPolka" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="6" cy="6" r="1.4" fill="#fff" opacity=".35"/></pattern>`,
+      yard: () => `<g transform="translate(300 300)"><path d="M-6 0l2-14h8l2 14z" fill="#d9453f" stroke="${INK}"/><ellipse cx="0" cy="-14" rx="4" ry="1.2" fill="#fff"/></g>`
+    }
+  };
+  const hstyle = () => HOUSE_STYLES[prefs.buddy] || HOUSE_STYLES.dusty;
+
+  function houseSVG(k) {
+    const st = hstyle(), rooms = roomsOf(k), { use, guests } = songUse(k), f = n => n.toFixed(1);
+    const selD = houseSel && houseSel.kind === "room" ? houseSel.d : null;
+    const stonePc = houseSel && houseSel.kind === "stone" ? houseSel.pc : null;
+    let s = `<defs>${st.defs || ""}<linearGradient id="hsSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${st.sky[0]}"/><stop offset="1" stop-color="${st.sky[1]}"/></linearGradient></defs>
+      <rect width="340" height="330" fill="url(#hsSky)"/>
+      <rect y="292" width="340" height="38" fill="${st.ground}"/>`;
+    // the building: three floors, narrower as they go up, and stairs up the side
+    let body = st.walls(66, 62, 208, 66) + st.walls(40, 128, 260, 68) + st.walls(16, 196, 308, 76);
+    // stairs between floors: little zigzags on the right wall
+    body += `<path class="stairs" d="M316 268h-8v-8h-8v-8h-8v-8M292 190h-8v-8h-8v-8h-8v-8" fill="none" stroke="${st.trim}" stroke-width="2" opacity=".55"/>`;
+    s += `<g class="cutout" filter="url(#papercut)">${st.roof()}${body}`;
+    // floor labels
+    [["attic", 66, 68], ["upstairs", 44, 134], ["ground", 20, 202]].forEach(([t, x, y]) => { s += `<text class="h-floor" x="${x + 3}" y="${y + 3}">${t}</text>`; });
+    // rooms
+    rooms.forEach(r => {
+      const [x, y, w, h] = boxOf(r.d), n = use.get(r.d) || 0;
+      const inStone = stonePc != null && r.pcs.includes(stonePc);
+      const cls = ["h-room", `fn-${r.fn}`, n ? "used" : "", selD === r.d ? "sel" : "", inStone ? "has-note" : ""].filter(Boolean).join(" ");
+      s += `<g class="${cls}" data-room="${r.d}" role="button" tabindex="0" aria-label="${esc(r.num + ", " + pretty(r.name))}" style="--fn:var(--${r.fn === "surprise" ? "tension" : r.fn})">
+        <rect class="h-glass" x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${st.glass}"/>
+        <rect class="h-frame" x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="none" stroke="${st.trim}" stroke-width="2.4"/>
+        <path d="M${x + w / 2} ${y}v${h}M${x} ${y + h * .45}h${w}" stroke="${st.trim}" stroke-width=".9" opacity=".35"/>
+        <text class="h-num" x="${x + w / 2}" y="${y + h * .52}">${esc(r.num)}</text>
+        <text class="h-name" x="${x + w / 2}" y="${y + h - 7}">${esc(pretty(r.name))}${n > 1 ? ` ×${n}` : ""}</text>
+      </g>`;
+      if (r.d === 0) s += st.door(x + w - 16, y + h);
+    });
+    s += `</g>`;
+    // the foundation: the key's notes as stones, spaced by whole and half steps
+    const S = scaleOf(k), steps = S.steps.concat(12), gaps = steps.slice(1).map((v, i) => v - steps[i]);
+    let x = 22;
+    const W = 30, G = 5;
+    steps.forEach((iv, i) => {
+      const pc = mod(k.tonic + iv), inRoom = selD != null && rooms[selD].pcs.includes(pc);
+      const cls = ["h-stone", i === 7 ? "again" : "", inRoom ? "lit" : "", stonePc === pc ? "sel" : ""].filter(Boolean).join(" ");
+      s += `<g class="${cls}" data-stone="${pc}" role="button" tabindex="0" aria-label="${esc(noteOf(k, pc))}, note ${i % 7 + 1}">
+        <rect x="${f(x)}" y="274" width="${W}" height="18" rx="3"/>
+        <text x="${f(x + W / 2)}" y="286.5">${esc(noteOf(k, pc))}</text><text class="deg" x="${f(x + W / 2)}" y="301">${i % 7 + 1}</text></g>`;
+      if (i < 7) {
+        const g = gaps[i] * G;
+        if (gaps[i] === 1) s += `<text class="h-half" x="${f(x + W + g / 2)}" y="272">½</text>`;
+        else if (gaps[i] === 3) s += `<text class="h-half" x="${f(x + W + g / 2)}" y="272">1½</text>`;
+        x += W + g;
+      }
+    });
+    // borrowed chords visiting the garden
+    guests.slice(0, 4).forEach((g, i) => {
+      const gx = 30 + i * 62, sel = houseSel && houseSel.kind === "guest" && houseSel.tok === g.tok;
+      s += `<g class="h-guest${sel ? " sel" : ""}" data-guest="${esc(g.tok)}" role="button" tabindex="0" aria-label="Visitor ${esc(pretty(g.tok))}">
+        <g class="cutout" filter="url(#papercut)"><circle cx="${gx}" cy="312" r="5" fill="#f3d2b8" stroke="${INK}"/><path d="M${gx - 6} 326q6-12 12 0z" fill="var(--surprise)" stroke="${INK}"/>
+        <rect x="${gx + 6}" y="302" width="${Math.max(24, pretty(g.tok).length * 7 + 8)}" height="14" rx="2" fill="#fffaf0" stroke="${INK}" stroke-width=".8"/>
+        <text x="${gx + 6 + Math.max(24, pretty(g.tok).length * 7 + 8) / 2}" y="312.5" class="h-sign">${esc(pretty(g.tok))}</text></g></g>`;
+    });
+    if (!guests.length) s += `<text class="h-yardnote" x="20" y="318">the garden: chords from other keys visit here</text>`;
+    s += `<g class="cutout" filter="url(#papercut)" transform="translate(48 56) scale(.9)">${st.yard()}</g>`;
+    // your friend, in the room that's playing
+    const cd = current[sel] ? scaleOf(k).steps.indexOf(mod(current[sel].ch.rootPc - k.tonic)) : -1, cb = cd >= 0 ? boxOf(cd) : null;
+    s += `<g class="h-tenant" id="houseTenant" style="${cb ? `transform:translate(${cb[0] + cb[2] * 0.2}px, ${cb[1] + cb[3] - 3}px)` : "opacity:0"}">${cut(CHAR_SVG[prefs.buddy](0, 0, prefs.buddy === "oona" ? 0.52 : 0.62))}</g>`;
+    return `<svg class="house-svg" viewBox="0 0 340 330" role="group" aria-label="${esc(st.title)}">${s}</svg>`;
+  }
+
+  // the street: keys that share six of seven notes live next door
+  function streetHTML(k) {
+    const around = [-2, -1, 0, 1, 2].map(n => ({ tonic: mod(k.tonic + n * 7), minor: k.minor, n }));
+    const sel = houseSel && houseSel.kind === "street" ? houseSel : null;
+    return `<div class="street" role="group" aria-label="Neighboring keys">
+      <span class="street-end">♭ side</span>
+      ${around.map(h => `<button class="st-house${h.n ? "" : " home"}${sel && sel.tonic === h.tonic && sel.minor === h.minor ? " sel" : ""}" type="button" data-street="${h.tonic}${h.minor ? "m" : "M"}" aria-label="${esc(keyLabel(h))}"><b>${esc(shortKey(h))}</b><small>${esc(sigText(sigOf(h)))}</small></button>`).join("")}
+      <span class="street-end">♯ side</span></div>
+      <div class="street2">
+        <button class="st-link${sel && sel.across ? " sel" : ""}" type="button" data-street="${k.tonic}${k.minor ? "M" : "m"}" data-across="1">across the street: <b>${esc(keyLabel(parOf(k)))}</b></button>
+        <button class="st-link" type="button" data-backdoor="1">${houseRel ? "front door" : "same house, back door"}: <b>${esc(keyLabel(relOf(k)))}</b></button>
+      </div>`;
+  }
+
+  // the three notes of a chord, found by skipping every other note of the key
+  function everyOther(k, r) {
+    const S = scaleOf(k), names = [];
+    for (let j = 0; j < 5; j++) {
+      const iv = S.steps[(r.d + j) % 7], pc = mod(k.tonic + iv), on = j % 2 === 0;
+      const actual = on ? r.pcs[j / 2] : pc;
+      names.push(`<span class="eo${on ? " on" : ""}">${esc(on && actual !== pc ? noteName(r.ch, r.midis[j / 2]) : noteOf(k, pc))}</span>`);
+    }
+    return names.join("");
+  }
+  const semis = r => [r.midis[1] - r.midis[0], r.midis[2] - r.midis[1]];
+  const qualWord = r => ({ "4,3": "major: 4 keys up, then 3", "3,4": "minor: 3 keys up, then 4", "3,3": "diminished: 3 keys up, then 3 again", "4,4": "augmented: 4 and 4" })[semis(r).join(",")] || "";
+  function miniKeys(k, hi) {
+    const lo = 60 + k.tonic - (k.tonic > 4 ? 12 : 0), start = lo - (isBlack(lo) ? 1 : 0);
+    let end = start + 14; while (isBlack(end)) end++;
+    const sc = new Set(scalePcs(k));
+    const pick = new Set(hi.map(m => { let x = m; while (x < start) x += 12; while (x > end) x -= 12; return x; }));
+    return keyboard({ lh: [], rh: [...pick] }, start, end, { label: (m, on) => (sc.has(mod(m)) ? noteOf(k, mod(m)) : ""), tall: false });
+  }
+
+  function detailHTML(k) {
+    const rooms = roomsOf(k), b = B(), { use, guests } = songUse(k), st = hstyle();
+    const add = tok => `<button class="btn" type="button" data-hadd="${esc(tok)}">+ add ${esc(pretty(tok))} to the song</button>`;
+    if (!houseSel) {
+      return `<div class="h-detail"><p class="h-lead">${esc(st.title)}, in ${esc(keyLabel(k))}. Seven rooms, one for each note of the key. Tap a room to go in, a stone to hear a note, or a house down the street.</p>
+        <ul class="h-legend">${FLOORS.map(fl => `<li><b>${esc(fl.name)}</b> ${esc(fl.note)}</li>`).join("")}<li><b>the foundation</b> the ${scaleOf(k).steps.length} notes every room is built from. Most are a whole step apart; the ½ marks the two half steps.</li></ul>
+        <p class="note">Lit windows are rooms your song uses. Press play and ${esc(b.name)} walks from room to room.</p></div>`;
+    }
+    if (houseSel.kind === "room") {
+      const r = rooms[houseSel.d], fl = FLOORS[floorOf(r.d)], n = use.get(r.d) || 0;
+      const line = (k.minor ? b.minor : b.major)[r.iv] || "";
+      const degs = [0, 2, 4].map(j => (r.d + j) % 7 + 1);
+      const home = rooms[0];
+      const sib = rooms.filter(o => o.d !== r.d).map(o => ({ ...o, shared: r.pcs.filter(p => o.pcs.includes(p)) })).filter(o => o.shared.length >= 2);
+      return `<div class="h-detail">
+        <div class="h-title"><span class="h-big" style="--fn:var(--${r.fn})">${esc(r.num)}</span><div><b>${esc(pretty(r.name))}</b><span>${esc(fl.name)} · ${esc(fl.note)}</span></div></div>
+        ${line ? `<p class="h-say">“${esc(line)}” <small>${esc(b.name)}</small></p>` : ""}
+        <p class="h-how">Built on the <b>${ORDINAL[r.d]}</b> note of the key. Start there and take every other note: <span class="eo-row">${everyOther(k, r)}</span> That's notes ${degs.join(", ")}.${r.pcs.some(p => !scalePcs(k).includes(p)) ? " In minor, this room borrows one raised note so it pulls harder toward home." : ""}</p>
+        <div class="h-kbd">${miniKeys(k, r.midis)}</div>
+        ${sib.length ? `<p class="h-how">Close relatives: ${sib.map(o => `<button class="chip sib" type="button" data-room="${o.d}">${esc(o.num)} ${esc(pretty(o.name))}</button> shares ${o.shared.map(p => esc(noteOf(k, p))).join(" and ")}`).join("; ")}. Chords that share two notes can stand in for each other, and moving between them feels smooth.</p>` : ""}
+        <p class="note">${esc(qualWord(r))}${n ? ` · your song visits ${n === 1 ? "once" : n + " times"}` : " · your song hasn't been here yet"}</p>
+        <div class="row"><button class="btn surprise" type="button" data-hplay="room">▶ hear it</button>${r.d ? `<button class="btn" type="button" data-hplay="home">▶ then walk home to ${esc(pretty(home.name))}</button>` : ""}${add(r.name)}</div></div>`;
+    }
+    if (houseSel.kind === "stone") {
+      const pc = houseSel.pc, d = scalePcs(k).indexOf(pc), holders = rooms.filter(r => r.pcs.includes(pc));
+      const role = r => ["the root", "the middle", "the top"][r.pcs.indexOf(pc)];
+      return `<div class="h-detail">
+        <div class="h-title"><span class="h-big">${esc(noteOf(k, pc))}</span><div><b>note ${d + 1} of ${esc(keyLabel(k))}</b><span>${d === 0 ? "the key's home note" : `${ORDINAL[d]} step up from ${esc(noteOf(k, k.tonic))}`}</span></div></div>
+        <p class="h-how">${esc(noteOf(k, pc))} lives in ${holders.length} rooms: ${holders.map(r => `<b>${esc(r.num)}</b> (${esc(pretty(r.name))}, as ${role(r)})`).join(", ")}. A note shared by two chords is a thread between them: moving from one to the other, that key can stay down.</p>
+        <div class="h-kbd">${miniKeys(k, [60 + pc])}</div>
+        <div class="row"><button class="btn surprise" type="button" data-hplay="stone">▶ hear it</button><button class="btn" type="button" data-hplay="scale">▶ hear the whole foundation</button></div></div>`;
+    }
+    if (houseSel.kind === "street") {
+      const nk = { tonic: houseSel.tonic, minor: houseSel.minor }, a = scalePcs(k), bb = scalePcs(nk);
+      const gone = a.filter(p => !bb.includes(p)), came = bb.filter(p => !a.includes(p));
+      const shared = roomsOf(nk).filter(r => rooms.some(x => x.name === r.name));
+      const same = nk.tonic === k.tonic && nk.minor === k.minor;
+      const pairs = gone.map(p => { const to = came.find(q => Math.abs(((q - p + 18) % 12) - 6) === 1) ?? came[0]; return `${noteOf(k, p)} becomes ${noteOf(nk, to)}`; });
+      const where = houseSel.across ? "across the street" : same ? "this house" : `${Math.abs(houseSel.n)} door${Math.abs(houseSel.n) > 1 ? "s" : ""} toward the ${houseSel.n > 0 ? "♯" : "♭"} side`;
+      return `<div class="h-detail">
+        <div class="h-title"><span class="h-big">${esc(shortKey(nk))}</span><div><b>${esc(keyLabel(nk))}</b><span>${esc(where)} · ${esc(sigText(sigOf(nk)))}</span></div></div>
+        ${same ? `<p class="h-how">This is home. Each house to the right adds a sharp, each to the left adds a flat, and next-door neighbors share all but one note.</p>` : `<p class="h-how">Shares ${7 - gone.length} of 7 notes with ${esc(keyLabel(k))}.${pairs.length ? ` What changes: ${pairs.map(esc).join(", ")}.` : ""} ${shared.length ? `Chords you'd find in both houses: ${shared.map(r => `<b>${esc(pretty(r.name))}</b>`).join(", ")}.` : ""}</p>
+        ${houseSel.across ? `<p class="note">Its chords are the usual visitors in your garden. Try one:</p><div class="row">${palette(k, false).borrowed.map(c => `<button class="chip" type="button" data-hadd="${esc(c.tok)}">${esc(c.num)} ${esc(pretty(c.tok))}</button>`).join("")}</div>` : ""}`}
+        <div class="row">${same ? "" : `<button class="btn surprise" type="button" data-hplay="compare">▶ hear both foundations</button>`}${same || houseSel.across ? "" : `<button class="btn" type="button" data-hmove="${nk.tonic}${nk.minor ? "m" : "M"}">move the song to ${esc(keyLabel(nk))}</button>`}</div></div>`;
+    }
+    if (houseSel.kind === "guest") {
+      const g = guests.find(x => x.tok === houseSel.tok);
+      if (!g) { houseSel = null; return detailHTML(k); }
+      const iv = mod(g.ch.rootPc - k.tonic), par = parOf(k), fromPar = scaleOf(par).steps.includes(iv);
+      const line = iv === 5 && !k.minor && baseQuality(g.ch.ivs) === "min" ? b.minorIV : iv === 10 && !k.minor ? b.flat7 : b.borrowed(g.num);
+      return `<div class="h-detail">
+        <div class="h-title"><span class="h-big" style="--fn:var(--surprise)">${esc(g.num)}</span><div><b>${esc(pretty(g.tok))}</b><span>a visitor · not one of the seven rooms</span></div></div>
+        <p class="h-say">“${esc(line)}” <small>${esc(b.name)}</small></p>
+        <p class="h-how">${fromPar ? `It lives across the street in ${esc(keyLabel(par))}, which shares the same home note. Borrowing from there adds a shadow without leaving home.` : `Its notes don't all fit the foundation, so it's a guest from further away. That's the surprise you hear.`}</p>
+        <div class="h-kbd">${miniKeys(k, g.ch.ivs.slice(0, 3).map(x => 60 + g.ch.rootPc + x))}</div>
+        <div class="row"><button class="btn surprise" type="button" data-hplay="guest">▶ hear it</button></div></div>`;
+    }
+    return "";
+  }
+
+  function houseHTML() {
+    const k = houseKey();
+    return `<div class="house">
+      ${streetHTML(k)}
+      <div class="house-wrap" id="houseWrap">${houseSVG(k)}</div>
+      <div id="houseDetail">${detailHTML(k)}</div>
+      <div class="row h-foot"><button class="btn" type="button" data-open="knobs">key and feel settings</button></div>
+    </div>`;
+  }
+
+  // walk the tenant into a room (stop-motion hops, not a glide)
+  function houseFollow(c) {
+    const t = $("houseTenant");
+    if (!t || !c) return;
+    const k = houseKey(), d = scaleOf(k).steps.indexOf(mod(c.ch.rootPc - k.tonic));
+    const svg = t.ownerSVGElement;
+    svg.querySelectorAll(".h-room.now").forEach(el => el.classList.remove("now"));
+    if (d < 0) { t.style.opacity = "0"; houseTenant = null; return; }
+    const room = svg.querySelector(`.h-room[data-room="${d}"]`);
+    if (room) room.classList.add("now");
+    const [x, y, w, h] = boxOf(d);
+    t.style.opacity = "1";
+    t.style.transform = `translate(${x + w * 0.2}px, ${y + h - 3}px)`;
+    houseTenant = d;
+  }
+  function houseRefresh() {
+    const k = houseKey(), w = $("houseWrap"), dt = $("houseDetail");
+    if (w) w.innerHTML = houseSVG(k);
+    if (dt) dt.innerHTML = detailHTML(k);
+    const c = current[sel];
+    if (c) houseFollow(c);
+  }
+  async function housePlay(what) {
+    if (!(await audioReady())) return;
+    const k = houseKey(), rooms = roomsOf(k), t = ac.currentTime + 0.03;
+    const chordAt = (midis, at) => strum({ lh: [midis[0] - 12], rh: midis }, at, 1.3);
+    const scale = (kk, at, stress) => scaleOf(kk).steps.concat(12).forEach((iv, i) => tone(60 + kk.tonic - (kk.tonic > 6 ? 12 : 0) + iv, at + i * 0.2, 0.22, stress && stress.includes(mod(kk.tonic + iv)) ? 0.26 : 0.14));
+    if (what === "room") chordAt(rooms[houseSel.d].midis, t);
+    else if (what === "home") { chordAt(rooms[houseSel.d].midis, t); chordAt(rooms[0].midis, t + 1.1); }
+    else if (what === "stone") { tone(60 + houseSel.pc - (houseSel.pc > 7 ? 12 : 0), t, 0.9, 0.2); }
+    else if (what === "scale") scale(k, t);
+    else if (what === "compare") {
+      const nk = { tonic: houseSel.tonic, minor: houseSel.minor }, a = scalePcs(k), bb = scalePcs(nk);
+      scale(k, t, a.filter(p => !bb.includes(p))); scale(nk, t + 2, bb.filter(p => !a.includes(p)));
+    } else if (what === "guest") {
+      const g = songUse(k).guests.find(x => x.tok === houseSel.tok);
+      if (g) chordAt(g.ch.ivs.slice(0, 3).map(x => 60 + g.ch.rootPc - (g.ch.rootPc > 7 ? 12 : 0) + x), t);
+    }
+  }
+  function houseClick(e) {
+    const room = e.target.closest("[data-room]"), stone = e.target.closest("[data-stone]"), guest = e.target.closest("[data-guest]");
+    const street = e.target.closest("[data-street]"), back = e.target.closest("[data-backdoor]");
+    const play = e.target.closest("[data-hplay]"), addB = e.target.closest("[data-hadd]"), move = e.target.closest("[data-hmove]");
+    if (play) { housePlay(play.dataset.hplay); return true; }
+    if (addB) { addChord(addB.dataset.hadd); houseRefresh(); toast(`${pretty(addB.dataset.hadd)} added to the ${sec().name.toLowerCase()}`); return true; }
+    if (move) {
+      const nk = parseKeySetting(move.dataset.hmove), n = ((nk.tonic - K.tonic + 18) % 12) - 6;
+      // moving house: pin the key so the song's home is the new house, not a guess
+      transpose(n); setting("key", move.dataset.hmove); renderAll();
+      houseSel = { kind: "street", tonic: nk.tonic, minor: nk.minor, n: 0 }; houseRel = false;
+      renderSheet(); toast(`the song moved into ${keyLabel(nk)}`); return true;
+    }
+    if (back) { houseRel = !houseRel; houseSel = null; renderSheet(); return true; }
+    if (room) { const d = +room.dataset.room; houseSel = houseSel && houseSel.kind === "room" && houseSel.d === d ? null : { kind: "room", d }; houseRefresh(); if (houseSel) housePlay("room"); return true; }
+    if (stone) { const pc = +stone.dataset.stone; houseSel = houseSel && houseSel.kind === "stone" && houseSel.pc === pc ? null : { kind: "stone", pc }; houseRefresh(); if (houseSel) housePlay("stone"); return true; }
+    if (guest) { houseSel = { kind: "guest", tok: guest.dataset.guest }; houseRefresh(); housePlay("guest"); return true; }
+    if (street) {
+      const nk = parseKeySetting(street.dataset.street), k = houseKey();
+      let n = 0; for (let j = -2; j <= 2; j++) if (mod(k.tonic + j * 7) === nk.tonic) n = j;
+      houseSel = { kind: "street", tonic: nk.tonic, minor: nk.minor, n, across: !!street.dataset.across };
+      renderSheet(); return true;
+    }
+    return false;
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -4039,8 +4452,9 @@
 
   function tipsFor(c) {
     const b = B(), role = buddyRole(b, c.ch, c.a, K);
-    if (b.feelings) return [role, b.feelings[c.i % b.feelings.length], b.feelings[(c.i + 3) % b.feelings.length]].filter(Boolean);
-    const out = [role, fingerTip(c.v, c.ch)];
+    const house = prefs.sawHouse ? null : `Tap “${pretty(keyName(K))}” by the chord buttons to see the house this key lives in.`;
+    if (b.feelings) return [role, house, b.feelings[c.i % b.feelings.length], b.feelings[(c.i + 3) % b.feelings.length]].filter(Boolean);
+    const out = [role, house, fingerTip(c.v, c.ch)];
     if (b.ideas) out.push(b.ideas[c.i % b.ideas.length], b.ideas[(c.i + 5) % b.ideas.length]);
     return out.filter(Boolean);
   }
@@ -4419,6 +4833,7 @@
     }
     const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
     playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
+    if (sheetMode === "house" && playSec === secIdx) later(() => { if (playing) houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") ? melodyChain(playSec).get(c.i) : null;
     playReply(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
     if (L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel);
@@ -4995,6 +5410,8 @@
   function openSheet(mode) {
     closeEgg();
     // the songbook opens on the page for the chord you're on, or the cover
+    if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
+    $("sheet").classList.toggle("wide", mode === "house");
     if (mode === "book") bookPage = current[sel] && (words()[current[sel].i] || "").trim() ? sel + 1 : 0;
     sheetMode = mode;
     $("sheet").hidden = false;
@@ -5186,6 +5603,10 @@
         <audio controls src="${tapeURL}"></audio>
         <div class="row"><button class="btn surprise" type="button" data-tape="save">save the tape</button><button class="btn" type="button" data-tape="again">record again</button></div>
         <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Turn on “play the whole song” in knobs to tape everything.`}</p></div>`;
+    } else if (sheetMode === "house") {
+      $("sheetTitle").textContent = `${keyLabel(houseKey())} · the house`;
+      body.innerHTML = houseHTML();
+      requestAnimationFrame(() => houseFollow(current[sel]));
     } else if (sheetMode === "book") {
       $("sheetTitle").textContent = `${sec().name.toLowerCase()} · songbook`;
       body.innerHTML = bookHTML();
@@ -5201,7 +5622,7 @@
           <div class="presets">${lengthSteps(Mtr).map(n => `<button class="choice" type="button" data-setlen="${n}" aria-pressed="${c.beats === n}">${n} ${glyph(Mtr)}${n === Mtr.n ? "<small>a bar</small>" : n === Mtr.n * 2 ? "<small>two bars</small>" : ""}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">time signature for the ${esc(sec().name.toLowerCase())}</span>
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${sec().meter === m}">${m}</button>`).join("")}</div></div>
-        <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button></div>`;
+        <div class="row"><button class="btn surprise" type="button" data-chordact="surprise">✦ surprise me</button><button class="btn" type="button" data-chordact="hear">▶ hear it</button><button class="btn" type="button" data-chordact="house">⌂ visit its room</button></div>`;
     } else if (sheetMode === "library") {
       $("sheetTitle").textContent = "library";
       body.innerHTML = LIBRARY.map((e, i) => `
@@ -5382,7 +5803,7 @@
   }
 
   palEl.addEventListener("click", e => {
-    if (e.target.closest('[data-act="key"]')) { openSheet("knobs"); return; }
+    if (e.target.closest('[data-act="key"]')) { openSheet("house"); return; }
     if (e.target.closest('[data-act="moods"]')) { openSheet("moods"); return; }
     if (e.target.closest('[data-act="more"]')) { openSheet("add"); return; }
     const b = e.target.closest("[data-add]");
@@ -5606,6 +6027,7 @@
 
 
   $("sheetBody").addEventListener("click", async e => {
+    if (sheetMode === "house" && houseClick(e)) return;
     const feel = e.target.closest("[data-feel]"), hands = e.target.closest("[data-hands]"), shift = e.target.closest("[data-shift]");
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
@@ -5614,7 +6036,16 @@
     if (colorB && current[sel]) { setColor(current[sel], colorB.dataset.color, true); return; }
     const lenB2 = e.target.closest("[data-setlen]");
     if (lenB2 && current[sel]) { setLength(current[sel], +lenB2.dataset.setlen, true); renderSheet(); playOne(sel); return; }
-    if (chordAct) { if (chordAct.dataset.chordact === "surprise") { surprise(); renderSheet(); } else playOne(sel); return; }
+    if (chordAct) {
+      const a = chordAct.dataset.chordact, c = current[sel];
+      if (a === "house" && c) {
+        openSheet("house");
+        const d = scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic));
+        houseSel = d >= 0 && c.a.inKey && c.a.fn !== "surprise" ? { kind: "room", d } : { kind: "guest", tok: c.tok };
+        houseRefresh(); housePlay(houseSel.kind === "room" ? "room" : "guest");
+      } else if (a === "surprise") { surprise(); renderSheet(); } else playOne(sel);
+      return;
+    }
     const pageB = e.target.closest("[data-page]"), lickB = e.target.closest("[data-lick]");
     if (pageB && !pageB.disabled) { bookPage = +pageB.dataset.page; if (bookPage) { sel = bookPage - 1; renderStage(); } renderSheet(); return; }
     if (lickB) {
@@ -5826,6 +6257,7 @@
     }
   });
   $("sheetBody").addEventListener("keydown", e => {
+    if (sheetMode === "house" && (e.key === "Enter" || e.key === " ") && e.target.closest("[data-room],[data-stone],[data-guest]")) { e.preventDefault(); houseClick(e); return; }
     if (e.target.id !== "pageLine" || e.key !== "Enter") return;
     e.preventDefault();
     if (bookPage < current.length) { bookPage++; sel = bookPage - 1; renderStage(); renderSheet(); $("pageLine")?.focus(); }
