@@ -1176,6 +1176,34 @@
   .key-btn small { font-size: 10.5px; font-weight: 700; color: var(--soft); }
   .key-btn.on { border-color: var(--ink); background: var(--pick); }
   .key-btn:hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); }
+
+  /* ---------- your part: one compact strip that always fits ---------- */
+  .strip { flex-wrap: wrap; overflow: visible; gap: 6px; padding: 4px 0 2px; scroll-snap-type: none; }
+  .tile { flex: 0 0 auto; width: calc(var(--w, 4) * 16px + 6px); min-width: 44px; max-width: 100%; transform: none; scroll-snap-align: none;
+    border: 0; border-radius: 10px; padding: 5px 8px 7px; gap: 1px; background: var(--card);
+    box-shadow: inset 0 -4px 0 color-mix(in srgb, var(--fn) 75%, transparent), 0 1px 0 rgba(20, 16, 28, .12), 0 6px 12px -10px rgba(20, 16, 28, .5); }
+  .tile::before { display: none; }
+  .tile:nth-child(n) { --r: 0deg; }
+  .tile .t-head { gap: 4px; align-items: baseline; }
+  .tile .t-sym { font-size: 19px; }
+  .tile .t-sym.mid { font-size: 16px; } .tile .t-sym.long { font-size: 13.5px; }
+  .tile .t-num { font-size: 10.5px; font-weight: 800; color: var(--soft); }
+  .tile .t-words { font-size: 10.5px; max-width: none; color: var(--soft); }
+  .tile { align-content: center; min-height: 40px; }
+  .tile.sel { transform: translateY(-2px); background: #fffdf8; box-shadow: inset 0 -4px 0 var(--fn), 0 0 0 2px var(--ink), 0 8px 14px -10px rgba(20, 16, 28, .6); }
+  .tile.now { outline: 0; box-shadow: inset 0 -4px 0 var(--fn), 0 0 0 2px var(--tension); }
+  .tile.plus { width: 38px; min-width: 38px; height: auto; align-self: stretch; font-size: 22px; font-family: var(--body); font-weight: 700; background: color-mix(in srgb, var(--card) 45%, transparent); color: var(--ink); box-shadow: none; border: 0; display: grid; place-items: center; }
+  .view-bare .tile, .view-story .tile { flex-basis: auto; }
+  @media (min-width: 700px) { .tile { flex-basis: auto; width: calc(var(--w, 4) * 22px + 10px); } .tile .t-sym { font-size: 21px; } }
+  /* the little house: small beside your part, big in learning mode */
+  .mini-house { width: min(196px, 50vw); }
+  .mode-learn .mini-house { width: min(272px, 66vw); }
+  .sheet-house { display: flex; justify-content: center; }
+  .sheet-house .mini-house { width: min(300px, 86vw); }
+  .mh-route { fill: none; stroke: var(--surprise); stroke-width: 1.1; stroke-dasharray: 1.5 2.5; stroke-linecap: round; opacity: .55; pointer-events: none; }
+  .mh-step circle { fill: var(--surprise); stroke: #fffaf0; stroke-width: .8; r: 3.9; }
+  .mh-step text { font-family: var(--body); font-weight: 900; font-size: 5.6px; text-anchor: middle; fill: #fff; pointer-events: none; }
+  .mh-step { pointer-events: none; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -4292,7 +4320,19 @@
         ${nextSet.has(r.iv) && d !== curD ? `<text class="mh-next" x="${x + w - 5}" y="${y + 8}">✦</text>` : ""}
       </g>`;
     }));
-    return `<svg class="mini-house" viewBox="0 0 240 83" role="group" aria-label="The chords of ${esc(keyLabel(k))}">${s}</svg>`;
+    // learning mode: your part walks through the rooms, one numbered footprint per chord
+    if (prefs.view === "learn" && current.length) {
+      const seen = {}, pts = [];
+      current.forEach((ch, n) => {
+        const d = ch.a.inKey && ch.a.fn !== "surprise" ? scaleOf(k).steps.indexOf(mod(ch.ch.rootPc - k.tonic)) : -1;
+        if (d < 0) return;
+        const f = floorOf(d), [x, y, w, h] = MINI.box(f, FLOORS[f].degs.indexOf(d)), m = seen[d] = (seen[d] || 0) + 1;
+        pts.push([x + 5 + Math.floor((m - 1) / 2) * 8.4, y + 5 + ((m - 1) % 2) * 8.4, n + 1]);
+      });
+      if (pts.length > 1) s += `<path class="mh-route" d="${pts.map((p, q) => `${q ? "L" : "M"}${p[0]} ${p[1]}`).join("")}"/>`;
+      pts.forEach(([x, y, n]) => { s += `<g class="mh-step"><circle cx="${x}" cy="${y}" r="4.4"/><text x="${x}" y="${y + 1.9}">${n}</text></g>`; });
+    }
+    return `<svg class="mini-house" viewBox="0 -5 240 88" role="group" aria-label="The chords of ${esc(keyLabel(k))}">${s}</svg>`;
   }
   // during playback the lit window follows the song
   function miniFollow(c) {
@@ -5152,12 +5192,13 @@
     stripEl.innerHTML = items.map(it => {
       const c = byIndex.get(it.i);
       if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span></div><span class="t-foot">not a chord I know</span></div>`;
-      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}">
-        <span class="t-head"><span class="t-sym${c.tok.replace(/:\d+$/, "").length > 4 ? " long" : c.tok.replace(/:\d+$/, "").length > 2 ? " mid" : ""}">${symbolHTML(c.ch)}</span><span class="t-num">${STICKERS[c.a.fn] || ""}${esc(c.a.num)}</span></span>
-        ${keyboard(c.v, range[0], range[1])}
-        <span class="t-foot"><span class="t-words">${esc(words()[it.i] || (Array.isArray(sec().melody[it.i]) ? "~" : "·"))}</span><span>${c.beats}${g}</span></span>
+      // one compact chip per chord, as wide as it lasts: the whole part fits at a glance
+      const short = c.tok.replace(/:\d+$/, "");
+      return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)};--w:${Math.min(c.beats, 8)}" aria-label="${esc(it.raw)}, ${c.a.num}, ${c.beats} counts">
+        <span class="t-head"><span class="t-sym${short.length > 5 ? " long" : short.length > 3 ? " mid" : ""}">${symbolHTML(c.ch)}</span><span class="t-num">${esc(c.a.num)}</span></span>
+        ${words()[it.i] ? `<span class="t-words">${esc(words()[it.i])}</span>` : ""}
       </button>`;
-    }).join("") + `<button class="tile plus" type="button" data-act="plus" aria-label="Type chords">+</button>`;
+    }).join("") + `<button class="tile plus" type="button" data-act="plus" aria-label="Add chords">+</button>`;
   }
 
   // the ribbon: each chord as long as it lasts, bar lines, a meter chip
@@ -6364,11 +6405,11 @@
           <div class="part-chips">${current.map(c => `<span class="pchip" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><button type="button" data-rmchord="${c.i}" aria-label="Remove ${esc(pretty(c.tok))}">×</button></span>`).join("") || `<span class="none">no chords yet</span>`}</div>
           <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">clear</button>` : ""}</div>
         </div>
-        <div class="knob"><span class="lbl">tap to add ${current.length ? "on the end" : "the first chord"}</span>
-          <p class="note">${esc(current.length ? `${B().name} would try one of these next.` : role.hint)}</p>
-          <div class="add-row">${ideas.pick.map(c => chip(c, true)).join("")}</div></div>
-        <div class="knob"><span class="lbl">every chord in ${esc(pretty(keyName(K)))} <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></span>
-          <div class="add-row">${ideas.all.map(c => chip(c)).join("")}<span class="sep">·</span>${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
+        <div class="knob"><span class="lbl">tap a window to add it ${current.length ? "on the end" : ""}</span>
+          <div class="sheet-house">${miniHouseHTML(ideas).replace(/data-add=/g, "data-addtok=").replace(/data-paint="open"/, current[sel] ? `data-addtok="${esc(current[sel].tok.replace(/:\d+$/, ""))}"` : "")}</div>
+          <p class="note">${esc(current.length ? `✦ marks what ${B().name} would try next.` : role.hint)} <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></p></div>
+        <div class="knob"><span class="lbl">visitors from other keys</span>
+          <div class="add-row">${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
         <div class="knob"><span class="lbl">or start from a ready-made one</span>
           <p class="note">${current.length ? `These replace what's in the ${esc(nm)}. You can undo.` : "Four chords at once, each from a street story."}</p>
           <div class="moods">${STORIES.map(st => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
@@ -6599,7 +6640,6 @@
     setProg((t ? t + " " : "") + tok, true);
     sel = current.length - 1;
     renderStage();
-    requestAnimationFrame(() => { stripEl.scrollLeft = stripEl.scrollWidth; });
     playOne(sel);
   }
 
@@ -6924,6 +6964,7 @@
     const addTok = e.target.closest("[data-addtok]"), addMood = e.target.closest("[data-addmood]"), addAct = e.target.closest("[data-addact]");
     const newPart = e.target.closest("[data-newpart]"), rep = e.target.closest("[data-repeat]"), ren = e.target.closest("[data-rename]"), mv = e.target.closest("[data-move]"), secAct = e.target.closest("[data-secact]");
     if (addTok) { addChord(addTok.dataset.addtok); renderSheet(); return; }
+    if (e.target.closest(".sheet-house [data-roof]")) { doorbell(); return; }
     if (addMood) {
       const m = MOODS.find(x => x.id === addMood.dataset.addmood);
       closeSheet(); replacePart(moodProg(m, K), `the ${m.name} route`);
