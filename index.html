@@ -1160,6 +1160,22 @@
   .toast { pointer-events: auto; }
   .t-sym.mid { font-size: 21px; } .t-sym.long { font-size: 17px; }
   .t-sym .q { font-size: .8em; }
+
+  /* ---------- the key, always on the stage ---------- */
+  .key-pill { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: 4px; border: 0; border-radius: 999px; background: var(--chip); color: var(--ink); font-family: var(--body); font-weight: 800; font-size: 13px; padding: 5px 10px 5px 12px; cursor: pointer; }
+  .key-pill:hover { background: var(--chip-hover); }
+  .key-pill .caret { font-size: 10px; color: var(--soft); }
+  .key-pill ~ .undo-btn { margin-left: 0; }
+  .key-now { display: grid; gap: 2px; }
+  .key-now b { font-weight: 900; font-size: 30px; letter-spacing: -.01em; }
+  .key-now span { color: var(--soft); font-weight: 700; font-size: 13px; }
+  .key-steps .btn { flex: 1; }
+  .key-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .key-btn { display: grid; gap: 1px; justify-items: center; border: 1.5px solid var(--edge); border-radius: 14px; background: var(--card); color: var(--ink); padding: 8px 4px; cursor: pointer; font-family: var(--body); }
+  .key-btn b { font-weight: 900; font-size: 18px; }
+  .key-btn small { font-size: 10.5px; font-weight: 700; color: var(--soft); }
+  .key-btn.on { border-color: var(--ink); background: var(--pick); }
+  .key-btn:hover { border-color: color-mix(in srgb, var(--ink) 40%, transparent); }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -5255,6 +5271,7 @@
       <div class="stage-top">
         <button class="chord-name as-btn${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}" type="button" data-act="chord" title="Colors and surprises for this chord">${symbolHTML(c.ch)}<span class="caret" aria-hidden="true">▾</span></button>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
+        <button class="key-pill" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it.">${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
@@ -6247,7 +6264,7 @@
           </div>
         </div>
         <div class="knob"><label class="lbl" for="kBpm">tempo · <span id="kBpmVal">${S().bpm}</span> bpm</label><input type="range" id="kBpm" min="50" max="150" value="${S().bpm}"></div>
-        <div class="knob"><span class="lbl">key</span>
+        <div class="knob"><span class="lbl">what key the song is in</span>
           <div class="row"><select id="kKey" aria-label="Key">${keyOpts}</select>
             <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
             <button class="round" type="button" data-shift="1" aria-label="Move everything up a half step">+</button></div>
@@ -6290,6 +6307,17 @@
         <details class="fine" hidden><summary>fine-tune what shows</summary>
           <div class="knob"><span class="lbl">what you see</span><div class="layer-grid">${see.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div>
           <div class="knob"><span class="lbl">what you hear</span><div class="layer-grid">${HEAR.map(l => `<label class="tog"><input type="checkbox" data-layer="${l}"${L(l) ? " checked" : ""}> ${LAYER_NAMES[l]}</label>`).join("")}</div></div></details>`;
+    } else if (sheetMode === "key") {
+      // move the whole song to another key: tap a key, or step by half steps
+      $("sheetTitle").textContent = "key";
+      const names = K.minor ? MIN_NAMES : MAJ_NAMES, order = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5].map(n => K.minor ? mod(n + 9) : n);
+      body.innerHTML = `
+        <div class="key-now"><b>${esc(pretty(keyName(K)))}</b><span>${sigOf(K) ? esc(sigText(sigOf(K))) : "no ♯ or ♭"} · ${current.map(c => esc(pretty(c.tok.replace(/:\d+$/, "")))).join(" ")}</span></div>
+        <div class="row key-steps"><button class="btn" type="button" data-shift="-1">− a half step lower</button><button class="btn" type="button" data-shift="1">a half step higher +</button></div>
+        <div class="knob"><span class="lbl">or jump to a key</span>
+          <div class="key-grid">${order.map(t => { const k = { tonic: t, minor: K.minor }, on = t === K.tonic; return `<button class="key-btn${on ? " on" : ""}" type="button" data-movekey="${t}" aria-pressed="${on}"><b>${esc(pretty(names[t]))}${K.minor ? "m" : ""}</b><small>${sigOf(k) ? esc(sigText(sigOf(k))) : "no ♯♭"}</small></button>`; }).join("")}</div>
+          <p class="note">Every chord in the song moves together. It sounds the same, just higher or lower, and the shapes under your hands change. Keys next to each other share all but one note.</p></div>
+        <div class="row"><button class="btn" type="button" data-open="house">⌂ see this key's house</button><button class="link" type="button" data-open="knobs">the song is in a different key? set it in settings</button></div>`;
     } else if (sheetMode === "stories") {
       $("sheetTitle").textContent = storyAt == null ? "stories from the street" : `chapter ${storyAt + 1}`;
       body.innerHTML = storiesHTML();
@@ -6728,6 +6756,7 @@
     else if (act === "words") openSheet("book");
     else if (act === "stories") { storyAt = null; openSheet("stories"); }
     else if (act === "undo") undoLast();
+    else if (act === "keypick") openSheet("key");
     else if (act === "sing") {
       prefs.layers.sing = !L("sing"); savePrefs(); applyView();
       tipOverride = L("sing") ? B().sing : null;
@@ -6841,7 +6870,9 @@
     const feel = e.target.closest("[data-feel]"), hands = e.target.closest("[data-hands]"), shift = e.target.closest("[data-shift]");
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
-    if (shift) { transpose(+shift.dataset.shift); renderSheet(); return; }
+    if (shift) { transpose(+shift.dataset.shift); renderSheet(); if (current[sel]) playOne(sel); return; }
+    const mk = e.target.closest("[data-movekey]");
+    if (mk) { let n = mod(+mk.dataset.movekey - K.tonic); if (n > 6) n -= 12; if (n) { transpose(n); if (current[sel]) playOne(sel); } renderSheet(); return; }
     const colorB = e.target.closest("[data-color]"), chordAct = e.target.closest("[data-chordact]");
     if (colorB && current[sel]) { setColor(current[sel], colorB.dataset.color, true); return; }
     const lenB2 = e.target.closest("[data-setlen]");
