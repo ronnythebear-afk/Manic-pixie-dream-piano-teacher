@@ -200,9 +200,9 @@
   .stay { fill: var(--lamp); stroke: var(--key-edge); stroke-width: .7; }
   .ring { fill: none; stroke: var(--lamp); stroke-width: 1.5; }
   .fdot { stroke: var(--key-edge); stroke-width: .7; fill: var(--key-w); }
-  .kl { fill: var(--soft); font-family: var(--type); font-weight: 700; font-size: 3.5px; text-anchor: middle; pointer-events: none; }
-  .kl.on { fill: #2f2a3d; font-size: 4px; }
-  .kl.bl { fill: var(--key-w); opacity: .6; font-size: 2.6px; }
+  .kl { fill: var(--soft); font-family: var(--type); font-weight: 700; font-size: 5px; text-anchor: middle; pointer-events: none; }
+  .kl.on { fill: #2f2a3d; font-size: 5.8px; }
+  .kl.bl { fill: var(--key-w); opacity: .6; font-size: 3.4px; }
   .kl.bl.on { fill: #2f2a3d; opacity: 1; font-size: 2.9px; }
   .oct { fill: var(--soft); font-family: var(--type); font-size: 4.2px; text-anchor: middle; }
   [data-m] { cursor: pointer; }
@@ -243,16 +243,22 @@
 
   /* ---------- the accompanist's scene on top of the deck ---------- */
   .deck { padding-top: 0; }
-  .scene-wrap { position: relative; height: 108px; margin: 0 -16px 8px; overflow: hidden; border-bottom: 2px solid #14121b; --beat: .7s; }
+  .scene-wrap { position: relative; height: 148px; margin: 0 -16px 6px; overflow: hidden; --beat: .7s; clip-path: polygon(0 0, 100% 0, 100.0% calc(100% - 3px), 97.9% calc(100% - 5.5px), 95.8% calc(100% - 1.5px), 93.8% calc(100% - 2px), 91.7% calc(100% - 1.5px), 89.6% calc(100% - 2px), 87.5% calc(100% - 4.5px), 85.4% calc(100% - 3px), 83.3% calc(100% - 4.5px), 81.2% calc(100% - 0px), 79.2% calc(100% - 2px), 77.1% calc(100% - 1.5px), 75.0% calc(100% - 1.5px), 72.9% calc(100% - 0px), 70.8% calc(100% - 0px), 68.8% calc(100% - 0px), 66.7% calc(100% - 2px), 64.6% calc(100% - 0px), 62.5% calc(100% - 2px), 60.4% calc(100% - 1.5px), 58.3% calc(100% - 5.5px), 56.2% calc(100% - 2px), 54.2% calc(100% - 5.5px), 52.1% calc(100% - 5.5px), 50.0% calc(100% - 4.5px), 47.9% calc(100% - 4.5px), 45.8% calc(100% - 2px), 43.8% calc(100% - 0px), 41.7% calc(100% - 5.5px), 39.6% calc(100% - 5.5px), 37.5% calc(100% - 2px), 35.4% calc(100% - 0px), 33.3% calc(100% - 1.5px), 31.2% calc(100% - 3px), 29.2% calc(100% - 4.5px), 27.1% calc(100% - 0px), 25.0% calc(100% - 1.5px), 22.9% calc(100% - 2px), 20.8% calc(100% - 5.5px), 18.8% calc(100% - 4.5px), 16.7% calc(100% - 2px), 14.6% calc(100% - 1.5px), 12.5% calc(100% - 1.5px), 10.4% calc(100% - 2px), 8.3% calc(100% - 2px), 6.2% calc(100% - 4.5px), 4.2% calc(100% - 4.5px), 2.1% calc(100% - 2px), 0.0% calc(100% - 4.5px)); }
+  /* the whole stage is printed on paper: a faint grain over everything */
+  .scene-wrap::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .3 0 0 0 1.1 -.35'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  /* stop-motion: paper puppets jitter a little, as if re-posed every frame */
+  .scene .cutout { transform-box: fill-box; transform-origin: 50% 100%; animation: boil .42s steps(1) infinite; }
+  @keyframes boil { 0% { transform: none; } 33% { transform: translate(.25px, -.2px) rotate(.35deg); } 66% { transform: translate(-.2px, .15px) rotate(-.3deg); } }
   .scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  .buddy-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 104px; border: 0; background: transparent; }
+  .buddy-hit { position: absolute; left: 0; top: 0; bottom: 0; width: 150px; border: 0; background: transparent; }
   .buddy-hit:focus-visible { outline-offset: -4px; }
   .say {
-    position: absolute; left: 112px; right: 12px; top: 9px; max-width: 520px; min-height: 40px; text-align: left;
+    position: absolute; left: 150px; right: 12px; top: 12px; max-width: 520px; min-height: 40px; text-align: left; transform: rotate(-.7deg);
     background: #f7f1e6; color: #2f2a3d; border: 1.5px solid #2f2a3d; border-radius: 14px 16px 15px 13px / 13px 15px 16px 14px;
     padding: 5px 11px; font-family: var(--hand); font-weight: 700; font-size: 16.5px; line-height: 1.12;
     display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-    box-shadow: 0 6px 12px -8px rgba(0, 0, 0, .6);
+    box-shadow: 2px 3px 0 rgba(20, 16, 28, .35);
   }
   .say::before { content: ""; position: absolute; left: -8px; top: 16px; border: 7px solid transparent; border-right-color: #2f2a3d; border-left: 0; }
   .say::after { content: ""; position: absolute; left: -5.5px; top: 17.5px; border: 5.5px solid transparent; border-right-color: #f7f1e6; border-left: 0; }
@@ -264,8 +270,8 @@
   .scene .fly { animation: fly 3.2s ease-in-out infinite alternate; }
   .scene .float { animation: float 2.4s ease-in-out infinite alternate; }
   .scene .neon { animation: twinkle 1.6s ease-in-out infinite alternate; }
-  .playing .scene .bob { animation: bob var(--beat) ease-in-out infinite alternate; }
-  .playing .scene .hit { animation: hit calc(var(--beat) / 2) ease-in-out infinite alternate; }
+  .playing .scene .bob { animation: bob var(--beat) steps(3, jump-none) infinite alternate; }
+  .playing .scene .hit { animation: hit calc(var(--beat) / 2) steps(3, jump-none) infinite alternate; }
   .playing .scene .shake { animation: shake calc(var(--beat) / 4) linear infinite alternate; }
   .playing .scene .pad { animation: pad var(--beat) steps(2) infinite; }
   @keyframes bob { to { transform: translateY(-1.6px); } }
@@ -325,7 +331,7 @@
   .lights i { width: 7px; height: 7px; border-radius: 50%; background: rgba(239, 231, 220, .18); }
   .lights i.on { background: var(--lamp); box-shadow: 0 0 7px var(--lamp); }
   .cassette-col { display: flex; flex-direction: column; align-items: center; }
-  .playing .scene .hit2 { animation: hit calc(var(--beat) / 2) ease-in-out infinite alternate-reverse; }
+  .playing .scene .hit2 { animation: hit calc(var(--beat) / 2) steps(3, jump-none) infinite alternate-reverse; }
   .scene .hit2 { transform-box: fill-box; transform-origin: 100% 0%; }
   .dbtn.style-btn { min-width: 66px; font-size: 11px; line-height: 1.1; text-align: center; white-space: normal; }
 
@@ -452,11 +458,11 @@
   .scene .clapR { transform-origin: 100% 0%; }
   .scene .reel2 { transform-origin: 50% 50%; }
   .scene .sway { transform-origin: 50% 100%; }
-  .playing .scene .clapL { animation: clapL calc(var(--beat) / 2) ease-in-out infinite alternate; }
-  .playing .scene .clapR { animation: clapR calc(var(--beat) / 2) ease-in-out infinite alternate; }
+  .playing .scene .clapL { animation: clapL calc(var(--beat) / 2) steps(3, jump-none) infinite alternate; }
+  .playing .scene .clapR { animation: clapR calc(var(--beat) / 2) steps(3, jump-none) infinite alternate; }
   .playing .scene .rattle { animation: rattle calc(var(--beat) / 2) steps(2) infinite; }
   .playing .scene .reel2 { animation: spin 2s linear infinite; }
-  .playing .scene .sway { animation: sway calc(var(--beat) * 2) ease-in-out infinite alternate; }
+  .playing .scene .sway { animation: sway calc(var(--beat) * 2) steps(3, jump-none) infinite alternate; }
   @keyframes clapL { to { transform: rotate(26deg); } }
   @keyframes clapR { to { transform: rotate(-26deg); } }
   @keyframes rattle { 50% { transform: translate(.6px, -1.2px) rotate(4deg); } }
@@ -556,10 +562,10 @@
   .weather .rain { background: repeating-linear-gradient(105deg, transparent 0 9px, rgba(200, 215, 255, .32) 9px 10px, transparent 10px 23px); background-size: 46px 46px; animation: rain .55s linear infinite; }
   .weather .wind b { position: absolute; left: 105%; width: 7px; height: 3px; border-radius: 3px 1px; background: color-mix(in srgb, var(--lh) 70%, #fff); animation: gust 3s linear infinite; }
   .weather.bdw .wind b { width: 11px; height: 4px; }
-  .weather .spark { background-image: radial-gradient(circle, #fff 0 1.2px, transparent 1.6px), radial-gradient(circle, var(--surprise) 0 1.4px, transparent 2px); background-size: 61px 47px, 83px 71px; background-position: 10px 7px, 33px 21px; animation: twinkle 1.1s ease-in-out infinite alternate; }
+  .weather .spark { background-image: radial-gradient(circle, #fff 0 1.2px, transparent 1.6px), radial-gradient(circle, var(--surprise) 0 1.4px, transparent 2px), radial-gradient(circle, #fff6c8 0 .9px, transparent 1.3px); background-size: 97px 73px, 131px 109px, 59px 89px; background-position: 10px 7px, 53px 41px, 31px 64px; }
   body[data-harm="home"] .weather .glow { opacity: .55; }
   body[data-harm="tension"] .weather .wind { opacity: .9; }
-  body[data-harm="surprise"] .weather .spark { opacity: .8; }
+  body[data-harm="surprise"] .weather .spark { opacity: .8; animation: twinkle 1.1s ease-in-out infinite alternate; }
   body[data-minor="1"] .weather .rain { opacity: 1; }
   body[data-harm="tension"] .scene .sway, body[data-harm="tension"] .scene .float { animation-duration: .9s; }
   @keyframes rain { to { background-position: -12px 46px; } }
@@ -637,8 +643,8 @@
   .tile .sticker, .sticker { display: inline-block; width: 15px; height: 15px; vertical-align: -3px; margin-right: 3px; transform: rotate(-6deg); }
   .tile:nth-child(2n) .sticker { transform: rotate(7deg); }
   /* ---------- more life in the world ---------- */
-  .scene .bob { animation: bob 2.6s ease-in-out infinite alternate; }
-  .scene .float { animation: float 3s ease-in-out infinite alternate; }
+  .scene .bob { animation: bob 2.6s steps(3, jump-none) infinite alternate; }
+  .scene .float { animation: float 3s steps(3, jump-none) infinite alternate; }
   .playing .scene .float { animation-duration: calc(var(--beat) * 2); }
   .playing .scene g.float[style] { animation: swing var(--beat) ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 50% 0%; }
   @keyframes swing { from { transform: rotate(-7deg); } to { transform: rotate(7deg); } }
@@ -689,6 +695,12 @@
   .lick svg { flex: none; width: 40px; height: 16px; }
   .lick.on { border-color: var(--surprise); background: color-mix(in srgb, var(--surprise) 22%, var(--card)); }
   .lk-n { fill: var(--surprise); } .lk-rest { stroke: var(--soft); stroke-width: 1.5; stroke-dasharray: 2 3; fill: none; }
+  .hum-btn { color: #c2413a; }
+  .hum-live { display: flex; align-items: center; gap: 10px; font-family: var(--hand); font-weight: 700; font-size: 17px; }
+  .hum-count { min-width: 64px; text-align: center; font-size: 30px; color: #c2413a; animation: twinkle .5s steps(2) infinite alternate; }
+  .hum-live .btn { margin-left: auto; }
+  .hum-dot { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #c2413a; pointer-events: none; }
+  .mic-note .link { font: inherit; text-decoration: underline; color: inherit; padding: 0; background: none; border: 0; cursor: pointer; }
   .pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .pager .round { width: 38px; height: 38px; }
   .pager .round:disabled { opacity: .3; }
@@ -830,6 +842,19 @@
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
 </style>
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
+  <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
+  <filter id="papercut" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="1.15" result="grow"/>
+    <feFlood flood-color="#fffaf0"/><feComposite in2="grow" operator="in" result="edge"/>
+    <feOffset in="grow" dx="1.1" dy="1.7" result="off"/><feGaussianBlur in="off" stdDeviation=".9" result="soft"/>
+    <feFlood flood-color="#1a1420" flood-opacity=".42"/><feComposite in2="soft" operator="in" result="shadow"/>
+    <feTurbulence type="fractalNoise" baseFrequency="1.7" numOctaves="2" seed="7" result="noise"/>
+    <feColorMatrix in="noise" type="matrix" values="0 0 0 0 .18  0 0 0 0 .14  0 0 0 0 .1  0 0 0 -1.1 .42" result="fleck"/>
+    <feComposite in="fleck" in2="SourceAlpha" operator="in" result="grain"/>
+    <feMerge><feMergeNode in="shadow"/><feMergeNode in="edge"/><feMergeNode in="SourceGraphic"/><feMergeNode in="grain"/></feMerge>
+  </filter>
+</defs></svg>
 <div class="backdrop" id="backdrop" aria-hidden="true"></div>
 <div class="weather bdw" aria-hidden="true"><i class="glow"></i><i class="rain"></i><i class="wind"><b style="top:4%;animation-delay:-0.0s;animation-duration:2.2s"></b><b style="top:41%;animation-delay:-0.7s;animation-duration:2.8s"></b><b style="top:78%;animation-delay:-1.4s;animation-duration:3.4s"></b><b style="top:25%;animation-delay:-2.1s;animation-duration:4.0s"></b><b style="top:62%;animation-delay:-2.8s;animation-duration:2.2s"></b><b style="top:9%;animation-delay:-0.4s;animation-duration:2.8s"></b><b style="top:46%;animation-delay:-1.1s;animation-duration:3.4s"></b><b style="top:83%;animation-delay:-1.8s;animation-duration:4.0s"></b><b style="top:30%;animation-delay:-2.5s;animation-duration:2.2s"></b></i><i class="spark"></i></div>
 <div class="app">
@@ -909,6 +934,8 @@
 <div class="toast" id="toast" role="status" hidden></div>
 <script>
 (() => {
+  // the page as it arrived, before anything ran: used to save a copy you can open on its own
+  const PAGE_SRC = "<!doctype html>\n" + document.documentElement.outerHTML;
   // =========================================================
   // Music theory
   // =========================================================
@@ -1955,7 +1982,10 @@
   }
 
   // ---------- characters ----------
-  // Dusty: alt-country pixie, sitting behind a tiny kit
+  // brass split pins where the paper limbs are fastened, and a glint in the eyes
+  const pin = (x, y) => `<g class="pin"><circle cx="${x}" cy="${y}" r="1.05" fill="#d8b04a" stroke="#6e5316" stroke-width=".35"/><circle cx="${x - .3}" cy="${y - .32}" r=".34" fill="#fff4c4"/><path d="M${x - .5} ${y + .15}h1" stroke="#8a6a20" stroke-width=".25"/></g>`;
+  const shine = (x, y, r = .26) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`;
+    // Dusty: alt-country pixie, sitting behind a tiny kit
   function dustySVG(x, y, sc = 1) {
     return `<g transform="translate(${x} ${y}) scale(${sc})">
       <g class="bob">
@@ -1970,7 +2000,7 @@
         <circle cx="0" cy="-20" r="7" fill="#f3d2b8" stroke="${INK}" stroke-width=".8"/>
         <circle cx="-2.7" cy="-20.2" r="2.3" fill="#fff" fill-opacity=".35" stroke="${INK}" stroke-width=".7"/><circle cx="2.7" cy="-20.2" r="2.3" fill="#fff" fill-opacity=".35" stroke="${INK}" stroke-width=".7"/>
         <path d="M-.4-20.4h.8" stroke="${INK}" stroke-width=".6"/>
-        <circle cx="-2.7" cy="-20" r=".7" fill="${INK}"/><circle cx="2.7" cy="-20" r=".7" fill="${INK}"/>
+        <circle cx="-2.7" cy="-20" r=".7" fill="${INK}"/><circle cx="2.7" cy="-20" r=".7" fill="${INK}"/>${shine(-2.45, -20.25)}${shine(2.95, -20.25)}
         <path d="M-4.4-16.8h.1M-3.6-16.2h.1M3.6-16.8h.1M4.4-16.2h.1" stroke="#b8704f" stroke-width=".8" stroke-linecap="round"/>
         <path d="M-1.6-15.6q1.6 1.2 3.2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
         <ellipse class="mouth" cx="0" cy="-15.2" rx="1.5" ry="1.9" fill="#5a2230" stroke="${INK}" stroke-width=".4"/>
@@ -1978,7 +2008,7 @@
         <rect x="-5.8" y="-27.4" width="11.6" height="1.7" fill="#c8453f"/>
         <path d="M-12.4-25.6q12.4-3.6 24.8 0" fill="#eadbb8" stroke="${INK}" stroke-width=".8"/>
         <g class="hit"><path d="M6-10 12-14" stroke="#5b7fa8" stroke-width="2.6" stroke-linecap="round"/><path d="M12-14 21-7" stroke="#e8d6a8" stroke-width="1.1" stroke-linecap="round"/></g>
-        <g class="hit2"><path d="M-6-10-11-13" stroke="#5b7fa8" stroke-width="2.6" stroke-linecap="round"/><path d="M-11-13-19-5" stroke="#e8d6a8" stroke-width="1.1" stroke-linecap="round"/></g>
+        <g class="hit2"><path d="M-6-10-11-13" stroke="#5b7fa8" stroke-width="2.6" stroke-linecap="round"/><path d="M-11-13-19-5" stroke="#e8d6a8" stroke-width="1.1" stroke-linecap="round"/></g>${pin(6, -10)}${pin(-6, -10)}
       </g>
       <path d="M17-7h10M22-7v14" stroke="#9aa0ad" stroke-width=".8"/><ellipse cx="22" cy="-7.4" rx="6" ry="1.2" fill="#e0b85c" stroke="${INK}" stroke-width=".5"/><ellipse cx="22" cy="-6.4" rx="6" ry="1.2" fill="#e0b85c" stroke="${INK}" stroke-width=".5"/>
       <ellipse cx="-17" cy="-3" rx="6.5" ry="2" fill="#efe8d8" stroke="${INK}" stroke-width=".6"/><path d="M-23.5-3v4q6.5 2.6 13 0v-4" fill="#c8453f" stroke="${INK}" stroke-width=".6"/>
@@ -1995,11 +2025,11 @@
       <path d="M-11.5-20Q-11-37 0-37T11.5-20" fill="none" stroke="#3fd9b9" stroke-width="1.8"/>
       <rect x="-14" y="-23" width="4.2" height="7" rx="1.6" fill="#3fd9b9" stroke="${INK}" stroke-width=".6"/>
       <rect x="9.8" y="-23" width="4.2" height="7" rx="1.6" fill="#3fd9b9" stroke="${INK}" stroke-width=".6"/>
-      <ellipse cx="-3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/><ellipse cx="3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/>
+      <ellipse cx="-3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/><ellipse cx="3.6" cy="-18.6" rx="1.3" ry="2" fill="${INK}"/>${shine(-3.2, -19.3, .4)}${shine(4, -19.3, .4)}
       <circle cx="-6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/><circle cx="6" cy="-15" r="1.3" fill="#ff9ebb" opacity=".8"/>
       <ellipse cx="0" cy="-12.6" rx="1.4" ry="1.7" fill="${INK}"/><ellipse class="mouth" cx="0" cy="-12.2" rx="2.4" ry="3" fill="${INK}"/>
       <g class="hit"><ellipse cx="12.5" cy="-6" rx="3.4" ry="2.2" transform="rotate(25 12.5 -6)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/></g>
-      <ellipse cx="-12" cy="-7" rx="3.2" ry="2.1" transform="rotate(-20 -12 -7)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/>
+      <ellipse cx="-12" cy="-7" rx="3.2" ry="2.1" transform="rotate(-20 -12 -7)" fill="#eaf6ff" stroke="${INK}" stroke-width=".7"/>${pin(-9.6, -7.4)}${pin(10.2, -6.8)}
     </g></g>`;
   }
 
@@ -2007,7 +2037,7 @@
     return `<g transform="translate(${x} ${y}) scale(${s})"><g class="bob">
       <path d="M-3 0-2 7M3 0 5 7" stroke="#4a3b2e" stroke-width="2.6" stroke-linecap="round"/>
       <path d="M-4.6 6.6h4.6v2.6h-5.8zM3.6 6.6h4.4l1 2.6h-5.4z" fill="#3a2e24" stroke="${INK}" stroke-width=".6"/>
-      <path d="M-8 1h16l-2.2-17h-11.6z" fill="#6f8a6a" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-8 1h16l-2.2-17h-11.6z" fill="#d8c49c" stroke="${INK}" stroke-width=".8"/>
       <path d="M0 1v-17" stroke="${INK}" stroke-width=".5" opacity=".5"/>
       <path d="M-5.8-16.4h11.6l-.6 3h-10.4z" fill="#c9a24a" stroke="${INK}" stroke-width=".6"/>
       <path d="M3-14.2 5-7.6" stroke="#c9a24a" stroke-width="2" stroke-linecap="round"/>
@@ -2016,11 +2046,15 @@
       <path d="M-3.4-20.4q1 .8 2 0M1.4-20.4q1 .8 2 0" fill="none" stroke="${INK}" stroke-width=".6" stroke-linecap="round"/>
       <path d="M-1.2-17.6q1.2.9 2.4 0" fill="none" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
       <ellipse class="mouth" cx="0" cy="-17.2" rx="1.3" ry="1.7" fill="#5a2230" stroke="${INK}" stroke-width=".35"/>
-      <path d="M-7.2-24.6Q-3-33 4-46q-.4 12 3.4 21.4z" fill="#5f8a55" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>
-      <path d="M5.8-29q4-3 6.4-1.2-3 .2-5.6 3z" fill="#d9534f" stroke="${INK}" stroke-width=".5"/>
-      <ellipse cx="0" cy="-24.6" rx="13.5" ry="3" fill="#5f8a55" stroke="${INK}" stroke-width=".8"/>
-      <path d="M-6-11-10-4" stroke="#6f8a6a" stroke-width="2.6" stroke-linecap="round"/>
-      <g class="hit shake"><path d="M6-11 11-7" stroke="#6f8a6a" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="12.6" cy="-7.6" rx="2.4" ry="3.2" fill="#e9b44c" stroke="${INK}" stroke-width=".6"/></g>
+      <path d="M-6.8-24Q-7.6-32.6 0-33 7.6-32.6 6.8-24z" fill="#c8643b" stroke="${INK}" stroke-width=".8"/>
+      <path d="M-3.4-32q-.6 3.6-.4 7M0-33v8M3.4-32q.6 3.6.4 7" fill="none" stroke="#a54d2b" stroke-width=".45"/>
+      <rect x="-7.3" y="-26" width="14.6" height="3" rx="1.4" fill="#a94f2e" stroke="${INK}" stroke-width=".7"/>
+      <path d="M-5.4-25.8v2.6M-2.7-25.8v2.6M0-25.8v2.6M2.7-25.8v2.6M5.4-25.8v2.6" stroke="#8a3d22" stroke-width=".4"/>
+      <circle cx="0" cy="-34.4" r="2.6" fill="#f1e3c6" stroke="${INK}" stroke-width=".7"/>
+      <path d="M5.2-27.6 9.4-32.2" stroke="#6a8a4a" stroke-width=".7" stroke-linecap="round"/>
+      <circle cx="8.9" cy="-31.9" r=".8" fill="#b78ad6"/><circle cx="8" cy="-30.8" r=".7" fill="#c9a0e6"/><circle cx="9.7" cy="-33" r=".7" fill="#b78ad6"/>
+      <path d="M-6-11-10-4" stroke="#d8c49c" stroke-width="2.6" stroke-linecap="round"/><circle cx="-3.9" cy="-18.9" r="1" fill="#f3a3a0" opacity=".6"/><circle cx="3.9" cy="-18.9" r="1" fill="#f3a3a0" opacity=".6"/>
+      <g class="hit shake"><path d="M6-11 11-7" stroke="#d8c49c" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="12.6" cy="-7.6" rx="2.4" ry="3.2" fill="#e9b44c" stroke="${INK}" stroke-width=".6"/></g>${pin(-6, -11)}${pin(6, -11)}
     </g></g>`;
   }
 
@@ -2049,12 +2083,12 @@
         <path d="M-6.7-45.2Q-6.9-50.8 0-51 6.9-50.8 6.7-45.2z" fill="#15151a"/>
         <circle cx="-2.7" cy="-42.4" r="2.3" fill="#fff" fill-opacity=".3" stroke="#e0453a" stroke-width=".9"/><circle cx="2.7" cy="-42.4" r="2.3" fill="#fff" fill-opacity=".3" stroke="#e0453a" stroke-width=".9"/>
         <path d="M-.4-42.6h.8" stroke="#e0453a" stroke-width=".7"/>
-        <circle cx="-2.7" cy="-42.3" r=".6" fill="${INK}"/><circle cx="2.7" cy="-42.3" r=".6" fill="${INK}"/>
+        <circle cx="-2.7" cy="-42.3" r=".6" fill="${INK}"/><circle cx="2.7" cy="-42.3" r=".6" fill="${INK}"/>${shine(-2.48, -42.52, .22)}${shine(2.92, -42.52, .22)}
         <path d="M-1.3-38.9h2.6" stroke="${INK}" stroke-width=".55" stroke-linecap="round"/>
         <ellipse class="mouth" cx="0" cy="-38.8" rx="1.3" ry="1.6" fill="#5a2230" stroke="${INK}" stroke-width=".35"/>
         <path d="M-6.9-39.2l-1.1 2.6h2.2z" fill="#e9b44c" stroke="${INK}" stroke-width=".3"/>
         <g class="hit">${limb("M8.6-32.6 15-23.2", coat, 3.4)}<circle cx="15.3" cy="-22.6" r="1.4" fill="${skin}" stroke="${INK}" stroke-width=".5"/>
-          <path d="M15.3-22.6 19.1-17.6" stroke="#8a5a3a" stroke-width=".9" stroke-linecap="round"/><circle cx="19.5" cy="-17.1" r="1.5" fill="#e8e0d0" stroke="${INK}" stroke-width=".5"/></g>
+          <path d="M15.3-22.6 19.1-17.6" stroke="#8a5a3a" stroke-width=".9" stroke-linecap="round"/><circle cx="19.5" cy="-17.1" r="1.5" fill="#e8e0d0" stroke="${INK}" stroke-width=".5"/></g>${pin(-9, -32.4)}${pin(8.6, -32.4)}${pin(-3.4, -15.2)}${pin(3.2, -15.2)}
       </g>
     </g>`;
   }
@@ -2084,7 +2118,7 @@
       <ellipse class="mouth" cx="0" cy="-22.4" rx="1.9" ry="2.2" fill="#7a2a3a" stroke="${INK}" stroke-width=".4"/>
       <circle cx="-6.5" cy="-23" r="1.4" fill="none" stroke="#e9b44c" stroke-width=".6"/><circle cx="6.5" cy="-23" r="1.4" fill="none" stroke="#e9b44c" stroke-width=".6"/>
       <g transform="translate(-6.8 -18.2)"><g class="clapL">${limb("M0 0Q1.2 5 5.2 5.8", skin, 3)}<circle cx="5.7" cy="5.5" r="1.9" fill="${skin}" stroke="${INK}" stroke-width=".6"/></g></g>
-      <g transform="translate(6.8 -18.2)"><g class="clapR">${limb("M0 0Q-1.2 5-5.2 5.8", skin, 3)}<circle cx="-5.7" cy="5.5" r="1.9" fill="${skin}" stroke="${INK}" stroke-width=".6"/></g></g>
+      <g transform="translate(6.8 -18.2)"><g class="clapR">${limb("M0 0Q-1.2 5-5.2 5.8", skin, 3)}<circle cx="-5.7" cy="5.5" r="1.9" fill="${skin}" stroke="${INK}" stroke-width=".6"/></g></g>${pin(-6.8, -18.2)}${pin(6.8, -18.2)}
       </g>
       <path d="M15.6-5.2h4.4l-.7 5.4h-3z" fill="#d9453f" stroke="${INK}" stroke-width=".5"/><ellipse cx="17.8" cy="-5.2" rx="2.2" ry=".6" fill="#f3efe6" stroke="${INK}" stroke-width=".4"/>
     </g>`;
@@ -2111,7 +2145,7 @@
       <g transform="translate(470 0)"><rect x="120" y="40" width="30" height="22" rx="2" fill="#6a4a36" stroke="${INK}" stroke-width=".8"/><rect x="123" y="45" width="24" height="14" fill="#c9b48a"/><path d="M123 49h24M123 53h24M123 57h24" stroke="#a8946a" stroke-width=".5"/><circle cx="127" cy="42.6" r=".9" fill="#e0b85c"/><circle cx="131" cy="42.6" r=".9" fill="#e0b85c"/>
       <path d="M172 62l4-10M180 62l-4-10" stroke="#14121b" stroke-width="1.2"/>
       <path d="M176 54q-6 0-6-5t5-5l1-14h2l1 14q5 0 5 5t-6 5z" fill="#e0703f" stroke="${INK}" stroke-width=".8"/><path d="M177 30v-6" stroke="${INK}" stroke-width="2"/></g>
-      ${dustySVG(44, 60, 1.18)}`;
+      ${cut(dustySVG(50, 62, 1.36))}`;
     },
     ghost: (sky, u) => `
       <rect width="1200" height="84" fill="#2a2144"/>
@@ -2133,7 +2167,7 @@
       <path d="M66 64v14M108 64v14" stroke="#5b4a3a" stroke-width="3"/>
       <rect x="66" y="48" width="42" height="9" rx="1.5" fill="#d8d0c0" stroke="${INK}" stroke-width=".7"/>
       ${[0, 1, 2, 3, 4, 5].map(i => `<rect class="pad" style="animation-delay:${(i % 3) * .12}s" x="${69 + i * 6.4}" y="50.4" width="4.6" height="4" rx=".8" fill="${["#ff6fa9", "#3fd9b9", "#ffd36b"][i % 3]}"/>`).join("")}
-      ${ghostSVG(42, 49, 1.2)}`,
+      ${cut(ghostSVG(44, 52, 1.34))}`,
     wren: (sky, u) => {
       const hill = hexMix("#6f9a86", "#162520", Math.min(1, sky.night * 1.1));
       const ground = hexMix("#7fa062", "#253a2f", sky.night);
@@ -2151,7 +2185,7 @@
       <path class="flick" style="animation-delay:-.2s" d="M96 70q-4-3-1-8 1 3 2 2 0-3 2-5 1 5 2 7-1 3-5 4z" fill="#ffd36b"/>
       <g opacity="${sky.night.toFixed(2)}">${[[140, 30], [210, 50], [300, 24], [420, 44], [700, 34], [860, 22], [1000, 46]].map(([cx, cy], i) => `<circle class="fly" style="animation-delay:${-i * .7}s" cx="${cx}" cy="${cy}" r="1.3" fill="#e9f28a"/>`).join("")}</g>
       <rect x="14" y="62" width="50" height="9" rx="4.5" fill="#6b4a33" stroke="${INK}" stroke-width=".8"/><circle cx="18.5" cy="66.5" r="3" fill="#8a6446" stroke="${INK}" stroke-width=".5"/>
-      ${wrenSVG(40, 61, 1.2)}`;
+      ${cut(wrenSVG(42, 62, 1.42))}`;
     },
     oona: (sky, u) => `
       <defs><linearGradient id="wall${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#141418"/><stop offset="1" stop-color="#24242b"/></linearGradient></defs>
@@ -2178,7 +2212,7 @@
       <g transform="translate(800 30)"><circle cx="0" cy="12" r="12" fill="#b8913a" stroke="#0c0c10" stroke-width=".8"/><circle cx="0" cy="12" r="7" fill="none" stroke="#8c6a26" stroke-width=".7"/><path d="M-10 32 0 0 10 32" fill="none" stroke="#55555e" stroke-width="1"/></g>
       <rect y="62" width="1200" height="22" fill="#26262c"/><path d="M0 62h1200" stroke="#0c0c10" stroke-width="1.6"/>
       <path d="M22 70l8 5M30 70l-8 5M60 72l8 5M68 72l-8 5" stroke="#e9e6dc" stroke-width="1.2" opacity=".75"/>
-      ${oonaSVG(36, 63, 1.16)}`,
+      ${cut(oonaSVG(36, 63, 1.16))}`,
     lulu: (sky, u) => `
       <defs><linearGradient id="wall${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1b36"/><stop offset="1" stop-color="#5c2c4a"/></linearGradient>
       <pattern id="dots${u}" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="7" cy="7" r="1" fill="#ff9ebb" opacity=".16"/></pattern></defs>
@@ -2202,16 +2236,17 @@
         ${[11, 18, 25].map((x, i) => `<path d="M${x} 0v-4" stroke="#b57cff" stroke-width="1"/><path class="flick" style="animation-delay:${-i * .15}s" d="M${x} -4q-1.6-2 0-4.4 1.6 2.4 0 4.4z" fill="#ffd35c"/>`).join("")}</g>
       <rect y="62" width="1200" height="22" fill="#6b3a2e"/><path d="M0 62h1200" stroke="#3a1d16" stroke-width="1.6"/><path d="${Array.from({ length: 30 }, (_, i) => `M${i * 40 + 10} 62v22`).join("")}" stroke="#5a2f24" stroke-width=".8"/>
       ${[[72, 66, 0], [84, 70, 1], [120, 64, 2]].map(([x, y, i]) => `<g class="rattle" style="animation-delay:${-i * .07}s"><path d="M${x} ${y}h4.6l-.8 5.6h-3z" fill="#d9453f" stroke="#1a0c18" stroke-width=".5"/><ellipse cx="${x + 2.3}" cy="${y}" rx="2.3" ry=".6" fill="#f3efe6"/></g>`).join("")}
-      ${luluSVG(38, 62, 1.2)}`
+      ${cut(luluSVG(40, 63, 1.3))}`
   };
 
+  const cut = svg => `<g class="cutout" filter="url(#papercut)">${svg}</g>`;
   let sceneN = 0;
   function scene(id, sky) {
     const u = "u" + (++sceneN);
     return `<svg class="scene" viewBox="0 0 1200 84" preserveAspectRatio="xMinYMax slice" aria-hidden="true">${(SCENES[id] || SCENES.dusty)(sky || skyFor(20), u)}</svg>`;
   }
   const CHAR_SVG = { dusty: dustySVG, ghost: ghostSVG, wren: wrenSVG, oona: oonaSVG, lulu: luluSVG };
-  const portrait = id => `<svg class="portrait" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, id === "oona" ? 8 : 4, id === "oona" ? 1.08 : 1.15)}</svg>`;
+  const portrait = id => `<svg class="portrait" viewBox="-8 -58 72 76" aria-hidden="true">${cut(CHAR_SVG[id](26, id === "oona" ? 8 : 4, id === "oona" ? 1.08 : 1.15))}</svg>`;
 
   // the clock in the sky: keys around a 24-hour dial
   function skyDial(k, u) {
@@ -3732,6 +3767,8 @@
   const glyph = M => (M.unit === 8 ? "♪" : "♩");
 
   let songs = readJSON("songs", []);
+  // a saved copy of the page carries its songs with it
+  if ((!Array.isArray(songs) || !songs.length) && Array.isArray(window.__pixieSeed)) songs = window.__pixieSeed;
   if (!Array.isArray(songs) || !songs.length) songs = [newSong("my first song", store.get("prog") || "C Am F G")];
   songs.forEach(s => {
     s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) };
@@ -3834,18 +3871,9 @@
     return { list: r.current, key: r.key, M: r.M, T: r.total };
   }
 
-  function computeRange(list) {
-    let lo = Infinity, hi = -Infinity;
-    list.forEach(c => allNotes(c.v).forEach(n => { lo = Math.min(lo, n); hi = Math.max(hi, n); }));
-    if (!list.length) { lo = 48; hi = 72; }
-    lo -= 1; hi += 1;
-    while (isBlack(lo)) lo--;
-    while (isBlack(hi)) hi++;
-    while (hi - lo < 19) { hi++; if (hi - lo < 19) lo--; }
-    while (isBlack(lo)) lo--;
-    while (isBlack(hi)) hi++;
-    return [lo, hi];
-  }
+  // one fixed keyboard, like a real instrument: E2 to G5 holds every shape
+  const KEY_LO = 40, KEY_HI = 79;
+  function computeRange() { return [KEY_LO, KEY_HI]; }
 
   function symbolHTML(ch) {
     const q = ch.qual.replace(/b(?=\d)/g, "♭").replace(/#/g, "♯");
@@ -3914,7 +3942,8 @@
       if (!sy.length) { prev = null; return; }
       const seed = hashStr(w) + (section.seed || 1) * 7919 + c.i;
       const room = replyOn(section, c) ? replyBeats(c) : 0;
-      const notes = melodyFor(sy, c, d.key, c.beats - room, prev, prefs.buddy, seed, null, d.M);
+      const hummed = Array.isArray((section.melody || [])[c.i]) ? section.melody[c.i] : null;
+      const notes = melodyFor(sy, c, d.key, c.beats - room, prev, prefs.buddy, seed, hummed, d.M);
       const em = autoEmph(sy, notes, prefs.buddy, seed + 31, c.beats);
       const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv))), top = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range[1] + 2;
       notes.forEach((nt, k) => {
@@ -3998,7 +4027,7 @@
       if (!c) return `<div class="tile bad"><div class="t-head"><span class="t-sym">${esc(it.raw)}</span></div><span class="t-foot">not a chord I know</span></div>`;
       return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)}" aria-label="${esc(it.raw)}, ${c.a.num}">
         <span class="t-head"><span class="t-sym">${symbolHTML(c.ch)}</span><span class="t-num">${STICKERS[c.a.fn] || ""}${esc(c.a.num)}</span></span>
-        ${keyboard(c.v, range[0], range[1], { stay: c.stay })}
+        ${keyboard(c.v, range[0], range[1])}
         <span class="t-foot"><span class="t-words">${esc(words()[it.i] || (Array.isArray(sec().melody[it.i]) ? "~" : "·"))}</span><span>${c.beats}${g}</span></span>
       </button>`;
     }).join("") + `<button class="tile plus" type="button" data-act="plus" aria-label="Type chords">+</button>`;
@@ -4106,7 +4135,7 @@
     const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
     const nextC = nextChord();
     const arrows = L("arrows") && nextC && nextC !== c;
-    // gold dots: keys that stay down into the next chord
+    // keys shared with the next chord, named in the note under the keyboard
     const keep = arrows ? new Set(allNotes(c.v).filter(m => allNotes(nextC.v).includes(m))) : c.stay;
     stageEl.innerHTML = `
       <div class="stage-top">
@@ -4115,7 +4144,7 @@
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { stay: keep, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, quiet: true, band: L("arrows"), tall: prefs.view === "bare" })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: arrows ? nextC.v : null, arrows, quiet: true, band: L("arrows") })}</div>
       <div class="shape-row">
         <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${arrows ? `<br>${keep.size ? `${keep.size} stay for ${esc(pretty(nextC.tok))}` : `all move for ${esc(pretty(nextC.tok))}`}` : ""}</span></div>
         <div class="nudges">
@@ -4840,6 +4869,121 @@
     if (notes.length) playLead(notes, t0, cl, prefs.buddy);
   }
 
+  // ---------- hum it: the microphone draws the singer's tune ----------
+  // Count in, hum the line, and the pitch you hum becomes the shape of the
+  // tune. Only the shape is kept, so it still fits when the key or chords change.
+  let hum = null, micNote = "";
+  function detectPitch(buf, sr) {
+    let e = 0;
+    for (let i = 0; i < buf.length; i++) e += buf[i] * buf[i];
+    if (Math.sqrt(e / buf.length) < 0.01) return null;
+    const minLag = Math.floor(sr / 900), maxLag = Math.min(Math.floor(sr / 85), buf.length >> 1), n = buf.length - maxLag;
+    const corr = new Float32Array(maxLag + 2);
+    let best = 0, lagB = 0;
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let s = 0, e1 = 0, e2 = 0;
+      for (let i = 0; i < n; i++) { const a = buf[i], b = buf[i + lag]; s += a * b; e1 += a * a; e2 += b * b; }
+      const r = s / (Math.sqrt(e1 * e2) || 1);
+      corr[lag] = r;
+      if (r > best) { best = r; lagB = lag; }
+    }
+    if (best < 0.82) return null;
+    // the first strong peak is the true pitch; later ones are octaves below
+    for (let lag = minLag + 1; lag < lagB; lag++) if (corr[lag] > 0.9 * best && corr[lag] >= corr[lag - 1] && corr[lag] >= corr[lag + 1]) { lagB = lag; break; }
+    const y0 = corr[lagB - 1] || corr[lagB], y1 = corr[lagB], y2 = corr[lagB + 1] || corr[lagB];
+    const d = y0 - 2 * y1 + y2, shift = d ? (y0 - y2) / (2 * d) : 0;
+    return 69 + 12 * Math.log2(sr / (lagB + shift) / 440);
+  }
+  // pitches over time → 16 heights, centered, intervals kept
+  function humContour(track, span) {
+    const v = track.filter(p => p.m != null);
+    if (v.length < 6) return null;
+    const ms = v.map(p => p.m).sort((a, b) => a - b), mid = ms[ms.length >> 1];
+    const N = CONTOUR_N, out = [];
+    for (let b = 0; b < N; b++) {
+      const x = b / (N - 1), near = v.filter(p => Math.abs(p.x - x) < 0.5 / (N - 1) + 0.02);
+      let m;
+      if (near.length) { const s = near.map(p => p.m).sort((a, b) => a - b); m = s[s.length >> 1]; }
+      else { const nb = v.reduce((a, p) => (Math.abs(p.x - x) < Math.abs(a.x - x) ? p : a), v[0]); m = nb.m; }
+      out.push(+Math.max(0, Math.min(1, 0.5 + (m - mid) / span)).toFixed(2));
+    }
+    return out;
+  }
+  async function startHum(c) {
+    if (hum || playing || !(await audioReady())) return;
+    const pol = document.permissionsPolicy || document.featurePolicy;
+    if (!navigator.mediaDevices?.getUserMedia || (pol?.allowsFeature && !pol.allowsFeature("microphone"))) { micNote = "blocked"; renderSheet(); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch (err) { micNote = err && err.name === "NotAllowedError" ? "denied" : "blocked"; renderSheet(); return; }
+    micNote = "";
+    const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser();
+    an.fftSize = 2048; src.connect(an);
+    const cl = countSec(Mtr, S().bpm), room = replyOn(sec(), c) ? replyBeats(c) : 0, beats = Math.max(1, c.beats - room);
+    const count = Math.min(4, Mtr.n), t0 = ac.currentTime + 0.1, tStart = t0 + count * cl, tEnd = tStart + beats * cl;
+    // count in with the chord, so you can find your note
+    strum(c.v, t0, 1.2);
+    for (let k = 0; k < count; k++) tone(k ? 91 : 96, t0 + k * cl, 0.05, 0.1);
+    hum = { c, stream, an, track: [], buf: new Float32Array(an.fftSize), tStart, tEnd, timer: null };
+    renderSheet();
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
+    hum.timer = setInterval(() => {
+      const h = hum; if (!h) return;
+      const now = ac.currentTime, lbl = $("humCount");
+      if (now < h.tStart) { if (lbl) lbl.textContent = String(count - Math.floor((now - t0) / cl)); return; }
+      if (lbl && lbl.textContent !== "hum!") lbl.textContent = "hum!";
+      h.an.getFloatTimeDomainData(h.buf);
+      const m = detectPitch(h.buf, ac.sampleRate), x = Math.min(1, (now - h.tStart) / (h.tEnd - h.tStart));
+      h.track.push({ x, m });
+      const sky = $("pageSky");
+      if (sky && m != null) {
+        const dot = document.createElement("i");
+        dot.className = "hum-dot";
+        dot.style.left = (3 + x * (beats / c.beats) * 94).toFixed(1) + "%";
+        dot.style.top = (12 + (1 - Math.max(0, Math.min(1, 0.5 + (m - (h.track.find(p => p.m != null)?.m ?? m)) / (hi - lo)))) * 62).toFixed(1) + "%";
+        sky.appendChild(dot);
+      }
+      if (now >= h.tEnd) finishHum();
+    }, 30);
+  }
+  function stopMic() {
+    if (!hum) return;
+    clearInterval(hum.timer);
+    hum.stream.getTracks().forEach(t => t.stop());
+  }
+  function finishHum(cancel) {
+    const h = hum;
+    if (!h) return;
+    stopMic();
+    hum = null;
+    if (cancel) { renderSheet(); return; }
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
+    const shape = humContour(h.track, hi - lo);
+    if (!shape) { toast("didn't catch that. hum a little louder, close to the phone"); renderSheet(); return; }
+    const section = sec();
+    if (!Array.isArray(section.melody)) section.melody = [];
+    section.melody[h.c.i] = shape;
+    saveSongs();
+    tipOverride = B().drew;
+    renderSheet(); renderStrip(); renderStage();
+    previewSing(h.c);
+  }
+  // when the page can't reach the mic (some embedded views block it), offer a copy to open on its own
+  async function saveStandalone() {
+    const seed = JSON.stringify(songs).replace(/</g, "\\u003c");
+    const html = PAGE_SRC.replace("<script>", `<script>window.__pixieSeed = ${seed};<\/script>\n<script>`);
+    const name = `pixie chords.html`;
+    const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]) : null;
+    if (dl) {
+      try { await dl.save({ filename: name, data: html }); toast("saved. open it in your browser to hum"); }
+      catch (err) { if (err?.code !== "declined") toast("couldn't save it here"); }
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" })); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
   // ---------- the songbook: a cover with the whole verse, then a page per line ----------
   let bookPage = 0;
   function flowHTML() {
@@ -4913,12 +5057,14 @@
       <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear the ${esc(section.name.toLowerCase())}</button></div>
       ${pagerHTML()}</div>`;
     const c = current[bookPage - 1], pick = (section.licks || [])[c.i], cur = lickIdFor(section, c), rb = replyBeats(c);
+    const hummed = Array.isArray((section.melody || [])[c.i]);
     const cards = rb ? [...lickSet(), ["rest", "let it breathe"]].map(([id, name]) => `<button class="lick${cur === id ? " on" : ""}" type="button" data-lick="${id}" aria-pressed="${cur === id}">${lickArt(id, c)}<span>${esc(name)}</span></button>`).join("") : "";
     return `<div class="book page">
-      <div class="page-head"><span class="page-chord" style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span><span class="lbl">line ${bookPage} of ${current.length}</span></div>
+      <div class="page-head"><span class="page-chord" style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span><span class="lbl">line ${bookPage} of ${current.length}${hummed ? " · your hummed tune" : ""}</span></div>
       <input class="verse-in line-in" id="pageLine" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}" enterkeyhint="next" autocomplete="off" aria-label="Words for line ${bookPage}">
       <div class="sky page-sky" id="pageSky">${pageSky(c)}</div>
-      <div class="row"><button class="btn surprise" type="button" data-book="line">▶ hear this line</button><button class="btn" type="button" data-book="again">↻ ${esc(B().name)} sings it another way</button></div>
+      ${hum && hum.c === c ? `<div class="hum-live"><span id="humCount" class="hum-count">…</span><span>hum the tune when the clicks stop</span><button class="btn" type="button" data-hum="cancel">stop</button></div>` : `<div class="row"><button class="btn surprise" type="button" data-book="line">▶ hear this line</button><button class="btn hum-btn" type="button" data-hum="go">● hum the tune</button>${hummed ? `<button class="btn" type="button" data-hum="clear">✕ let ${esc(B().name)} choose</button>` : `<button class="btn" type="button" data-book="again">↻ another way</button>`}</div>`}
+      ${micNote === "blocked" ? `<p class="note mic-note">The microphone can't be reached from this view. <button class="link" type="button" data-hum="save">Save Pixie Chords as its own page</button> (your songs come too) and open it in your browser to hum.</p>` : micNote === "denied" ? `<p class="note mic-note">The microphone didn't open. Allow it for this page in your browser's settings and try again, or <button class="link" type="button" data-hum="save">save Pixie Chords as its own page</button> (your songs come too).</p>` : ""}
       ${rb ? `<div class="sky-head"><span class="lbl">then the ${esc(leadName())} answers${pick ? "" : ` · ${esc(B().name)}'s pick`}</span></div>
       <div class="licks">${cards}</div>` : `<p class="note">this chord is too short for an answer</p>`}
       ${L("lead") ? "" : `<p class="note">the lead is switched off in view</p>`}
@@ -4987,6 +5133,7 @@
     if (vt && !vt.value.trim()) vt.focus(); else $("closeSheet").focus();
   }
   function closeSheet() {
+    if (hum) finishHum(true);
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     sheetMode = null; confirmDel = null;
@@ -5597,8 +5744,17 @@
     const lenB2 = e.target.closest("[data-setlen]");
     if (lenB2 && current[sel]) { setLength(current[sel], +lenB2.dataset.setlen, true); renderSheet(); playOne(sel); return; }
     if (chordAct) { if (chordAct.dataset.chordact === "surprise") { surprise(); renderSheet(); } else playOne(sel); return; }
+    const humB = e.target.closest("[data-hum]");
+    if (humB) {
+      const a = humB.dataset.hum, c = current[bookPage - 1];
+      if (a === "go" && c) startHum(c);
+      else if (a === "cancel") finishHum(true);
+      else if (a === "save") saveStandalone();
+      else if (a === "clear" && c) { if (sec().melody) sec().melody[c.i] = null; saveSongs(); renderSheet(); renderStrip(); renderStage(); previewSing(c); }
+      return;
+    }
     const pageB = e.target.closest("[data-page]"), lickB = e.target.closest("[data-lick]");
-    if (pageB && !pageB.disabled) { bookPage = +pageB.dataset.page; if (bookPage) { sel = bookPage - 1; renderStage(); } renderSheet(); return; }
+    if (pageB && !pageB.disabled) { if (hum) finishHum(true); micNote = ""; bookPage = +pageB.dataset.page; if (bookPage) { sel = bookPage - 1; renderStage(); } renderSheet(); return; }
     if (lickB) {
       const c = current[bookPage - 1];
       if (!c) return;
