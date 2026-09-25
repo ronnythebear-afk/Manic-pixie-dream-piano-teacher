@@ -675,6 +675,27 @@
   .leaf.flip { margin: 2px 0 0 -8px; transform: rotate(155deg); }
   /* little guitar picks along the lead line */
   .keydot { position: absolute; width: 8px; height: 9px; margin: -5px 0 0 -4px; border: 1px solid var(--ink); border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; clip-path: polygon(0 0, 100% 0, 50% 100%); background: var(--surprise); pointer-events: none; }
+  .fl { border: 0; border-left: 3px solid var(--fn); background: none; text-align: left; color: inherit; cursor: pointer; border-radius: 0; }
+  .fl:hover i { text-decoration: underline dotted; }
+  .page-head { display: flex; align-items: baseline; gap: 10px; }
+  .page-chord { font-family: var(--hand); font-weight: 700; font-size: 30px; line-height: 1; border-bottom: 3px solid var(--fn); }
+  .line-in { min-height: 0; font-size: 22px; padding: 6px 10px; }
+  .page-sky { height: 150px; cursor: default; touch-action: auto; }
+  .page-sky .bead { font-size: 16px; }
+  .reply-zone { fill: color-mix(in srgb, var(--surprise) 16%, transparent); stroke: var(--surprise); stroke-opacity: .4; stroke-dasharray: 2 2; }
+  .reply-tag { position: absolute; bottom: 4px; transform: translateX(-50%); font-family: var(--type); font-size: 10px; color: var(--surprise); white-space: nowrap; }
+  .licks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .lick { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); padding: 6px 8px; font-family: var(--hand); font-weight: 700; font-size: 15px; line-height: 1.1; text-align: left; color: inherit; cursor: pointer; }
+  .lick svg { flex: none; width: 40px; height: 16px; }
+  .lick.on { border-color: var(--surprise); background: color-mix(in srgb, var(--surprise) 22%, var(--card)); }
+  .lk-n { fill: var(--surprise); } .lk-rest { stroke: var(--soft); stroke-width: 1.5; stroke-dasharray: 2 3; fill: none; }
+  .pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .pager .round { width: 38px; height: 38px; }
+  .pager .round:disabled { opacity: .3; }
+  .dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .dot { width: 10px; height: 10px; padding: 0; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; cursor: pointer; }
+  .dot.on { background: var(--ink); }
+  .dot:first-child { border-radius: 2px; }
   .bead { position: absolute; transform: translate(var(--tx, -50%), var(--ty, -50%)); font-family: var(--hand); font-weight: 700; font-size: 14px; line-height: 1; padding: 1px 3px; border-radius: 6px; background: color-mix(in srgb, var(--card) 85%, transparent); cursor: pointer; white-space: nowrap; }
   .bead.tight { font-size: 11.5px; padding: 1px 2px; }
   .bead.hop { --ty: -150%; } .bead.edge-l { --tx: -12%; } .bead.edge-r { --tx: -88%; }
@@ -3892,7 +3913,8 @@
       const sy = w ? lineSyllables(w) : [];
       if (!sy.length) { prev = null; return; }
       const seed = hashStr(w) + (section.seed || 1) * 7919 + c.i;
-      const notes = melodyFor(sy, c, d.key, c.beats, prev, prefs.buddy, seed, null, d.M);
+      const room = replyOn(section, c) ? replyBeats(c) : 0;
+      const notes = melodyFor(sy, c, d.key, c.beats - room, prev, prefs.buddy, seed, null, d.M);
       const em = autoEmph(sy, notes, prefs.buddy, seed + 31, c.beats);
       const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv))), top = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range[1] + 2;
       notes.forEach((nt, k) => {
@@ -4379,9 +4401,8 @@
     }
     const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
     playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
-    const kc = (song.sections[playSec].keys || [])[c.i];
-    if (Array.isArray(kc)) playKeyLine(c, kc, d.key, M, nextT, cl);
     const mel = L("sing") ? melodyChain(playSec).get(c.i) : null;
+    playReply(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
     if (L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel);
     for (let k = 0; k < c.beats; k++) {
       const pos = (c.at + k) % M.n;
@@ -4465,8 +4486,7 @@
     const cl = countSec(Mtr, S().bpm), t = ac.currentTime + 0.05;
     const mel = melodyChain(secIdx).get(c.i);
     playChord(c.v, t, c.beats, cl, S().style, { M: Mtr, pos0: c.pos0 });
-    const kc = (sec().keys || [])[c.i];
-    if (Array.isArray(kc)) playKeyLine(c, kc, K, Mtr, t, cl);
+    playReply(sec(), c, current, K, t, cl, mel);
     if (mel) singChord(c, mel, t, cl);
     if (c === current[sel]) fx(c);
   }
@@ -4726,14 +4746,15 @@
 
   // =========================================================
   // The songbook: write the verse a line at a time, watch it flow onto
-  // the chords. Your friend picks the sung tune; you draw their lead line.
-  // Tunes are stored as shapes, so they re-fit when the key or chords change.
+  // the chords. Your friend picks the sung tune and answers each line.
   // =========================================================
   const flowSig = list => list.map(c => c.tok + ":" + c.beats).join(" ");
   function flowVerse(section, list) {
-    const lines = (section.verse || "").split(/\n/).map(s => s.trim()).filter(Boolean);
+    const raw = (section.verse || "").split(/\n/).map(s => s.trim());
+    const lines = raw.filter(Boolean);
     const C = list.length, out = Array(C).fill("");
-    if (C && lines.length) {
+    if (C && raw.length === C) raw.forEach((l, k) => { out[k] = l; });
+    else if (C && lines.length) {
       if (lines.length >= C) {
         for (let k = 0; k < C; k++) out[k] = lines.slice(Math.floor(k * lines.length / C), Math.floor((k + 1) * lines.length / C)).join(" ");
       } else lines.forEach((line, j) => {
@@ -4759,108 +4780,149 @@
     section.flowSig = flowSig(list);
   }
 
-  // the lead line: the drawn shape played on your friend's own instrument,
-  // up above the chord so the hands underneath stay easy to hear
-  function keyLine(c, contour, key, M, who = prefs.buddy) {
-    const ld = LEADS[who] || LEADS.dusty, grid = M.unit === 8 ? Math.max(ld.grid, 1) : ld.grid;
-    const n = Math.max(1, Math.round(c.beats / grid)), step = c.beats / n;
-    const top = Math.max(...c.v.rh, ...c.v.lh), lo = Math.max(top + 2, ld.low), hi = lo + 14;
-    const chordPcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
-    const scale = new Set((key.minor ? MINOR : MAJOR).steps.map(x => mod(key.tonic + x)));
-    const out = [];
-    let prev = null;
-    for (let k = 0; k < n; k++) {
-      const want = lo + contourAt(contour, (k + 0.5) / n) * (hi - lo);
-      const ok = m => (k % 2 === 0 ? chordPcs.has(mod(m)) : scale.has(mod(m)) || chordPcs.has(mod(m)));
-      let best = null;
-      for (let m = lo; m <= hi; m++) if (ok(m) && (best == null || Math.abs(m - want) < Math.abs(best - want))) best = m;
-      if (best == null) best = Math.round(want);
-      // repeated notes become held notes
-      if (prev && prev.midi === best) prev.dur += step;
-      else { prev = { midi: best, start: k * step, dur: step }; out.push(prev); }
-    }
-    return out;
-  }
-  const playKeyLine = (c, contour, key, M, t0, cl) => { if (L("lead")) playLead(keyLine(c, contour, key, M), t0, cl, prefs.buddy); };
+  // ---------- the lead answers the singer ----------
+  // At the end of each line there's a small gap; your friend's instrument
+  // fills it with a lick. They offer four; you pick, or let it breathe.
+  const LICKS = { walk: 1, echo: 1, cry: 1, turn: 1, sparkle: 1, rest: 1 };
+  const LICK_SETS = {
+    dusty: [["walk", "slide into the next chord"], ["cry", "a long steel cry"], ["echo", "echo the last words"], ["turn", "a lazy turn"]],
+    ghost: [["sparkle", "808 arpeggio"], ["echo", "echo the last words"], ["cry", "one long glide"], ["walk", "walk to the next chord"]],
+    wren: [["turn", "a whistle turn"], ["echo", "echo the last words"], ["walk", "skip to the next chord"], ["cry", "a long high note"]],
+    oona: [["cry", "one long saw note"], ["echo", "echo it, slower"], ["walk", "bend toward the next chord"], ["turn", "a wobble"]],
+    lulu: [["sparkle", "bell sparkle"], ["turn", "a twirl"], ["echo", "echo it, higher"], ["walk", "tumble to the next chord"]]
+  };
+  const lickSet = () => LICK_SETS[prefs.buddy] || LICK_SETS.dusty;
   const leadName = () => (LEADS[prefs.buddy] || LEADS.dusty).name;
-
-  let skyPen = null;
-  const narrowSky = () => ($("sky")?.clientWidth || innerWidth) < 480;
-  function skyHTML() {
-    const section = sec(), T = Math.max(1, total), mels = melodyChain(secIdx);
-    const X = u => 2 + (u / T) * 96;
-    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
-    const Y = midi => 10 + (1 - (midi - lo) / (hi - lo)) * 66, Yv = v => 10 + (1 - v) * 66;
-    const f = n => n.toFixed(2);
-    let svg = "", beads = "";
-    current.forEach(c => {
-      if (c.j) svg += `<line class="sky-div" x1="${f(X(c.at))}" x2="${f(X(c.at))}" y1="4" y2="96" vector-effect="non-scaling-stroke"/>`;
-      beads += `<span class="sky-chord" style="left:${f(X(c.at + c.beats / 2))}%;${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span>`;
-    });
-    // your lead line: dotted, with a pick on every note the instrument plays
-    let dk = "";
-    current.forEach(c => {
-      const ct = (section.keys || [])[c.i];
-      if (!Array.isArray(ct)) return;
-      ct.forEach((v, s) => { dk += `${s ? "L" : "M"}${f(X(c.at + (s / (ct.length - 1)) * c.beats))} ${f(Yv(v))}`; });
-      keyLine(c, ct, K, Mtr).forEach(nt => { beads += `<i class="keydot" style="left:${f(X(c.at + nt.start))}%;top:${f(Yv(contourAt(ct, Math.min(1, nt.start / c.beats))))}%"></i>`; });
-    });
-    if (dk) svg += `<path class="vine keys" d="${dk}" vector-effect="non-scaling-stroke"/>`;
-    // the singer's own tune, as a vine through the words
-    const pts = [];
-    current.forEach(c => {
-      const m = mels.get(c.i);
-      if (m) m.notes.forEach(nt => pts.push([X(c.at + nt.start + Math.min(nt.dur, 0.5) / 2), Y(nt.midi)]));
-    });
-    if (pts.length > 1) {
-      // a soft curve through the midpoints, so the vine sways instead of zigzagging
-      let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
-      for (let k = 1; k < pts.length - 1; k++) d += `Q${f(pts[k][0])} ${f(pts[k][1])} ${f((pts[k][0] + pts[k + 1][0]) / 2)} ${f((pts[k][1] + pts[k + 1][1]) / 2)}`;
-      d += `L${f(pts[pts.length - 1][0])} ${f(pts[pts.length - 1][1])}`;
-      svg += `<path class="vine voice" d="${d}" vector-effect="non-scaling-stroke"/>`;
-      pts.forEach((p, k) => { if (k % 5 === 2) beads += `<i class="leaf${k % 2 ? " flip" : ""}" style="left:${f(p[0])}%;top:${f(p[1] + 5)}%"></i>`; });
-    }
-    current.forEach(c => {
-      const m = mels.get(c.i);
-      if (!m || m.scat) return;
-      // crowded lines: each word sits on its first note and the rest of the word
-      // become little seeds; every other word hops up so words don't pile
-      const tight = m.notes.length / c.beats > (narrowSky() ? 0.9 : 1.6);
-      const wordAt = [], wk = [];
-      let w = -1;
-      m.sy.forEach((sy, k) => {
-        if (sy.first || w < 0) { w++; wordAt[k] = m.sy.slice(k, k + 1 + m.sy.slice(k).findIndex(x => x.last)).map(x => x.show).join("") || sy.show; }
-        wk[k] = w;
-      });
-      m.notes.forEach(nt => {
-        const lbl = tight ? wordAt[nt.s] : m.sy[nt.s].show;
-        const hop = tight && (wk[nt.s] + c.i) % 2 ? " hop" : "";
-        const x = X(c.at + nt.start + Math.min(nt.dur, 0.5) / 2), edge = x < 9 ? " edge-l" : x > 91 ? " edge-r" : "";
-        beads += `<span class="bead${edge}${tight ? " tight" + hop + (lbl ? "" : " seed") : ""}${nt.emph ? " emph-" + nt.emph : ""}" data-i="${c.i}" data-s="${nt.s}" style="left:${f(x)}%;top:${f(Y(nt.midi))}%">${esc(lbl || "")}</span>`;
-      });
-    });
-    return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}<path class="live keys" id="skyLive" d="" vector-effect="non-scaling-stroke"/></svg>${beads}`;
+  const replyBeats = c => c.beats >= 6 ? 2 : c.beats >= 3 ? 1 : 0;
+  // what the lead plays after this line: your pick, or your friend's
+  function lickIdFor(section, c) {
+    const v = (section.licks || [])[c.i];
+    if (v && LICKS[v]) return v;
+    const set = lickSet();
+    return set[((section.seed || 1) + c.i * 3) % set.length][0];
   }
+  const replyOn = (section, c) => L("lead") && replyBeats(c) > 0 && lickIdFor(section, c) !== "rest";
+  // notes in beats from the start of this chord
+  function lickNotes(id, c, next, key, sung, who = prefs.buddy, seed = 1) {
+    const win = replyBeats(c);
+    if (!win || id === "rest") return [];
+    const ld = LEADS[who] || LEADS.dusty, r = rng(seed * 131 + c.i + 7);
+    const top = Math.max(...c.v.rh, ...c.v.lh), lo = Math.max(top + 2, ld.low), hi = lo + 12;
+    const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+    const scale = new Set((key.minor ? MINOR : MAJOR).steps.map(x => mod(key.tonic + x)));
+    const inScale = m => scale.has(mod(m)) || pcs.has(mod(m));
+    const tones = []; for (let m = lo; m <= hi; m++) if (pcs.has(mod(m))) tones.push(m);
+    const near = (want, ok = m => pcs.has(mod(m))) => { let b = null; for (let m = lo - 2; m <= hi + 2; m++) if (ok(m) && (b == null || Math.abs(m - want) < Math.abs(b - want))) b = m; return b ?? want; };
+    const stepFrom = (m, dir) => { let x = m + dir; while (!inScale(x)) x += dir; return x; };
+    const t0 = c.beats - win, even = (ms, tail = 0.35) => ms.map((m, k) => ({ midi: m, start: t0 + k * win / ms.length, dur: k === ms.length - 1 ? win / ms.length + tail : win / ms.length }));
+    if (id === "cry") return [{ midi: tones[tones.length - 1 - (r() < 0.5 ? 0 : 1)] || near(hi), start: t0, dur: win + 0.5 }];
+    if (id === "sparkle") { const k0 = Math.floor(r() * 2); return even(tones.slice(k0, k0 + 4).length >= 3 ? tones.slice(k0, k0 + 4) : tones.slice(0, 4), 0.2); }
+    if (id === "turn") { const m = near((lo + hi) / 2); return even([stepFrom(m, 1), m, stepFrom(m, -1), m], 0.3); }
+    if (id === "echo") {
+      const last = (sung || []).slice(-3);
+      if (!last.length) return even([near(lo + 4), near(lo + 7)]);
+      let shift = 0; const mid = last.reduce((a, b) => a + b, 0) / last.length;
+      while (mid + shift < lo) shift += 12; while (mid + shift > hi) shift -= 12;
+      if (who === "lulu") shift += 12;
+      return even(last.map(m => near(m + shift, inScale)), who === "oona" ? 0.6 : 0.3);
+    }
+    // walk: step along the scale and land on the next chord's root
+    const nr = next ? next.ch.rootPc : c.ch.rootPc;
+    let target = null; for (let m = lo; m <= hi + 2; m++) if (mod(m) === nr && (target == null || Math.abs(m - (lo + 6)) < Math.abs(target - (lo + 6)))) target = m;
+    const dir = r() < 0.5 ? 1 : -1, n = win >= 2 ? 4 : 3, path = [target];
+    for (let k = 1; k < n; k++) path.unshift(stepFrom(path[0], -dir));
+    return even(path, 0.4);
+  }
+  function playReply(section, c, list, key, t0, cl, mel) {
+    if (!replyOn(section, c)) return;
+    const idx = list.indexOf(c), next = list[idx + 1] || list[0];
+    const notes = lickNotes(lickIdFor(section, c), c, next, key, mel ? mel.notes.map(n => n.midi) : [], prefs.buddy, section.seed || 1);
+    if (notes.length) playLead(notes, t0, cl, prefs.buddy);
+  }
+
+  // ---------- the songbook: a cover with the whole verse, then a page per line ----------
+  let bookPage = 0;
   function flowHTML() {
-    return current.map(c => `<span class="fl" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><i>${esc(words()[c.i] || "·")}</i></span>`).join("") || `<span class="note">add some chords first</span>`;
+    return current.map((c, k) => `<button class="fl" type="button" data-page="${k + 1}" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><i>${esc(words()[c.i] || "·")}</i></button>`).join("") || `<span class="note">add some chords first</span>`;
+  }
+  // one line, roomy: the singer's words on their tune, then the lead's reply
+  function pageSky(c) {
+    const section = sec(), m = melodyChain(secIdx).get(c.i);
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
+    const X = u => 3 + (u / c.beats) * 94, Y = midi => 12 + (1 - (midi - lo) / (hi - lo)) * 62;
+    const f = n => n.toFixed(2);
+    let svg = "", out = "";
+    const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+    for (let k = lo; k <= hi; k++) if (pcs.has(mod(k))) svg += `<line class="sky-div" x1="2" x2="98" y1="${f(Y(k))}" y2="${f(Y(k))}" vector-effect="non-scaling-stroke"/>`;
+    const rb = replyOn(section, c) ? replyBeats(c) : 0;
+    if (rb) svg += `<rect class="reply-zone" x="${f(X(c.beats - rb))}" y="3" width="${f(X(c.beats) - X(c.beats - rb))}" height="94" rx="2"/>`;
+    if (m) {
+      const pts = m.notes.map(nt => [X(nt.start + Math.min(nt.dur, 0.5) / 2), Y(nt.midi)]);
+      if (pts.length > 1) {
+        let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
+        for (let k = 1; k < pts.length - 1; k++) d += `Q${f(pts[k][0])} ${f(pts[k][1])} ${f((pts[k][0] + pts[k + 1][0]) / 2)} ${f((pts[k][1] + pts[k + 1][1]) / 2)}`;
+        d += `L${f(pts[pts.length - 1][0])} ${f(pts[pts.length - 1][1])}`;
+        svg += `<path class="vine voice" d="${d}" vector-effect="non-scaling-stroke"/>`;
+      }
+      m.notes.forEach((nt, k) => {
+        const x = pts[k][0], edge = x < 9 ? " edge-l" : x > 91 ? " edge-r" : "";
+        out += `<span class="bead${edge}${nt.emph ? " emph-" + nt.emph : ""}" style="left:${f(x)}%;top:${f(pts[k][1])}%">${esc(m.sy[nt.s].show)}</span>`;
+      });
+    }
+    if (rb) {
+      const idx = current.indexOf(c), next = current[idx + 1] || current[0];
+      const ln = lickNotes(lickIdFor(section, c), c, next, K, m ? m.notes.map(n => n.midi) : [], prefs.buddy, section.seed || 1);
+      const lmin = Math.min(...ln.map(n => n.midi)), lmax = Math.max(...ln.map(n => n.midi)), span = Math.max(5, lmax - lmin);
+      ln.forEach(nt => {
+        const x0 = X(nt.start) + 0.6, x1 = Math.min(X(c.beats) - 0.6, X(nt.start + nt.dur) - 0.6), y = 22 + (1 - (nt.midi - lmin) / span) * 40;
+        svg += `<rect class="lk-n reply-note" x="${f(x0)}" y="${f(y - 2.5)}" width="${f(Math.max(1.2, x1 - x0))}" height="5" rx="1"/>`;
+      });
+      out += `<span class="reply-tag" style="left:${f(X(c.beats - rb / 2))}%">${esc(leadName())}</span>`;
+    }
+    return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${out}`;
+  }
+  // a tiny picture of each lick for its card
+  function lickArt(id, c) {
+    const idx = current.indexOf(c), next = current[idx + 1] || current[0], m = melodyChain(secIdx).get(c.i);
+    const ln = lickNotes(id, Object.assign({}, c, { beats: Math.max(c.beats, 3) }), next, K, m ? m.notes.map(n => n.midi) : [], prefs.buddy, sec().seed || 1);
+    if (!ln.length) return `<svg viewBox="0 0 40 16" aria-hidden="true"><path d="M4 8h32" class="lk-rest"/></svg>`;
+    const a = Math.min(...ln.map(n => n.start)), b = Math.max(...ln.map(n => n.start + n.dur)), lo = Math.min(...ln.map(n => n.midi)), hi = Math.max(lo + 5, ...ln.map(n => n.midi));
+    return `<svg viewBox="0 0 40 16" aria-hidden="true">${ln.map(n => { const x = 3 + (n.start - a) / (b - a) * 34, w = Math.max(2, n.dur / (b - a) * 34 - 1), y = 13 - (n.midi - lo) / (hi - lo) * 10; return `<rect class="lk-n" x="${x.toFixed(1)}" y="${(y - 1.4).toFixed(1)}" width="${w.toFixed(1)}" height="2.8" rx="1.4"/>`; }).join("")}</svg>`;
+  }
+  function refreshPage() {
+    const c = current[bookPage - 1], sky = $("pageSky");
+    if (c && sky) sky.innerHTML = pageSky(c);
   }
   function refreshBook() {
-    const sky = $("sky"), fl = $("flow");
-    if (sky) sky.innerHTML = skyHTML();
+    const fl = $("flow");
     if (fl) fl.innerHTML = flowHTML();
+    refreshPage();
   }
+  const pagerHTML = () => `<div class="pager">
+      <button class="round" type="button" data-page="${bookPage - 1}"${bookPage ? "" : " disabled"} aria-label="Previous page">‹</button>
+      <span class="dots">${[0, ...current.map((_, k) => k + 1)].map(k => `<button type="button" class="dot${k === bookPage ? " on" : ""}" data-page="${k}" aria-label="${k ? "Line " + k : "The whole verse"}"></button>`).join("")}</span>
+      <button class="round" type="button" data-page="${bookPage + 1}"${bookPage < current.length ? "" : " disabled"} aria-label="Next page">›</button></div>`;
   function bookHTML() {
     const section = sec();
-    if (section.verse == null) section.verse = current.map(c => words()[c.i] || "").filter(Boolean).join("\n");
-    return `<div class="book">
+    if (section.verse == null) section.verse = current.map(c => words()[c.i] || "").join("\n").replace(/\n+$/, "");
+    bookPage = Math.max(0, Math.min(current.length, bookPage));
+    if (!bookPage) return `<div class="book">
       <textarea id="verseText" class="verse-in" rows="4" spellcheck="true" placeholder="write the ${esc(section.name.toLowerCase())} a line at a time&#10;it flows onto your chords as you go">${esc(section.verse)}</textarea>
       <div class="flow" id="flow">${flowHTML()}</div>
-      <div class="sky-head"><span class="lbl">♪ ${esc(B().name)}'s tune</span>
-        <button class="pen-btn voice" type="button" data-book="again">↻ another tune</button></div>
-      <div class="sky" id="sky">${skyHTML()}</div>
-      <p class="note">✏ draw a line across the sky and ${esc(B().name)}'s ${esc(leadName())} plays it up above your chords · switch friends and it changes instrument</p>
-      <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear it</button>${(sec().keys || []).some(Array.isArray) ? `<button class="btn" type="button" data-book="erase">erase the ${esc(leadName())}</button>` : ""}</div>
-    </div>`;
+      <p class="note">tap a line to turn to its page · ${esc(B().name)} picks the tune and answers each line on the ${esc(leadName())}</p>
+      <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear the ${esc(section.name.toLowerCase())}</button></div>
+      ${pagerHTML()}</div>`;
+    const c = current[bookPage - 1], pick = (section.licks || [])[c.i], cur = lickIdFor(section, c), rb = replyBeats(c);
+    const cards = rb ? [...lickSet(), ["rest", "let it breathe"]].map(([id, name]) => `<button class="lick${cur === id ? " on" : ""}" type="button" data-lick="${id}" aria-pressed="${cur === id}">${lickArt(id, c)}<span>${esc(name)}</span></button>`).join("") : "";
+    return `<div class="book page">
+      <div class="page-head"><span class="page-chord" style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span><span class="lbl">line ${bookPage} of ${current.length}</span></div>
+      <input class="verse-in line-in" id="pageLine" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}" enterkeyhint="next" autocomplete="off" aria-label="Words for line ${bookPage}">
+      <div class="sky page-sky" id="pageSky">${pageSky(c)}</div>
+      <div class="row"><button class="btn surprise" type="button" data-book="line">▶ hear this line</button><button class="btn" type="button" data-book="again">↻ ${esc(B().name)} sings it another way</button></div>
+      ${rb ? `<div class="sky-head"><span class="lbl">then the ${esc(leadName())} answers${pick ? "" : ` · ${esc(B().name)}'s pick`}</span></div>
+      <div class="licks">${cards}</div>` : `<p class="note">this chord is too short for an answer</p>`}
+      ${L("lead") ? "" : `<p class="note">the lead is switched off in view</p>`}
+      ${pagerHTML()}</div>`;
   }
   function flourish(x, y, glyphs, color) {
     if (reduceMotion) return;
@@ -4874,34 +4936,6 @@
       document.body.appendChild(el);
       setTimeout(() => el.remove(), 1500);
     });
-  }
-  // a drawn line → 16 heights per chord it crosses
-  function saveSkyLine(pts, box) {
-    const section = sec(), T = Math.max(1, total), key = "keys";
-    if (!Array.isArray(section[key])) section[key] = [];
-    const P = pts.map(([x, y]) => [((x - box.left) / box.width * 100 - 2) / 96 * T, Math.max(0, Math.min(1, 1 - (((y - box.top) / box.height * 100) - 10) / 66))]);
-    const u0 = Math.min(...P.map(p => p[0])), u1 = Math.max(...P.map(p => p[0]));
-    const at = u => {
-      const near = P.filter(p => Math.abs(p[0] - u) < T / 64);
-      if (near.length) return near.reduce((a, p) => a + p[1], 0) / near.length;
-      let l = null, r = null;
-      P.forEach(p => { if (p[0] <= u && (!l || p[0] > l[0])) l = p; if (p[0] >= u && (!r || p[0] < r[0])) r = p; });
-      if (l && r) return l[0] === r[0] ? l[1] : l[1] + (r[1] - l[1]) * (u - l[0]) / (r[0] - l[0]);
-      return (l || r)[1];
-    };
-    let firstC = null;
-    current.forEach(c => {
-      if (c.at + c.beats < u0 || c.at > u1) return;
-      section[key][c.i] = Array.from({ length: CONTOUR_N }, (_, s) => +at(c.at + s / (CONTOUR_N - 1) * c.beats).toFixed(2));
-      if (!firstC) firstC = c;
-    });
-    saveSongs();
-    refreshBook(); renderStrip(); renderStage();
-    const last = pts[pts.length - 1];
-    tipOverride = B().drew;
-    flourish(last[0], last[1], ["♪", "♫", "♪"], "var(--surprise)");
-    if (firstC && ac && audioOK && L("lead")) playLead(keyLine(firstC, section.keys[firstC.i], K, Mtr), ac.currentTime + 0.05, countSec(Mtr, S().bpm), prefs.buddy);
-    if (firstC && !L("lead")) toast(`${leadName()} is switched off in view`);
   }
 
   // =========================================================
@@ -4942,6 +4976,8 @@
   let sheetMode = null, confirmDel = null;
   function openSheet(mode) {
     closeEgg();
+    // the songbook opens on the page for the chord you're on, or the cover
+    if (mode === "book") bookPage = current[sel] && (words()[current[sel].i] || "").trim() ? sel + 1 : 0;
     sheetMode = mode;
     $("sheet").hidden = false;
     $("scrim").hidden = false;
@@ -5561,16 +5597,32 @@
     const lenB2 = e.target.closest("[data-setlen]");
     if (lenB2 && current[sel]) { setLength(current[sel], +lenB2.dataset.setlen, true); renderSheet(); playOne(sel); return; }
     if (chordAct) { if (chordAct.dataset.chordact === "surprise") { surprise(); renderSheet(); } else playOne(sel); return; }
+    const pageB = e.target.closest("[data-page]"), lickB = e.target.closest("[data-lick]");
+    if (pageB && !pageB.disabled) { bookPage = +pageB.dataset.page; if (bookPage) { sel = bookPage - 1; renderStage(); } renderSheet(); return; }
+    if (lickB) {
+      const c = current[bookPage - 1];
+      if (!c) return;
+      const section = sec();
+      if (!Array.isArray(section.licks)) section.licks = [];
+      section.licks[c.i] = lickB.dataset.lick;
+      saveSongs();
+      renderSheet();
+      const r = lickB.getBoundingClientRect();
+      if (lickB.dataset.lick !== "rest") flourish(r.left + r.width / 2, r.top, ["♪", "♫"], "var(--surprise)");
+      if (!playing) previewSing(c);
+      return;
+    }
     const bookB = e.target.closest("[data-book]");
     if (bookB) {
       const a = bookB.dataset.book;
       if (a === "hear") { if (!playing) { sel = 0; playAll(); } else stop(); }
+      else if (a === "line") { const c = current[bookPage - 1]; if (c && !playing) previewSing(c); }
       else if (a === "again") {
         sec().seed = (sec().seed || 1) + 1; saveSongs();
         refreshBook(); renderStrip(); renderStage();
         const r = bookB.getBoundingClientRect(); flourish(r.left + r.width / 2, r.top, ["♪", "♩", "♪"], "var(--lh)");
-        if (L("sing") && current[0] && !playing) previewSing(current.find(c => words()[c.i]) || current[0]);
-      } else { current.forEach(c => { if (sec().keys) sec().keys[c.i] = null; }); saveSongs(); renderSheet(); renderStrip(); renderStage(); }
+        if (!playing) previewSing(current[bookPage - 1] || current.find(c => words()[c.i]) || current[0]);
+      }
       return;
     }
     const tapeB = e.target.closest("[data-tape]");
@@ -5755,36 +5807,29 @@
       toast(`added “${s.title}”`);
     }
   });
-  $("sheetBody").addEventListener("pointerdown", e => {
-    const sky = e.target.closest("#sky");
-    if (!sky || e.button > 0) return;
+  $("sheetBody").addEventListener("keydown", e => {
+    if (e.target.id !== "pageLine" || e.key !== "Enter") return;
     e.preventDefault();
-    skyPen = { sky, box: sky.getBoundingClientRect(), pts: [[e.clientX, e.clientY]], id: e.pointerId };
-    try { sky.setPointerCapture(e.pointerId); } catch {}
+    if (bookPage < current.length) { bookPage++; sel = bookPage - 1; renderStage(); renderSheet(); $("pageLine")?.focus(); }
+    else { bookPage = 0; renderSheet(); }
   });
-  $("sheetBody").addEventListener("pointermove", e => {
-    if (!skyPen || e.pointerId !== skyPen.id) return;
-    skyPen.pts.push([e.clientX, e.clientY]);
-    const b = skyPen.box, live = $("skyLive");
-    if (live) live.setAttribute("d", skyPen.pts.map((p, i) => `${i ? "L" : "M"}${((p[0] - b.left) / b.width * 100).toFixed(2)} ${((p[1] - b.top) / b.height * 100).toFixed(2)}`).join(""));
-  });
-  const endSky = e => {
-    if (!skyPen || e.pointerId !== skyPen.id) return;
-    const sp = skyPen;
-    skyPen = null;
-    if (e.type === "pointercancel") { refreshBook(); return; }
-    const xs = sp.pts.map(p => p[0]);
-    if (Math.max(...xs) - Math.min(...xs) > 24) { saveSkyLine(sp.pts, sp.box); if ((sec().keys || []).filter(Array.isArray).length && !$("sheetBody").querySelector('[data-book="erase"]')) renderSheet(); }
-    else refreshBook();
-  };
-  $("sheetBody").addEventListener("pointerup", endSky);
-  $("sheetBody").addEventListener("pointercancel", endSky);
   $("sheetBody").addEventListener("input", e => {
     if (e.target.id === "verseText") {
       sec().verse = e.target.value.slice(0, 2000);
       flowVerse(sec(), current);
       saveSongs();
       refreshBook(); renderStrip(); renderStage();
+      return;
+    }
+    if (e.target.id === "pageLine") {
+      const c = current[bookPage - 1];
+      if (!c) return;
+      words()[c.i] = e.target.value.slice(0, 80);
+      // keep the whole verse in step: one line per chord
+      sec().verse = current.map(x => words()[x.i] || "").join("\n");
+      sec().flowSig = flowSig(current);
+      saveSongs();
+      refreshPage(); renderStrip(); renderStage();
       return;
     }
     if (e.target.id === "kBpm") { setting("bpm", +e.target.value); $("kBpmVal").textContent = e.target.value; renderDeck(); }
