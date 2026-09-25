@@ -4988,7 +4988,7 @@
   const newSection = (name, prog = "", meter = "4/4") => ({ id: uid(), name, prog, words: [], melody: [], meter });
   function newSong(title, prog, settings = {}, meter = "4/4") {
     const first = newSection("Verse", prog, meter);
-    return { id: uid(), title, sections: [first], order: [first.id], settings: { ...DEFAULT_SETTINGS, ...settings }, beats: {}, updated: Date.now() };
+    return { id: uid(), title, meter, sections: [first], order: [first.id], settings: { ...DEFAULT_SETTINGS, ...settings }, beats: {}, updated: Date.now() };
   }
   // the song map plays sections in this order; a section can appear more than once
   function fixOrder(s) {
@@ -5005,6 +5005,10 @@
   let songs = readJSON("songs", []);
   if (!Array.isArray(songs) || !songs.length) songs = [newSong("my first song", store.get("prog") || "C Am F G")];
   songs.forEach(s => {
+    if (!s.meter && s.sections && s.sections[0]) {
+      s.meter = s.sections[0].meter || "4/4";
+      s.sections.forEach(x => { if (x.meter && x.meter !== s.meter) x.ownMeter = true; });
+    }
     s.settings = { ...DEFAULT_SETTINGS, ...(s.settings || {}) };
     const st = s.settings, b0 = st.beats;
     if (!FEELS.some(f => f.id === st.level)) st.level = "smooth";
@@ -5986,8 +5990,17 @@
     const steps = lengthSteps(Mtr), i = steps.indexOf(c.beats);
     setLength(c, steps[(i + 1) % steps.length] ?? steps[0], false);
   }
-  function setMeter(nx) {
-    const section = sec(), M = METERS[nx];
+  const songMeter = () => song.meter || sec().meter || "4/4";
+  function setSongMeter(nx) {
+    if (!METERS[nx]) return;
+    song.meter = nx;
+    song.sections.forEach(x => { if (!x.ownMeter) setMeter(nx, x, true); });
+    tipOverride = B().meters[nx];
+    saveSongs(); renderAll();
+    if (sheetMode === "beat" || sheetMode === "knobs") renderSheet();
+  }
+  function setMeter(nx, section = sec(), quiet) {
+    const M = METERS[nx];
     if (!M || nx === section.meter) return;
     // lengths you set by hand keep their size in bars. Scale from where you
     // started, so tapping through every meter and back changes nothing.
@@ -6001,13 +6014,14 @@
     });
     src.out = section.prog;
     section.meter = nx;
-    input.value = section.prog;
+    if (quiet) return;
+    input.value = sec().prog;
     saveSongs();
     tipOverride = B().meters[nx];
     renderAll();
     if (sheetMode === "beat" || sheetMode === "knobs") renderSheet();
   }
-  const cycleMeter = () => setMeter(METER_ORDER[(METER_ORDER.indexOf(sec().meter) + 1) % METER_ORDER.length]);
+  const cycleMeter = () => { const nx = METER_ORDER[(METER_ORDER.indexOf(sec().meter) + 1) % METER_ORDER.length]; if (sec().ownMeter) setMeter(nx); else setSongMeter(nx); };
 
   const FLATS = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
   const NAMES_IN = k => namesFor(k);
@@ -6394,6 +6408,9 @@
         <div class="knob"><span class="lbl">each chord lasts</span>
           <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
           <p class="note">For the whole song. To stretch just one chord, tap its name above the keyboard.</p></div>
+        <div class="knob"><span class="lbl">time signature</span>
+          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${songMeter() === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
+          <p class="note">${(() => { const own = song.sections.filter(x => x.ownMeter); return own.length ? `For the whole song, except ${own.map(x => `the ${esc(x.name.toLowerCase())} (${x.meter})`).join(" and ")}. ` : "For the whole song. "; })()}To give one part its own, tap it in the song map.</p></div>
         <div class="knob"><span class="lbl">what key the song is in</span>
           <div class="row"><select id="kKey" aria-label="Key">${keyOpts}</select>
             <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
@@ -6519,7 +6536,9 @@
         <div class="knob"><span class="lbl">call it</span>
           <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">time signature</span>
-          <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div></div>
+          ${x.ownMeter ? `<div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-partmeter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
+          <button class="link" type="button" data-partmeter="follow">go back to the song's ${esc(songMeter())}</button>`
+          : `<div class="row"><span class="note">same as the song, ${esc(songMeter())}</span><button class="chip" type="button" data-partmeter="own">give the ${esc(x.name.toLowerCase())} its own</button></div>`}</div>
         <div class="knob"><span class="lbl">place in the song</span>
           <div class="row"><button class="btn" type="button" data-move="-1"${ordPos ? "" : " disabled"}>‹ earlier</button><button class="btn" type="button" data-move="1"${ordPos < song.order.length - 1 ? "" : " disabled"}>later ›</button><button class="btn" type="button" data-repeat="${x.id}">↻ play it again after this</button></div></div>
         ${song.order.length > 1 ? `<div class="row"><button class="btn" type="button" data-secact="remove">${copies > 1 ? "remove this copy" : "remove this part"}</button></div>` : ""}`;
@@ -6686,7 +6705,7 @@
   $("sections").addEventListener("pointercancel", endMap);
 
   function addPart(name) {
-    const x = newSection(name, "", sec().meter);
+    const x = newSection(name, "", songMeter());
     song.sections.push(x);
     song.order.splice(ordPos + 1, 0, x.id);
     saveSongs();
@@ -7072,7 +7091,15 @@
     if (mv) { movePart(+mv.dataset.move); renderSheet(); return; }
     if (secAct) { removeOccurrence(); closeSheet(); return; }
     const meterB = e.target.closest("[data-meter]"), lenB = e.target.closest("[data-len]"), viewB = e.target.closest("[data-view]"), openB = e.target.closest("[data-open]");
-    if (meterB) { setMeter(meterB.dataset.meter); renderSheet(); return; }
+    if (meterB) { setSongMeter(meterB.dataset.meter); renderSheet(); return; }
+    const pm = e.target.closest("[data-partmeter]");
+    if (pm) {
+      const v = pm.dataset.partmeter, x = sec();
+      if (v === "own") x.ownMeter = true;
+      else if (v === "follow") { x.ownMeter = false; setMeter(songMeter(), x); }
+      else setMeter(v, x);
+      saveSongs(); renderSheet(); return;
+    }
     if (e.target.closest('[data-act="meter"]')) { cycleMeter(); renderSheet(); return; }
     if (lenB) { setting("beats", lenB.dataset.len); renderAll(); renderSheet(); return; }
     if (viewB) { setView(viewB.dataset.view); closeSheet(); toast(`${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name} mode`); return; }
@@ -7200,7 +7227,7 @@
       } else {
         Object.assign(S(), extra);
         overrides.clear();
-        sec().meter = meter;
+        sec().meter = meter; if (meter !== songMeter()) sec().ownMeter = true;
         replacePart(en.prog, en.name.toLowerCase());
       }
       saveSongs();
