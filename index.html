@@ -6100,7 +6100,7 @@
   function nudgeTools(c) {
     if (!nudgeSel || nudgeSel.i !== c.i) return "";
     const e = (sec().nudge || {})[c.i], t = e && e.w === (words()[c.i] || "").trim() ? e.n[nudgeSel.s] || {} : {};
-    const b = (d, label, aria, on) => `<button class="nt-btn${on ? " on" : ""}" type="button" data-act="nudge" data-d="${d}" aria-label="${aria}">${label}</button>`;
+    const b = (d, label, aria, on) => `<button class="nt-btn${on ? " on" : ""}" type="button" data-act="sylnudge" data-d="${d}" aria-label="${aria}">${label}</button>`;
     return `<div class="nudge-tools" role="toolbar" aria-label="Change this syllable">
       ${b("up", "▲", "Higher")}${b("down", "▼", "Lower")}${b("hold", "hold", "Hold it longer", t.len === "hold")}${b("short", "short", "Cut it short", t.len === "short")}${b("reset", "↺", "Put it back")}${b("done", "✓", "Done")}</div>`;
   }
@@ -8469,7 +8469,7 @@
     if (sy && current[sel]) { nudgeSel = { i: current[sel].i, s: +sy.dataset.s }; renderStage(); previewSing(current[sel]); return; }
     const el = e.target.closest("[data-act],[data-ladder]") || e.target.closest("#lane");
     if (!el) return;
-    if (el.dataset.act === "nudge") { nudgeSyl(el.dataset.d); return; }
+    if (el.dataset.act === "sylnudge") { nudgeSyl(el.dataset.d); return; }
     if (el.id === "lane") {
       if (editingLyric) { $("lyricInput")?.focus(); return; }
       openSheet("book");
