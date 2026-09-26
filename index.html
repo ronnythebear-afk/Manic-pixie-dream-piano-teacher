@@ -1254,6 +1254,25 @@
   }
   /* the sky's twinkles can drift past the edge on narrow phones: never let them widen the page */
   html, body { overflow-x: clip; }
+
+  /* tune & riff */
+  .tune-choices { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  .tune-choices .choice { font-size: 16px; display: flex; align-items: center; gap: 6px; }
+  .shape-art { width: 30px; height: 16px; flex: none; }
+  .shape-art path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+  .riff-why { margin-top: 4px; }
+  .lesson p { margin: 0; line-height: 1.45; }
+  .lesson-link { text-align: left; cursor: pointer; margin-bottom: 8px; }
+  .lesson-link small { color: var(--soft); font-weight: 700; }
+  .nudge-tools { position: absolute; left: 50%; top: -42px; transform: translateX(-50%); display: flex; gap: 4px; z-index: 5; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 3px; box-shadow: var(--shadow); }
+  .nt-btn { min-width: 34px; height: 30px; border: 0; border-radius: 10px; background: var(--chip, rgba(0,0,0,.06)); color: var(--ink); font: 800 13px var(--body); padding: 0 8px; cursor: pointer; }
+  .nt-btn.on { background: var(--lamp); }
+  .syl { cursor: pointer; }
+  .syl.picked { outline: 2px solid var(--lamp); outline-offset: 1px; background: color-mix(in srgb, var(--lamp) 35%, transparent); }
+  .syl.touched { text-decoration: underline dotted; text-underline-offset: 3px; }
+  .lane:not(.editing) .syl:not(.scat):not(.tie) { pointer-events: auto; }
+  .tune-sheet .knob { margin-top: 12px; }
+  .tune-sheet .subhead { margin-top: 18px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -3058,8 +3077,8 @@
     lulu: { name: "toy glockenspiel", grid: 0.5, low: 79, legato: false, level: 0.105, pan: 0.4, bell: true, waves: [["sine", 1, 1], ["sine", 2.76, 0.35], ["sine", 5.4, 0.12]], lp: 9000 }
   };
   const mhz = m => 440 * Math.pow(2, (m - 69) / 12);
-  function leadBus(L0) {
-    const out = ac.createGain(); out.gain.value = L0.level;
+  function leadBus(L0, gain = 1) {
+    const out = ac.createGain(); out.gain.value = L0.level * gain;
     const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = L0.lp; lp.Q.value = 0.6;
     lp.connect(out);
     if (ac.createStereoPanner) { const p = ac.createStereoPanner(); p.pan.value = L0.pan; out.connect(p); p.connect(leadOut || master); }
@@ -3067,10 +3086,11 @@
     return lp;
   }
   // notes: [{ midi, start, dur }] in beats; t0 and cl in seconds
-  function playLead(notes, t0, cl, who) {
+  // gain: softer when the lead plays under the singing
+  function playLead(notes, t0, cl, who, gain = 1) {
     const L0 = LEADS[who] || LEADS.dusty;
     if (!notes.length || !ac) return;
-    const bus = leadBus(L0);
+    const bus = leadBus(L0, gain);
     const T = n => t0 + n * cl;
     if (L0.legato) {
       // one voice that slides from note to note, swelling in like a volume pedal
@@ -3630,7 +3650,11 @@
   // one chord's share of a line → when each syllable starts and how long it lasts
   // final: this chord ends the line (hold the last word); otherwise words run on
   // into the next chord, and any little words at the end lead into its downbeat
-  function lineRhythm(sy, beats, M, pos0, who, r, final) {
+  // the sung line's settings for a part (how lines come in, spread out, and move)
+  const TUNE_DEFAULT = { enter: "on", spread: "even", breath: "short", shape: "arch", reg: "mid", motion: "mixed", echo: true };
+  const beatsFor = (M, quarters) => quarters * (M.unit === 8 ? 2 : 1);
+  // enter: how far into the line the first word comes · set: the part's settings
+  function lineRhythm(sy, beats, M, pos0, who, r, final, set = TUNE_DEFAULT, enter = 0) {
     const n = sy.length;
     if (!n || beats <= 0) return [];
     const st = SING_STYLES[who] || SING_STYLES.wren, F = LINE_FEEL[who] || LINE_FEEL.wren;
@@ -3658,18 +3682,26 @@
       const b = ((pos0 + Math.round(p)) % M.n + M.n) % M.n;
       return b === 0 ? 4 : M.groups.includes(b) ? 3 : M.unit === 8 ? 0.8 : 2;
     };
-    const place = slot => {
+    const place = (slot, strict) => {
       const k = feet.length, hold = slot;
       const preL = j => feet[j].pre.length * slot, postL = j => feet[j].post.length * slot, tailL = tail.length * slot;
       const a = preL(0), z = beats - (hold + postL(k - 1) + tailL + (final ? sub : 0));
       if (z < a - 1e-6) return null;
-      const s0 = Math.min(z, Math.max(a, st.start * (M.unit === 8 ? 2 : 1)));
-      const span = k > 1 ? Math.min(z - s0, (k - 1) * (M.unit === 8 ? 3 : 2)) : 0;
+      const s0 = Math.min(z, Math.max(a + enter, st.start * (M.unit === 8 ? 2 : 1)));
+      // tight words bunch up, even ones sit a half note apart at most, drawn-out ones fill the line
+      const gapMax = set.spread === "tight" ? beatsFor(M, 1) : set.spread === "drawn" ? Infinity : (M.unit === 8 ? 3 : 2);
+      const span = k > 1 ? Math.min(z - s0, (k - 1) * gapMax) : 0;
       const ideal = j => s0 + (k > 1 ? span * j / (k - 1) : 0);
-      const P = [];
-      for (let p = 0; p <= z + 1e-6; p += q) P.push(p);
+      const P = [], gq = Math.min(q, slot); // on quicker notes, stressed words can sit on the in-between spots too
+      for (let p = 0; p <= z + 1e-6; p += gq) P.push(p);
       const cost = (j, p) => Math.abs(p - ideal(j)) * 0.9 - weight(p) * 0.8;
-      let row = P.map(p => (p >= a - 1e-6 ? cost(0, p) : Infinity));
+      // coming in late is a promise: the first stressed word can't land before it, as long as the rest still fits
+      let needAll = 0; for (let j = 1; j < k; j++) needAll += hold + postL(j - 1) + preL(j);
+      if (strict && a + enter > z - needAll + 1e-6) return null;
+      const firstMin = Math.max(a, Math.min(a + enter, z - needAll));
+      // tight words bunch up behind the first one
+      const lastMax = set.spread === "tight" ? Math.min(z, firstMin + needAll + (k - 1) * beatsFor(M, 0.5)) : z;
+      let row = P.map(p => (p >= firstMin - 1e-6 ? cost(0, p) : Infinity));
       const back = [];
       for (let j = 1; j < k; j++) {
         const need = hold + postL(j - 1) + preL(j), bk = [];
@@ -3677,7 +3709,7 @@
           let best = Infinity, arg = -1;
           for (let pj = 0; pj < pi; pj++) if (row[pj] < best && p - P[pj] >= need - 1e-6) { best = row[pj]; arg = pj; }
           bk[pi] = arg;
-          return best + cost(j, p);
+          return (j === k - 1 && p > lastMax + 1e-6) ? Infinity : best + cost(j, p);
         });
         back[j] = bk;
       }
@@ -3700,12 +3732,17 @@
       tail.forEach((x, m) => { ev[x] = { start: beats - (tail.length - m) * slot }; });
       return ev;
     };
-    let ev = place(sub), tight = !ev;
-    if (!ev) ev = place(sub / 2);
+    // honor where the line comes in if the words can fit, even on quicker notes; only then let it go
+    let ev = place(sub, true), level = 0;
+    if (!ev) { ev = place(sub / 2, true); level = 1; }
+    // (coming in late or halfway: land as late as the words allow)
+    if (!ev) { ev = enter ? place(sub / 2, false) || place(sub, false) : place(sub, false) || place(sub / 2, false); level = 2; }
+    if (!ev) level = 3;
+    const tight = level >= 2 || !ev;
     if (!ev) {
-      // too many words to phrase: spread them evenly
-      const step = beats * (final ? 0.88 : 1) / n;
-      ev = sy.map((_, k) => ({ start: Math.floor(k * step / 0.25) * 0.25, S: kind[k] === "S" }));
+      // too many words to phrase: spread them evenly, still after the late entry
+      const e0 = Math.min(enter, beats * 0.35), step = (beats * (final ? 0.88 : 1) - e0) / n;
+      ev = sy.map((_, k) => ({ start: e0 + Math.floor(k * step / 0.25) * 0.25, S: kind[k] === "S" }));
       for (let k = 1; k < n; k++) if (ev[k].start <= ev[k - 1].start) ev[k].start = ev[k - 1].start + 0.25;
     }
     ev.forEach((e, k) => {
@@ -3714,24 +3751,36 @@
       if (nx) e.dur = (nx.start - e.start) * (e.light ? 0.72 : st.legato);
       else e.dur = final ? Math.max(0.25, beats - e.start - 0.15) : Math.max(0.25, beats - e.start);
     });
-    ev.tight = tight;
+    ev.tight = tight; ev.level = level;
     return ev;
   }
 
   // segs: one per chord in the line, { c, sy, off, beats, room }
   // opt: { lineNo, home (the part's last line), ask (ends with "?"), shapeSeed }
   function lineMelody(segs, key, who, seed, prev, M, opt = {}) {
-    const st = SING_STYLES[who] || SING_STYLES.wren, F = LINE_FEEL[who] || LINE_FEEL.wren;
+    const st = SING_STYLES[who] || SING_STYLES.wren, F0 = LINE_FEEL[who] || LINE_FEEL.wren, set = { ...TUNE_DEFAULT, ...(opt.set || {}) };
     const r = rng(seed), rs = rng((opt.shapeSeed || 1) * 97 + 13);
-    const [lo, hi] = st.range;
+    // where the line sits (low, middle, high) and how far it likes to jump
+    const shiftR = { low: [-4, -5], mid: [0, 0], high: [4, 3] }[set.reg] || [0, 0];
+    const lo = st.range[0] + shiftR[0], hi = st.range[1] + shiftR[1];
+    const F = { ...F0, leap: set.motion === "steps" ? 2 : set.motion === "leaps" ? F0.leap + 3 : F0.leap, flat: set.shape === "level" || F0.flat };
     const steps = st.penta ? (key.minor ? [0, 3, 5, 7, 10] : [0, 2, 4, 7, 9]) : (key.minor ? MINOR : MAJOR).steps;
     const lastSeg = segs.map(g => g.sy.length > 0).lastIndexOf(true);
     const all = [];
     let noRoom = false;
+    // a longer breath leaves the end of the line empty; coming in late leaves its start empty
+    const firstSeg = segs.findIndex(g => g.sy.length > 0);
+    const enterBeats = seg => (seg === firstSeg ? Math.min(segs[seg].beats * 0.5, set.enter === "late" ? beatsFor(M, 1) : set.enter === "half" ? beatsFor(M, 2) : 0) : 0);
+    const breath = set.breath === "long" ? beatsFor(M, 1) : 0;
     segs.forEach((g, gi) => {
-      let ev = lineRhythm(g.sy, g.beats - (g.room || 0), M, g.c.pos0 || 0, who, r, gi === lastSeg);
-      // too many words for the gap at the end: the singer gets it, the lead waits
-      if (ev.tight && g.room && gi === lastSeg) { ev = lineRhythm(g.sy, g.beats, M, g.c.pos0 || 0, who, r, true); noRoom = true; }
+      const endRoom = gi === lastSeg ? Math.max(g.room || 0, Math.min(breath, g.beats * 0.4)) : 0, eb = enterBeats(gi);
+      const tryR = b => lineRhythm(g.sy, b, M, g.c.pos0 || 0, who, r, gi === lastSeg, set, eb);
+      let ev = tryR(g.beats - endRoom);
+      // too many words for the space: give up the long breath first, then the lead's gap, before rushing the words
+      if (gi === lastSeg && ev.level > 0) {
+        if (endRoom > (g.room || 0)) { const e2 = tryR(g.beats - (g.room || 0)); if (e2.level < ev.level) ev = e2; }
+        if (ev.level > 0 && g.room) { const e3 = tryR(g.beats); if (e3.level < ev.level || ev.level >= 2) { ev = e3; noRoom = true; } }
+      }
       ev.forEach((e, k) => all.push({ gi, k, e, c: g.c, off: g.off }));
     });
     if (!all.length) return [];
@@ -3739,8 +3788,16 @@
     // the line's shape: lines 1 and 3 share one, 2 and 4 another that climbs a little higher
     const peakAt = 0.4 + rs() * 0.25, lift = F.lift * (opt.lineNo % 2 ? 1.12 : 0.9);
     const lowH = 0.2 + rs() * 0.12, peakH = Math.min(0.95, lowH + 0.25 + 0.4 * lift), endH = 0.28;
-    const shape = x => x < peakAt ? lowH + (peakH - lowH) * Math.sin(x / peakAt * Math.PI / 2)
+    const arch = x => x < peakAt ? lowH + (peakH - lowH) * Math.sin(x / peakAt * Math.PI / 2)
       : peakH - (peakH - endH) * (1 - Math.cos((x - peakAt) / (1 - peakAt) * Math.PI / 2));
+    // the line's shape: an arch (up then home), a rise, a fall, a wave, or level like a chant
+    const shape = {
+      arch,
+      rise: x => lowH + (peakH - lowH) * Math.pow(x, 0.8),
+      fall: x => peakH - (peakH - lowH) * Math.pow(x, 0.9),
+      wave: x => (lowH + peakH) / 2 + (peakH - lowH) * 0.5 * Math.sin(Math.PI * 2 * x * 1.25 + 0.3),
+      level: () => (lowH + peakH) / 2
+    }[set.shape] || arch;
     const near = (arr, w) => arr.reduce((b, m) => (b == null || Math.abs(m - w) < Math.abs(b - w) ? m : b), null);
     let cur = prev?.note ?? null, same = 0;
     const notes = all.map((a, idx) => {
@@ -3749,26 +3806,14 @@
       const pool = pcs => { const o = []; for (let m = lo; m <= hi; m++) if (pcs.has(mod(m))) o.push(m); return o; };
       const ct = pool(chordPcs), sc = pool(new Set(steps.map(s => mod(key.tonic + s)).concat([...chordPcs])));
       const rhTop = Math.max(...c.v.rh);
-      // the recording's tune, when we have it; otherwise the line's own shape
-      const heard = opt.tuneAt ? opt.tuneAt(a.off + a.e.start) : null;
-      let want = heard ?? lo + shape(x) * (hi - lo);
-      if (heard == null && cur != null && idx < 3) want += (cur - want) * (0.5 - idx * 0.2); // ease in from where the last line ended
+      let want = lo + shape(x) * (hi - lo);
+      if (cur != null && idx < 3) want += (cur - want) * (0.5 - idx * 0.2); // ease in from where the last line ended
       const within = (arr, d) => { const o = cur == null ? arr : arr.filter(m => Math.abs(m - cur) <= d); return o.length ? o : arr; };
       const clear = arr => { const o = arr.filter(m => m !== rhTop); return o.length ? o : arr; }; // don't hide under the piano's top note
       let pick;
-      if (heard != null) {
-        // follow the demo: the heard note, kept in the key (a stressed syllable settles on a
-        // chord tone when one is within a half step), and not hiding under the piano's top note
-        const inKey = near(sc, heard), chordy = near(ct, heard);
-        pick = (a.e.S || idx === all.length - 1) && chordy != null && Math.abs(chordy - heard) <= 1 ? chordy : inKey;
-        if (pick === rhTop) { const alt = sc.filter(m => m !== rhTop && Math.abs(m - heard) <= 2 && (!a.e.S || ct.includes(m))); if (alt.length) pick = near(alt, heard); }
-        if (pick == null) pick = Math.round(heard);
-        cur = pick;
-        return { midi: pick, start: a.off + a.e.start, dur: a.e.dur, s: idx, ci: a.gi, local: a.k, light: !!a.e.light, stress: !!a.e.S, glide: who === "dusty" && !!a.e.S, hop: who === "ghost" && !a.e.S };
-      }
       if (idx === all.length - 1) {
         const root = c.ch.rootPc, third = mod(root + (c.ch.ivs.find(v => v === 3 || v === 4) ?? 7));
-        if (opt.ask) {
+        if (opt.ask || (set.shape === "rise" && !opt.home)) {
           // a question lifts at the end
           const up = ct.filter(m => cur == null || m >= cur + 2);
           pick = up.length ? near(up, (cur ?? want) + 4) : near(ct, want + 3);
@@ -3777,9 +3822,13 @@
           const home = opt.home && chordPcs.has(mod(key.tonic)) ? new Set([mod(key.tonic)]) : new Set([root, third]);
           pick = near(clear(within(pool(home), 7)), opt.home ? Math.min(want, cur ?? want) : want);
         }
+      } else if (a.e.S && set.clash) {
+        // (for the lesson: stressed words on notes that rub against the chord)
+        const rub = sc.filter(m => !ct.includes(m));
+        pick = near(within(rub.length ? rub : sc, F.leap + 2), want);
       } else if (a.e.S) pick = near(clear(within(ct, F.leap + 2)), want);
       else if (a.e.light) pick = F.flat && cur != null && sc.includes(cur) ? cur : near(within(sc, 2), cur == null ? want : cur + (want - cur) * 0.6);
-      else pick = st.repeat && cur != null && sc.includes(cur) && r() < st.repeat ? cur : near(within(sc, F.leap), want);
+      else pick = st.repeat && cur != null && sc.includes(cur) && r() < st.repeat ? cur : near(within(set.motion === "leaps" ? ct : sc, F.leap), want);
       if (pick == null) pick = cur ?? Math.round(want);
       // a tune that sits on one note too long goes flat in the other sense: nudge it
       same = pick === cur ? same + 1 : 0;
@@ -4838,6 +4887,7 @@
     const read = readStories(), show = false;
     if (storyAt == null) {
       return `<p class="h-lead">Your five friends are neighbors on Pixie Street, and every house on it is a key. Each story walks a famous route through the rooms.</p>
+        <button class="card lesson-link" type="button" data-open="lessons"><b>♪ new: how tunes and riffs work</b><small>What goes on top of your chords, heard in your own song.</small></button>
         <div class="story-list">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="story-card${read.includes(i) ? " read" : ""}" type="button" data-story="${i}">
           ${castHTML(st)}<span class="sc-text"><small>chapter ${i + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b><span>${esc(pretty(moodProg(m, K)))}</span></span></button>`; }).join("")}</div>`;
     }
@@ -5172,12 +5222,12 @@
     // ---- 1. where things start: a spike each time something new is played
     await say(0.04, "finding the beat");
     const F1 = fftInit(1024), H1 = 256, n1 = Math.max(8, Math.floor((x.length - 1024) / H1) + 1), hop = H1 / sr;
-    const m1 = new Float32Array(512), last = new Float32Array(512), flux = new Float32Array(n1);
+    const m1 = new Float32Array(512), last = new Float32Array(512), flux = new Float32Array(n1), lowFlux = new Float32Array(n1);
     for (let f = 0; f < n1; f++) {
       fftMag(F1, x, f * H1, m1);
-      let s = 0;
-      for (let k = 2; k < 400; k++) { const l = Math.log(1 + 1000 * m1[k]), d = l - last[k]; if (d > 0) s += d; last[k] = l; }
-      flux[f] = s;
+      let s = 0, lo = 0;
+      for (let k = 2; k < 400; k++) { const l = Math.log(1 + 1000 * m1[k]), d = l - last[k]; if (d > 0) { s += d; if (k < 14) lo += d; } last[k] = l; }
+      flux[f] = s; lowFlux[f] = lo;
       if (f % 500 === 0) await say(0.04 + 0.22 * f / n1, "finding the beat");
     }
     const W = 16, onset = new Float32Array(n1);
@@ -5356,13 +5406,39 @@
     let best3 = -1, ph3 = 0;
     for (let ph = 0; ph < 3; ph++) { const s = share(3, ph, false); if (s > best3) { best3 = s; ph3 = ph; } }
     if (best3 > 0.62 && best3 > best4 * 1.25) { per = 3; phase = ph3; }
+    // a better test of where "1" is: group the beats each possible way and see which way every
+    // group sounds most like one clean chord (a group across a change smears two together),
+    // with a nudge toward where the kick and bass hit hardest
+    {
+      const P4 = per, grp = P4 === 4 ? 2 : 3;
+      const lowAt = new Array(P4).fill(0);
+      beats.forEach((f, i) => { if (i >= beatT.length) return; const k = Math.round(f); let m = 0; for (let q = k - 2; q <= k + 2; q++) m = Math.max(m, lowFlux[q] || 0); lowAt[i % P4] += m; });
+      const lowMax = Math.max(...lowAt) || 1;
+      const purity = ph => {
+        let tot = 0, n = 0;
+        for (let i = ph; i + grp <= beatT.length; i += grp) {
+          const tr = new Float32Array(12), bs = new Float32Array(12);
+          for (let k = i; k < i + grp; k++) for (let j = 0; j < 12; j++) { tr[j] += beatT[k][j]; bs[j] += beatB[k][j]; }
+          const e = emit(tr, bs, 1e9); let b = -9; for (let q = 0; q < labels.length; q++) if (e[q] > b) b = e[q];
+          tot += b; n++;
+        }
+        return n ? tot / n : 0;
+      };
+      const cand = []; for (let ph = 0; ph < P4; ph++) cand.push({ ph, pur: purity(ph), low: lowAt[ph] / lowMax, ch: share(P4, ph, P4 === 4) });
+      const pmax = Math.max(...cand.map(c => c.pur)), pmin = Math.min(...cand.map(c => c.pur));
+      cand.forEach(c => { c.score = (c.pur - pmin) / Math.max(1e-6, pmax - pmin) + 0.35 * c.low + 0.35 * c.ch; });
+      // two groupings a half bar apart are equally pure; the kick and the changes break the tie
+      phase = cand.reduce((a, b) => (b.score > a.score ? b : a)).ph;
+    }
     const ub = per === 4 ? 2 : 3; // listen in half bars (or whole bars of three)
     // ---- 8. listen again in half bars, now that we know where the bars are
     const units = [];
     for (let i = phase; i + ub <= beatT.length; i += ub) {
       const tr = new Float32Array(12), bs = new Float32Array(12); let e = 0;
       for (let k = i; k < i + ub; k++) { for (let j = 0; j < 12; j++) { tr[j] += beatT[k][j]; bs[j] += beatB[k][j]; } e += beatE[k] / ub; }
-      units.push({ b0: i, t0: bt[i], t1: bt[i + ub], tr, bs, e });
+      let ss = 0; const ia = Math.floor(bt[i] * sr), ib = Math.min(x.length, Math.floor(bt[i + ub] * sr));
+      for (let q = ia; q < ib; q += 4) ss += x[q] * x[q];
+      units.push({ b0: i, t0: bt[i], t1: bt[i + ub], tr, bs, e, rms: Math.sqrt(ss / Math.max(1, (ib - ia) / 4)) });
     }
     if (units.length < 4) return null;
     const emU = units.map(u => emit(u.tr, u.bs, u.e).map(v => v * K1));
@@ -5372,7 +5448,15 @@
     const rel = key.minor ? { tonic: mod(key.tonic + 3), minor: false } : { tonic: mod(key.tonic + 9), minor: true };
     const endsOn = s => s < labels.length && labels[s].root === rel.tonic && (labels[s].q === "m") === rel.minor;
     const lastReal = pathU.filter(s => s < labels.length);
-    if (countTri(rel.tonic, rel.minor) > countTri(key.tonic, key.minor) * 1.3 || (endsOn(lastReal[lastReal.length - 1]) && countTri(rel.tonic, rel.minor) >= countTri(key.tonic, key.minor))) key = rel;
+    // weigh the evidence: how much of the song sits on each home chord, how often the song
+    // lands there from its fifth (G→C, or E→Am), and what it opens and closes on
+    const segs = []; lastReal.forEach(s => { if (!segs.length || segs[segs.length - 1] !== s) segs.push(s); });
+    const isTri = (s, k) => s < labels.length && labels[s].root === k.tonic && (labels[s].q === "m") === k.minor;
+    const isFifth = (s, k) => s < labels.length && labels[s].root === mod(k.tonic + 7) && (k.minor || labels[s].q === "");
+    const loudStart = units.findIndex(u => u.rms > (units.map(v => v.rms).sort((a, b) => a - b)[Math.floor(units.length / 2)] || 0) * 0.3);
+    const firstReal = pathU.slice(Math.max(0, loudStart)).find(s => s < labels.length);
+    const evid = k => countTri(k.tonic, k.minor) / Math.max(1, lastReal.length) * 6 + segs.reduce((a, s, i) => a + (i && isTri(s, k) && isFifth(segs[i - 1], k) ? 1.2 : 0), 0) + (isTri(firstReal, k) ? 1.5 : 0) + (isTri(lastReal[lastReal.length - 1], k) ? 1 : 0);
+    if (evid(rel) > evid(key) + 1) key = rel;
     let sure = 0;
     units.forEach((u, i) => {
       const e = emU[i].slice(0, labels.length).map(v => v / K1), s = pathU[i];
@@ -5398,9 +5482,10 @@
     seg.forEach(g => { for (let i = g.a; i <= g.b; i++) lab[i] = g.name; });
     // quiet stretches: drop them at the ends, hold the last chord through the middle
     let a = 0, z = lab.length - 1;
-    const medU = units.map(u => u.e).sort((x, y) => x - y)[Math.floor(units.length / 2)] || 1;
-    while (a < z && (!lab[a] || units[a].e < medU * 0.45)) a++;
-    while (z > a && (!lab[z] || units[z].e < medU * 0.45)) z--;
+    // by real loudness: noise or room tone before the song starts isn't part of it
+    const medR = units.map(u => u.rms).sort((x, y) => x - y)[Math.floor(units.length / 2)] || 1;
+    while (a < z && (!lab[a] || units[a].rms < medR * 0.3)) a++;
+    while (z > a && (!lab[z] || units[z].rms < medR * 0.3)) z--;
     const U = units.slice(a, z + 1).map((u, i) => ({ t0: u.t0, t1: u.t1, ch: lab[a + i] }));
     U.forEach((u, i) => { if (!u.ch) u.ch = i ? U[i - 1].ch : U.find(v => v.ch)?.ch; });
     if (!U.length || !U[0].ch) return null;
@@ -5608,7 +5693,6 @@
         <h3 class="subhead">the words</h3>
         <p class="note">Paste the lyrics if you have them. Chords above the lines and part names like “chorus” help me place them.</p>
         <textarea id="hearWords" class="verse-in hear-words" rows="6" spellcheck="false" placeholder="paste the lyrics here…">${esc(hear.words || "")}</textarea>
-        <label class="hear-along"><input type="checkbox" id="hearTune"${hear.tune === false ? "" : " checked"}> ${esc(B().name)} follows the melody I heard</label>
         <div class="row"><button class="btn surprise" type="button" data-hear="make">make it a song</button><button class="btn" type="button" data-hear="again">try another file</button></div>
         <h3 class="subhead">the parts I heard</h3>${parts}
         <p class="note">Once it's a song, tap any chord to fix it. Checking a guess by ear is great practice.</p>`;
@@ -5664,13 +5748,10 @@
       catch { throw new Error("I couldn't open that one. Try an mp3, wav or m4a."); }
       hearProg(0.04, "getting it ready");
       if (buf.duration < 8) throw new Error("That's too short for me to find a song in. Try something at least 10 seconds long.");
-      const { L, R, mono } = await hearChannels(buf, 6 * 60);
-      const res = await hearSong(mono, (p, m) => hearProg(p * 0.85, m));
+      const { mono } = await hearChannels(buf, 6 * 60);
+      const res = await hearSong(mono, hearProg);
       if (!res) throw new Error("I couldn't find a steady beat or clear chords in that one. Try a different song.");
-      // then the voice: its notes and phrases, for the melody
-      let voice = null;
-      try { voice = await hearVoice(L, R, async p => { hearProg(0.76 + 0.22 * p, "following the voice"); await new Promise(r => setTimeout(r, 0)); }); } catch { voice = null; }
-      hear = { stage: "done", name, file, buf, res, voice, parts: hearParts(res), along: false, long: buf.duration > 6 * 60 };
+      hear = { stage: "done", name, file, buf, res, parts: hearParts(res), along: false, long: buf.duration > 6 * 60 };
     } catch (err) {
       hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try another file." };
     }
@@ -5741,9 +5822,9 @@
 
   // the learned song, ready to play, change and sing over
   async function hearMake() {
-    const r = hear.res, P = hear.parts, meter = r.per === 3 ? "3/4" : "4/4", spell = hearSpell(r.key), V = hear.voice;
+    const r = hear.res, P = hear.parts, meter = r.per === 3 ? "3/4" : "4/4", spell = hearSpell(r.key);
     const title = (hear.name || "a song").replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_]+/g, " ").trim().slice(0, 60) || "a song";
-    const s = newSong(title, "", { key: r.key.tonic + (r.key.minor ? "m" : "M"), bpm: Math.max(50, Math.min(150, Math.round(r.bpm))), ownTune: hear.tune === false }, meter);
+    const s = newSong(title, "", { key: r.key.tonic + (r.key.minor ? "m" : "M"), bpm: Math.max(50, Math.min(150, Math.round(r.bpm))) }, meter);
     // runs: a part played several times in a row
     const runs = [];
     P.order.forEach((pi, k) => { const last = runs[runs.length - 1]; if (last && last.part === pi) last.n++; else runs.push({ part: pi, n: 1, at: P.starts[k] }); });
@@ -5753,8 +5834,6 @@
     // ---- pasted words, placed on the parts they belong to
     const blocks = readWords(hear.words || ""), placed = blocks.length ? placeWords(blocks, P.parts, runs) : runs.map(() => null);
     const runLines = placed.map(b => (b == null ? null : blocks[b].lines.map(t => ({ text: t }))));
-    // the melody comes from the voice follower when it heard a voice; it's steadier than the rough pass
-    const tr = V && V.notes.length > 8 ? { ...r, mel: V.line } : r;
     // ---- parts, the song's order, and where each stretch sits in the demo
     const secs = new Map(), order = [], entries = [], perName = {};
     runs.forEach((run, k) => {
@@ -5762,7 +5841,7 @@
       if (!lines) {
         // no words: the part as a loop, played as many times as it came round
         const key = "p" + run.part;
-        if (!secs.has(key)) { const x = newSection(p.name, unitsToProg(p.units, r.per, spell), meter); x.tune = tuneOf(tr, U.slice(run.at, run.at + len)); secs.set(key, x); }
+        if (!secs.has(key)) { const x = newSection(p.name, unitsToProg(p.units, r.per, spell), meter); secs.set(key, x); }
         for (let i = 0; i < run.n; i++) { const sp = span(run.at + i * len, len); order.push(secs.get(key).id); entries.push({ sid: secs.get(key).id, ...barsOf(sp.u) }); }
         return;
       }
@@ -5774,7 +5853,6 @@
         perName[p.name] = (perName[p.name] || 0) + 1;
         const x = newSection(nm, Array(run.n).fill(unitsToProg(p.units, r.per, spell)).join(" "), meter);
         x.verse = verse;
-        x.tune = tuneOf(tr, sp.u);
         secs.set(key, x);
       }
       order.push(secs.get(key).id);
@@ -5886,159 +5964,6 @@
   }
 
   // =========================================================
-  // The voice in a recording: follow the singer's pitch and cut
-  // it into notes and phrases
-  // =========================================================
-  // L, R: the two channels at HEAR_SR (R may be L for mono files)
-  async function hearVoice(L, R, prog = () => {}) {
-    const sr = HEAR_SR, N = 2048, H = 256, F = fftInit(N), bins = N / 2, binHz = sr / N, hop = H / sr;
-    const n = Math.max(1, Math.floor((L.length - N) / H) + 1), stereo = !!R && R !== L;
-    const FL = stereo ? fftInit(N) : null;
-    const mL = new Float32Array(bins), mR = new Float32Array(bins), lm = new Float32Array(bins), lw = new Float32Array(bins), prev = new Float32Array(bins);
-    const lw1 = new Float32Array(bins), lw2 = new Float32Array(bins), ls = new Float32Array(bins), hv = new Float32Array(6);
-    // pitch candidates every third of a semitone from A2 to C6
-    const G0 = 45, STEP = 1 / 3, NG = Math.round((84 - G0) / STEP) + 1, HW = [1, 0.8, 0.65, 0.5, 0.4, 0.3];
-    const gridHz = Array.from({ length: NG }, (_, g) => 440 * Math.pow(2, (G0 + g * STEP - 69) / 12));
-    const sal = new Float32Array(NG), cands = [], flux = new Float32Array(n), best = new Float32Array(n);
-    const k300 = Math.round(300 / binHz), k3k = Math.round(3000 / binHz);
-    for (let f = 0; f < n; f++) {
-      fftMag(F, L, f * H, mL);
-      if (stereo) fftMag(FL, R, f * H, mR);
-      // keep what's in the middle of the mix, where the lead voice lives
-      for (let k = 0; k < bins; k++) {
-        const a = mL[k], b = stereo ? mR[k] : a, mx = a > b ? a : b, w = mx > 0 ? ((a < b ? a : b) / mx) ** 2 : 0;
-        lm[k] = Math.log(1 + 300 * (a + b) * 0.5 * w);
-      }
-      // lift peaks out of the hiss (subtract the average of the 17 bins around each one)
-      let acc = 0, cnt = 0;
-      for (let k = 0; k <= 8; k++) { acc += lm[k]; cnt++; }
-      for (let k = 0; k < bins; k++) {
-        lw2[k] = lw1[k]; lw1[k] = lw[k];
-        lw[k] = Math.max(0, lm[k] - acc / cnt);
-        if (k + 9 < bins) { acc += lm[k + 9]; cnt++; }
-        if (k - 8 >= 0) { acc -= lm[k - 8]; cnt--; }
-      }
-      // steady it over three frames: a voice and a piano on the same note beat against each other
-      for (let k = 0; k < bins; k++) ls[k] = 0.5 * lw[k] + 0.25 * (lw1[k] + lw2[k]);
-      let fl = 0;
-      for (let k = k300; k < k3k; k++) { const d = lw[k] - prev[k]; if (d > 0) fl += d; prev[k] = lw[k]; }
-      flux[f] = fl;
-      // each pitch collects its overtones
-      for (let g = 0; g < NG; g++) {
-        let s = 0, top = 0;
-        for (let h = 0; h < 6; h++) {
-          const fk = gridHz[g] * (h + 1) / binHz;
-          if (fk >= bins - 1) { hv[h] = 0; continue; }
-          const i = fk | 0, fr = fk - i, v = ls[i] * (1 - fr) + ls[i + 1] * fr;
-          hv[h] = v; s += HW[h] * v; if (v > top) top = v;
-        }
-        // a real note is there itself, not only implied by overtones of other notes
-        sal[g] = hv[0] < 0.3 * top ? s * 0.45 : s;
-      }
-      const pk = [];
-      for (let g = 1; g < NG - 1; g++) if (sal[g] > 0 && sal[g] >= sal[g - 1] && sal[g] > sal[g + 1]) pk.push([g, sal[g]]);
-      pk.sort((x, y) => y[1] - x[1]);
-      cands.push(pk.slice(0, 4));
-      best[f] = pk.length ? pk[0][1] : 0;
-      if (f % 300 === 0) await prog(f / n);
-    }
-    // ---- follow one voice through the candidates: steady pitch is likely, big jumps cost
-    const sorted = Array.from(best).filter(v => v > 0).sort((a, b) => a - b);
-    const scale = sorted[Math.floor(sorted.length * 0.9)] || 1, TH = 0.3, VOICED = 0.65;
-    const U = -1, costs = [], back = [];
-    let prevS = [{ g: U, c: 0 }];
-    for (let f = 0; f < n; f++) {
-      const st = cands[f].map(([g, s]) => ({ g, e: -3 * Math.min(1.4, s / scale) })).concat([{ g: U, e: -3 * TH }]);
-      const row = [], bk = [];
-      st.forEach(x => {
-        let bc = Infinity, bi = 0;
-        prevS.forEach((p, i) => {
-          let t;
-          if (x.g === U && p.g === U) t = 0;
-          else if (x.g === U || p.g === U) t = 1.1;
-          else t = Math.min(1, 0.12 * Math.abs(x.g - p.g) * STEP + (Math.abs(x.g - p.g) * STEP > 0.6 ? 0.25 : 0)); // melodies leap; don't cling to a steady wrong note
-          if (p.c + t < bc) { bc = p.c + t; bi = i; }
-        });
-        row.push({ g: x.g, c: bc + x.e }); bk.push(bi);
-      });
-      back.push(bk); prevS = row;
-    }
-    let bi = 0; prevS.forEach((p, i) => { if (p.c < prevS[bi].c) bi = i; });
-    const pitch = new Float32Array(n), psal = new Float32Array(n); // midi (fractional, 0 = silent) and its strength
-    let cur = prevS;
-    for (let f = n - 1; f >= 0; f--) {
-      const g = cur[bi].g;
-      pitch[f] = g === U ? 0 : G0 + g * STEP;
-      if (g !== U) { const c = cands[f].find(x => x[0] === g); psal[f] = c ? c[1] : 0; }
-      if (f) {
-        bi = back[f][bi];
-        // rebuild the previous row's states (cheap: same construction)
-        cur = cands[f - 1].map(([gg]) => ({ g: gg })).concat([{ g: U }]);
-      }
-    }
-    // breaths: where the chosen pitch is much weaker than the voice has been lately, nobody's singing
-    {
-      const W = Math.round(2.5 / hop), lvl = new Float32Array(n);
-      for (let f = 0; f < n; f += 8) {
-        const w = []; for (let q = Math.max(0, f - W); q < Math.min(n, f + W); q += 2) if (psal[q]) w.push(psal[q]);
-        w.sort((x, y) => x - y);
-        const v = w.length ? w[Math.floor(w.length * 0.7)] : 0;
-        for (let q = f; q < Math.min(n, f + 8); q++) lvl[q] = v;
-      }
-      for (let f = 0; f < n; f++) if (pitch[f] && psal[f] < VOICED * lvl[f]) pitch[f] = 0;
-    }
-    // a lone octave flip between two steadier neighbours is almost always a mistake
-    for (let f = 2; f < n - 2; f++) if (pitch[f] && pitch[f - 1] && pitch[f + 1] && Math.abs(Math.abs(pitch[f] - pitch[f - 1]) - 12) < 0.7 && Math.abs(pitch[f - 1] - pitch[f + 1]) < 0.7) pitch[f] = pitch[f - 1];
-    // ---- where the voice starts something new (also a repeated note on a new syllable)
-    const on = new Uint8Array(n);
-    for (let f = 2; f < n - 2; f++) {
-      let m = 0; for (let d = -8; d <= 8; d++) m += flux[Math.max(0, Math.min(n - 1, f + d))];
-      m /= 17;
-      if (flux[f] > m * 1.6 && flux[f] >= flux[f - 1] && flux[f] >= flux[f + 1] && flux[f] > 0.5) on[f] = 1;
-    }
-    // ---- notes: steady stretches of pitch
-    const notes = [];
-    let a = -1, vals = [];
-    const close = f => {
-      if (a < 0) return;
-      if (f - a >= 3) {
-        const v = vals.slice().sort((x, y) => x - y), md = v[Math.floor(v.length / 2)];
-        notes.push({ t0: a * hop + N / 3 / sr, t1: f * hop + N / 3 / sr, midi: Math.round(md), cents: Math.round((md - Math.round(md)) * 100) });
-      }
-      a = -1; vals = [];
-    };
-    for (let f = 0; f < n; f++) {
-      const p = pitch[f];
-      if (!p) { close(f); continue; }
-      if (a < 0) { a = f; vals = [p]; continue; }
-      const md = vals.slice().sort((x, y) => x - y)[Math.floor(vals.length / 2)];
-      const moved = Math.abs(p - md) > 0.75 && pitch[f + 1] && Math.abs(pitch[f + 1] - md) > 0.75;
-      // a new syllable on the same note: something starts, and the voice dips just before it
-      const dip = on[f] && f - a >= 4 && Math.min(psal[f - 1], psal[f - 2] || 0) < 0.55 * Math.max(psal[f + 1] || 0, psal[f + 2] || 0);
-      if (moved || dip) { close(f); a = f; vals = [p]; } else vals.push(p);
-    }
-    close(n);
-    // tiny gaps inside a held note are just a wobble
-    for (let i = notes.length - 1; i > 0; i--) { const x = notes[i - 1], y = notes[i]; if (y.t0 - x.t1 < 0.05 && x.midi === y.midi && !on[Math.round((y.t0 - N / 2 / sr) / hop)]) { x.t1 = y.t1; notes.splice(i, 1); } }
-    // blips shorter than a tenth of a second are almost never a sung syllable
-    for (let i = notes.length - 1; i >= 0; i--) if (notes[i].t1 - notes[i].t0 < 0.1) notes.splice(i, 1);
-    // how much each note looks like singing: long enough, and with neighbours (not alone in a breath)
-    notes.forEach((nt, i) => {
-      const gp = i ? nt.t0 - notes[i - 1].t1 : 9, gn = i < notes.length - 1 ? notes[i + 1].t0 - nt.t1 : 9;
-      nt.lone = gp > 0.3 && gn > 0.3;
-    });
-    // ---- phrases: the singer breathes between them
-    const phrases = [];
-    notes.forEach((nt, i) => { if (!i || nt.t0 - notes[i - 1].t1 > 0.3) phrases.push({ a: i, b: i + 1 }); else phrases[phrases.length - 1].b = i + 1; });
-    phrases.forEach(p => { p.t0 = notes[p.a].t0; p.t1 = notes[p.b - 1].t1; p.n = p.b - p.a; });
-    // a light copy of the pitch line for drawing
-    const line = new Uint8Array(Math.ceil(n / 2));
-    for (let f = 0; f < n; f += 2) line[f / 2] = pitch[f] ? Math.round(pitch[f]) : 0;
-    return { notes, phrases, line: { f: line, hop: hop * 2, t0: N / 2 / sr }, stereo };
-  }
-
-
-  // =========================================================
   // Your demo, kept with the song. It plays in step with the
   // chords, bar by bar, with the band or on its own.
   // =========================================================
@@ -6129,6 +6054,336 @@
     if (playing) { stop(); playAll(); }
   }
 
+
+  // =========================================================
+  // The tune and the riff: each part's sung line and its lead
+  // instrument have their own settings, like the beat does.
+  // =========================================================
+  const RIFF_DEFAULT = { kind: "answer", busy: "some", reg: "above", when: "gaps" };
+  // the lesson demos borrow a part for a moment with their own settings
+  let tuneOverride = null;
+  const tuneSetOf = section => ({ ...TUNE_DEFAULT, ...(section.sing || {}), ...((tuneOverride && tuneOverride.sing) || {}) });
+  const riffSetOf = section => ({ ...RIFF_DEFAULT, ...(section.riff || {}), ...((tuneOverride && tuneOverride.riff) || {}) });
+  // riffs that live in the gaps at the ends of lines leave the singer room there
+  const riffInGaps = section => { const R = riffSetOf(section); return R.when === "gaps" && R.kind !== "pedal" && R.kind !== "counter"; };
+
+  // ---------- your touches on single syllables ----------
+  function applyNudges(section, g, segs, notes, key, who) {
+    const N = section.nudge;
+    if (!N) return;
+    const steps = (key.minor ? MINOR : MAJOR).steps.map(s => mod(key.tonic + s));
+    g.forEach((c, ci) => {
+      const e = N[c.i];
+      if (!e || e.w !== (section.words[c.i] || "").trim()) return;
+      notes.forEach((nt, k) => {
+        const t = nt.ci === ci && e.n[nt.local];
+        if (!t) return;
+        if (t.p) {
+          const sc = []; for (let m = nt.midi - 14; m <= nt.midi + 14; m++) if (steps.includes(mod(m))) sc.push(m);
+          let i = sc.reduce((b, m, x) => (Math.abs(m - nt.midi) < Math.abs(sc[b] - nt.midi) ? x : b), 0);
+          i = Math.max(0, Math.min(sc.length - 1, i + t.p));
+          nt.midi = sc[i];
+        }
+        if (t.len === "hold") nt.dur = notes[k + 1] ? Math.max(nt.dur, (notes[k + 1].start - nt.start) * 0.98) : nt.dur + 1;
+        if (t.len === "short") nt.dur = Math.max(0.15, nt.dur * 0.45);
+        nt.touched = true;
+      });
+    });
+  }
+  let nudgeSel = null; // { i: chord, s: syllable in that chord }
+  function nudgeTools(c) {
+    if (!nudgeSel || nudgeSel.i !== c.i) return "";
+    const e = (sec().nudge || {})[c.i], t = e && e.w === (words()[c.i] || "").trim() ? e.n[nudgeSel.s] || {} : {};
+    const b = (d, label, aria, on) => `<button class="nt-btn${on ? " on" : ""}" type="button" data-act="nudge" data-d="${d}" aria-label="${aria}">${label}</button>`;
+    return `<div class="nudge-tools" role="toolbar" aria-label="Change this syllable">
+      ${b("up", "▲", "Higher")}${b("down", "▼", "Lower")}${b("hold", "hold", "Hold it longer", t.len === "hold")}${b("short", "short", "Cut it short", t.len === "short")}${b("reset", "↺", "Put it back")}${b("done", "✓", "Done")}</div>`;
+  }
+  function nudgeSyl(d) {
+    const c = current[sel];
+    if (!c || !nudgeSel) return;
+    if (d === "done") { nudgeSel = null; renderStage(); return; }
+    const x = sec(), w = (words()[c.i] || "").trim();
+    x.nudge = x.nudge || {};
+    if (!x.nudge[c.i] || x.nudge[c.i].w !== w) x.nudge[c.i] = { w, n: {} };
+    const n = x.nudge[c.i].n, t = n[nudgeSel.s] = n[nudgeSel.s] || {};
+    if (d === "up") t.p = (t.p || 0) + 1;
+    if (d === "down") t.p = (t.p || 0) - 1;
+    if (d === "hold") t.len = t.len === "hold" ? null : "hold";
+    if (d === "short") t.len = t.len === "short" ? null : "short";
+    if (d === "reset") delete n[nudgeSel.s];
+    saveSongs(); renderStage();
+    previewSing(c);
+  }
+
+  // ---------- the riff engine ----------
+  // notes in beats from the chord's start for this chord of the part
+  function riffNotes(section, c, idx, list, key, mel, who = prefs.buddy) {
+    const R = riffSetOf(section), ld = LEADS[who] || LEADS.dusty, M = sectionMeter(section);
+    const sung = mel && mel.notes && mel.notes.length ? mel.notes : null;
+    const name = (section.name || "").toLowerCase();
+    // when: in the gaps (the ends of lines, and anywhere nobody is singing), under the singing, or only in intros and outros
+    if (R.when === "ends" && sung && !/intro|outro|solo/.test(name)) return [];
+    let w0 = 0, w1 = c.beats, soft = 1;
+    if (R.when === "gaps" && sung) {
+      if (!replyOn(section, c) || (mel && mel.noReply)) return [];
+      w0 = c.beats - replyBeats(c);
+    } else if (R.when === "under" && sung) soft = 0.55;
+    if (R.kind === "answer") {
+      // the old way: a lick at the end of each line, picked in the songbook
+      if (!replyBeats(c)) return [];
+      const next = list[idx + 1] || list[0];
+      const ln = lickNotes(lickIdFor(section, c), c, next, key, sung ? sung.map(n => n.midi) : [], who, section.seed || 1);
+      ln.soft = soft; return ln;
+    }
+    const top = Math.max(...c.v.rh, ...c.v.lh);
+    let lo = Math.max(top + 2, ld.low);
+    if (R.reg === "below") lo = Math.max(43, Math.min(lo - 12, Math.min(...c.v.rh) - 5));
+    const hi = lo + 12;
+    const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+    const tones = []; for (let m = lo; m <= hi + 5; m++) if (pcs.has(mod(m))) tones.push(m);
+    const scale = new Set((key.minor ? MINOR : MAJOR).steps.map(x => mod(key.tonic + x)));
+    const near = (arr, want) => arr.reduce((b, m) => (b == null || Math.abs(m - want) < Math.abs(b - want) ? m : b), null);
+    const len = w1 - w0;
+    if (len <= 0) return [];
+    const unit = M.unit === 8 ? 1 : 0.5;
+    const stepOf = { sparse: 2 * unit * 2, some: unit * 2, busy: unit }[R.busy] || unit * 2;
+    const out = [];
+    const push = (m, s, d) => { if (s >= w0 - 1e-6 && s < w1 - 1e-6) out.push({ midi: m, start: s, dur: Math.min(d, w1 - s) }); };
+    if (R.kind === "arp") {
+      // the chord's own notes, one at a time, up and back down
+      const path = tones.slice(0, 4).concat(tones.slice(1, 3).reverse());
+      let k = 0; for (let s = w0; s < w1 - 1e-6; s += stepOf) push(path[k++ % path.length], s, stepOf * 0.95);
+    } else if (R.kind === "pedal") {
+      // one note that stays while the chords move under it: home, or the key's fifth when home doesn't fit
+      const pc = pcs.has(key.tonic) ? key.tonic : pcs.has(mod(key.tonic + 7)) ? mod(key.tonic + 7) : key.tonic;
+      let m = lo; while (mod(m) !== pc) m++;
+      if (R.busy === "sparse") push(m, w0, len);
+      else for (let s = w0; s < w1 - 1e-6; s += R.busy === "busy" ? unit : unit * 2) push(m, s, (R.busy === "busy" ? unit : unit * 2) * 0.9);
+    } else if (R.kind === "counter") {
+      // long notes moving the other way from the singer, stepping to the nearest chord note
+      const prevNote = riffPrevOff ? null : riffPrev(section, idx, list, key, who);
+      const dirV = sung && sung.length > 1 ? Math.sign(sung[sung.length - 1].midi - sung[0].midi) : (idx % 2 ? 1 : -1);
+      const dir = -(dirV || 1) * (tuneOverride && tuneOverride.parallel ? -1 : 1);
+      const n = R.busy === "sparse" ? 1 : R.busy === "busy" ? Math.max(1, Math.round(len / (M.unit === 8 ? 3 : 1))) : Math.max(1, Math.round(len / (M.unit === 8 ? 3 : 2)));
+      let cur = prevNote ?? near(tones, lo + 5);
+      for (let k = 0; k < n; k++) {
+        const opts = tones.filter(m => (m - cur) * dir > 0 && Math.abs(m - cur) <= 7);
+        cur = opts.length ? near(opts, cur + dir * 2) : near(tones, cur);
+        push(cur, w0 + k * len / n, len / n * 0.97);
+      }
+    } else if (R.kind === "echo" || R.kind === "walk") {
+      const next = list[idx + 1] || list[0];
+      if (!replyBeats(c) && !sung) return [];
+      const ln = lickNotes(R.kind, R.when === "gaps" || !sung ? c : Object.assign({}, c, { beats: c.beats }), next, key, sung ? sung.map(n => n.midi) : [], who, section.seed || 1);
+      ln.soft = soft; return ln;
+    } else if (R.kind === "hook") {
+      // one small idea, bent to fit each chord: the same rhythm and shape on the chord's own notes
+      const H = hookOf(section);
+      const base = near(tones, lo + 4), bi = tones.indexOf(base);
+      const lastOfPart = idx === list.length - 1;
+      const reps = R.busy === "busy" ? 2 : 1;
+      const span = Math.min(len, H.len);
+      const start0 = R.when === "gaps" && sung ? w0 : w0;
+      for (let rep = 0; rep < reps; rep++) {
+        const off = start0 + rep * Math.max(span, len / reps);
+        H.steps.forEach((st, k) => {
+          let m = tones[Math.max(0, Math.min(tones.length - 1, bi + st))];
+          // the part's last chord answers the idea by landing home
+          if (lastOfPart && k === H.steps.length - 1) { let h = lo; while (mod(h) !== key.tonic) h++; m = h; }
+          if (!scale.has(mod(m)) && !pcs.has(mod(m))) m = near(tones, m);
+          const s = off + H.rhythm[k] * (span / H.len);
+          const d = k < H.steps.length - 1 ? (H.rhythm[k + 1] - H.rhythm[k]) * (span / H.len) : Math.max(unit, span - H.rhythm[k] * (span / H.len));
+          push(m, s, d * 0.95);
+        });
+        if (R.busy === "sparse") break;
+      }
+    }
+    out.soft = soft;
+    return out;
+  }
+  // the countermelody remembers where it was, chord to chord
+  function riffPrev(section, idx, list, key, who) {
+    if (!idx) return null;
+    const R = riffSetOf(section);
+    if (R.kind !== "counter") return null;
+    const p = list[idx - 1], mel = melodyChain(song.sections.indexOf(section)).get(p.i);
+    const n = riffNotesNoPrev(section, p, idx - 1, list, key, mel, who);
+    return n.length ? n[n.length - 1].midi : null;
+  }
+  // (counter notes for the previous chord, without looking further back: keeps it cheap)
+  function riffNotesNoPrev(section, c, idx, list, key, mel, who) {
+    try { riffPrevOff = true; return riffNotes(section, c, idx, list, key, mel, who); } finally { riffPrevOff = false; }
+  }
+  let riffPrevOff = false;
+  const sectionMeter = section => METERS[section.meter] || METERS["4/4"];
+  // a part's hook: a rhythm and a little shape, chosen from its seed
+  const HOOKS = [
+    { rhythm: [0, 0.5, 1], steps: [0, 1, 2], len: 2 },
+    { rhythm: [0, 0.5, 1.5], steps: [2, 1, 0], len: 2 },
+    { rhythm: [0, 1, 1.5, 2], steps: [0, 2, 1, 0], len: 3 },
+    { rhythm: [0, 0.25, 0.5, 1.5], steps: [0, 1, 0, 2], len: 2 },
+    { rhythm: [0, 0.75, 1.5], steps: [1, 0, -1], len: 2 },
+    { rhythm: [0, 0.5, 1, 1.5], steps: [0, 1, 2, 1], len: 2 }
+  ];
+  const hookOf = section => HOOKS[((section.hook ?? (section.seed || 1)) % HOOKS.length + HOOKS.length) % HOOKS.length];
+  function playRiff(section, c, list, key, t0, cl, mel) {
+    if (!L("lead")) return;
+    const idx = list.indexOf(c);
+    const notes = riffNotes(section, c, idx, list, key, mel);
+    if (notes.length) playLead(notes, t0, cl, prefs.buddy, notes.soft || 1);
+  }
+
+  // ---------- the sheet: the sung line and the lead riff for this part ----------
+  const SHAPE_ART = {
+    arch: "M2 14 Q10 2 18 8 T30 12", rise: "M2 14 L30 4", fall: "M2 4 L30 14", wave: "M2 9 Q7 2 12 9 T22 9 T32 9", level: "M2 9 L30 9"
+  };
+  const TUNE_ROWS = [
+    ["enter", "where lines come in", [["on", "right on the beat"], ["late", "a beat late"], ["half", "halfway in"]]],
+    ["spread", "the words", [["tight", "tight"], ["even", "even"], ["drawn", "drawn out"]]],
+    ["breath", "between lines", [["short", "a quick breath"], ["long", "a long breath"]]],
+    ["shape", "the shape of a line", [["arch", "arch"], ["rise", "rise"], ["fall", "fall"], ["wave", "wave"], ["level", "level"]]],
+    ["reg", "where it sits", [["low", "low"], ["mid", "middle"], ["high", "high"]]],
+    ["motion", "how it moves", [["steps", "steps"], ["mixed", "some leaps"], ["leaps", "big leaps"]]],
+    ["echo", "the lines", [["true", "echo in pairs"], ["false", "each one new"]]]
+  ];
+  const RIFF_KINDS = [
+    ["answer", "answers the lines", "a lick at the end of each line, like someone replying"],
+    ["arp", "arpeggio", "the chord's own notes one at a time, so you hear the harmony move"],
+    ["pedal", "one held note", "a note that stays while the chords change under it; every chord colors it differently"],
+    ["counter", "countermelody", "a second, slower tune that moves the other way from the singer"],
+    ["echo", "echo", "repeats the singer's last few notes back, like a call and a reply"],
+    ["walk", "walks between chords", "steps along the scale to land on the next chord"],
+    ["hook", "a hook", "one small idea, reshaped to fit each chord, so the whole part feels tied together"]
+  ];
+  const RIFF_ROWS = [
+    ["busy", "how busy", [["sparse", "sparse"], ["some", "some"], ["busy", "busy"]]],
+    ["reg", "where it sits", [["above", "above the voice"], ["below", "below the voice"]]],
+    ["when", "when it plays", [["gaps", "in the gaps"], ["under", "under the singing"], ["ends", "intros and outros"]]]
+  ];
+  function tuneSheetHTML() {
+    const x = sec(), T = tuneSetOf(x), R = riffSetOf(x), lead = (LEADS[prefs.buddy] || LEADS.dusty).name;
+    const row = (k, label, opts, cur, attr) => `<div class="knob"><span class="lbl">${esc(label)}</span><div class="choices tune-choices">${opts.map(([v, name]) => `<button class="choice" type="button" data-${attr}="${k}" data-v="${v}" aria-pressed="${String(cur[k]) === v}">${k === "shape" ? `<svg class="shape-art" viewBox="0 0 34 18" aria-hidden="true"><path d="${SHAPE_ART[v]}"/></svg>` : ""}${esc(name)}</button>`).join("")}</div></div>`;
+    const kind = RIFF_KINDS.find(k => k[0] === R.kind) || RIFF_KINDS[0];
+    const hasWords = current.some(c => (words()[c.i] || "").trim());
+    return `<div class="tune-sheet">
+      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes and riffs work</button></div>
+      <h3 class="subhead">the sung line</h3>
+      ${hasWords ? "" : `<p class="note">Write some words for this part in the songbook to hear the line. The settings work either way.</p>`}
+      ${TUNE_ROWS.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
+      <p class="note">Tap a word in the lyric lane to nudge one syllable up or down, or hold it longer.</p>
+      <h3 class="subhead">the lead riff · ${esc(lead)}</h3>
+      ${L("lead") ? "" : `<p class="note">The lead is off right now. <button class="link" type="button" data-tuneact="leadon">turn it on</button></p>`}
+      <div class="knob"><span class="lbl">what it plays</span><div class="choices tune-choices">${RIFF_KINDS.map(([v, name]) => `<button class="choice" type="button" data-riffset="kind" data-v="${v}" aria-pressed="${R.kind === v}">${esc(name)}</button>`).join("")}</div>
+        <p class="note riff-why">${esc(kind[2])}.</p></div>
+      ${RIFF_ROWS.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join("")}
+      ${R.kind === "hook" ? `<div class="row"><button class="btn" type="button" data-tuneact="newhook">↻ a different hook</button></div>` : ""}
+      <div class="row"><button class="link" type="button" data-tuneact="reset">back to ${esc(B().name)}'s way</button></div>
+    </div>`;
+  }
+  // play this part from its first chord for about two lines, then stop
+  let previewTimer = 0;
+  async function previewPart(maxBeats = 16) {
+    if (!current.length) return;
+    if (playing) stop();
+    clearTimeout(previewTimer);
+    sel = 0;
+    await playAll();
+    if (!playing) return;
+    let beats = 0, k = 0;
+    while (k < current.length && beats < maxBeats) beats += current[k++].beats;
+    const secs = beats * countSec(Mtr, S().bpm) + 0.6;
+    previewTimer = setTimeout(() => { if (playing) stop(); }, secs * 1000);
+  }
+  function tuneSheetClick(e) {
+    const t = e.target.closest("[data-tuneset],[data-riffset],[data-tuneact]");
+    if (!t) return false;
+    const x = sec();
+    if (t.dataset.tuneset) {
+      const k = t.dataset.tuneset, v = t.dataset.v;
+      x.sing = { ...(x.sing || {}), [k]: k === "echo" ? v === "true" : v };
+      saveSongs(); renderSheet(); renderStage(); previewPart();
+      return true;
+    }
+    if (t.dataset.riffset) {
+      const k = t.dataset.riffset, v = t.dataset.v;
+      x.riff = { ...(x.riff || {}), [k]: v };
+      if (!L("lead")) { prefs.layers.lead = true; savePrefs(); applyView(); }
+      saveSongs(); renderSheet(); renderStage(); previewPart();
+      return true;
+    }
+    const a = t.dataset.tuneact;
+    if (a === "hear") previewPart(64);
+    else if (a === "leadon") { prefs.layers.lead = true; savePrefs(); applyView(); renderSheet(); previewPart(); }
+    else if (a === "newhook") { x.hook = ((x.hook ?? (x.seed || 1)) + 1) % HOOKS.length; saveSongs(); previewPart(); }
+    else if (a === "reset") { delete x.sing; delete x.riff; delete x.nudge; saveSongs(); renderSheet(); renderStage(); previewPart(); }
+    return true;
+  }
+
+  // ---------- lessons: how tunes and riffs work, heard in your own song ----------
+  const SAMPLE_WORDS = "walking home the long way round\nall the windows lit and gold\nI can hear the evening now\nsinging songs I haven't told";
+  const LESSONS = [
+    { title: "Steady notes on strong beats", text: ["A tune feels at home when the words you lean on land on notes from the chord underneath. The notes in between can wander; they're passing through.",
+        "Listen to both. In the first, every stressed word sits on a chord note. In the second, those same words land on notes that rub against the chord."],
+      demos: [["▶ steady", { sing: {} }], ["▶ rubbing", { sing: { clash: true } }]] },
+    { title: "Where a line comes in", text: ["A line doesn't have to start when the chord does. Coming in a beat late sounds relaxed, like a person taking a breath before they talk. Starting right on the beat sounds eager.",
+        "Same words, same notes. Only where the line starts changes."],
+      demos: [["▶ on the beat", { sing: { enter: "on", spread: "even" } }], ["▶ a beat late", { sing: { enter: "late", spread: "even" } }], ["▶ halfway in", { sing: { enter: "half", spread: "drawn" } }]] },
+    { title: "Questions and answers", text: ["Tunes talk in pairs. A line that climbs and stops high sounds like a question. A line that comes back down to a steady note sounds like the answer.",
+        "The first version only climbs, so it keeps asking. The second answers itself."],
+      demos: [["▶ only questions", { sing: { shape: "rise", echo: false } }], ["▶ question, then answer", { sing: { shape: "arch", echo: true } }]] },
+    { title: "Leave the singer room", text: ["A riff and a voice at the same time fight for your ear. The easy fix is to play in the gaps: the singer takes a breath at the end of a line, and the riff answers there.",
+        "The first version plays busy notes right under the singing. The second waits for the gaps."],
+      demos: [["▶ on top of the singer", { riff: { kind: "arp", busy: "busy", when: "under", reg: "above" } }], ["▶ in the gaps", { riff: { kind: "answer", when: "gaps" } }]] },
+    { title: "A hook is a small idea", text: ["A hook is a few notes with a rhythm you can remember. Play it on every chord, bent to fit the chord's own notes, and the whole part sounds like one thing.",
+        "The last chord of the part lets the hook land home, which is how it resolves."],
+      demos: [["▶ the hook", { riff: { kind: "hook", busy: "some", when: "under" } }], ["▶ just the chord notes", { riff: { kind: "arp", busy: "some", when: "under" } }]] },
+    { title: "Opposite directions", text: ["When two tunes move the same way at the same time, they blur into one. When one goes up while the other goes down, you can hear both.",
+        "Musicians call it contrary motion. Here's a slow countermelody moving against the singer, then the same line moving with it."],
+      demos: [["▶ against the singer", { riff: { kind: "counter", busy: "some", when: "under" } }], ["▶ with the singer", { riff: { kind: "counter", busy: "some", when: "under" }, parallel: true }]] },
+    { title: "One note that stays", text: ["Hold one note while the chords move under it. Over some chords it's calm, over others it aches, because each chord colors the same note differently.",
+        "That held note is called a pedal. Listen for the moment it rubs, then settles."],
+      demos: [["▶ the held note", { riff: { kind: "pedal", busy: "sparse", when: "under" } }]] }
+  ];
+  let lessonAt = null, lessonRestore = null;
+  function lessonsHTML() {
+    if (lessonAt == null) return `<p class="note">Short lessons about what goes on top of your chords. Every example plays in the part you're working on.</p>
+      <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card" type="button" data-lesson="${i}"><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></button>`).join("")}</div>`;
+    const l = LESSONS[lessonAt];
+    return `<article class="card lesson"><h3>${esc(l.title)}</h3>${l.text.map(p => `<p>${esc(p)}</p>`).join("")}
+      <div class="row">${l.demos.map((d, k) => `<button class="btn${k ? "" : " surprise"}" type="button" data-lessondemo="${k}">${esc(d[0])}</button>`).join("")}</div></article>
+      <div class="row"><button class="btn" type="button" data-lesson="list">all the lessons</button>${lessonAt < LESSONS.length - 1 ? `<button class="btn" type="button" data-lesson="${lessonAt + 1}">next: ${esc(LESSONS[lessonAt + 1].title)} →</button>` : ""}
+      <button class="link" type="button" data-open="tune">set this part's tune and riff</button></div>`;
+  }
+  // put the part back after a demo borrowed it
+  function lessonEnd() {
+    tuneOverride = null;
+    if (lessonRestore) { lessonRestore(); lessonRestore = null; }
+  }
+  async function lessonDemo(k) {
+    const l = LESSONS[lessonAt], d = l.demos[k];
+    if (!d) return;
+    if (playing) stop();
+    lessonEnd();
+    const x = sec();
+    // no words yet? borrow a few so there's something to sing
+    if (!current.some(c => (words()[c.i] || "").trim())) {
+      const saved = { verse: x.verse, words: (x.words || []).slice(), flowSig: x.flowSig, cont: x.cont };
+      x.verse = SAMPLE_WORDS; flowVerse(x, current);
+      lessonRestore = () => { Object.assign(x, saved); renderStage(); };
+    }
+    tuneOverride = { sing: d[1].sing || {}, riff: d[1].riff || {}, parallel: !!d[1].parallel };
+    if (d[1].riff && !L("lead")) { prefs.layers.lead = true; savePrefs(); applyView(); }
+    await previewPart(16);
+  }
+  function lessonsClick(e) {
+    const a = e.target.closest("[data-lesson],[data-lessondemo]");
+    if (!a) return false;
+    if (a.dataset.lessondemo != null) { lessonDemo(+a.dataset.lessondemo); return true; }
+    lessonEnd();
+    lessonAt = a.dataset.lesson === "list" ? null : +a.dataset.lesson;
+    renderSheet();
+    return true;
+  }
 
   // =========================================================
   // App state
@@ -6429,21 +6684,8 @@
     const lines = [];
     d.list.forEach((c, k) => { if (k && cont[d.list[k - 1].i] && lines.length) lines[lines.length - 1].push(c); else lines.push([c]); });
     const sung = lines.map(g => g.filter(wordsOf)).filter(g => g.length);
-    // a song learned by ear remembers its tune, in half beats from the start of the part
-    let heardTune = null;
-    if (Array.isArray(section.tune) && !S().ownTune) {
-      const T = section.tune, on = T.filter(v => v >= 0).map(v => v + d.key.tonic).sort((x, y) => x - y);
-      if (on.length > 4) {
-        const [lo, hi] = (SING_STYLES[who] || SING_STYLES.wren).range, mid = on[Math.floor(on.length / 2)];
-        const shift = Math.round(((lo + hi) / 2 - mid) / 12) * 12;
-        heardTune = beat => {
-          const j = Math.round(beat * 2);
-          // stray octave slips from the pitch follower get folded back into the singer's range
-          for (const d2 of [0, 1, -1, 2, -2]) { const v0 = T[j + d2]; if (v0 >= 0) { let v = v0 + d.key.tonic + shift; while (v > hi + 2) v -= 12; while (v < lo - 2) v += 12; return v; } }
-          return null;
-        };
-      }
-    }
+    // the part's sung-line settings (and the lesson demos can borrow the part for a moment)
+    const set = tuneSetOf(section);
     let prev = null, lineNo = 0;
     lines.forEach(g0 => {
       const a = g0.findIndex(wordsOf), b = g0.map(wordsOf).map(Boolean).lastIndexOf(true);
@@ -6454,10 +6696,10 @@
       const lastC = g[g.length - 1];
       segs[segs.length - 1].room = replyOn(section, lastC) ? replyBeats(lastC) : 0;
       const text = g.map(wordsOf).join(" ");
-      const seed = hashStr(text) + (section.seed || 1) * 7919 + g[0].i;
+      // lines that echo share a rhythm and a shape in pairs (1 and 3, 2 and 4); otherwise every line is new
+      const seed = set.echo ? (section.seed || 1) * 7919 + (lineNo % 2) * 131 + segs.reduce((a2, sg) => a2 + sg.sy.length, 0) : hashStr(text) + (section.seed || 1) * 7919 + g[0].i;
       const notes = lineMelody(segs, d.key, who, seed, prev, d.M, {
-        lineNo, home: sung.length > 1 && lineNo === sung.length - 1, ask: /\?\s*$/.test(text), shapeSeed: (section.seed || 1) + (lineNo % 2),
-        tuneAt: heardTune ? b => heardTune(g[0].at + b) : null
+        lineNo, home: sung.length > 1 && lineNo === sung.length - 1, ask: /\?\s*$/.test(text), shapeSeed: (section.seed || 1) + (set.echo ? lineNo % 2 : lineNo * 5), set
       });
       if (!notes.length) { prev = null; return; }
       const sy = segs.flatMap(s => s.sy), top = (SING_STYLES[who] || SING_STYLES.wren).range[1] + 2;
@@ -6471,6 +6713,8 @@
         if (e === "p") { for (let m = nt.midi + 1; m <= top; m++) if (pcs.has(mod(m))) { nt.midi = m; break; } }
         if (e === "h" && !last) nt.dur = Math.max(nt.dur, (notes[k + 1].start - nt.start) * 0.97);
       });
+      // your own touches: a syllable moved up or down the scale, held longer or cut short
+      applyNudges(section, g, segs, notes, d.key, who);
       const line = { sy, notes, chords: g };
       g.forEach((c, ci) => {
         const seg = segs[ci];
@@ -6528,8 +6772,8 @@
     const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
     const side = {
       simple: inside + `<button class="pal more" type="button" data-act="more">+ chords</button>`,
-      learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button><button class="pal more" type="button" data-open="lessons" aria-label="How tunes and riffs work">♪ tunes</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
       studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
@@ -6785,7 +7029,8 @@
       });
       if (pts.length > 1) svg += `<polyline class="thread" points="${pts.map(p => f(p[0]) + "," + f(p[1])).join(" ")}" vector-effect="non-scaling-stroke"/>`;
       // a syllable held over more notes shows once, then a little tilde as it carries on
-      syl = notes.map((nt, k) => `<span class="syl${scat ? " scat" : ""}${nt.tie ? " tie" : ""}${nt.emph ? " emph-" + nt.emph : ""}" data-s="${nt.s}" style="left:${f(pts[k][0])}%;top:${f(pts[k][1])}%">${nt.tie ? "~" : esc((sy[nt.s] || {}).show || "")}</span>`).join("");
+      const picked = nudgeSel && nudgeSel.i === c.i ? nudgeSel.s : -1;
+      syl = notes.map((nt, k) => `<span class="syl${scat ? " scat" : ""}${nt.tie ? " tie" : ""}${nt.emph ? " emph-" + nt.emph : ""}${nt.s === picked && !nt.tie ? " picked" : ""}${nt.touched ? " touched" : ""}" data-s="${nt.s}" style="left:${f(pts[k][0])}%;top:${f(pts[k][1])}%">${nt.tie ? "~" : esc((sy[nt.s] || {}).show || "")}</span>`).join("");
     }
     return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}<path class="live" id="liveLine" d="" vector-effect="non-scaling-stroke"/></svg>${syl}`;
   }
@@ -6798,7 +7043,7 @@
     const editBtn = !editing && m.w ? `<button class="lane-edit" type="button" data-act="words" title="Open the songbook" aria-label="Open the songbook">✎</button>` : "";
     return `<div class="lane-row">
       <div class="lane${editing ? " editing" : ""}${tight ? " tight" : ""}" id="lane" data-i="${c.i}" data-sec="${secIdx}" role="button" tabindex="0" aria-label="Words and tune for ${esc(c.tok)}. Tap to open the songbook.">
-        <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}${editBtn}
+        <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}${editBtn}${editing ? "" : nudgeTools(c)}
         ${editing ? `<input class="lane-input" id="lyricInput" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}, or draw above" enterkeyhint="next" aria-label="Words for this chord" autocomplete="off">` : ""}
       </div>
       <div class="lane-btns">
@@ -6917,6 +7162,8 @@
   }
   function stop() {
     demoStopAll();
+    clearTimeout(previewTimer);
+    lessonEnd();
     timers.forEach(clearTimeout);
     timers.clear();
     setPlaying(false);
@@ -6980,7 +7227,7 @@
     if (band) playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") && !withDemo ? melodyChain(playSec).get(c.i) : null;
-    if (band) playReply(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
+    if (band) playRiff(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
     if (band && L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel);
     for (let k = 0; k < c.beats; k++) {
       const pos = (c.at + k) % M.n;
@@ -7091,7 +7338,7 @@
     const cl = countSec(Mtr, S().bpm), t = ac.currentTime + 0.05;
     const mel = melodyChain(secIdx).get(c.i);
     playChord(c.v, t, c.beats, cl, S().style, { M: Mtr, pos0: c.pos0 });
-    playReply(sec(), c, current, K, t, cl, mel);
+    playRiff(sec(), c, current, K, t, cl, mel);
     if (mel) singChord(c, mel, t, cl, secIdx, true);
     if (c === current[sel]) fx(c);
   }
@@ -7467,7 +7714,7 @@
     return set[((section.seed || 1) + c.i * 3) % set.length][0];
   }
   // no reply in the middle of a line: only where the singer takes a breath
-  const replyOn = (section, c) => L("lead") && replyBeats(c) > 0 && lickIdFor(section, c) !== "rest" && !(section.cont || [])[c.i];
+  const replyOn = (section, c) => L("lead") && replyBeats(c) > 0 && riffInGaps(section) && (riffSetOf(section).kind !== "answer" || lickIdFor(section, c) !== "rest") && !(section.cont || [])[c.i];
   // notes in beats from the start of this chord
   function lickNotes(id, c, next, key, sung, who = prefs.buddy, seed = 1) {
     const win = replyBeats(c);
@@ -7658,6 +7905,7 @@
   }
   function closeSheet() {
     hearStop();
+    if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     sheetMode = null; confirmDel = null;
@@ -7709,6 +7957,8 @@
   function renderSheet() {
     const body = $("sheetBody");
     if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
+    if (sheetMode === "tune") { $("sheetTitle").textContent = `tune & riff · ${sec().name.toLowerCase()}`; body.innerHTML = tuneSheetHTML(); return; }
+    if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "how tunes and riffs work" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = lessonsHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
       const auto = !parseKeySetting(S().key);
@@ -7721,8 +7971,6 @@
         <div class="knob"><span class="lbl">feel · easy to fancy</span>
           <div class="choices">${FEELS.map(f => `<button class="choice" type="button" data-feel="${f.id}" aria-pressed="${S().level === f.id}">${f.name}<small>${f.note}</small></button>`).join("")}</div>
         </div>
-        ${song.sections.some(x => Array.isArray(x.tune)) ? `<div class="knob"><span class="lbl">the sung tune</span>
-          <div class="choices"><button class="choice" type="button" data-owntune="0" aria-pressed="${!S().ownTune}">from the recording</button><button class="choice" type="button" data-owntune="1" aria-pressed="${!!S().ownTune}">${esc(B().name)} writes one</button></div></div>` : ""}
         <div class="knob"><span class="lbl">hands</span>
           <div class="choices">
             <button class="choice" type="button" data-hands="two" aria-pressed="${!S().oneHand}">two hands</button>
@@ -8200,8 +8448,11 @@
     renderStage();
   }
   stageEl.addEventListener("click", e => {
+    const sy = !editingLyric && e.target.closest("#lane .syl:not(.tie)");
+    if (sy && current[sel]) { nudgeSel = { i: current[sel].i, s: +sy.dataset.s }; renderStage(); previewSing(current[sel]); return; }
     const el = e.target.closest("[data-act],[data-ladder]") || e.target.closest("#lane");
     if (!el) return;
+    if (el.dataset.act === "nudge") { nudgeSyl(el.dataset.d); return; }
     if (el.id === "lane") {
       if (editingLyric) { $("lyricInput")?.focus(); return; }
       openSheet("book");
@@ -8328,8 +8579,8 @@
   $("sheetBody").addEventListener("click", async e => {
     if (sheetMode === "house" && houseClick(e)) return;
     if (sheetMode === "listen" && hearClick(e)) return;
-    const ownT = e.target.closest("[data-owntune]");
-    if (ownT) { setting("ownTune", ownT.dataset.owntune === "1"); renderAll(); renderSheet(); return; }
+    if (sheetMode === "tune" && tuneSheetClick(e)) return;
+    if (sheetMode === "lessons" && lessonsClick(e)) return;
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
     if (storyB) { storyAt = +storyB.dataset.story; markRead(storyAt); storyTimers.forEach(clearTimeout); renderSheet(); $("sheetBody").scrollTop = 0; return; }
     if (storyAct) {
@@ -8633,7 +8884,6 @@
     const t = e.target;
     if (t.id === "hearFile") { hearFile(t.files && t.files[0]); return; }
     if (t.id === "hearAlong") { hear.along = t.checked; return; }
-    if (t.id === "hearTune") { hear.tune = t.checked; return; }
     if (t.id === "hearWords") { hear.words = t.value.slice(0, 8000); return; }
     if (t.id === "kKey") { setting("key", t.value); renderAll(); renderSheet(); }
     else if (t.id === "sev") { prefs.sevenths = t.checked; savePrefs(); renderPalette(); renderSheet(); }
