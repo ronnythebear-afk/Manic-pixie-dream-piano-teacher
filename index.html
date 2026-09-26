@@ -1481,6 +1481,39 @@
     .fader input { height: 11px; }
     .desk { padding: 4px 8px; }
   }
+  /* your keyboard: pressed keys, the chord you're holding, and takes */
+  .kbd rect.pressed { fill: color-mix(in srgb, var(--surprise) 70%, #fff) !important; }
+  .kbd rect.kb.pressed { fill: color-mix(in srgb, var(--surprise) 80%, #2f2a3d) !important; }
+  .stage { position: relative; }
+  .held-chip { position: absolute; right: 12px; top: 58px; z-index: 4; display: flex; align-items: center; gap: 5px; background: var(--ink); color: var(--card); border-radius: 999px; padding: 4px 6px 4px 12px; box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .6); }
+  .held-chip b { font: 800 16px var(--body); margin-right: 2px; }
+  .held-chip button { border: 0; border-radius: 999px; background: var(--card); color: var(--ink); font: 800 12px var(--body); padding: 4px 9px; cursor: pointer; }
+  .take-box { display: grid; gap: 8px; border: 1.5px dashed color-mix(in srgb, var(--line) 50%, transparent); border-radius: 12px; padding: 10px; }
+  .take-box.rec { border-style: solid; border-color: var(--tension); background: color-mix(in srgb, var(--tension) 8%, transparent); }
+  .take-box.rec > b { color: var(--tension); }
+  .take-kbd svg { width: 100%; height: auto; }
+  .take-kbd { cursor: pointer; }
+  .take-syls { display: flex; flex-wrap: wrap; gap: 4px; font: 700 15px var(--voice); }
+  .take-syls span { padding: 1px 6px; border-radius: 6px; background: var(--card-2); color: var(--soft); }
+  .take-syls span.done { color: var(--ink); background: color-mix(in srgb, var(--lh) 40%, var(--card)); }
+  .take-syls span.now { color: var(--card); background: var(--ink); }
+  /* the melody lens */
+  .lens-dot { pointer-events: none; animation: lensIn .12s ease both; }
+  .lens-dot text { font: 800 4.6px var(--body); text-anchor: middle; fill: #2f2a3d; paint-order: stroke; stroke: #fff; stroke-width: 1.2px; }
+  .lens-dot.sing circle, .lens-dot.sing path { fill: var(--lh); stroke: #2f2a3d; stroke-width: .6; }
+  .lens-dot.lead circle, .lens-dot.lead path { fill: var(--surprise); stroke: #2f2a3d; stroke-width: .6; }
+  .lens-dot.sc circle { fill: #fff; stroke-width: 1.4; }
+  .lens-dot.sing.sc circle { stroke: var(--lh); } .lens-dot.lead.sc circle { stroke: var(--surprise); }
+  @keyframes lensIn { from { opacity: 0; transform: translateY(2px); } }
+  .lens-legend { margin: 4px 0 0; font-size: 11.5px; font-weight: 700; color: var(--soft); line-height: 1.5; }
+  .lens-legend .lg { font-weight: 900; } .lens-legend .lg.sing { color: var(--lh); } .lens-legend .lg.lead { color: var(--surprise); }
+  .lesson-kbd { margin-top: 8px; } .lesson-kbd svg { width: 100%; height: auto; }
+  /* play along */
+  .along-row { display: flex; flex-wrap: wrap; gap: 5px; }
+  .along-chip { border: 1.5px solid var(--line); border-radius: 9px; padding: 3px 9px; font-weight: 800; background: var(--card); color: var(--soft); }
+  .along-chip.now { background: var(--ink); color: var(--card); }
+  .along-chip.ok { background: color-mix(in srgb, var(--lh) 50%, var(--card)); color: var(--ink); }
+  .along-chip.ok::after { content: " ✓"; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -4125,7 +4158,8 @@
         // (for the lesson: stressed words on notes that rub against the chord)
         const rub = sc.filter(m => !ct.includes(m));
         pick = near(within(rub.length ? rub : sc, F.leap + 2), want);
-      } else if (a.e.S) pick = near(clear(within(ct, F.leap + 2)), want);
+      } else if (set.only === "chord") pick = near(clear(within(ct, F.leap + 2)), want);
+      else if (a.e.S) pick = near(clear(within(ct, F.leap + 2)), want);
       else if (a.e.light) pick = F.flat && cur != null && sc.includes(cur) ? cur : near(within(sc, 2), cur == null ? want : cur + (want - cur) * 0.6);
       else pick = st.repeat && cur != null && sc.includes(cur) && r() < st.repeat ? cur : near(within(set.motion === "leaps" ? ct : sc, F.leap), want);
       if (pick == null) pick = cur ?? Math.round(want);
@@ -4138,6 +4172,16 @@
       }
       cur = pick;
       return { midi: pick, start: a.off + a.e.start, dur: a.e.dur, s: idx, ci: a.gi, local: a.k, light: !!a.e.light, stress: !!a.e.S, glide: who === "dusty" && !!a.e.S, hop: who === "ghost" && !a.e.S };
+    });
+    // leaning notes: a stressed word lands a step above its chord note, and the next note settles onto it
+    if (set.lean) notes.forEach((n, k) => {
+      const nx = notes[k + 1], c = all[k].c;
+      if (!n.stress || !nx || k >= notes.length - 2) return;
+      const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv))), scale = steps.map(sv => mod(key.tonic + sv));
+      if (!pcs.has(mod(n.midi))) return;
+      const up = [n.midi + 1, n.midi + 2].find(m => scale.includes(mod(m)) && !pcs.has(mod(m)));
+      if (up == null) return;
+      nx.midi = n.midi; n.midi = up;
     });
     notes.noRoom = noRoom;
     return notes;
@@ -6445,6 +6489,8 @@
   // notes in beats from the chord's start for this chord of the part
   function riffNotes(section, c, idx, list, key, mel, who = prefs.buddy) {
     const R = riffSetOf(section), ld = LEADS[who] || LEADS.dusty, M = sectionMeter(section);
+    // your own riff plays exactly as you played it
+    if (R.kind === "mine") { const own = section.leadTake ? takeNotes(section, c) : []; own.soft = 1; return own; }
     const sung = mel && mel.notes && mel.notes.length ? mel.notes : null;
     const name = (section.name || "").toLowerCase();
     // when: in the gaps (the ends of lines, and anywhere nobody is singing), under the singing, or only in intros and outros
@@ -6556,7 +6602,7 @@
     if (!L("lead")) return;
     const idx = list.indexOf(c);
     const notes = riffNotes(section, c, idx, list, key, mel);
-    if (notes.length) playLead(notes, t0, cl, prefs.buddy, notes.soft || 1);
+    if (notes.length) { playLead(notes, t0, cl, prefs.buddy, notes.soft || 1); lensNotes(notes, t0, cl, c, "lead"); }
   }
 
   // ---------- the sheet: the sung line and the lead riff for this part ----------
@@ -6579,7 +6625,8 @@
     ["counter", "counter-melody", "a second, slower tune that moves the other way from the singer"],
     ["echo", "echo", "repeats the singer's last few notes back, like a call and a reply"],
     ["walk", "walks between chords", "steps along the scale to land on the next chord"],
-    ["hook", "a hook", "one small idea, reshaped to fit each chord, so the whole part feels tied together"]
+    ["hook", "a hook", "one small idea, reshaped to fit each chord, so the whole part feels tied together"],
+    ["mine", "your own riff", "the notes you played on your keyboard, on the lead's instrument"]
   ];
   const RIFF_ROWS = [
     ["busy", "how busy", [["sparse", "sparse"], ["some", "some"], ["busy", "busy"]]],
@@ -6604,6 +6651,7 @@
       const main = TUNE_MAIN.map(k => rows.find(r => r[0] === k)).filter(Boolean), more = rows.filter(r => !TUNE_MAIN.includes(r[0]));
       body = `${hasWords ? "" : `<p class="note"><button class="link" type="button" data-open="along">Write some words for this part</button> to hear the line. The settings work either way.</p>`}
         ${main.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
+        ${tuneTakeHTML()}
         ${fold("sing", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("") + (timed ? `<p class="note">Your lines are timed by hand, so they come in and breathe where you held them.</p>` : ""))}
         <p class="note">Tap a word in the lyric lane to nudge one syllable up or down, or hold it longer.</p>`;
     } else {
@@ -6612,6 +6660,7 @@
         <div class="knob"><span class="lbl">what the ${esc(lead)} plays</span><div class="choices tune-choices">${RIFF_KINDS.map(([v, name]) => `<button class="choice" type="button" data-riffset="kind" data-v="${v}" aria-pressed="${R.kind === v}">${esc(name)}</button>`).join("")}</div>
           <p class="note riff-why">${esc(kind[2])}.</p></div>
         ${R.kind === "hook" ? `<div class="row"><button class="btn" type="button" data-tuneact="newhook">↻ a different hook</button></div>` : ""}
+        ${riffTakeHTML()}
         ${main.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join("")}
         ${fold("riff", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join(""))}`;
     }
@@ -6636,6 +6685,7 @@
     previewTimer = setTimeout(() => { if (playing) stop(); }, secs * 1000);
   }
   function tuneSheetClick(e) {
+    if (takeClick(e)) return true;
     const tb = e.target.closest("[data-tunetab]");
     if (tb) { tuneTab = tb.dataset.tunetab; renderSheet(); return true; }
     const t = e.target.closest("[data-tuneset],[data-riffset],[data-tuneact]");
@@ -6658,7 +6708,7 @@
     if (a === "hear") previewPart(64);
     else if (a === "leadon") { prefs.layers.lead = true; savePrefs(); applyView(); renderSheet(); previewPart(); }
     else if (a === "newhook") { x.hook = ((x.hook ?? (x.seed || 1)) + 1) % HOOKS.length; saveSongs(); previewPart(); }
-    else if (a === "reset") { delete x.sing; delete x.riff; delete x.nudge; saveSongs(); renderSheet(); renderStage(); previewPart(); }
+    else if (a === "reset") { delete x.sing; delete x.riff; delete x.nudge; delete x.leadTake; delete x.tuneTake; saveSongs(); renderSheet(); renderStage(); previewPart(); }
     return true;
   }
 
@@ -6685,7 +6735,19 @@
       demos: [["▶ against the singer", { riff: { kind: "counter", busy: "some", when: "under" } }], ["▶ with the singer", { riff: { kind: "counter", busy: "some", when: "under" }, parallel: true }]] },
     { title: "One note that stays", text: ["Hold one note while the chords move under it. Over some chords it's calm, over others it aches, because each chord colors the same note differently.",
         "That held note is called a pedal. Listen for the moment it rubs, then settles."],
-      demos: [["▶ the held note", { riff: { kind: "pedal", busy: "sparse", when: "under" } }]] }
+      demos: [["▶ the held note", { riff: { kind: "pedal", busy: "sparse", when: "under" } }]] },
+    { title: "Chord notes and color notes", text: ["Watch the keys below while each example plays. A filled dot is a note from the chord underneath: it sounds settled. A ring is a note from the key but not the chord: it adds color and keeps the tune moving.",
+        "The first version only uses chord notes, so it's steady but a little stiff. The second lets color notes in between, and it starts to flow."],
+      demos: [["▶ only chord notes", { sing: { only: "chord" } }], ["▶ with color notes", { sing: {} }]] },
+    { title: "Leaning notes", text: ["A leaning note lands on a strong word just above a chord note, then steps down onto it. For a moment it rubs, then it settles. That small ache is where a lot of the feeling in a vocal lives.",
+        "Listen for the pull on the stressed words in the second version. On the keys, the lean is a ring that turns into a dot."],
+      demos: [["▶ straight", { sing: {} }], ["▶ leaning", { sing: { lean: true } }]] },
+    { title: "Big feelings climb", text: ["The word that matters most usually gets the highest note, often reached by a leap. The rest sits lower and moves by steps, so the leap stands out.",
+        "Same words. The first stays low and steady; the second saves a climb for the big moment."],
+      demos: [["▶ low and steady", { sing: { reg: "low", motion: "steps", shape: "level" } }], ["▶ climbing to it", { sing: { reg: "high", motion: "leaps", shape: "arch" } }]] },
+    { title: "The notes of a hook", text: ["Watch the keys while the hook plays. Most of its notes are chord notes, with a color note or two to make it move. The numbers tell you each note's place in the key, so you can find it on your own keyboard.",
+        "Try playing it back. Then try your own: record it with \u201cplay your own riff\u201d in tune & riff."],
+      demos: [["▶ the hook", { riff: { kind: "hook", busy: "some", when: "under" } }], ["▶ the chord notes, one by one", { riff: { kind: "arp", busy: "some", when: "under" } }]] }
   ];
   let lessonAt = null, lessonRestore = null;
   // chord stories and tune lessons: two tabs of one sheet
@@ -6695,7 +6757,8 @@
       <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card" type="button" data-lesson="${i}"><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></button>`).join("")}</div>`;
     const l = LESSONS[lessonAt];
     return `<article class="card lesson"><h3>${esc(l.title)}</h3>${l.text.map(p => `<p>${esc(p)}</p>`).join("")}
-      <div class="row">${l.demos.map((d, k) => `<button class="btn${k ? "" : " surprise"}" type="button" data-lessondemo="${k}">${esc(d[0])}</button>`).join("")}</div></article>
+      <div class="row">${l.demos.map((d, k) => `<button class="btn${k ? "" : " surprise"}" type="button" data-lessondemo="${k}">${esc(d[0])}</button>`).join("")}</div>
+      <div class="kbd lesson-kbd" data-lens>${keyboard({ lh: [], rh: [] }, 45, 84, { tall: true, label: () => "" })}</div>${lensLegend()}</article>
       <div class="row"><button class="btn" type="button" data-lesson="list">all the lessons</button>${lessonAt < LESSONS.length - 1 ? `<button class="btn" type="button" data-lesson="${lessonAt + 1}">next: ${esc(LESSONS[lessonAt + 1].title)} →</button>` : ""}
       <button class="link" type="button" data-open="tune">set this part's tune and riff</button></div>`;
   }
@@ -6816,6 +6879,7 @@
       const sy = S2.flatMap(s => s.sy);
       leanIn(notes, sy, g, who, seed);
       applyNudges(section, g, S2, notes, d.key, who);
+      applyPlayed(section, g, notes);
       const line = { sy, notes, chords: g };
       S2.forEach((seg, ci) => add(seg.c, { sy: seg.sy, notes: notes.filter(n => n.ci === ci).map(n => ({ ...n, start: n.start - seg.off, s: n.local })), scat: false, line: ci ? null : line, lines: ci ? [] : [line], inLine: ci > 0, noReply: false }));
       prev = { note: notes[notes.length - 1].midi, rhTop: Math.max(...g[g.length - 1].v.rh) };
@@ -7194,6 +7258,9 @@
       <div class="knob"><span class="lbl">compare two mixes</span><div class="abs">${slot("A")}${slot("B")}</div>
         <p class="note">Keep a mix in A, change things, keep it in B, then flip between them while it plays.</p></div>
       <div class="knob"><span class="lbl">vibe</span><div class="presets">${VIBES.map(v => `<button class="choice" type="button" data-vibe="${v.id}" aria-pressed="${vibeOf().id === v.id}">${esc(v.name)}<small>${esc(v.note)}</small></button>`).join("")}</div></div>
+      <div class="knob"><span class="lbl">play along live</span><p class="note">Press play and play over the band on your own keyboard. Whatever you play goes through the desk and the pedals, and onto the tape.</p></div>
+      ${keysKnobHTML()}
+      ${tapeLenHTML()}
       <div class="row"><button class="btn" type="button" data-rack="flat">everything back to flat</button>${(song.takes || []).length ? `<button class="btn" type="button" data-rack="takes">▤ your takes (${song.takes.length})</button>` : ""}</div>
     </div>`;
   }
@@ -7519,6 +7586,227 @@
   }
 
   // =========================================================
+  // Your own keyboard: a MIDI keyboard (an OP-1, anything with USB),
+  // or the laptop's letter keys. Whatever you play sounds right away,
+  // shows on the keys, and can add chords, play along, or record a riff.
+  // =========================================================
+  const LAPTOP = "awsedftgyhujkolp;'"; // a = C, w = C♯, s = D ... like a piano row
+  const kb = { access: null, name: "", status: "off", held: new Map(), sustained: new Set(), pedal: false, oct: 0, peak: [], hooks: [] };
+  const LIVE_VOICES = [["piano", "the piano"], ["lead", "the lead"], ["synth", "sparkle synth"], ["bass", "deep bass"]];
+  const keysOn = () => kb.status === "on" || !!prefs.laptopKeys;
+  // anything that wants to hear your playing: return true to keep it to yourself
+  const onKeys = fn => kb.hooks.push(fn);
+
+  async function connectMidi(quiet) {
+    if (!navigator.requestMIDIAccess) { kb.status = "none"; if (!quiet) toast("this browser can't hear MIDI keyboards. Chrome, Edge or Firefox can"); return false; }
+    try {
+      kb.access = await navigator.requestMIDIAccess({ sysex: false });
+    } catch (e) {
+      kb.status = "blocked"; if (!quiet) toast("the keyboard was blocked here. Open Pixie in its own tab in Chrome and try again");
+      return false;
+    }
+    const hook = () => {
+      const ins = [...kb.access.inputs.values()];
+      ins.forEach(i => { i.onmidimessage = midiIn; });
+      const was = kb.name;
+      kb.name = ins.length ? ins.map(i => i.name).join(", ") : "";
+      kb.status = ins.length ? "on" : "waiting";
+      if (kb.name && kb.name !== was && !quiet) toast(`${kb.name} is connected. Play something!`);
+      if (sheetMode === "knobs" || sheetMode === "rack") renderSheet();
+    };
+    kb.access.onstatechange = hook;
+    hook();
+    prefs.midi = 1; savePrefs();
+    if (kb.status === "waiting" && !quiet) toast("ready. Plug in your keyboard and it'll show up");
+    return true;
+  }
+  function midiIn(e) {
+    const [st, d1, d2] = e.data, cmd = st & 0xf0;
+    if (cmd === 0x90 && d2 > 0) keyDown(d1, d2);
+    else if (cmd === 0x80 || (cmd === 0x90 && d2 === 0)) keyUp(d1);
+    else if (cmd === 0xb0 && d1 === 64) pedal(d2 >= 64);
+  }
+  // the laptop's keys: a row of piano keys, z and x shift the octave
+  document.addEventListener("keydown", e => {
+    if (!prefs.laptopKeys || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return;
+    const k = e.key.toLowerCase();
+    if (k === "z" || k === "x") { kb.oct = Math.max(-2, Math.min(2, kb.oct + (k === "z" ? -1 : 1))); toast(`octave ${kb.oct > 0 ? "+" : ""}${kb.oct}`); e.preventDefault(); return; }
+    const i = LAPTOP.indexOf(k);
+    if (i < 0) return;
+    e.preventDefault();
+    keyDown(60 + kb.oct * 12 + i, 96);
+  }, true);
+  document.addEventListener("keyup", e => {
+    if (!prefs.laptopKeys) return;
+    const i = LAPTOP.indexOf(e.key.toLowerCase());
+    if (i >= 0) keyUp(60 + kb.oct * 12 + i);
+  }, true);
+
+  function keyDown(m, vel = 100) {
+    if (kb.held.has(m)) keyUp(m, true);
+    kb.held.set(m, { vel, t: performance.now() });
+    kb.sustained.delete(m);
+    if (kb.held.size === 1) kb.peak = [];
+    kb.peak = [...new Set([...kb.peak, m])];
+    if (ac) liveOn(m, vel); else audioReady().then(ok => ok && kb.held.has(m) && liveOn(m, vel));
+    for (const h of kb.hooks) if (h("on", m, vel)) break;
+    keysShow();
+  }
+  function keyUp(m, quiet) {
+    if (!kb.held.has(m)) return;
+    kb.held.delete(m);
+    if (kb.pedal) kb.sustained.add(m); else liveOff(m);
+    if (!quiet) for (const h of kb.hooks) if (h("off", m)) break;
+    if (!kb.held.size && !quiet) { const chord = kb.peak.slice(); for (const h of kb.hooks) if (h("chord", chord)) break; }
+    keysShow();
+  }
+  function pedal(down) {
+    kb.pedal = down;
+    if (!down) { kb.sustained.forEach(m => { if (!kb.held.has(m)) liveOff(m); }); kb.sustained.clear(); }
+  }
+  // on-screen keys can play along too (for phones, where there's no MIDI)
+  function tapKey(m) { keyDown(m, 90); setTimeout(() => keyUp(m), 380); }
+
+  // ---------- the live voice: sounds while you hold a key ----------
+  const liveNotes = new Map();
+  let liveBus = null;
+  function liveOut() {
+    if (!liveBus || liveBus.context !== ac) { liveBus = ac.createGain(); liveBus.gain.value = 0.9; }
+    try { liveBus.disconnect(); } catch {}
+    liveBus.connect(master);
+    return liveBus;
+  }
+  function liveOn(m, vel) {
+    if (!ac) return;
+    liveOff(m, true);
+    const t = ac.currentTime, f = 440 * Math.pow(2, (m - 69) / 12), amp = 0.12 + (vel / 127) * 0.22, kind = kb.forceVoice || prefs.liveVoice || "piano";
+    const g = ac.createGain(), lp = ac.createBiquadFilter(), oscs = [];
+    lp.type = "lowpass"; g.gain.setValueAtTime(0.0001, t);
+    lp.connect(g); g.connect(liveOut());
+    let rel = 0.35;
+    const osc = (type, mult, det, lvl) => { const o = ac.createOscillator(), og = ac.createGain(); o.type = type; o.frequency.value = f * mult; o.detune.value = det || 0; og.gain.value = lvl; o.connect(og); og.connect(lp); if (wobble) wobble.connect(o.detune); o.start(t); oscs.push(o); };
+    if (kind === "piano") {
+      const V = VOICES[VOICE] || VOICES.tape;
+      V.oscs.forEach(([type, mult, det, lvl]) => osc(type, mult, det, lvl));
+      lp.frequency.setValueAtTime(Math.min(f * V.lp[0], 12000), t); lp.frequency.exponentialRampToValueAtTime(Math.min(Math.max(f * V.lp[1] * 1.6, 400), 12000), t + 1.4);
+      const pk = amp * (V.gain || 1);
+      g.gain.exponentialRampToValueAtTime(pk, t + V.a); g.gain.exponentialRampToValueAtTime(Math.max(pk * V.s, 0.0003), t + V.a + V.d);
+      g.gain.setTargetAtTime(Math.max(pk * V.s * 0.35, 0.0002), t + V.a + V.d, 1.6);
+      rel = 0.5;
+    } else if (kind === "lead") {
+      const L0 = LEADS[prefs.buddy] || LEADS.dusty;
+      L0.waves.forEach(([type, mult, lvl]) => osc(type, mult, 0, lvl));
+      lp.frequency.value = L0.lp; const pk = amp * 1.1;
+      g.gain.exponentialRampToValueAtTime(pk, t + Math.max(0.006, L0.swell || 0.01));
+      if (L0.pluck) g.gain.setTargetAtTime(0.0002, t + 0.02, L0.pluck / 2.4);
+      rel = 0.25;
+    } else if (kind === "synth") {
+      osc("sawtooth", 1, -6, 0.45); osc("sawtooth", 1, 6, 0.45); osc("square", 0.5, 0, 0.18);
+      lp.frequency.setValueAtTime(5200, t); lp.frequency.exponentialRampToValueAtTime(1800, t + 0.5); lp.Q.value = 3;
+      g.gain.exponentialRampToValueAtTime(amp * 0.7, t + 0.01); g.gain.setTargetAtTime(amp * 0.4, t + 0.05, 0.3);
+      rel = 0.3;
+    } else {
+      osc("sine", 0.5, 0, 1); osc("triangle", 0.5, 0, 0.35);
+      lp.frequency.value = 900;
+      g.gain.exponentialRampToValueAtTime(amp * 1.3, t + 0.01); g.gain.setTargetAtTime(amp * 0.8, t + 0.05, 0.6);
+      rel = 0.2;
+    }
+    liveNotes.set(m, { g, oscs, rel });
+  }
+  function liveOff(m, now) {
+    const n = liveNotes.get(m);
+    if (!n || !ac) return;
+    liveNotes.delete(m);
+    const t = ac.currentTime, r = now ? 0.02 : n.rel;
+    n.g.gain.cancelScheduledValues(t); n.g.gain.setValueAtTime(Math.max(n.g.gain.value, 0.0002), t); n.g.gain.setTargetAtTime(0.0001, t, r / 3);
+    n.oscs.forEach(o => { try { o.stop(t + r + 0.1); } catch {} });
+  }
+
+  // ---------- what you're playing: on the keys, and named ----------
+  function heldName(notes = [...kb.held.keys()]) {
+    if (notes.length < 2) return notes.length ? pretty(NAMES_IN(K)[mod(notes[0])]) : "";
+    const top = identify(notes)[0];
+    if (!top) return "";
+    return pretty(NAMES_IN(K)[top.root] + top.q + (top.name.includes("/") ? "/" + NAMES_IN(K)[mod(Math.min(...notes))] : ""));
+  }
+  // the chord token to add to a song (root position: Pixie picks the voicing)
+  function heldTok(notes) {
+    const top = identify(notes)[0];
+    return top ? NAMES_IN(K)[top.root] + top.q : null;
+  }
+  function keysShow() {
+    const held = new Set(kb.held.keys());
+    document.querySelectorAll(".kbd rect[data-k]").forEach(r => r.classList.toggle("pressed", held.has(+r.dataset.k)));
+    const chip = $("heldChip");
+    if (!chip) return;
+    const nm = heldName();
+    // (a chord you just let go of stays up for a moment, so you can add it)
+    if (!nm) { if (!(chip._keep > Date.now())) chip.hidden = true; return; }
+    chip.hidden = false; chip._keep = 0;
+    const writing = prefs.view === "write" || arranging;
+    const tok = kb.held.size >= 2 ? heldTok([...kb.held.keys()]) : null;
+    chip.innerHTML = `<b>${esc(nm)}</b>${tok && writing ? `<button type="button" data-held="add">+ add</button>${current[sel] ? `<button type="button" data-held="swap">swap in</button>` : ""}` : ""}`;
+    chip.dataset.tok = tok || "";
+  }
+  // writing: chords you play can go straight into the part
+  let lastHeldTok = null;
+  onKeys((type, x) => {
+    if (type !== "chord" || x.length < 2) return false;
+    const tok = heldTok(x);
+    if (!tok) return false;
+    lastHeldTok = tok;
+    // arranging: every chord you play goes on the end
+    if (arranging && !sheetMode) { addChord(tok); toast(`added ${pretty(tok)}`); return true; }
+    const chip = $("heldChip");
+    if (chip && (prefs.view === "write") && !sheetMode) {
+      chip.hidden = false; chip.dataset.tok = tok;
+      chip.innerHTML = `<b>${esc(pretty(tok))}</b><button type="button" data-held="add">+ add</button>${current[sel] ? `<button type="button" data-held="swap">swap in</button>` : ""}`;
+      chip._keep = Date.now() + 5000;
+      clearTimeout(chip._t); chip._t = setTimeout(() => { if (!kb.held.size) chip.hidden = true; }, 5000);
+    }
+    return false;
+  });
+  // the finder listens too: play keys and it names the chord
+  onKeys((type, m) => {
+    if (!finding || type === "chord") return false;
+    if (type === "on") { picked.add(m); renderFinder(); }
+    return false;
+  });
+  function heldAct(a) {
+    const chip = $("heldChip"), tok = chip && chip.dataset.tok;
+    if (!tok) return;
+    if (a === "add") { addChord(tok); toast(`added ${pretty(tok)}`); }
+    else if (a === "swap" && current[sel]) {
+      const c = current[sel], raw = tok + (c.raw.includes(":") ? ":" + c.beats : ""), j = sel;
+      setProg(replaceToken(sec().prog, c.i, raw), true); sel = j; renderStage(); playOne(sel);
+      toast(`swapped in ${pretty(tok)}`);
+    }
+    chip.hidden = true;
+  }
+  // the settings row for your keyboard
+  function keysKnobHTML() {
+    const st = { on: `${esc(kb.name)} · connected`, waiting: "listening for a keyboard... plug it in", blocked: "blocked here. Open Pixie in its own Chrome tab", none: "this browser can't hear MIDI (try Chrome)", off: "not connected" }[kb.status] || "not connected";
+    return `<div class="knob"><span class="lbl">your keyboard</span>
+      <div class="row"><button class="btn${kb.status === "on" ? "" : " surprise"}" type="button" data-keys="midi">${kb.status === "on" ? "✓ " + esc(kb.name.split(",")[0]) : "🎹 connect a MIDI keyboard"}</button>
+        <button class="btn" type="button" data-keys="laptop" aria-pressed="${!!prefs.laptopKeys}">laptop keys ${prefs.laptopKeys ? "on" : "off"}</button></div>
+      <p class="note">${esc(st)}. ${prefs.laptopKeys ? "Laptop keys: A to ' is a piano row (W, E, T, Y, U are the black keys); Z and X move the octave." : "No keyboard? The laptop's letter keys can play too."}</p>
+      <span class="lbl">it sounds like</span>
+      <div class="presets">${LIVE_VOICES.map(([id, n]) => `<button class="choice" type="button" data-livevoice="${id}" aria-pressed="${(prefs.liveVoice || "piano") === id}">${id === "lead" ? esc((LEADS[prefs.buddy] || LEADS.dusty).name) : n}</button>`).join("")}</div></div>`;
+  }
+  function keysClick(e) {
+    const k = e.target.closest("[data-keys]");
+    if (k) {
+      if (k.dataset.keys === "midi") connectMidi(false).then(() => renderSheet());
+      else { prefs.laptopKeys = !prefs.laptopKeys; savePrefs(); renderSheet(); toast(prefs.laptopKeys ? "laptop keys on: A S D F G H J K is C D E F G A B C" : "laptop keys off"); }
+      return true;
+    }
+    const v = e.target.closest("[data-livevoice]");
+    if (v) { prefs.liveVoice = v.dataset.livevoice; savePrefs(); renderSheet(); audioReady().then(ok => { if (ok) { liveOn(60, 90); setTimeout(() => liveOff(60), 450); } }); return true; }
+    return false;
+  }
+
+  // =========================================================
   // Pixie Street, the whole of it: every house is a key, and the
   // houses sit in a ring so that next-door neighbors share all but
   // one note (the circle of fifths). Clockwise adds a sharp,
@@ -7607,16 +7895,17 @@
     { id: "room", title: "Which room?", note: "Your friend plays home, then one other room. Which one was it? Listen for how it pulls." },
     { id: "build", title: "Build a chord", note: "Tap the keys that make the chord. Every chord is just three notes, stacked." },
     { id: "hop", title: "Stay or hop", note: "Pick where to go next and watch the paper friends. The ones that stay are notes both chords share." },
-    { id: "door", title: "Next door", note: "Find the house next to yours on Pixie Street. Neighbors sound close; strangers sound far." }
+    { id: "door", title: "Next door", note: "Find the house next to yours on Pixie Street. Neighbors sound close; strangers sound far." },
+    { id: "along", title: "Play along", note: "Play each chord of your part on your keyboard. Pixie waits for you, or keeps time if you'd like a challenge." }
   ];
   const cheer = () => ({ dusty: "Yee-haw. You got it.", ghost: "Correct. Uploading a high five.", wren: "Oh, lovely ears.", oona: "Aye. That's it.", lulu: "YES! You're so good at this!" }[prefs.buddy] || "Yes!");
   const soft = () => ({ dusty: "Close. Give it another listen.", ghost: "Not that one. Replaying.", wren: "Mm, not quite. Listen again?", oona: "No. But it's a good guess.", lulu: "Ooh, not quite! Again!" }[prefs.buddy] || "Not quite.");
   function playHTML() {
-    if (playAt == null) return `<div class="play-list">${GAMES.map((g, i) => `<button class="story-card play-card" type="button" data-game="${i}"><span class="pc-ico" aria-hidden="true">${["♪", "✋", "✿", "⌂"][i]}</span><span class="sc-text"><b>${esc(g.title)}</b><span>${esc(g.note)}</span></span></button>`).join("")}</div>
-      <p class="note">These use the key your song is in, ${esc(pretty(keyName(K)))}. Change the key and they change with it.</p>`;
+    if (playAt == null) return `<div class="play-list">${GAMES.map((g, i) => `<button class="story-card play-card" type="button" data-game="${i}"><span class="pc-ico" aria-hidden="true">${["♪", "✋", "✿", "⌂", "🎹"][i]}</span><span class="sc-text"><b>${esc(g.title)}</b><span>${esc(g.note)}</span></span></button>`).join("")}</div>
+      <p class="note">${keysOn() ? `Your keyboard is ready: you can play the answers.` : `Got a MIDI keyboard? Connect it in settings and you can play the answers.`} These use the key your song is in, ${esc(pretty(keyName(K)))}. Change the key and they change with it.</p>`;
     const g = GAMES[playAt];
     const back = `<div class="row"><button class="btn" type="button" data-game="list">← the playground</button></div>`;
-    return `<div class="game"><p class="note">${esc(g.note)}</p>${({ room: roomGame, build: buildGame, hop: hopGame, door: doorGame })[g.id]()}${back}</div>`;
+    return `<div class="game"><p class="note">${esc(g.note)}</p>${({ room: roomGame, build: buildGame, hop: hopGame, door: doorGame, along: alongGame })[g.id]()}${back}</div>`;
   }
   // ---- which room: I, IV, V or vi (i, iv, V, VI in minor)
   const earDegs = () => (K.minor ? [0, 3, 4, 5] : [0, 3, 4, 5]);
@@ -7679,6 +7968,7 @@
       <div class="row"><button class="btn" type="button" data-gameact="next">another</button><button class="btn" type="button" data-open="street">see the street</button></div>`;
   }
   function playClick(e) {
+    if (alongGameClick(e)) return true;
     const gm = e.target.closest("[data-game]");
     if (gm) { playAt = gm.dataset.game === "list" ? null : +gm.dataset.game; game = null; renderSheet(); return true; }
     const act = e.target.closest("[data-gameact]"), rooms = roomsOf(K);
@@ -7736,6 +8026,263 @@
     strum({ lh: notes.length > 1 ? [notes[0] - 12] : [], rh: notes }, ac.currentTime + 0.02, 1.3);
   }
 
+  // ---- play along: your part's chords, one at a time, on your keyboard
+  let alongTimer = 0;
+  function alongChords() {
+    const list = current.length ? current.map(c => ({ tok: c.tok.replace(/:\d+$/, ""), beats: c.beats, ch: c.ch })) : roomsOf(K).filter((r, d) => [0, 4, 5, 3].includes(d)).map(r => ({ tok: r.name, beats: Mtr.n, ch: r.ch }));
+    return list.map(x => ({ ...x, pcs: [...new Set(x.ch.ivs.map(iv => mod(x.ch.rootPc + iv)))].slice(0, 4) }));
+  }
+  function alongGame() {
+    if (!game || game.id !== "along") game = { id: "along", j: 0, ok: new Set(), time: false, tapped: new Set(), said: "", going: false };
+    const list = alongChords(), c = list[game.j] || list[0], done = game.j >= list.length;
+    const have = new Set([...kb.held.keys(), ...game.tapped].map(m => mod(m)));
+    const lo = 48, lit = []; for (let m = lo; m < lo + 25; m++) if (c && c.pcs.includes(mod(m)) && m >= 55 && m <= 72) lit.push(m);
+    return `<div class="along-row">${list.map((x, k) => `<span class="along-chip${k === game.j ? " now" : ""}${game.ok.has(k) ? " ok" : ""}">${esc(pretty(x.tok))}</span>`).join("")}</div>
+      ${done ? `<p class="game-say">${esc(cheer())} That's the whole part.</p>` : `<div class="build-target"><b>${esc(pretty(c.tok))}</b><span>${c.pcs.map(p => esc(noteOf(K, p))).join(" · ")}</span></div>
+      <div class="kbd game-kbd along-kbd">${keyboard({ lh: [], rh: [] }, lo, lo + 24, { picked: new Set([...game.tapped]), interactive: true, nextV: { lh: [], rh: lit }, label: (m, on) => (c.pcs.includes(mod(m)) ? pretty(noteOf(K, mod(m))) : "") })}</div>
+      <p class="game-say">${esc(game.said || (keysOn() ? `Play ${pretty(c.tok)}: any shape, any octave.` : `Tap the three glowing notes, or connect a keyboard in settings.`))}</p>`}
+      <div class="row">${done ? `<button class="btn surprise" type="button" data-alongg="again">again</button>` : `<button class="btn" type="button" data-alongg="hear">▶ hear ${esc(pretty(c ? c.tok : ""))}</button><button class="btn" type="button" data-alongg="time" aria-pressed="${game.time}">${game.time ? "keeping time" : "wait for me"}</button>`}</div>`;
+  }
+  // did you play it? all of its notes, in any octave, any order
+  function alongCheck() {
+    if (!game || game.id !== "along") return;
+    const list = alongChords(), c = list[game.j];
+    if (!c) return;
+    const have = new Set([...kb.held.keys(), ...game.tapped].map(m => mod(m)));
+    if (!c.pcs.every(p => have.has(p))) return;
+    game.ok.add(game.j); game.tapped = new Set();
+    game.said = [cheer(), "Nice.", "That's it.", "Lovely."][game.j % 4];
+    if (!game.time) setTimeout(() => { if (game && game.id === "along") { game.j++; game.said = ""; renderSheet(); } }, 450);
+    renderSheet();
+  }
+  function alongTick() {
+    clearTimeout(alongTimer);
+    if (!game || game.id !== "along" || !game.time || sheetMode !== "play") return;
+    const list = alongChords(), c = list[game.j];
+    if (!c) return;
+    // keeping time: a soft click on each beat, then on to the next chord
+    audioReady().then(ok => { if (!ok) return; for (let k = 0; k < c.beats; k++) drumHit(k ? "hat" : "snap", ac.currentTime + k * countSec(Mtr, S().bpm), k ? 0.35 : 0.6); });
+    alongTimer = setTimeout(() => { if (!game || game.id !== "along") return; game.j++; game.tapped = new Set(); game.said = ""; renderSheet(); alongTick(); }, c.beats * countSec(Mtr, S().bpm) * 1000);
+  }
+  function alongGameClick(e) {
+    const a = e.target.closest("[data-alongg]");
+    const key = e.target.closest(".along-kbd [data-m]");
+    if (key && game && game.id === "along") { const m = +key.dataset.m; if (game.tapped.has(m)) game.tapped.delete(m); else { game.tapped.add(m); tapKey(m); } alongCheck(); renderSheet(); return true; }
+    if (!a || !game) return false;
+    const list = alongChords(), c = list[game.j];
+    if (a.dataset.alongg === "hear" && c) playToks([c.tok], 1.2);
+    if (a.dataset.alongg === "time") { game.time = !game.time; game.said = game.time ? "Keeping time. Play each chord while it's lit." : ""; renderSheet(); alongTick(); }
+    if (a.dataset.alongg === "again") { game = null; renderSheet(); }
+    return true;
+  }
+  // the playground listens to your keyboard
+  onKeys((type, m) => {
+    if (sheetMode !== "play" || !game) return false;
+    const rooms = roomsOf(K);
+    if (game.id === "along" && type === "on") { alongCheck(); return true; }
+    if (game.id === "build" && type === "on") { game.picked = new Set(kb.held.keys()); renderSheet(); return true; }
+    if (game.id === "room" && type === "chord" && m.length >= 2) {
+      const top = identify(m)[0];
+      if (!top) return true;
+      const d = rooms.findIndex(r => r.ch.rootPc === top.root && baseQuality(r.ch.ivs) === baseQuality(Q[top.q] || [0, 4, 7]));
+      if (d < 0 || !earDegs().includes(d)) { game.said = `That's ${pretty(NAMES_IN(K)[top.root] + top.q)}. The mystery room is one of the four below.`; renderSheet(); return true; }
+      game.pick = d;
+      game.said = d === game.ans ? `${cheer()} You played it: ${rooms[d].num}, ${pretty(rooms[d].name)}.` : `${soft()} You played ${rooms[d].num}. Listen again?`;
+      renderSheet(); return true;
+    }
+    return false;
+  });
+
+  // =========================================================
+  // Takes from your keyboard: a riff you play over the loop becomes
+  // the part's lead line, and notes you play one by one become the
+  // sung tune (same words, same rhythm, your notes).
+  // =========================================================
+  let riffRec = null, tuneRec = null;
+  const inRange = (m, lo, hi, near) => {
+    // keep the note's name, move it into range, as close to the last one as it goes
+    if (m >= lo && m <= hi) return m; // already fits: keep the octave you played
+    const opts = []; for (let x = lo; x <= hi; x++) if (mod(x) === mod(m)) opts.push(x);
+    if (!opts.length) return Math.max(lo, Math.min(hi, m));
+    return opts.reduce((b, x) => (Math.abs(x - (near ?? m)) < Math.abs(b - (near ?? m)) ? x : b), opts[0]);
+  };
+  // a keyboard to tap when there's no real one (phones)
+  const tapKbHTML = (lo, hi, lit = []) => `<div class="kbd take-kbd">${keyboard({ lh: [], rh: lit }, lo, hi, { interactive: true, label: (m, on) => (on ? pretty(NAMES_IN(K)[mod(m)]) : mod(m) === 0 ? "C" : "") })}</div>`;
+
+  // ---------- your own riff ----------
+  function riffRecStart() {
+    if (!current.length) return;
+    riffRec = { notes: [], on: new Map(), pass: null, done: false };
+    kb.forceVoice = "lead";
+    if (playing) stop();
+    sel = 0;
+    playAll().then(() => { riffRec && (riffRec.pass = passNo); riffWatch(); });
+    renderSheet();
+  }
+  function riffWatch() {
+    if (!riffRec || riffRec.done) return;
+    // one time round the part, then it's yours
+    if (!playing || (riffRec.pass != null && passNo > riffRec.pass)) { riffRecEnd(); return; }
+    requestAnimationFrame(riffWatch);
+  }
+  function riffRecEnd(cancel) {
+    const r = riffRec;
+    if (!r || r.done) return;
+    r.done = true; kb.forceVoice = null;
+    const T = total, now = beatNow() ?? T;
+    r.on.forEach((st, m) => r.notes.push({ midi: m, start: st, dur: Math.max(0.25, now - st) }));
+    riffRec = null;
+    if (playing) stop();
+    if (cancel || !r.notes.length) { toast(cancel ? "no riff kept" : "I didn't hear any notes. Try again?"); renderSheet(); return; }
+    const x = sec(), tidy = x.riffTidy !== false, snap = v => (tidy ? Math.round(v * 4) / 4 : v);
+    const L0 = LEADS[prefs.buddy] || LEADS.dusty;
+    x.leadTake = r.notes.filter(n => n.start < T).map(n => ({ midi: inRange(n.midi, L0.low - 5, L0.low + 22, n.midi), start: Math.max(0, snap(n.start)), dur: Math.max(0.25, snap(n.dur)) })).sort((a, b) => a.start - b.start);
+    x.riff = { ...(x.riff || {}), kind: "mine" };
+    if (!L("lead")) { prefs.layers.lead = true; savePrefs(); applyView(); }
+    saveSongs(); renderSheet(); renderStage();
+    toast(`kept your riff: ${x.leadTake.length} notes. The ${(LEADS[prefs.buddy] || LEADS.dusty).name} plays it now`);
+    previewPart(64, { sing: true, lead: true });
+  }
+  onKeys((type, m) => {
+    if (!riffRec || riffRec.done || type === "chord") return false;
+    const b = beatNow();
+    if (b == null) return true;
+    if (type === "on") riffRec.on.set(m, b);
+    else if (riffRec.on.has(m)) { const st = riffRec.on.get(m); riffRec.on.delete(m); riffRec.notes.push({ midi: m, start: st, dur: Math.max(0.25, (b >= st ? b : total) - st) }); }
+    return true;
+  });
+  // the riff engine asks: which of your notes fall in this chord?
+  function takeNotes(section, c) {
+    const T = section.leadTake || [];
+    return T.filter(n => n.start >= c.at - 1e-6 && n.start < c.at + c.beats - 1e-6).map(n => ({ midi: n.midi, start: n.start - c.at, dur: n.dur }));
+  }
+
+  // ---------- your own tune ----------
+  function tuneSyllables() {
+    const chain = melodyChain(secIdx), out = [];
+    current.forEach(c => { const e = chain.get(c.i); if (!e) return; e.notes.forEach((n, k) => { if (!n.tie) out.push({ i: c.i, k, text: (e.sy[n.s] || {}).show || "·", midi: n.midi }); }); });
+    return out;
+  }
+  function tuneRecStart() {
+    const syl = tuneSyllables();
+    if (!syl.length) { toast("write some words first, then play their notes"); return; }
+    tuneRec = { syl, k: 0, take: {}, last: null };
+    kb.forceVoice = "piano";
+    renderSheet();
+  }
+  function tuneRecEnd(keep) {
+    const r = tuneRec;
+    if (!r) return;
+    tuneRec = null; kb.forceVoice = null;
+    if (keep && Object.keys(r.take).length) {
+      const x = sec();
+      x.tuneTake = { ...(x.tuneTake || {}) };
+      Object.entries(r.take).forEach(([i, row]) => { x.tuneTake[i] = { ...(x.tuneTake[i] || {}), ...row }; });
+      saveSongs(); renderStage();
+      toast(`${B().name} sings your notes now`);
+      previewPart(64, { sing: true });
+    }
+    renderSheet();
+  }
+  onKeys((type, m) => {
+    if (!tuneRec || type !== "on") return false;
+    const r = tuneRec, s = r.syl[r.k];
+    if (!s) return true;
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
+    const midi = inRange(m, lo - 2, hi + 2, r.last ?? s.midi);
+    (r.take[s.i] = r.take[s.i] || {})[s.k] = midi;
+    r.last = midi; r.k++;
+    if (r.k >= r.syl.length) { tuneRecEnd(true); return true; }
+    renderSheet();
+    return true;
+  });
+  // the melody engines ask: did you play notes for this line?
+  function applyPlayed(section, g, notes) {
+    const take = section.tuneTake;
+    if (!take) return;
+    g.forEach((c, ci) => {
+      const row = take[c.i];
+      if (!row) return;
+      let k = 0;
+      notes.forEach(n => { if (n.ci !== ci) return; if (!n.tie && row[k] != null) n.midi = row[k]; if (!n.tie) k++; });
+    });
+  }
+
+  // ---------- the panels in the tune & riff sheet ----------
+  function riffTakeHTML() {
+    const x = sec(), has = (x.leadTake || []).length, lead = (LEADS[prefs.buddy] || LEADS.dusty).name;
+    if (riffRec) return `<div class="take-box rec"><b>● recording</b><p class="note">Play over the ${esc(x.name.toLowerCase())}. It stops by itself after one time round.</p>${tapKbHTML(Math.max(48, (LEADS[prefs.buddy] || LEADS.dusty).low - 5), Math.max(48, (LEADS[prefs.buddy] || LEADS.dusty).low - 5) + 24)}<div class="row"><button class="btn" type="button" data-take="riffstop">stop</button></div></div>`;
+    return `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-take="riff">● play your own riff</button>${has ? `<button class="btn" type="button" data-take="riffclear">clear it</button>` : ""}</div>
+      <p class="note">${has ? `Your riff: ${has} notes, played on the ${esc(lead)}. ` : ""}The part loops once while you play; your notes become the lead line. ${keysOn() ? "" : "Connect a keyboard in settings, or tap the keys that show up."}</p>
+      <label class="tog"><input type="checkbox" data-take="tidy"${x.riffTidy === false ? "" : " checked"}> tidy the timing (snap to sixteenths)</label></div>`;
+  }
+  function tuneTakeHTML() {
+    const x = sec(), has = x.tuneTake && Object.keys(x.tuneTake).length;
+    if (tuneRec) {
+      const s = tuneRec.syl[tuneRec.k], [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
+      return `<div class="take-box rec"><b>syllable ${tuneRec.k + 1} of ${tuneRec.syl.length}: “${esc(s ? s.text : "")}”</b>
+        <div class="take-syls">${tuneRec.syl.map((y, k) => `<span class="${k < tuneRec.k ? "done" : k === tuneRec.k ? "now" : ""}">${esc(y.text)}</span>`).join("")}</div>
+        ${tapKbHTML(lo - 2, Math.max(lo + 14, hi + 2))}
+        <p class="note">Play one note for each syllable. The rhythm stays; the notes are yours.</p>
+        <div class="row"><button class="btn surprise" type="button" data-take="tunekeep">keep what I played</button><button class="btn" type="button" data-take="tunestop">never mind</button></div></div>`;
+    }
+    return `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-take="tune">🎹 play the tune yourself</button>${has ? `<button class="btn" type="button" data-take="tuneclear">back to ${esc(B().name)}'s notes</button>` : ""}</div>
+      <p class="note">Play a note for each sung syllable, one at a time. Same words and rhythm, your melody.</p></div>`;
+  }
+  function takeClick(e) {
+    const key = e.target.closest(".take-kbd [data-m]");
+    if (key) { tapKey(+key.dataset.m); return true; }
+    const t = e.target.closest("[data-take]");
+    if (!t) return false;
+    if (t.tagName === "INPUT") { if (t.dataset.take === "tidy") { sec().riffTidy = t.checked; saveSongs(); } return true; }
+    const a = t.dataset.take, x = sec();
+    if (a === "riff") riffRecStart();
+    else if (a === "riffstop") riffRecEnd();
+    else if (a === "riffclear") { delete x.leadTake; if (x.riff && x.riff.kind === "mine") delete x.riff.kind; saveSongs(); renderSheet(); }
+    else if (a === "tune") tuneRecStart();
+    else if (a === "tunekeep") tuneRecEnd(true);
+    else if (a === "tunestop") tuneRecEnd(false);
+    else if (a === "tuneclear") { delete x.tuneTake; saveSongs(); renderSheet(); renderStage(); previewPart(); }
+    return true;
+  }
+
+  // =========================================================
+  // The melody lens: while the tune and the riff play, their notes
+  // flash on the keys. A filled dot is a note from the chord (steady),
+  // a ring is a color note from the key (it moves the tune along),
+  // a diamond is from outside the key (spice). The number is the
+  // note's place in the key: 1 is home.
+  // =========================================================
+  function lensKind(midi, c) {
+    const pc = mod(midi), chord = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
+    if (chord.has(pc)) return "ct";
+    return scaleOf(K).steps.map(iv => mod(K.tonic + iv)).includes(pc) ? "sc" : "out";
+  }
+  const lensDeg = midi => { const d = scaleOf(K).steps.indexOf(mod(midi - K.tonic)); return d >= 0 ? String(d + 1) : ""; };
+  function lensFlash(midi, c, who, ms) {
+    document.querySelectorAll(".kbd[data-lens] svg").forEach(svg => {
+      const keys = [...svg.querySelectorAll("rect[data-k]")];
+      if (!keys.length) return;
+      const lo = Math.min(...keys.map(r => +r.dataset.k)), hi = Math.max(...keys.map(r => +r.dataset.k));
+      let m = midi; while (m < lo) m += 12; while (m > hi) m -= 12;
+      const r = svg.querySelector(`rect[data-k="${m}"]`);
+      if (!r) return;
+      const x = +r.getAttribute("x") + +r.getAttribute("width") / 2, black = r.classList.contains("kb"), y = black ? 6 : +r.getAttribute("height") * 0.56;
+      const kind = lensKind(midi, c), ns = "http://www.w3.org/2000/svg", g = document.createElementNS(ns, "g");
+      g.setAttribute("class", `lens-dot ${kind} ${who}`);
+      const shape = kind === "out" ? `<path d="M${x} ${y - 3.2}l3.2 3.2-3.2 3.2-3.2-3.2z"/>` : `<circle cx="${x}" cy="${y}" r="3"/>`;
+      g.innerHTML = shape + `<text x="${x}" y="${y - 4.6}">${lensDeg(midi)}</text>`;
+      svg.appendChild(g);
+      setTimeout(() => g.remove(), Math.max(160, ms));
+    });
+  }
+  // schedule flashes for notes (in beats from t0), sung or played by the lead
+  function lensNotes(notes, t0, cl, c, who) {
+    if (!notes || !notes.length || !document.querySelector(".kbd[data-lens]")) return;
+    notes.forEach(n => { if (n.tie) return; later(() => lensFlash(n.midi, c, who, n.dur * cl * 1000 * 0.9), (t0 + n.start * cl - ac.currentTime) * 1000); });
+  }
+  const lensLegend = () => `<p class="lens-legend"><span class="lg ct">●</span> chord note <span class="lg sc">○</span> color note <span class="lg out">◆</span> outside the key · <span class="lg sing">teal</span> sung, <span class="lg lead">purple</span> the lead · numbers: place in the key</p>`;
+
   // =========================================================
   // App state
   // =========================================================
@@ -7753,10 +8300,10 @@
   const readJSON = (k, d) => { try { const v = store.get(k); return v ? JSON.parse(v) : d; } catch { return d; } };
 
   // ---------- what's on screen and what you hear ----------
-  const LAYERS = ["scene", "talk", "lyrics", "ribbon", "palette", "entry", "arrows", "friends", "names", "fx", "drums", "sing", "lead", "crackle"];
+  const LAYERS = ["scene", "talk", "lyrics", "ribbon", "palette", "entry", "arrows", "friends", "lens", "names", "fx", "drums", "sing", "lead", "crackle"];
   const LAYER_NAMES = {
     scene: "the scene", talk: "talking", lyrics: "words + tune", ribbon: "chord lengths", palette: "chord buttons", entry: "type chords",
-    arrows: "arrows to the next chord", friends: "paper friends on the keys", names: "every key's name", fx: "sparkles", drums: "drums", sing: "singing", lead: "their lead", crackle: "vinyl crackle"
+    arrows: "arrows to the next chord", friends: "paper friends on the keys", lens: "the tune and riff on the keys", names: "every key's name", fx: "sparkles", drums: "drums", sing: "singing", lead: "their lead", crackle: "vinyl crackle"
   };
   const HEAR = ["drums", "sing", "lead", "crackle"];
   // five modes: each decides what the one screen shows
@@ -8070,6 +8617,7 @@
       leanIn(notes, sy, g, who, seed);
       // your own touches: a syllable moved up or down the scale, held longer or cut short
       applyNudges(section, g, segs, notes, d.key, who);
+      applyPlayed(section, g, notes);
       const line = { sy, notes, chords: g };
       g.forEach((c, ci) => {
         const seg = segs[ci];
@@ -8177,6 +8725,7 @@
     if (on) toast("drag a chord to move it · − and + change how long it lasts");
   }
   let lastFriends = null; // the notes the paper friends stood on last time
+  if (prefs.midi) setTimeout(() => connectMidi(true), 400);
   function renderStrip() {
     const byIndex = new Map(current.map(c => [c.i, c]));
     const g = glyph(Mtr);
@@ -8326,8 +8875,9 @@
         <button class="key-pill" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it.">${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
+      <div class="held-chip" id="heldChip" hidden></div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it">${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: look ? nextC.v : null, arrows, quiet: true, band: L("arrows"), friends })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it"${L("lens") ? " data-lens" : ""}>${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: look ? nextC.v : null, arrows, quiet: !L("names"), band: L("arrows"), friends })}</div>
       <div class="shape-row">
         <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${look ? `<br>${keep.size ? `${keep.size} stay for ${esc(pretty(nextC.tok))}` : `all move for ${esc(pretty(nextC.tok))}`}` : ""}</span></div>
         <div class="nudges">
@@ -8335,6 +8885,7 @@
           <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape (${c.opt + 1} of ${c.len})" title="${c.opt + 1} of ${c.len}">›</button>
         </div>
       </div>`;
+    keysShow();
     if (!finding) {
       say(tip);
       sayDemo = prefs.view !== "learn" ? null : tipOverride ? (tipOverride === noticeText ? noticeDemo : null) : (tipIdx % tips.length === 0 ? whyToks(c) : null);
@@ -8632,14 +9183,14 @@
   function tick() {
     if (!playing) return;
     // writing along: the part goes round and round
-    const along = sheetMode === "along", whole = prefs.wholeSong && !along;
+    const along = sheetMode === "along" || !!riffRec, whole = prefs.wholeSong && !along, keepGoing = along || !!recorder;
     let d = sectionData(playSec), guard = 0;
     while (step >= d.list.length) {
       if (whole) {
         playPos++;
-        if (playPos >= song.order.length) { if (!loopOn) return finish(); playPos = 0; }
+        if (playPos >= song.order.length) { if (!loopOn && !keepGoing) return finish(); playPos = 0; }
         playSec = Math.max(0, idxOf(song.order[playPos]));
-      } else if ((!loopOn && !along) || !d.list.length) return finish();
+      } else if ((!loopOn && !keepGoing) || !d.list.length) return finish();
       step = 0;
       passNo++;
       if (passNo === 1 && prefs.view === "learn") later(noticeSong, (nextT - ac.currentTime) * 1000 + 200);
@@ -8735,6 +9286,7 @@
       const ooh = [{ show: "ooh", ph: { on: [], nuc: ["uw"], co: [] }, stress: false }];
       tones.forEach((m, k) => singPhrase({ sy: ooh, notes: [{ midi: m, start: 0.05, dur: Math.max(0.5, c.beats - 0.3), s: 0 }] }, t0, cl, who, moodOf(c), { pan: k ? 0.8 : -0.8, gain: 0.26, quiet: true, cents: k ? 4 : -4 }));
     }
+    lensNotes(mel.notes, t0, cl, c, "sing");
     mel.notes.forEach(nt => {
       const t = t0 + nt.start * cl, dur = Math.max(0.12, nt.dur * cl);
       later(() => {
@@ -8802,6 +9354,10 @@
   }
   // ---------- the tape recorder: two times round the part (or the whole song once) ----------
   let recorder = null, recTimer = null, tapeBlob = null, tapeURL = null, tapeExt = "webm";
+  const TAPE_MAX = 600; // ten minutes at most
+  const TAPE_LENS = [["2", "2× the part"], ["4", "4×"], ["8", "8×"], ["song", "the whole song"], ["free", "until I stop"]];
+  const tapeLenHTML = () => `<div class="knob"><span class="lbl">tape length</span><div class="presets">${TAPE_LENS.map(([v, n]) => `<button class="choice" type="button" data-tapelen="${v}" aria-pressed="${(prefs.tapeLen || "2") === v}">${n}</button>`).join("")}</div>
+    <p class="note">${(prefs.tapeLen || "2") === "free" ? "The band keeps going round until you press ■. Up to ten minutes." : "Play along on your keyboard while it records: the tape hears you and the band together."}</p></div>`;
   async function record() {
     if (recorder) { recorder.stop(); return; }
     if (!window.MediaRecorder) { toast("this browser can't record, sorry"); return; }
@@ -8830,17 +9386,21 @@
       keepTake(tapeBlob, tapeExt).then(() => { if (sheetMode === "tape") { renderSheet(); fillTakes(); } });
       openSheet("tape");
     };
-    // how long: count the chords
-    const cs = countSec(Mtr, S().bpm);
+    // how long: the part a few times round, the whole song, or until you stop it
+    const cs = countSec(Mtr, S().bpm), len = prefs.tapeLen || "2";
     let secs = 0;
-    if (prefs.wholeSong) song.order.forEach(id => { const d = sectionData(idxOf(id)); secs += d.list.reduce((a, c) => a + c.beats, 0) * countSec(d.M, S().bpm); });
-    else secs = total * cs * 2;
+    const songSecs = () => song.order.reduce((a, id) => { const d = sectionData(idxOf(id)); return a + d.list.reduce((x, c) => x + c.beats, 0) * countSec(d.M, S().bpm); }, 0);
+    if (len === "free") secs = TAPE_MAX;
+    else if (prefs.wholeSong) secs = songSecs() * (len === "song" ? 1 : Math.max(1, +len / 2));
+    else if (len === "song") { prefs.wholeSong = true; savePrefs(); renderDeck(); secs = songSecs(); }
+    else secs = total * cs * +len;
+    secs = Math.min(TAPE_MAX, secs);
     sel = 0;
     if (prefs.wholeSong) { ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); }
     recorder.start();
     document.body.classList.add("recording");
     const t0 = Date.now();
-    recTimer = setInterval(() => { const s = Math.round((Date.now() - t0) / 1000); $("deckInfo").textContent = `recording · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 250);
+    recTimer = setInterval(() => { const s = Math.round((Date.now() - t0) / 1000); $("deckInfo").textContent = `recording · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}${len === "free" ? " · ■ to stop" : ""}`; }, 250);
     await playAll();
     later(() => { if (recorder) recorder.stop(); }, (secs + 1.8) * 1000);
   }
@@ -9448,6 +10008,7 @@
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${songMeter() === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
           <p class="note">${(() => { const own = song.sections.filter(x => x.ownMeter); return own.length ? `For the whole song, except ${own.map(x => `the ${esc(x.name.toLowerCase())} (${x.meter})`).join(" and ")}. ` : "For the whole song. "; })()}To give one part its own, tap it in the song map.</p></div>
         `)}
+        ${keysKnobHTML()}
         <div class="knob"><span class="lbl">more</span>
           <div class="toggles">
             <button class="link" type="button" data-open="key">the key: ${esc(pretty(keyName(K)))}</button>
@@ -9485,7 +10046,7 @@
       body.innerHTML = `
         <div class="view-presets modes">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.icon} ${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
         <p class="note">Each mode is a starting point. Change anything below and the mode remembers it.</p>
-        <div class="knob"><span class="lbl">on the keyboard</span><div class="presets">${["friends", "arrows", "names"].map(chip).join("")}</div>
+        <div class="knob"><span class="lbl">on the keyboard</span><div class="presets">${["friends", "arrows", "lens", "names"].map(chip).join("")}</div>
           <p class="note">${esc(B().name)}'s ${esc(FRIENDS[prefs.buddy].many)} sit on the notes you play and hop to the next chord. The ones that stay put are notes the two chords share.</p></div>
         ${fold("see", "more of what shows", `<div class="presets">${["scene", "talk", "lyrics", "palette", "ribbon", "fx", "entry"].map(chip).join("")}</div>`)}
         ${fold("hear", "what you hear", `<div class="presets">${HEAR.map(chip).join("")}</div>`)}`;
@@ -9587,7 +10148,7 @@
         <svg class="cass" viewBox="0 0 180 110" aria-hidden="true"><rect x="3" y="3" width="174" height="104" rx="10" fill="#2f2a3d"/><rect x="18" y="14" width="144" height="46" rx="4" fill="#f7f1e6"/><text x="90" y="34" text-anchor="middle" font-family="Gaegu, cursive" font-weight="700" font-size="17" fill="#2f2a3d">${esc((song.title || "untitled").slice(0, 22))}</text><text x="90" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" fill="#6f6782">${esc(B().name.toLowerCase())} · ${esc(pretty(keyName(K)))}</text><circle cx="56" cy="80" r="13" fill="#f7f1e6"/><circle cx="124" cy="80" r="13" fill="#f7f1e6"/><circle cx="56" cy="80" r="4" fill="#2f2a3d"/><circle cx="124" cy="80" r="4" fill="#2f2a3d"/><rect x="72" y="74" width="36" height="12" rx="3" fill="#4a4458"/></svg>
         ${tapeURL ? `<audio controls src="${tapeURL}"></audio>` : (song.takes || [])[0] ? `<audio controls data-takeaudio="${song.takes[0].id}"></audio>` : `<p class="note">No tape yet. Press record, or tap tape in the studio.</p>`}
         <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn" type="button" data-tape="again">record again</button></div>
-        <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Switch the button by play from “part” to “song” to tape everything.`}</p></div>${takesHTML()}`;
+        </div>${tapeLenHTML()}${takesHTML()}`;
       requestAnimationFrame(fillTakes);
     } else if (sheetMode === "house") {
       $("sheetTitle").textContent = `${keyLabel(houseKey())} · the house`;
@@ -9985,6 +10546,8 @@
   stageEl.addEventListener("click", e => {
     const sy = !editingLyric && e.target.closest("#lane .syl:not(.tie)");
     if (sy && current[sel]) { nudgeSel = { i: current[sel].i, s: +sy.dataset.s }; renderStage(); previewSing(current[sel]); return; }
+    const hb = e.target.closest("[data-held]");
+    if (hb) { heldAct(hb.dataset.held); return; }
     const el = e.target.closest("[data-act],[data-ladder]") || e.target.closest("#lane");
     if (!el) return;
     if (el.dataset.act === "sylnudge") { nudgeSyl(el.dataset.d); return; }
@@ -10118,6 +10681,7 @@
     if (sheetMode === "tune" && tuneSheetClick(e)) return;
     if (sheetMode === "lessons" && lessonsClick(e)) return;
     if (sheetMode === "along" && alongClick(e)) return;
+    if ((sheetMode === "knobs" || sheetMode === "rack") && keysClick(e)) return;
     if (sheetMode === "street" && streetClick(e)) return;
     if (sheetMode === "play" && playClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
@@ -10186,6 +10750,8 @@
       }
       return;
     }
+    const tl = e.target.closest("[data-tapelen]");
+    if (tl) { prefs.tapeLen = tl.dataset.tapelen; savePrefs(); renderSheet(); if (sheetMode === "tape") fillTakes(); return; }
     const tapeB = e.target.closest("[data-tape]");
     if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
     if (sheetMode === "tape" && await takesClick(e)) return;
