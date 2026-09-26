@@ -1264,7 +1264,7 @@
   .lesson p { margin: 0; line-height: 1.45; }
   .lesson-link { text-align: left; cursor: pointer; margin-bottom: 8px; }
   .lesson-link small { color: var(--soft); font-weight: 700; }
-  .nudge-tools { position: absolute; left: 50%; top: -42px; transform: translateX(-50%); display: flex; gap: 4px; z-index: 5; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 3px; box-shadow: var(--shadow); }
+  .nudge-tools { position: relative; margin: 6px auto 0; width: fit-content; display: flex; gap: 4px; z-index: 5; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; padding: 3px; box-shadow: var(--shadow); }
   .nt-btn { min-width: 34px; height: 30px; border: 0; border-radius: 10px; background: var(--chip, rgba(0,0,0,.06)); color: var(--ink); font: 800 13px var(--body); padding: 0 8px; cursor: pointer; }
   .nt-btn.on { background: var(--lamp); }
   .syl { cursor: pointer; }
@@ -1273,6 +1273,7 @@
   .lane:not(.editing) .syl:not(.scat):not(.tie) { pointer-events: auto; }
   .tune-sheet .knob { margin-top: 12px; }
   .tune-sheet .subhead { margin-top: 18px; }
+  /* the nudge toolbar floats above the lane: keep it on top of everything around it */
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7043,14 +7044,14 @@
     const editBtn = !editing && m.w ? `<button class="lane-edit" type="button" data-act="words" title="Open the songbook" aria-label="Open the songbook">✎</button>` : "";
     return `<div class="lane-row">
       <div class="lane${editing ? " editing" : ""}${tight ? " tight" : ""}" id="lane" data-i="${c.i}" data-sec="${secIdx}" role="button" tabindex="0" aria-label="Words and tune for ${esc(c.tok)}. Tap to open the songbook.">
-        <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}${editBtn}${editing ? "" : nudgeTools(c)}
+        <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}${editBtn}
         ${editing ? `<input class="lane-input" id="lyricInput" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}, or draw above" enterkeyhint="next" aria-label="Words for this chord" autocomplete="off">` : ""}
       </div>
       <div class="lane-btns">
         <button class="sing-btn" type="button" data-act="sing" aria-pressed="${L("sing")}" title="${esc(B().name)} sings it">♪</button>
         <button class="sing-btn" type="button" data-act="reroll"${m.w ? "" : " disabled"} title="${esc(B().name)} sings it another way">↻</button>
       </div>
-    </div>`;
+    </div>${editing ? "" : nudgeTools(c)}`;
   }
   function refreshLane() {
     const c = current[sel], art = $("laneArt");
