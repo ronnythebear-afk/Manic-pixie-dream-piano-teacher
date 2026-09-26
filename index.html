@@ -1274,6 +1274,12 @@
   .tune-sheet .knob { margin-top: 12px; }
   .tune-sheet .subhead { margin-top: 18px; }
   /* the nudge toolbar floats above the lane: keep it on top of everything around it */
+
+  /* two tabs: chord stories and tune lessons */
+  .tabs { display: flex; flex: none; gap: 0; border: 1.5px solid var(--line); border-radius: 12px; overflow: clip; margin-bottom: 10px; }
+  .tabs button { flex: 1; border: 0; background: var(--card); color: var(--ink); font: 800 14px var(--body); padding: 9px 6px; cursor: pointer; }
+  .tabs button[aria-selected="true"] { background: var(--ink); color: var(--card); }
+  .key-steps .btn { flex: 1; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -4888,7 +4894,6 @@
     const read = readStories(), show = false;
     if (storyAt == null) {
       return `<p class="h-lead">Your five friends are neighbors on Pixie Street, and every house on it is a key. Each story walks a famous route through the rooms.</p>
-        <button class="card lesson-link" type="button" data-open="lessons"><b>♪ new: how tunes and riffs work</b><small>What goes on top of your chords, heard in your own song.</small></button>
         <div class="story-list">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="story-card${read.includes(i) ? " read" : ""}" type="button" data-story="${i}">
           ${castHTML(st)}<span class="sc-text"><small>chapter ${i + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b><span>${esc(pretty(moodProg(m, K)))}</span></span></button>`; }).join("")}</div>`;
     }
@@ -6267,7 +6272,7 @@
     const kind = RIFF_KINDS.find(k => k[0] === R.kind) || RIFF_KINDS[0];
     const hasWords = current.some(c => (words()[c.i] || "").trim());
     return `<div class="tune-sheet">
-      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes and riffs work</button></div>
+      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>
       <h3 class="subhead">the sung line</h3>
       ${hasWords ? "" : `<p class="note">Write some words for this part in the songbook to hear the line. The settings work either way.</p>`}
       ${TUNE_ROWS.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
@@ -6282,11 +6287,13 @@
     </div>`;
   }
   // play this part from its first chord for about two lines, then stop
-  let previewTimer = 0;
-  async function previewPart(maxBeats = 16) {
+  let previewTimer = 0, previewing = null;
+  // voices: what a preview always plays, even when it's switched off (the singer; the lead too in lessons)
+  async function previewPart(maxBeats = 16, voices = { sing: true }) {
     if (!current.length) return;
     if (playing) stop();
     clearTimeout(previewTimer);
+    previewing = voices;
     sel = 0;
     await playAll();
     if (!playing) return;
@@ -6346,6 +6353,8 @@
       demos: [["▶ the held note", { riff: { kind: "pedal", busy: "sparse", when: "under" } }]] }
   ];
   let lessonAt = null, lessonRestore = null;
+  // chord stories and tune lessons: two tabs of one sheet
+  const learnTabs = on => `<div class="tabs" role="tablist"><button type="button" role="tab" data-open="stories" aria-selected="${on === "stories"}">✦ chord stories</button><button type="button" role="tab" data-open="lessons" aria-selected="${on === "lessons"}">♪ tunes & riffs</button></div>`;
   function lessonsHTML() {
     if (lessonAt == null) return `<p class="note">Short lessons about what goes on top of your chords. Every example plays in the part you're working on.</p>
       <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card" type="button" data-lesson="${i}"><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></button>`).join("")}</div>`;
@@ -6373,8 +6382,7 @@
       lessonRestore = () => { Object.assign(x, saved); renderStage(); };
     }
     tuneOverride = { sing: d[1].sing || {}, riff: d[1].riff || {}, parallel: !!d[1].parallel };
-    if (d[1].riff && !L("lead")) { prefs.layers.lead = true; savePrefs(); applyView(); }
-    await previewPart(16);
+    await previewPart(16, { sing: true, lead: !!d[1].riff });
   }
   function lessonsClick(e) {
     const a = e.target.closest("[data-lesson],[data-lessondemo]");
@@ -6438,7 +6446,8 @@
   ["tips", "sing", "drums", "fingers", "next", "crackle"].forEach(k => delete prefs[k]);
   prefs.fills = Math.max(0, Math.min(4, Math.round(+prefs.fills || 0)));
   if (!BUDDIES[prefs.buddy]) prefs.buddy = "dusty";
-  const L = k => !!prefs.layers[k];
+  // a preview (a lesson example, or the tune sheet) is always heard in full, whatever is switched off
+  const L = k => !!prefs.layers[k] || !!(previewing && previewing[k]);
   const B = () => BUDDIES[prefs.buddy];
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
 
@@ -6773,8 +6782,8 @@
     const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
     const side = {
       simple: inside + `<button class="pal more" type="button" data-act="more">+ chords</button>`,
-      learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button><button class="pal more" type="button" data-open="lessons" aria-label="How tunes and riffs work">♪ tunes</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-act="more">+ chords</button>`,
       studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
@@ -7164,6 +7173,7 @@
   function stop() {
     demoStopAll();
     clearTimeout(previewTimer);
+    previewing = null;
     lessonEnd();
     timers.forEach(clearTimeout);
     timers.clear();
@@ -7223,7 +7233,7 @@
       if (++guard > song.order.length + 1) return finish();
     }
     const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
-    const withDemo = demoOn(), band = !(withDemo && demoMode() === "alone");
+    const withDemo = demoOn() && !previewing, band = !(withDemo && demoMode() === "alone");
     if (withDemo) { demoPlayChord(c, nextT, cl, M, playSec, playPos, demoFirst); demoFirst = false; }
     if (band) playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
@@ -7955,19 +7965,23 @@
     <input type="range" id="kFills" min="0" max="4" step="1" value="${prefs.fills}" aria-valuetext="${FILL_LEVELS[prefs.fills]}">
     <div class="ends"><span>none</span><span>a few</span><span>some</span><span>lots</span><span>wild</span></div></div>`;
 
+  function keyOpts() {
+    const auto = !parseKeySetting(S().key);
+    let o = `<option value="auto"${auto ? " selected" : ""}>let Pixie guess (${esc(pretty(keyName(K)))})</option>`;
+    for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
+      const v = t + (minor ? "m" : "M");
+      o += `<option value="${v}"${!auto && S().key === v ? " selected" : ""}>${esc(pretty(keyName({ tonic: t, minor })))}</option>`;
+    }
+    return o;
+  }
   function renderSheet() {
     const body = $("sheetBody");
     if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
     if (sheetMode === "tune") { $("sheetTitle").textContent = `tune & riff · ${sec().name.toLowerCase()}`; body.innerHTML = tuneSheetHTML(); return; }
-    if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "how tunes and riffs work" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = lessonsHTML(); return; }
+    if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "stories & lessons" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
-      const auto = !parseKeySetting(S().key);
-      let keyOpts = `<option value="auto"${auto ? " selected" : ""}>guess it (${esc(pretty(keyName(K)))})</option>`;
-      for (const minor of [false, true]) for (let t = 0; t < 12; t++) {
-        const v = t + (minor ? "m" : "M");
-        keyOpts += `<option value="${v}"${!auto && S().key === v ? " selected" : ""}>${esc(pretty(keyName({ tonic: t, minor })))}</option>`;
-      }
+
       body.innerHTML = `
         <div class="knob"><span class="lbl">feel · easy to fancy</span>
           <div class="choices">${FEELS.map(f => `<button class="choice" type="button" data-feel="${f.id}" aria-pressed="${S().level === f.id}">${f.name}<small>${f.note}</small></button>`).join("")}</div>
@@ -7985,15 +7999,16 @@
         <div class="knob"><span class="lbl">time signature</span>
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${songMeter() === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
           <p class="note">${(() => { const own = song.sections.filter(x => x.ownMeter); return own.length ? `For the whole song, except ${own.map(x => `the ${esc(x.name.toLowerCase())} (${x.meter})`).join(" and ")}. ` : "For the whole song. "; })()}To give one part its own, tap it in the song map.</p></div>
-        <div class="knob"><span class="lbl">what key the song is in</span>
-          <div class="row"><select id="kKey" aria-label="Key">${keyOpts}</select>
-            <button class="round" type="button" data-shift="-1" aria-label="Move everything down a half step">−</button>
-            <button class="round" type="button" data-shift="1" aria-label="Move everything up a half step">+</button></div>
-        </div>
         <div class="knob"><span class="lbl">extras</span>
           <div class="toggles">
             <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song, not just this part</label>
-            <button class="link" type="button" data-open="beat">the band: piano sound and beat</button>
+          </div>
+        </div>
+        <div class="knob"><span class="lbl">more</span>
+          <div class="toggles">
+            <button class="link" type="button" data-open="key">the key: ${esc(pretty(keyName(K)))}</button>
+            <button class="link" type="button" data-open="beat">the band: who's playing, piano sound, the beat</button>
+            <button class="link" type="button" data-open="tune">tune & riff for the ${esc(sec().name.toLowerCase())}</button>
             <button class="link" type="button" data-open="view">what shows: ${esc(VIEWS[prefs.view].name)} mode</button>
           </div>
         </div>`;
@@ -8005,12 +8020,10 @@
           <div class="presets">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${S().style === k}">${esc(v)}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">piano sound</span>
           <div class="presets">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s pick</small>` : ""}</button>`).join("")}</div></div>
-        <div class="knob"><span class="lbl">also playing</span>
-          <div class="toggles">
-            <label class="tog"><input type="checkbox" data-layer="lead"${L("lead") ? " checked" : ""}> ${esc(b.name)}'s ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)} answering each line</label>
-            <label class="tog"><input type="checkbox" data-layer="crackle"${L("crackle") ? " checked" : ""}> vinyl crackle</label>
-          </div></div>
-        <span class="lbl">the beat <label class="mini-switch"><input type="checkbox" data-layer="drums"${L("drums") ? " checked" : ""}> on</label></span>
+        <div class="knob"><span class="lbl">who's playing</span>
+          <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
+          <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
+        <span class="lbl">the beat</span>
         <p class="note">Tap pads to build a beat for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>. Tap a sound's name to hear it.</p>
         <div class="presets">${Object.keys(presets).map(n => `<button class="choice" type="button" data-preset="${esc(n)}" aria-pressed="${!bt.custom && bt.name === n}">${esc(n)}</button>`).join("")}
           <button class="choice" type="button" data-beatact="shuffle">✦ roll one</button>
@@ -8034,14 +8047,17 @@
       const names = K.minor ? MIN_NAMES : MAJ_NAMES, order = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5].map(n => K.minor ? mod(n + 9) : n);
       body.innerHTML = `
         <div class="key-now"><b>${esc(pretty(keyName(K)))}</b><span>${sigOf(K) ? esc(sigText(sigOf(K))) : "no ♯ or ♭"} · ${current.map(c => esc(pretty(c.tok.replace(/:\d+$/, "")))).join(" ")}</span></div>
-        <div class="row key-steps"><button class="btn" type="button" data-shift="-1">− a half step lower</button><button class="btn" type="button" data-shift="1">a half step higher +</button></div>
+        <div class="row key-steps"><button class="btn" type="button" data-shift="-1">− half step</button><button class="btn" type="button" data-shift="1">half step +</button></div>
         <div class="knob"><span class="lbl">or jump to a key</span>
           <div class="key-grid">${order.map(t => { const k = { tonic: t, minor: K.minor }, on = t === K.tonic; return `<button class="key-btn${on ? " on" : ""}" type="button" data-movekey="${t}" aria-pressed="${on}"><b>${esc(pretty(names[t]))}${K.minor ? "m" : ""}</b><small>${sigOf(k) ? esc(sigText(sigOf(k))) : "no ♯♭"}</small></button>`; }).join("")}</div>
           <p class="note">Every chord in the song moves together. It sounds the same, just higher or lower, and the shapes under your hands change. Keys next to each other share all but one note.</p></div>
-        <div class="row"><button class="btn" type="button" data-open="house">⌂ see this key's house</button><button class="link" type="button" data-open="knobs">the song is in a different key? set it in settings</button></div>`;
+        <div class="knob"><span class="lbl">does it feel like a different home?</span>
+          <div class="row"><select id="kKey" aria-label="What key the song is in">${keyOpts()}</select></div>
+          <p class="note">Pixie guesses the key from your chords. If home feels like somewhere else, tell it here. Nothing moves; the names and colors change.</p></div>
+        <div class="row"><button class="btn" type="button" data-open="house">⌂ see this key's house</button></div>`;
     } else if (sheetMode === "stories") {
-      $("sheetTitle").textContent = storyAt == null ? "stories from the street" : `chapter ${storyAt + 1}`;
-      body.innerHTML = storiesHTML();
+      $("sheetTitle").textContent = storyAt == null ? "stories & lessons" : `chapter ${storyAt + 1}`;
+      body.innerHTML = learnTabs("stories") + storiesHTML();
     } else if (sheetMode === "songsheet") {
       $("sheetTitle").textContent = "song sheet";
       body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
@@ -8582,6 +8598,8 @@
     if (sheetMode === "listen" && hearClick(e)) return;
     if (sheetMode === "tune" && tuneSheetClick(e)) return;
     if (sheetMode === "lessons" && lessonsClick(e)) return;
+    const layT = e.target.closest("[data-layertog]");
+    if (layT) { const k = layT.dataset.layertog; prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
     if (storyB) { storyAt = +storyB.dataset.story; markRead(storyAt); storyTimers.forEach(clearTimeout); renderSheet(); $("sheetBody").scrollTop = 0; return; }
     if (storyAct) {
