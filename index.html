@@ -1319,6 +1319,66 @@
   .along-cta { display: grid; justify-items: start; gap: 2px; text-align: left; padding: 10px 14px; }
   .along-cta small { font-weight: 700; font-size: 12px; opacity: .8; }
   .timed-words { min-height: 44px; margin: 0; }
+  /* the deck's buttons say what they are */
+  .dbtn .dl { display: block; font: 800 9.5px/1 var(--body); letter-spacing: .02em; opacity: .82; margin-top: 3px; }
+  .dbtn:has(.dl) { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .dbtn.scope.whole { background: color-mix(in srgb, var(--lamp) 40%, rgba(239, 231, 220, .12)); }
+  /* folds: the rarer choices, one tap away */
+  .fold { border: 1.5px solid color-mix(in srgb, var(--line) 55%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--card) 70%, transparent); }
+  .fold > summary { cursor: pointer; list-style: none; padding: 10px 12px; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary::before { content: "▸"; font-size: 12px; transition: transform .15s; }
+  .fold[open] > summary::before { transform: rotate(90deg); }
+  .fold > summary:focus-visible { outline: 2px solid var(--lh); outline-offset: 2px; border-radius: 10px; }
+  .fold-in { display: grid; gap: 12px; padding: 0 12px 12px; }
+  /* studio: the VU needle (it opens the rack), mute on the desk */
+  .mh-side .pal.vu { position: relative; padding: 0; min-height: 0; background: none; box-shadow: none; display: block; line-height: 0; }
+  .pal.vu .vu-svg { width: 76px; height: 40px; display: block; }
+  .pal.vu small { position: absolute; right: 5px; bottom: 3px; font: 800 8.5px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: #6b5d45; }
+  .vu-face { fill: #f3e7c9; stroke: #2f2a3d; stroke-width: 1.4; }
+  .vu-arc { fill: none; stroke: #2f2a3d; stroke-width: 1.1; }
+  .vu-red { fill: none; stroke: #d9543f; stroke-width: 2.4; }
+  .vu-tick { stroke: #2f2a3d; stroke-width: 1; }
+  .vu-txt { font: 800 7px var(--body); fill: #6b5d45; text-anchor: middle; }
+  .vu-needle { stroke: #c2412f; stroke-width: 1.4; stroke-linecap: round; transform-origin: 42px 40px; }
+  .vu-hub { fill: #2f2a3d; }
+  .fader .ch-name { border: 0; background: none; padding: 0; text-align: left; font: 800 9.5px/1.2 var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--c); cursor: pointer; }
+  .fader .ch-name[aria-pressed="true"] { text-decoration: line-through; opacity: .6; }
+  .fader.quiet input, .fader.quiet output { opacity: .35; }
+  /* the rack */
+  .rack { display: grid; gap: 14px; }
+  .pedals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pedal { display: grid; gap: 8px; justify-items: center; padding: 10px 10px 12px; border-radius: 14px; background: linear-gradient(170deg, color-mix(in srgb, var(--c) 55%, #2f2a3d), color-mix(in srgb, var(--c) 30%, #1d1a28)); color: #f4efe6; border: 2px solid #1d1a28; box-shadow: 0 8px 14px -10px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .15); }
+  .pd-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .pd-top b { font: 800 14px var(--body); text-transform: uppercase; letter-spacing: .06em; }
+  .led { width: 10px; height: 10px; border-radius: 50%; background: #4a2626; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .6); }
+  .pedal.on .led { background: #ff5b45; box-shadow: 0 0 8px 2px rgba(255, 91, 69, .7); }
+  .pedal input[type=range] { width: 100%; accent-color: #f4efe6; }
+  .stomp { width: 46px; height: 46px; border-radius: 50%; border: 3px solid #1d1a28; background: radial-gradient(circle at 40% 35%, #f2f0f5, #9d98aa 70%); box-shadow: 0 4px 0 #1d1a28; cursor: pointer; }
+  .stomp[aria-pressed="true"] { transform: translateY(3px); box-shadow: 0 1px 0 #1d1a28; }
+  .stomp:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+  .pedal small { font-size: 11px; line-height: 1.25; text-align: center; opacity: .85; }
+  .chans { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .chan { display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); padding: 5px 8px; }
+  .chan span { flex: 1; font-weight: 800; font-size: 14px; }
+  .ms { width: 34px; height: 34px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--card-2); color: var(--ink); font: 800 13px var(--body); cursor: pointer; }
+  .ms.m[aria-pressed="true"] { background: var(--tension); color: var(--on-color); }
+  .ms.s[aria-pressed="true"] { background: var(--lamp); color: var(--on-color); }
+  .abs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ab { display: grid; gap: 6px; justify-items: start; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); padding: 10px 12px; }
+  .ab b { font: 800 24px/1 var(--body); }
+  .ab.on { background: var(--pick); }
+  .ab small { color: var(--soft); font-weight: 700; }
+  .takes { display: grid; gap: 8px; }
+  .take { display: grid; gap: 6px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); padding: 8px 10px; }
+  .take.gone { opacity: .5; }
+  .tk-head { display: grid; }
+  .tk-head small { color: var(--soft); font-size: 11.5px; font-weight: 700; }
+  .take audio { width: 100%; height: 36px; }
+  .link.danger { color: var(--tension); }
+  @media (max-height: 800px) and (max-width: 560px) {
+    .desk { padding: 5px 8px; gap: 1px 10px; }
+  }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -1394,10 +1454,11 @@
     </div>
     <button class="dbtn demo-btn" id="demoBtn" type="button" hidden aria-label="Your demo: tap to switch between demo with the band, just the demo, or Pixie singing">demo</button>
     <button class="dbtn play" id="playAll" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 2v12l10-6z" fill="currentColor"/></svg></button>
-    <button class="dbtn" id="loop" type="button" aria-pressed="true" aria-label="Loop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.5a3 3 0 0 1 3-3h6.5M11 1.5l2 2-2 2M13 9.5a3 3 0 0 1-3 3H3.5M5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="dbtn" id="loop" type="button" aria-pressed="true" aria-label="Loop"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.5a3 3 0 0 1 3-3h6.5M11 1.5l2 2-2 2M13 9.5a3 3 0 0 1-3 3H3.5M5 14.5l-2-2 2-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="dl">loop</span></button>
+    <button class="dbtn scope" id="scope" type="button" aria-label="Playing this part. Tap to play the whole song"><svg viewBox="0 0 16 16" aria-hidden="true"></svg><span class="dl">part</span></button>
     <button class="dbtn style-btn" id="style" type="button" aria-label="How to play the notes, tap to change">block</button>
-    <button class="dbtn" id="openBeat" type="button" aria-label="The band: piano, beat and fills"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" fill="currentColor"/></svg></button>
-    <button class="dbtn" id="openKnobs" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg></button>
+    <button class="dbtn" id="openBeat" type="button" aria-label="The band: piano, beat and fills"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" fill="currentColor"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" fill="currentColor"/></svg><span class="dl">band</span></button>
+    <button class="dbtn" id="openKnobs" type="button" aria-label="Settings"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M8 2v12M13 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3" cy="10" r="1.8" fill="currentColor"/><circle cx="8" cy="5" r="1.8" fill="currentColor"/><circle cx="13" cy="9" r="1.8" fill="currentColor"/></svg><span class="dl">settings</span></button>
   </div>
 </footer>
 
@@ -2869,7 +2930,7 @@
     }
     master = ac.createGain();
     master.gain.value = new Date().getHours() < 5 ? 0.68 : 0.85; // after midnight everyone plays softer
-    master.connect(eqLow);
+    master.connect(fxInput());
     const bus = () => { const g = ac.createGain(); g.connect(master); return g; };
     pianoBus = bus(); drumBus = bus(); voiceBus = bus(); leadOut = bus();
     if (!meterSink) { meterSink = ac.createGain(); meterSink.gain.value = 0; meterSink.connect(ac.destination); }
@@ -4842,17 +4903,19 @@
   function applyMix() {
     if (!ac || !pianoBus) return;
     const m = mixOf(), t = ac.currentTime, set = (p, v) => p.setTargetAtTime(v, t, 0.03);
-    set(pianoBus.gain, m.piano); set(drumBus.gain, m.drums); set(voiceBus.gain, m.voice); set(voiceTap.gain, m.voice); set(leadOut.gain, m.lead);
+    // (muted channels go quiet; when one is soloed, only the soloed play)
+    set(pianoBus.gain, m.piano * audible("piano")); set(drumBus.gain, m.drums * audible("drums")); set(voiceBus.gain, m.voice * audible("voice")); set(voiceTap.gain, m.voice * audible("voice")); set(leadOut.gain, m.lead * audible("lead"));
     set(eqLow.gain, m.low); set(eqHigh.gain, m.high);
     // more tape: darker and a little more flutter
     set(warmth.frequency, 9000 - m.tape * 6800); set(wobble.gain, 3 + m.tape * 9);
     set(roomSend.gain, m.room * 0.55);
+    applyFx();
   }
   function deskHTML() {
     const m = mixOf();
     const shown = (id, v) => (["low", "high"].includes(id) ? `${v > 0 ? "+" : ""}${v}` : id === "tape" || id === "room" ? `${Math.round(v * 100)}` : `${Math.round(v * 100)}%`);
     const CH = { piano: "var(--rh)", drums: "var(--lamp)", voice: "var(--lh)", lead: "var(--surprise)" };
-    return `<div class="desk" role="group" aria-label="The studio desk">${DESK.map(([id, label, lo, hi, st]) => `<label class="fader${CH[id] ? " ch" : ""}"${CH[id] ? ` data-ch="${id}" style="--c:${CH[id]}"` : ""}><span>${label}</span>
+    return `<div class="desk" role="group" aria-label="The studio desk">${DESK.map(([id, label, lo, hi, st]) => `<label class="fader${CH[id] ? " ch" : ""}${CH[id] && !audible(id) ? " quiet" : ""}"${CH[id] ? ` data-ch="${id}" style="--c:${CH[id]}"` : ""}>${CH[id] ? `<button type="button" class="ch-name" data-mute="${id}" aria-pressed="${!!chanOf().mute[id]}" aria-label="Mute the ${label}">${label}</button>` : `<span>${label}</span>`}
       <input type="range" data-mix="${id}" min="${lo}" max="${hi}" step="${st}" value="${m[id]}" aria-label="${label}"><output>${shown(id, m[id])}</output></label>`).join("")}</div>`;
   }
 
@@ -6297,7 +6360,7 @@
     ["answer", "answers the lines", "a lick at the end of each line, like someone replying"],
     ["arp", "arpeggio", "the chord's own notes one at a time, so you hear the harmony move"],
     ["pedal", "one held note", "a note that stays while the chords change under it; every chord colors it differently"],
-    ["counter", "countermelody", "a second, slower tune that moves the other way from the singer"],
+    ["counter", "counter-melody", "a second, slower tune that moves the other way from the singer"],
     ["echo", "echo", "repeats the singer's last few notes back, like a call and a reply"],
     ["walk", "walks between chords", "steps along the scale to land on the next chord"],
     ["hook", "a hook", "one small idea, reshaped to fit each chord, so the whole part feels tied together"]
@@ -6307,23 +6370,36 @@
     ["reg", "where it sits", [["above", "above the voice"], ["below", "below the voice"]]],
     ["when", "when it plays", [["gaps", "in the gaps"], ["under", "under the singing"], ["ends", "intros and outros"]]]
   ];
+  // two tabs (the sung line, the lead riff); the choices that change the sound most come first
+  let tuneTab = "sing";
+  const folds = {}; // which "more" folds are open, so they stay open while you tap
+  const fold = (id, label, inner) => `<details class="fold" data-fold="${id}"${folds[id] ? " open" : ""}><summary>${esc(label)}</summary><div class="fold-in">${inner}</div></details>`;
+  const TUNE_MAIN = ["shape", "reg", "spread"], RIFF_MAIN = ["busy"];
   function tuneSheetHTML() {
     const x = sec(), T = tuneSetOf(x), R = riffSetOf(x), lead = (LEADS[prefs.buddy] || LEADS.dusty).name;
     const row = (k, label, opts, cur, attr) => `<div class="knob"><span class="lbl">${esc(label)}</span><div class="choices tune-choices">${opts.map(([v, name]) => `<button class="choice" type="button" data-${attr}="${k}" data-v="${v}" aria-pressed="${String(cur[k]) === v}">${k === "shape" ? `<svg class="shape-art" viewBox="0 0 34 18" aria-hidden="true"><path d="${SHAPE_ART[v]}"/></svg>` : ""}${esc(name)}</button>`).join("")}</div></div>`;
     const kind = RIFF_KINDS.find(k => k[0] === R.kind) || RIFF_KINDS[0];
-    const hasWords = current.some(c => (words()[c.i] || "").trim());
-    return `<div class="tune-sheet">
-      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>
-      <h3 class="subhead">the sung line</h3>
-      ${hasWords ? "" : `<p class="note">Write some words for this part in the songbook to hear the line. The settings work either way.</p>`}
-      ${TUNE_ROWS.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
-      <p class="note">Tap a word in the lyric lane to nudge one syllable up or down, or hold it longer.</p>
-      <h3 class="subhead">the lead riff · ${esc(lead)}</h3>
-      ${L("lead") ? "" : `<p class="note">The lead is off right now. <button class="link" type="button" data-tuneact="leadon">turn it on</button></p>`}
-      <div class="knob"><span class="lbl">what it plays</span><div class="choices tune-choices">${RIFF_KINDS.map(([v, name]) => `<button class="choice" type="button" data-riffset="kind" data-v="${v}" aria-pressed="${R.kind === v}">${esc(name)}</button>`).join("")}</div>
-        <p class="note riff-why">${esc(kind[2])}.</p></div>
-      ${RIFF_ROWS.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join("")}
-      ${R.kind === "hook" ? `<div class="row"><button class="btn" type="button" data-tuneact="newhook">↻ a different hook</button></div>` : ""}
+    const hasWords = current.some(c => (words()[c.i] || "").trim()), timed = isTimed(x);
+    const tabs = `<div class="tabs" role="tablist"><button type="button" role="tab" data-tunetab="sing" aria-selected="${tuneTab === "sing"}">the sung line</button><button type="button" role="tab" data-tunetab="riff" aria-selected="${tuneTab === "riff"}">the lead riff</button></div>`;
+    const top = `<div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>`;
+    let body;
+    if (tuneTab === "sing") {
+      const rows = TUNE_ROWS.filter(r => !(timed && (r[0] === "enter" || r[0] === "breath")));
+      const main = TUNE_MAIN.map(k => rows.find(r => r[0] === k)).filter(Boolean), more = rows.filter(r => !TUNE_MAIN.includes(r[0]));
+      body = `${hasWords ? "" : `<p class="note"><button class="link" type="button" data-open="along">Write some words for this part</button> to hear the line. The settings work either way.</p>`}
+        ${main.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
+        ${fold("sing", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("") + (timed ? `<p class="note">Your lines are timed by hand, so they come in and breathe where you held them.</p>` : ""))}
+        <p class="note">Tap a word in the lyric lane to nudge one syllable up or down, or hold it longer.</p>`;
+    } else {
+      const main = RIFF_ROWS.filter(r => RIFF_MAIN.includes(r[0])), more = RIFF_ROWS.filter(r => !RIFF_MAIN.includes(r[0]));
+      body = `${L("lead") ? "" : `<p class="note">The ${esc(lead)} is off right now. <button class="link" type="button" data-tuneact="leadon">turn it on</button></p>`}
+        <div class="knob"><span class="lbl">what the ${esc(lead)} plays</span><div class="choices tune-choices">${RIFF_KINDS.map(([v, name]) => `<button class="choice" type="button" data-riffset="kind" data-v="${v}" aria-pressed="${R.kind === v}">${esc(name)}</button>`).join("")}</div>
+          <p class="note riff-why">${esc(kind[2])}.</p></div>
+        ${R.kind === "hook" ? `<div class="row"><button class="btn" type="button" data-tuneact="newhook">↻ a different hook</button></div>` : ""}
+        ${main.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join("")}
+        ${fold("riff", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join(""))}`;
+    }
+    return `<div class="tune-sheet">${tabs}${top}${body}
       <div class="row"><button class="link" type="button" data-tuneact="reset">back to ${esc(B().name)}'s way</button></div>
     </div>`;
   }
@@ -6344,6 +6420,8 @@
     previewTimer = setTimeout(() => { if (playing) stop(); }, secs * 1000);
   }
   function tuneSheetClick(e) {
+    const tb = e.target.closest("[data-tunetab]");
+    if (tb) { tuneTab = tb.dataset.tunetab; renderSheet(); return true; }
     const t = e.target.closest("[data-tuneset],[data-riffset],[data-tuneact]");
     if (!t) return false;
     const x = sec();
@@ -6531,6 +6609,8 @@
   }
 
   // ---------- the write-along sheet ----------
+  // words live behind one door: write along (timed while it plays) or the songbook (all at once, and the lead's answers)
+  const wordsTabs = on => `<div class="tabs" role="tablist"><button type="button" role="tab" data-open="along" aria-selected="${on === "along"}">✦ write along</button><button type="button" role="tab" data-open="book" aria-selected="${on === "book"}">✎ songbook</button></div>`;
   let alongSel = 0, alongHold = null, alongRaf = 0;
   // what's playing right now, in beats from the start of the open part (null if it isn't)
   function beatNow() {
@@ -6625,7 +6705,7 @@
       <p class="note al-how" id="alHow">${alongHow()}</p>
       <div class="al-lines" id="alLines">${alongListHTML()}</div>
       <textarea class="verse-in al-new" id="alNew" rows="1" placeholder="type a line and press enter, or paste a few" enterkeyhint="enter" aria-label="Add lines"></textarea>
-      <div class="row"><button class="btn" type="button" data-open="book">✎ the whole songbook</button>${isTimed(sec()) ? `<button class="btn" type="button" data-alact="unpin">let Pixie space them again</button>` : ""}</div>
+      ${isTimed(sec()) ? `<div class="row"><button class="btn" type="button" data-alact="unpin">let Pixie space them again</button></div>` : ""}
     </div>`;
   }
   function alongRefresh(list = true) {
@@ -6787,6 +6867,230 @@
   }
 
   // =========================================================
+  // The studio rack: four pedals on the whole mix, mute and solo
+  // for each channel, two mix memories to compare, a VU needle,
+  // and a shelf of your recent takes
+  // =========================================================
+  const PEDALS = [
+    { id: "echo", name: "echo", note: "each note answers itself, in time with the song", color: "var(--lh)" },
+    { id: "wobble", name: "wobble", note: "a warm, seasick shimmer, like an old chorus pedal", color: "var(--surprise)" },
+    { id: "radio", name: "old radio", note: "squeezed small, like a car radio two towns over", color: "var(--lamp)" },
+    { id: "sweep", name: "sweep", note: "a slow filter that opens and closes like breathing", color: "var(--tension)" }
+  ];
+  const CHANNELS = [["piano", "piano"], ["drums", "drums"], ["voice", "singer"], ["lead", "lead"]];
+  const fxOf = () => { const f = (song && song.fx) || {}; const o = {}; PEDALS.forEach(p => { o[p.id] = { on: !!(f[p.id] && f[p.id].on), amt: f[p.id] && f[p.id].amt != null ? f[p.id].amt : 0.5 }; }); return o; };
+  const chanOf = () => { const c = (song && song.chan) || {}; return { mute: c.mute || {}, solo: c.solo || {} }; };
+  // what a channel is worth right now: muted is silent, and when anything is soloed only the soloed play
+  function audible(id) {
+    const c = chanOf(), anySolo = CHANNELS.some(([k]) => c.solo[k]);
+    return c.mute[id] ? 0 : anySolo && !c.solo[id] ? 0 : 1;
+  }
+
+  // ---------- the pedal chain: master → radio → sweep → (dry + wobble + echo) → the desk's tone ----------
+  let pedalNodes = null, vuAn = null;
+  function fxInput() {
+    if (pedalNodes) return pedalNodes.inp;
+    const n = {};
+    n.inp = ac.createGain();
+    n.hp = ac.createBiquadFilter(); n.hp.type = "highpass"; n.hp.frequency.value = 20;
+    n.lp = ac.createBiquadFilter(); n.lp.type = "lowpass"; n.lp.frequency.value = 20000;
+    n.sw = ac.createBiquadFilter(); n.sw.type = "lowpass"; n.sw.frequency.value = 20000; n.sw.Q.value = 0.7;
+    n.swLfo = ac.createOscillator(); n.swLfo.frequency.value = 0.12; n.swDepth = ac.createGain(); n.swDepth.gain.value = 0;
+    n.swLfo.connect(n.swDepth); n.swDepth.connect(n.sw.frequency); n.swLfo.start();
+    n.inp.connect(n.hp); n.hp.connect(n.lp); n.lp.connect(n.sw);
+    const out = eqLow;
+    n.sw.connect(out); // dry
+    // wobble: a short delay whose length drifts, mixed in with the dry sound
+    n.ch = ac.createDelay(0.05); n.ch.delayTime.value = 0.018;
+    n.chLfo = ac.createOscillator(); n.chLfo.frequency.value = 0.9; n.chDepth = ac.createGain(); n.chDepth.gain.value = 0;
+    n.chLfo.connect(n.chDepth); n.chDepth.connect(n.ch.delayTime); n.chLfo.start();
+    n.chWet = ac.createGain(); n.chWet.gain.value = 0;
+    n.sw.connect(n.ch); n.ch.connect(n.chWet); n.chWet.connect(out);
+    // echo: a send into a delay that feeds back on itself, a little darker each time round
+    n.eSend = ac.createGain(); n.eSend.gain.value = 0;
+    n.eDel = ac.createDelay(2); n.eDel.delayTime.value = 0.4;
+    n.eTone = ac.createBiquadFilter(); n.eTone.type = "lowpass"; n.eTone.frequency.value = 2800;
+    n.eFb = ac.createGain(); n.eFb.gain.value = 0.3;
+    n.sw.connect(n.eSend); n.eSend.connect(n.eDel); n.eDel.connect(n.eTone); n.eTone.connect(n.eFb); n.eFb.connect(n.eDel); n.eTone.connect(out);
+    // the VU needle listens to everything that reaches the speakers
+    if (!meterSink) { meterSink = ac.createGain(); meterSink.gain.value = 0; meterSink.connect(ac.destination); }
+    vuAn = ac.createAnalyser(); vuAn.fftSize = 1024; tapOut.connect(vuAn); vuAn.connect(meterSink);
+    pedalNodes = n;
+    return n.inp;
+  }
+  function applyFx() {
+    if (!ac || !pedalNodes) return;
+    const f = fxOf(), t = ac.currentTime, set = (p, v) => p.setTargetAtTime(v, t, 0.05);
+    const r = f.radio, s = f.sweep, w = f.wobble, e = f.echo;
+    set(pedalNodes.hp.frequency, r.on ? 220 + r.amt * 700 : 20);
+    set(pedalNodes.lp.frequency, r.on ? 5200 - r.amt * 2900 : 20000);
+    set(pedalNodes.sw.frequency, s.on ? 1500 : 20000); set(pedalNodes.sw.Q, s.on ? 3 + s.amt * 7 : 0.7);
+    set(pedalNodes.swDepth.gain, s.on ? 1150 : 0); set(pedalNodes.swLfo.frequency, 0.06 + s.amt * 0.3);
+    set(pedalNodes.chWet.gain, w.on ? 0.3 + w.amt * 0.5 : 0); set(pedalNodes.chDepth.gain, w.on ? 0.0015 + w.amt * 0.005 : 0); set(pedalNodes.chLfo.frequency, 0.5 + w.amt * 2.2);
+    // a dotted eighth: the classic echo that sits between the beats
+    set(pedalNodes.eDel.delayTime, Math.min(1.9, countSec(Mtr, S().bpm) * 0.75));
+    set(pedalNodes.eSend.gain, e.on ? 0.18 + e.amt * 0.42 : 0); set(pedalNodes.eFb.gain, e.on ? 0.2 + e.amt * 0.42 : 0);
+  }
+
+  // ---------- the VU needle ----------
+  const vuSVG = () => `<svg class="vu-svg" viewBox="0 0 84 44" aria-hidden="true">
+    <rect x="1" y="1" width="82" height="42" rx="6" class="vu-face"/>
+    <path d="M12 34 A34 34 0 0 1 72 34" class="vu-arc"/><path d="M58 17 A34 34 0 0 1 72 34" class="vu-red"/>
+    ${[-50, -30, -10, 10, 30, 50].map(a => { const r1 = 30, r2 = 35; return `<line x1="${(42 + Math.sin(a * Math.PI / 180) * r1).toFixed(1)}" y1="${(40 - Math.cos(a * Math.PI / 180) * r1).toFixed(1)}" x2="${(42 + Math.sin(a * Math.PI / 180) * r2).toFixed(1)}" y2="${(40 - Math.cos(a * Math.PI / 180) * r2).toFixed(1)}" class="vu-tick"/>`; }).join("")}
+    <text x="42" y="30" class="vu-txt">VU</text>
+    <line x1="42" y1="40" x2="42" y2="9" class="vu-needle" id="vuNeedle" style="transform:rotate(-48deg)"/><circle cx="42" cy="40" r="2.6" class="vu-hub"/></svg>`;
+  let vuRaf = 0, vuVal = 0;
+  function vuLoop() {
+    cancelAnimationFrame(vuRaf);
+    if (prefs.view !== "studio") return;
+    const buf = new Float32Array(1024);
+    const step = () => {
+      if (prefs.view !== "studio") return;
+      const el = document.getElementById("vuNeedle");
+      if (el && vuAn) {
+        vuAn.getFloatTimeDomainData(buf);
+        let e = 0; for (let i = 0; i < buf.length; i++) e += buf[i] * buf[i];
+        const db = 20 * Math.log10(Math.sqrt(e / buf.length) + 1e-6), target = Math.max(0, Math.min(1.05, (db + 32) / 30));
+        vuVal += (target - vuVal) * (target > vuVal ? 0.25 : 0.08); // quick up, slow down, like a real needle
+        el.style.transform = `rotate(${(-48 + vuVal * 96).toFixed(1)}deg)`;
+      }
+      vuRaf = requestAnimationFrame(step);
+    };
+    step();
+  }
+
+  // ---------- the rack sheet ----------
+  function rackHTML() {
+    const f = fxOf(), c = chanOf(), ab = song.mixAB || {}, cur = ab.on;
+    const pedals = PEDALS.map(p => { const x = f[p.id]; return `<div class="pedal${x.on ? " on" : ""}" style="--c:${p.color}">
+        <div class="pd-top"><b>${esc(p.name)}</b><i class="led" aria-hidden="true"></i></div>
+        <input type="range" min="0" max="1" step="0.05" value="${x.amt}" data-pedalamt="${p.id}" aria-label="How much ${esc(p.name)}">
+        <button type="button" class="stomp" data-pedal="${p.id}" aria-pressed="${x.on}" aria-label="${esc(p.name)} ${x.on ? "on" : "off"}"><span></span></button>
+        <small>${esc(p.note)}</small></div>`; }).join("");
+    const chans = CHANNELS.map(([id, label]) => `<div class="chan"><span>${esc(label)}</span>
+        <button type="button" class="ms m" data-chan="mute" data-id="${id}" aria-pressed="${!!c.mute[id]}" aria-label="Mute the ${esc(label)}">M</button>
+        <button type="button" class="ms s" data-chan="solo" data-id="${id}" aria-pressed="${!!c.solo[id]}" aria-label="Solo the ${esc(label)}">S</button></div>`).join("");
+    const slot = k => `<div class="ab${cur === k ? " on" : ""}"><b>${k}</b>${ab[k] ? `<button type="button" class="btn" data-ab="use" data-k="${k}">${cur === k ? "listening" : "listen"}</button>` : `<small>empty</small>`}<button type="button" class="link" data-ab="keep" data-k="${k}">${ab[k] ? "keep this mix here" : "keep this mix as " + k}</button></div>`;
+    return `<div class="rack">
+      <div class="knob"><span class="lbl">pedals · on the whole mix</span><div class="pedals">${pedals}</div></div>
+      <div class="knob"><span class="lbl">mute and solo</span><div class="chans">${chans}</div>
+        <p class="note">Solo one channel to hear just it. Tap a channel's name on the desk to mute it, too.</p></div>
+      <div class="knob"><span class="lbl">compare two mixes</span><div class="abs">${slot("A")}${slot("B")}</div>
+        <p class="note">Keep a mix in A, change things, keep it in B, then flip between them while it plays.</p></div>
+      <div class="knob"><span class="lbl">vibe</span><div class="presets">${VIBES.map(v => `<button class="choice" type="button" data-vibe="${v.id}" aria-pressed="${vibeOf().id === v.id}">${esc(v.name)}<small>${esc(v.note)}</small></button>`).join("")}</div></div>
+      <div class="row"><button class="btn" type="button" data-rack="flat">everything back to flat</button>${(song.takes || []).length ? `<button class="btn" type="button" data-rack="takes">▤ your takes (${song.takes.length})</button>` : ""}</div>
+    </div>`;
+  }
+  const mixSnap = () => ({ mix: { ...(song.mix || {}) }, fx: JSON.parse(JSON.stringify(song.fx || {})) });
+  function rackClick(e) {
+    const pd = e.target.closest("[data-pedal]");
+    if (pd) {
+      const id = pd.dataset.pedal, f = fxOf();
+      song.fx = { ...f, [id]: { ...f[id], on: !f[id].on } };
+      saveSongs(); applyFx(); renderSheet();
+      toast(`${PEDALS.find(p => p.id === id).name} ${song.fx[id].on ? "on" : "off"}`);
+      if (!playing && current[sel]) playOne(sel);
+      return true;
+    }
+    const ch = e.target.closest("[data-chan]");
+    if (ch) { chanToggle(ch.dataset.chan, ch.dataset.id); renderSheet(); return true; }
+    const ab = e.target.closest("[data-ab]");
+    if (ab) {
+      const k = ab.dataset.k, store = song.mixAB = song.mixAB || {};
+      if (ab.dataset.ab === "keep") { store[k] = mixSnap(); store.on = k; toast(`this mix is in ${k}`); }
+      else if (store[k]) { song.mix = { ...store[k].mix }; song.fx = JSON.parse(JSON.stringify(store[k].fx || {})); store.on = k; applyMix(); renderPalette(); toast(`mix ${k}`); }
+      saveSongs(); renderSheet();
+      return true;
+    }
+    const vb = e.target.closest("[data-vibe]");
+    if (vb) {
+      const v = VIBES.find(x => x.id === vb.dataset.vibe);
+      song.mix = { ...MIX_DEFAULT, ...v.mix, vibe: v.id };
+      saveSongs(); applyMix(); renderPalette(); renderSheet();
+      toast(`${v.name}: ${v.note}`);
+      if (!playing && current[sel]) playOne(sel);
+      return true;
+    }
+    const r = e.target.closest("[data-rack]");
+    if (r) {
+      if (r.dataset.rack === "flat") { song.mix = { ...MIX_DEFAULT }; song.fx = {}; song.chan = {}; if (song.mixAB) song.mixAB.on = null; saveSongs(); applyMix(); renderPalette(); renderSheet(); toast("the desk and pedals are back to flat"); }
+      else openSheet("tape");
+      return true;
+    }
+    return false;
+  }
+  function rackInput(e) {
+    const a = e.target.dataset.pedalamt;
+    if (!a) return false;
+    const f = fxOf();
+    song.fx = { ...f, [a]: { ...f[a], amt: +e.target.value, on: true } };
+    saveSongs(); applyFx();
+    const card = e.target.closest(".pedal"); if (card) { card.classList.add("on"); card.querySelector(".stomp").setAttribute("aria-pressed", "true"); }
+    return true;
+  }
+  function chanToggle(kind, id) {
+    const c = chanOf();
+    c[kind] = { ...c[kind], [id]: !c[kind][id] };
+    song.chan = c;
+    saveSongs(); applyMix(); renderPalette();
+    const label = (CHANNELS.find(x => x[0] === id) || [id, id])[1];
+    toast(kind === "mute" ? `${label} ${c.mute[id] ? "muted" : "back in"}` : c.solo[id] ? `just the ${label}` : `${label} solo off`);
+  }
+
+  // ---------- the takes shelf: your last few tapes, kept in this browser ----------
+  const TAKE_MAX = 6;
+  const takeURLs = new Map();
+  async function takeBlob(id) { try { return await demoTx("readonly", st => st.get("take:" + id)); } catch { return null; } }
+  async function takeURL(id) {
+    if (takeURLs.has(id)) return takeURLs.get(id);
+    const b = await takeBlob(id);
+    if (!b) return null;
+    const u = URL.createObjectURL(b); takeURLs.set(id, u); return u;
+  }
+  async function keepTake(blob, ext) {
+    const takes = song.takes = song.takes || [];
+    const n = (takes[0] ? takes[0].n : 0) + 1, id = Date.now().toString(36);
+    const on = PEDALS.filter(p => fxOf()[p.id].on).map(p => p.name);
+    takes.unshift({ id, n, at: Date.now(), ext, what: prefs.wholeSong ? "the whole song" : sec().name.toLowerCase(), vibe: vibeOf().name, pedals: on });
+    takeURLs.set(id, URL.createObjectURL(blob));
+    try { await demoTx("readwrite", st => st.put(blob, "take:" + id)); } catch {}
+    while (takes.length > TAKE_MAX) {
+      const old = takes.pop();
+      try { await demoTx("readwrite", st => st.delete("take:" + old.id)); } catch {}
+      if (takeURLs.has(old.id)) { URL.revokeObjectURL(takeURLs.get(old.id)); takeURLs.delete(old.id); }
+    }
+    saveSongs();
+  }
+  function takesHTML() {
+    const takes = (song.takes || []).slice(1);
+    if (!takes.length) return "";
+    const when = t => { const d = new Date(t); return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }); };
+    return `<div class="knob"><span class="lbl">earlier takes</span><div class="takes">${takes.map(t => `<div class="take" data-take="${t.id}">
+        <div class="tk-head"><b>take ${t.n}</b><small>${esc(t.what)} · ${esc(t.vibe)}${t.pedals && t.pedals.length ? " · " + esc(t.pedals.join(", ")) : ""} · ${when(t.at)}</small></div>
+        <audio controls preload="none" data-takeaudio="${t.id}"></audio>
+        <div class="row"><button type="button" class="link" data-takeact="save" data-id="${t.id}">save</button><button type="button" class="link danger" data-takeact="drop" data-id="${t.id}">throw it out</button></div></div>`).join("")}</div></div>`;
+  }
+  // audio players on the shelf get their tape when the sheet opens
+  function fillTakes() {
+    document.querySelectorAll("[data-takeaudio]").forEach(async a => { const u = await takeURL(a.dataset.takeaudio); if (u) a.src = u; else a.closest(".take")?.classList.add("gone"); });
+  }
+  async function takesClick(e) {
+    const b = e.target.closest("[data-takeact]");
+    if (!b) return false;
+    const id = b.dataset.id, t = (song.takes || []).find(x => x.id === id);
+    if (!t) return true;
+    if (b.dataset.takeact === "drop") {
+      song.takes = song.takes.filter(x => x.id !== id);
+      try { await demoTx("readwrite", st => st.delete("take:" + id)); } catch {}
+      saveSongs(); renderSheet(); fillTakes();
+      return true;
+    }
+    const blob = await takeBlob(id);
+    if (blob) await saveTape(blob, `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"} take ${t.n}.${t.ext}`);
+    return true;
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -6813,7 +7117,7 @@
   const VIEWS = {
     simple: { name: "simple", icon: "◻", note: "just chords and their shapes", on: ["palette", "arrows"] },
     learn: { name: "learning", icon: "✦", note: "the house, the stories, why chords work", on: ["scene", "talk", "palette", "arrows", "fx", "drums"] },
-    write: { name: "writing", icon: "✎", note: "the songbook and your song's parts", on: ["scene", "talk", "lyrics", "palette", "arrows", "fx", "drums", "sing", "lead"] },
+    write: { name: "writing", icon: "✎", note: "words, tune and your song's parts", on: ["scene", "talk", "lyrics", "palette", "arrows", "fx", "drums", "sing", "lead"] },
     studio: { name: "studio", icon: "◉", note: "mix it, warm it up, tape it", on: ["scene", "lyrics", "palette", "drums", "sing", "lead", "crackle"] }
   };
   const OLD_VIEWS = { bare: "simple", writer: "write", story: "write", all: "learn", show: "learn" };
@@ -7176,15 +7480,15 @@
     const ideas = nextIdeas();
     // the key's house: every chord of the key is a window; tap one to add it
     const mode = prefs.view, kname = esc(pretty(keyName(K)));
-    const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ ${kname}</button>`;
+    const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ go inside</button>`;
     const side = {
-      simple: inside + `<button class="pal more" type="button" data-act="more">+ chords</button>`,
+      simple: inside,
       learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-act="more">+ chords</button>`,
-      studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
+      write: `<button class="pal mh-in" type="button" data-act="along">✎ words</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button>`,
+      studio: `<button class="pal vu" type="button" data-act="rack" aria-label="The rack: pedals, mute and solo, two mixes to compare">${vuSVG()}<small>rack</small></button><button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
-    if (mode === "studio") meterLoop();
+    if (mode === "studio") { meterLoop(); vuLoop(); }
   }
   function renderPaletteOld() {
     const p = palette(K, prefs.sevenths);
@@ -7449,7 +7753,7 @@
     const ph = "";
     const editBtn = !editing && m.w ? `<button class="lane-edit" type="button" data-act="along" title="Write along" aria-label="Write along: place your lines while it plays">✎</button>` : "";
     return `<div class="lane-row">
-      <div class="lane${editing ? " editing" : ""}${tight ? " tight" : ""}" id="lane" data-i="${c.i}" data-sec="${secIdx}" role="button" tabindex="0" aria-label="Words and tune for ${esc(c.tok)}. Tap to open the songbook.">
+      <div class="lane${editing ? " editing" : ""}${tight ? " tight" : ""}" id="lane" data-i="${c.i}" data-sec="${secIdx}" role="button" tabindex="0" aria-label="Words and tune for ${esc(c.tok)}. Tap to write the words.">
         <div class="lane-art" id="laneArt">${laneArt(c, m, editing)}</div>${ph}${editBtn}
         ${editing ? `<input class="lane-input" id="lyricInput" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}, or draw above" enterkeyhint="next" aria-label="Words for this chord" autocomplete="off">` : ""}
       </div>
@@ -7498,9 +7802,24 @@
     if (el.children.length !== n) el.innerHTML = "<i></i>".repeat(n);
     el.classList.toggle("many", n > 4);
   }
+  // part or song: what play plays, shown right next to it
+  const SCOPE_ICON = {
+    part: '<rect x="4.5" y="4" width="7" height="8" rx="1.5" fill="currentColor"/>',
+    song: '<rect x="1" y="5" width="4" height="6" rx="1" fill="currentColor"/><rect x="6" y="3.5" width="4" height="9" rx="1" fill="currentColor"/><rect x="11" y="5" width="4" height="6" rx="1" fill="currentColor"/>'
+  };
+  function renderScope() {
+    const b = $("scope");
+    if (!b) return;
+    const whole = !!prefs.wholeSong;
+    b.querySelector("svg").innerHTML = SCOPE_ICON[whole ? "song" : "part"];
+    b.querySelector(".dl").textContent = whole ? "song" : "part";
+    b.setAttribute("aria-label", whole ? "Playing the whole song. Tap to play just this part" : "Playing this part. Tap to play the whole song");
+    b.classList.toggle("whole", whole);
+  }
   function renderDeck() {
     renderDemoBtn();
     $("deckTitle").textContent = (prefs.wholeSong ? (song.title || "untitled") : sec().name).toLowerCase();
+    renderScope();
     $("deckInfo").textContent = `${S().bpm} bpm · ${Mtr.id} · ${pretty(keyName(K))}`;
     $("style").textContent = STYLES[S().style];
     document.body.style.setProperty("--beat", (60 / S().bpm).toFixed(3) + "s");
@@ -7516,7 +7835,8 @@
     Object.keys(VIEWS).forEach(v => b.classList.toggle("mode-" + v, prefs.view === v));
     b.classList.toggle("view-bare", prefs.view === "simple");
     b.classList.toggle("has-bd", L("scene") && prefs.view !== "simple");
-    $("openView").textContent = `${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name}`;
+    $("openView").innerHTML = `${VIEWS[prefs.view].icon} ${VIEWS[prefs.view].name} <span class="caret" aria-hidden="true">▾</span>`;
+    $("openView").setAttribute("aria-label", `Mode: ${VIEWS[prefs.view].name}. Tap to switch`);
     b.classList.toggle("tight", L("entry") && L("palette") && L("ribbon") && L("lyrics") && L("scene"));
     const wrap = $("sceneWrap"), sayEl = $("say"), dock = $("sayDock");
     if (story) { $("storyHero").appendChild(wrap); $("storyCap").appendChild(sayEl); }
@@ -7559,6 +7879,7 @@
     playBtn.setAttribute("aria-label", on ? "Stop" : "Play");
     document.body.classList.toggle("playing", on);
     if (sheetMode === "along") { alongRefresh(false); if (on) alongFrame(); }
+    if (on && prefs.view === "studio") { meterLoop(); vuLoop(); }
     if (!on) {
       crackle(false);
       $("lights").querySelectorAll("i").forEach(el => el.classList.remove("on"));
@@ -7776,7 +8097,8 @@
     if (song.demo && demoMode() !== "off") await demoBuffer();
     demoFirst = true;
     playSec = secIdx; playPos = ordPos;
-    step = prefs.wholeSong && !current.length ? 0 : sel;
+    // always from the top: of this part, or (for the whole song) of this part onward
+    step = 0;
     passNo = 0;
     nextT = ac.currentTime + 0.08;
     crackle(L("crackle"));
@@ -7809,6 +8131,7 @@
       tapeBlob = new Blob(chunks, { type: type || "audio/webm" });
       if (tapeURL) URL.revokeObjectURL(tapeURL);
       tapeURL = URL.createObjectURL(tapeBlob);
+      keepTake(tapeBlob, tapeExt).then(() => { if (sheetMode === "tape") { renderSheet(); fillTakes(); } });
       openSheet("tape");
     };
     // how long: count the chords
@@ -7825,18 +8148,20 @@
     await playAll();
     later(() => { if (recorder) recorder.stop(); }, (secs + 1.8) * 1000);
   }
-  async function saveTape() {
-    if (!tapeBlob) return;
-    const name = `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"}.${tapeExt}`;
+  async function saveTape(blob = tapeBlob, name0 = null) {
+    if (!blob) return;
+    const name = name0 || `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"}.${tapeExt}`;
     const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]) : null;
     if (dl) {
-      try { await dl.save({ filename: name, data: tapeBlob }); toast("tape saved"); }
+      try { await dl.save({ filename: name, data: blob }); toast("tape saved"); }
       catch (err) { if (err?.code !== "declined") toast("couldn't save it here"); }
       return;
     }
     const a = document.createElement("a");
-    a.href = tapeURL; a.download = name;
+    const u = blob === tapeBlob ? tapeURL : URL.createObjectURL(blob);
+    a.href = u; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
+    if (u !== tapeURL) setTimeout(() => URL.revokeObjectURL(u), 4000);
   }
 
   async function playOne(j) {
@@ -8234,7 +8559,6 @@
     bookPage = Math.max(0, Math.min(current.length, bookPage));
     const timed = isTimed(section);
     if (!bookPage) return `<div class="book">
-      <button class="btn surprise along-cta" type="button" data-open="along">✦ write along while it plays<small>${timed ? "your lines are timed by hand · move them there" : "hold a button while each line is sung, and it lands right there"}</small></button>
       <textarea id="verseText" class="verse-in" rows="4" spellcheck="true" placeholder="write the ${esc(section.name.toLowerCase())} a line at a time&#10;it flows onto your chords as you go">${esc(section.verse)}</textarea>
       <div class="flow" id="flow">${flowHTML()}</div>
       <p class="note">tap a line to turn to its page · ${esc(B().name)} picks the tune and answers each line on the ${esc(leadName())}</p>
@@ -8312,6 +8636,8 @@
     $("sheet").classList.toggle("tall", mode === "along");
     if (mode === "book") bookPage = current[sel] && (words()[current[sel].i] || "").trim() ? sel + 1 : 0;
     if (mode === "along") { const ls = alongLines(), w = ls.findIndex(l => l.a == null); alongSel = ls.length ? (w >= 0 ? w : 0) : null; }
+    // a different sheet opens at its top, not where the last one was scrolled to
+    if (mode !== sheetMode) $("sheetBody").scrollTop = 0;
     sheetMode = mode;
     $("sheet").hidden = false;
     $("scrim").hidden = false;
@@ -8385,7 +8711,8 @@
     const body = $("sheetBody");
     if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
     if (sheetMode === "tune") { $("sheetTitle").textContent = `tune & riff · ${sec().name.toLowerCase()}`; body.innerHTML = tuneSheetHTML(); return; }
-    if (sheetMode === "along") { $("sheetTitle").textContent = `write along · ${sec().name.toLowerCase()}`; body.innerHTML = alongHTML(); alongFrame(); return; }
+    if (sheetMode === "rack") { $("sheetTitle").textContent = "the rack"; body.innerHTML = rackHTML(); return; }
+    if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs("along") + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "stories & lessons" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
@@ -8401,17 +8728,14 @@
           </div>
         </div>
         <div class="knob"><label class="lbl" for="kBpm">tempo · <span id="kBpmVal">${S().bpm}</span> bpm</label><input type="range" id="kBpm" min="50" max="150" value="${S().bpm}"></div>
+        ${fold("timing", `timing · ${songMeter()} · each chord lasts ${LENGTHS[S().beats] || "a bar"}`, `
         <div class="knob"><span class="lbl">each chord lasts</span>
           <div class="presets">${Object.entries(LENGTHS).map(([k, v]) => `<button class="choice" type="button" data-len="${k}" aria-pressed="${S().beats === k}">${v}${k === "half" && Mtr.n % 2 ? `<small>not in ${Mtr.id}</small>` : ""}</button>`).join("")}</div>
           <p class="note">For the whole song. To stretch just one chord, tap its name above the keyboard.</p></div>
         <div class="knob"><span class="lbl">time signature</span>
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${songMeter() === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
           <p class="note">${(() => { const own = song.sections.filter(x => x.ownMeter); return own.length ? `For the whole song, except ${own.map(x => `the ${esc(x.name.toLowerCase())} (${x.meter})`).join(" and ")}. ` : "For the whole song. "; })()}To give one part its own, tap it in the song map.</p></div>
-        <div class="knob"><span class="lbl">extras</span>
-          <div class="toggles">
-            <label class="tog"><input type="checkbox" data-pref="wholeSong"${prefs.wholeSong ? " checked" : ""}> play the whole song, not just this part</label>
-          </div>
-        </div>
+        `)}
         <div class="knob"><span class="lbl">more</span>
           <div class="toggles">
             <button class="link" type="button" data-open="key">the key: ${esc(pretty(keyName(K)))}</button>
@@ -8424,22 +8748,24 @@
       const b = B(), M = Mtr, bt = beatFor(M.id), sp = stepsPer(M), presets = beatPresets(prefs.buddy, M.id);
       $("sheetTitle").textContent = `${b.name.toLowerCase()}'s band`;
       body.innerHTML = `
+        <div class="knob"><span class="lbl">who's playing</span>
+          <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
+          <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
         <div class="knob"><span class="lbl">the piano plays</span>
           <div class="presets">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${S().style === k}">${esc(v)}</button>`).join("")}</div></div>
         <div class="knob"><span class="lbl">piano sound</span>
           <div class="presets">${Object.entries(VOICES).map(([k, v]) => `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}${k === B().voice ? `<small>${esc(B().name)}'s pick</small>` : ""}</button>`).join("")}</div></div>
-        <div class="knob"><span class="lbl">who's playing</span>
-          <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
-          <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
         <span class="lbl">the beat</span>
-        <p class="note">Tap pads to build a beat for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>. Tap a sound's name to hear it.</p>
+        <p class="note">Pick a groove for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>, or build your own.</p>
         <div class="presets">${Object.keys(presets).map(n => `<button class="choice" type="button" data-preset="${esc(n)}" aria-pressed="${!bt.custom && bt.name === n}">${esc(n)}</button>`).join("")}
           <button class="choice" type="button" data-beatact="shuffle">✦ roll one</button>
           <button class="choice" type="button" data-beatact="clear">clear</button></div>
+        ${fold("pads", "build your own beat", `<p class="note">Tap pads to add or take out a hit. Tap a sound's name to hear it.</p>
         <div class="beatbox" style="--counts:${M.n};--sp:${sp}">${b.sounds.map(([label], r) => `
           <div class="brow r${r}"><button class="lbl" type="button" data-hear="${r}">${esc(label)}</button>
             ${Array.from({ length: M.n }, (_, g) => `<div class="bgroup${g && M.groups.includes(g) ? " grp" : ""}">${Array.from({ length: sp }, (_, q) => { const i = g * sp + q; return `<button class="pad${bt.rows[r][i] ? " on" : ""}" type="button" data-r="${r}" data-i="${i}" aria-label="${esc(label)} step ${i + 1}" aria-pressed="${bt.rows[r][i]}"></button>`; }).join("")}</div>`).join("")}
           </div>`).join("")}</div>
+        `)}
         <p class="note">${esc(B().name)} picks the drum fills.</p>`;
     } else if (sheetMode === "view") {
       $("sheetTitle").textContent = "mode";
@@ -8545,16 +8871,17 @@
       $("sheetTitle").textContent = "your tape";
       body.innerHTML = `<div class="tape">
         <svg class="cass" viewBox="0 0 180 110" aria-hidden="true"><rect x="3" y="3" width="174" height="104" rx="10" fill="#2f2a3d"/><rect x="18" y="14" width="144" height="46" rx="4" fill="#f7f1e6"/><text x="90" y="34" text-anchor="middle" font-family="Gaegu, cursive" font-weight="700" font-size="17" fill="#2f2a3d">${esc((song.title || "untitled").slice(0, 22))}</text><text x="90" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" fill="#6f6782">${esc(B().name.toLowerCase())} · ${esc(pretty(keyName(K)))}</text><circle cx="56" cy="80" r="13" fill="#f7f1e6"/><circle cx="124" cy="80" r="13" fill="#f7f1e6"/><circle cx="56" cy="80" r="4" fill="#2f2a3d"/><circle cx="124" cy="80" r="4" fill="#2f2a3d"/><rect x="72" y="74" width="36" height="12" rx="3" fill="#4a4458"/></svg>
-        <audio controls src="${tapeURL}"></audio>
-        <div class="row"><button class="btn surprise" type="button" data-tape="save">save the tape</button><button class="btn" type="button" data-tape="again">record again</button></div>
-        <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Turn on “play the whole song” in settings to tape everything.`}</p></div>`;
+        ${tapeURL ? `<audio controls src="${tapeURL}"></audio>` : (song.takes || [])[0] ? `<audio controls data-takeaudio="${song.takes[0].id}"></audio>` : `<p class="note">No tape yet. Press record, or tap tape in the studio.</p>`}
+        <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn" type="button" data-tape="again">record again</button></div>
+        <p class="note">${prefs.wholeSong ? "The whole song, once through." : `The ${esc(sec().name.toLowerCase())}, two times round. Switch the button by play from “part” to “song” to tape everything.`}</p></div>${takesHTML()}`;
+      requestAnimationFrame(fillTakes);
     } else if (sheetMode === "house") {
       $("sheetTitle").textContent = `${keyLabel(houseKey())} · the house`;
       body.innerHTML = houseHTML();
       requestAnimationFrame(() => houseFollow(current[sel]));
     } else if (sheetMode === "book") {
-      $("sheetTitle").textContent = `${sec().name.toLowerCase()} · songbook`;
-      body.innerHTML = bookHTML();
+      $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`;
+      body.innerHTML = wordsTabs("book") + bookHTML();
     } else if (sheetMode === "chord") {
       const c = current[sel];
       if (!c) { closeSheet(); return; }
@@ -8651,6 +8978,12 @@
   playBtn.addEventListener("click", () => { if (recorder) recorder.stop(); else playAll(); });
   $("demoBtn").addEventListener("click", cycleDemo);
   $("rec").addEventListener("click", record);
+  $("scope").addEventListener("click", () => {
+    prefs.wholeSong = !prefs.wholeSong; savePrefs();
+    renderAll();
+    toast(prefs.wholeSong ? (song.order.length > 1 ? `the whole song, from the ${sec().name.toLowerCase()} on` : "the whole song (it's one part so far)") : `just the ${sec().name.toLowerCase()}`);
+    if (playing) { stop(); playAll(); }
+  });
   $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
   $("openKnobs").addEventListener("click", () => openSheet("knobs"));
   $("openSongs").addEventListener("click", () => openSheet("songs"));
@@ -8757,7 +9090,11 @@
     if (e.target.closest('[data-act="stories"]')) { storyAt = null; openSheet("stories"); return; }
     if (e.target.closest('[data-act="songsheet"]')) { openSheet("songsheet"); return; }
     if (e.target.closest('[data-act="words"]')) { openSheet("book"); return; }
+    if (e.target.closest('[data-act="along"]')) { openSheet("along"); return; }
     if (e.target.closest('[data-act="taperec"]')) { $("rec").click(); return; }
+    if (e.target.closest('[data-act="rack"]')) { openSheet("rack"); return; }
+    const muteB = e.target.closest("[data-mute]");
+    if (muteB) { e.preventDefault(); chanToggle("mute", muteB.dataset.mute); return; }
     if (e.target.closest('[data-act="mixreset"]')) { song.mix = { ...MIX_DEFAULT }; saveSongs(); applyMix(); renderPalette(); toast("the desk is back to flat"); return; }
     if (e.target.closest("[data-roof]")) { doorbell(); return; }
     if (e.target.closest('[data-act="vibe"]')) { nextVibe(); return; }
@@ -8880,7 +9217,7 @@
     if (el.dataset.act === "sylnudge") { nudgeSyl(el.dataset.d); return; }
     if (el.id === "lane") {
       if (editingLyric) { $("lyricInput")?.focus(); return; }
-      openSheet(isTimed(sec()) ? "along" : "book");
+      openSheet("along");
       return;
     }
     const act = el.dataset.act, c = current[sel];
@@ -8927,7 +9264,7 @@
     else if (act === "add") openSheet("add");
   });
   stageEl.addEventListener("keydown", e => {
-    if (e.target.id === "lane" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openSheet(isTimed(sec()) ? "along" : "book"); return; }
+    if (e.target.id === "lane" && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openSheet("along"); return; }
     if (e.target.id === "knob") {
       const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
       if (d) { e.preventDefault(); turnKnob(d, true); }
@@ -9076,6 +9413,8 @@
     }
     const tapeB = e.target.closest("[data-tape]");
     if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
+    if (sheetMode === "tape" && await takesClick(e)) return;
+    if (sheetMode === "rack" && rackClick(e)) return;
     const rmB = e.target.closest("[data-rmchord]");
     if (rmB) { removeChord(+rmB.dataset.rmchord); renderSheet(); return; }
     const addTok = e.target.closest("[data-addtok]"), addMood = e.target.closest("[data-addmood]"), addAct = e.target.closest("[data-addact]");
@@ -9286,6 +9625,7 @@
   });
   $("sheetBody").addEventListener("input", e => {
     if (sheetMode === "along" && alongInput(e)) return;
+    if (sheetMode === "rack" && rackInput(e)) return;
     if (e.target.id === "verseText" && isTimed(sec())) {
       // lines timed by hand keep their places: line 1 stays line 1, new lines wait to be placed
       const txt = e.target.value.slice(0, 2000).split(/\n/), ls = sec().lines;
@@ -9314,7 +9654,7 @@
       refreshPage(); renderStrip(); renderStage();
       return;
     }
-    if (e.target.id === "kBpm") { setting("bpm", +e.target.value); $("kBpmVal").textContent = e.target.value; renderDeck(); }
+    if (e.target.id === "kBpm") { setting("bpm", +e.target.value); $("kBpmVal").textContent = e.target.value; renderDeck(); applyFx(); }
     if (e.target.id === "kFills") {
       prefs.fills = +e.target.value; savePrefs();
       $("kFillsVal").textContent = FILL_LEVELS[prefs.fills];
@@ -9395,6 +9735,7 @@
     }
   });
 
+  $("sheetBody").addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.fold) folds[d.dataset.fold] = d.open; }, true);
   $("sheetBody").addEventListener("pointerdown", e => {
     if (sheetMode !== "along" || !e.target.closest("#alHold")) return;
     e.preventDefault();
