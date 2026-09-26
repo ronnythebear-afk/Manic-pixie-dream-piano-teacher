@@ -8153,7 +8153,21 @@
   }
 
   // how long a chord lasts, in words that fit on a chip
-  const lenLabel = n => (n % Mtr.n === 0 ? `${n / Mtr.n} bar${n / Mtr.n > 1 ? "s" : ""}` : `${n} ${n === 1 ? "beat" : "beats"}`);
+  // always counted in bars, so the label never switches units as you step: ¼ bar, ½ bar, 1 bar, 1½ bars...
+  const FRAC = [[0.25, "¼"], [1 / 3, "⅓"], [0.5, "½"], [2 / 3, "⅔"], [0.75, "¾"]];
+  function lenLabel(n, M = Mtr) {
+    const r = n / M.n, whole = Math.floor(r + 1e-9), part = r - whole, f = FRAC.find(([x]) => Math.abs(x - part) < 1e-6);
+    if (part < 1e-6) return `${whole} bar${whole > 1 ? "s" : ""}`;
+    if (f) return whole ? `${whole}${f[1]} bars` : `${f[1]} bar`;
+    return `${n} ${n === 1 ? "beat" : "beats"}`; // (only odd meters like 5/4 get here, below a bar)
+  }
+  // the lengths − and + step through: tidy fractions of a bar, then whole bars
+  function lenSteps(M = Mtr) {
+    const out = new Set([0.25, 1 / 3, 0.5, 2 / 3, 0.75, 1, 1.5, 2, 3, 4].map(f => M.n * f).filter(x => Math.abs(x - Math.round(x)) < 1e-6 && x >= 1 && x <= 16).map(Math.round));
+    if ([...out].filter(x => x < M.n).length < 2) for (let b = 1; b < M.n; b++) out.add(b);
+    return [...out].sort((a, b) => a - b);
+  }
+  const stepLen = (n, dir) => { const L0 = lenSteps(); return dir > 0 ? (L0.find(x => x > n) ?? n) : ([...L0].reverse().find(x => x < n) ?? n); };
   let arranging = false;
   function setArranging(on) {
     arranging = on;
@@ -8177,7 +8191,7 @@
         return `<div class="tile arr${c.j === sel ? " sel" : ""}" data-j="${c.j}" style="${fnVar(c.a.fn)};--w:${Math.min(c.beats, 8)}" tabindex="0" role="group" aria-label="${esc(it.raw)}, ${lenLabel(c.beats)}. Drag to move, or use the arrow keys">
           <span class="t-grab" aria-hidden="true">⠿</span>${head}
           <button type="button" class="t-rm" data-rm="${c.j}" aria-label="Take out ${esc(it.raw)}">✕</button>
-          <span class="t-len"><button type="button" data-len="-1" data-j="${c.j}" aria-label="Shorter"${c.beats <= 1 ? " disabled" : ""}>−</button><b>${lenLabel(c.beats)}</b><button type="button" data-len="1" data-j="${c.j}" aria-label="Longer"${c.beats >= 16 ? " disabled" : ""}>+</button></span>
+          <span class="t-len"><button type="button" data-len="-1" data-j="${c.j}" aria-label="Shorter"${stepLen(c.beats, -1) === c.beats ? " disabled" : ""}>−</button><b>${lenLabel(c.beats)}</b><button type="button" data-len="1" data-j="${c.j}" aria-label="Longer"${stepLen(c.beats, 1) === c.beats ? " disabled" : ""}>+</button></span>
         </div>`;
       }
       return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)};--w:${Math.min(c.beats, 8)}" aria-label="${esc(it.raw)}, ${c.a.num}, ${c.beats} counts">
@@ -9835,7 +9849,7 @@
     if (e.target.closest('[data-act="plus"]')) { openSheet("add"); return; }
     if (tileDrag && tileDrag.moved) return;
     const ln = e.target.closest("[data-len]");
-    if (ln) { const c = current[+ln.dataset.j]; if (c) { sel = c.j; setLength(c, c.beats + +ln.dataset.len); playOne(sel); stripEl.querySelector(`[data-len="${ln.dataset.len}"][data-j="${c.j}"]`)?.focus(); } return; }
+    if (ln) { const c = current[+ln.dataset.j]; if (c) { sel = c.j; setLength(c, stepLen(c.beats, +ln.dataset.len)); playOne(sel); stripEl.querySelector(`[data-len="${ln.dataset.len}"][data-j="${c.j}"]`)?.focus(); } return; }
     const rm = e.target.closest("[data-rm]");
     if (rm) { const c = current[+rm.dataset.rm]; if (c) removeChord(c.i); return; }
     const t = e.target.closest(".tile[data-j]");
