@@ -1238,21 +1238,22 @@
   .dbtn.demo-btn { width: auto; padding: 0 10px; font: 800 12px var(--body); white-space: nowrap; }
   .dbtn.demo-btn[aria-pressed="true"] { background: color-mix(in srgb, var(--rh) 45%, transparent); }
   .hear-words { min-height: 120px; font-family: var(--voice); font-size: 19px; line-height: 1.35; }
-  .hear-timed { min-height: 1em; }
-  .tl-wrap { overflow-x: auto; overflow-y: hidden; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); -webkit-overflow-scrolling: touch; }
   .tl { position: relative; padding-top: 22px; }
-  .tl-chs { position: absolute; left: 0; right: 0; top: 0; height: 20px; }
-  .tl-ch { position: absolute; top: 2px; padding: 0 5px; font: 900 12px var(--body); border-bottom: 3px solid var(--fn); white-space: nowrap; }
-  .tl-body { position: relative; }
-  .tl-bar { position: absolute; top: 0; bottom: 0; width: 1px; background: color-mix(in srgb, var(--line) 30%, transparent); }
-  .tl-row { position: absolute; left: 0; right: 0; height: 1px; background: color-mix(in srgb, var(--line) 12%, transparent); }
-  .tl-n { position: absolute; height: 17px; padding: 0 4px; max-width: 90px; border: 1.5px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--rh) 45%, var(--card)); color: var(--ink); font: 400 13px/14px var(--voice); overflow: hidden; white-space: nowrap; text-align: left; cursor: pointer; }
-  .tl-n.tie { background: color-mix(in srgb, var(--rh) 22%, var(--card)); border-style: dashed; }
-  .tl-n.on { background: var(--lamp); z-index: 2; box-shadow: var(--shadow); }
-  .tl-tools { align-items: center; }
-  .tl-name { font: 900 18px var(--body); min-width: 34px; }
-  .kbd .sung { fill: color-mix(in srgb, var(--surprise) 70%, #fff) !important; }
-  .syl.tie { opacity: .5; font-size: .8em; }
+  /* phones: the demo switch floats just above the deck, and the deck row tightens so every button fits */
+  @media (max-width: 560px) {
+    .deck-in { position: relative; }
+    .dbtn.demo-btn { position: absolute; right: 0; top: -40px; z-index: 3; height: 30px; min-width: 0; padding: 0 12px; border-radius: 15px; background: #25222f; border: 2px solid #14121b; box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .6); }
+    .dbtn.demo-btn[aria-pressed="true"] { background: #3a2f45; }
+  }
+  @media (max-width: 400px) {
+    .deck { padding-left: 10px; padding-right: 10px; }
+    .deck-in { gap: 6px; }
+    .dbtn { min-width: 40px; height: 44px; padding: 0 6px; }
+    .dbtn.play { min-width: 52px; }
+    .reels { padding: 4px 5px; gap: 3px; }
+  }
+  /* the sky's twinkles can drift past the edge on narrow phones: never let them widen the page */
+  html, body { overflow-x: clip; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -3755,6 +3756,16 @@
       const within = (arr, d) => { const o = cur == null ? arr : arr.filter(m => Math.abs(m - cur) <= d); return o.length ? o : arr; };
       const clear = arr => { const o = arr.filter(m => m !== rhTop); return o.length ? o : arr; }; // don't hide under the piano's top note
       let pick;
+      if (heard != null) {
+        // follow the demo: the heard note, kept in the key (a stressed syllable settles on a
+        // chord tone when one is within a half step), and not hiding under the piano's top note
+        const inKey = near(sc, heard), chordy = near(ct, heard);
+        pick = (a.e.S || idx === all.length - 1) && chordy != null && Math.abs(chordy - heard) <= 1 ? chordy : inKey;
+        if (pick === rhTop) { const alt = sc.filter(m => m !== rhTop && Math.abs(m - heard) <= 2 && (!a.e.S || ct.includes(m))); if (alt.length) pick = near(alt, heard); }
+        if (pick == null) pick = Math.round(heard);
+        cur = pick;
+        return { midi: pick, start: a.off + a.e.start, dur: a.e.dur, s: idx, ci: a.gi, local: a.k, light: !!a.e.light, stress: !!a.e.S, glide: who === "dusty" && !!a.e.S, hop: who === "ghost" && !a.e.S };
+      }
       if (idx === all.length - 1) {
         const root = c.ch.rootPc, third = mod(root + (c.ch.ivs.find(v => v === 3 || v === 4) ?? 7));
         if (opt.ask) {
@@ -5595,10 +5606,9 @@
           <button class="btn" type="button" data-hear="back" aria-label="Back five seconds">↺ 5s</button>
           <label class="hear-along"><input type="checkbox" id="hearAlong"${hear.along ? " checked" : ""}> ${esc(B().name)} strums along</label></div>
         <h3 class="subhead">the words</h3>
-        <p class="note">${hear.voice && hear.voice.notes.length > 8 ? `I can hear ${hear.voice.notes.length} sung notes. ` : ""}Press listen and type the words as they're sung, pressing return when a new line starts. I'll catch when each word comes in and put it on the right note. Pasting works too.</p>
-        <textarea id="hearWords" class="verse-in hear-words" rows="6" spellcheck="false" placeholder="type along here…">${esc(hear.words || "")}</textarea>
-        <p class="note hear-timed" id="hearTimed">${(hear.stamps || []).filter(v => v != null).length ? `${hear.stamps.filter(v => v != null).length} of ${(hear.wlist || []).length} words timed` : ""}</p>
-        <label class="hear-along"><input type="checkbox" id="hearTune"${hear.tune === false ? "" : " checked"}> ${esc(B().name)} sings the melody I heard</label>
+        <p class="note">Paste the lyrics if you have them. Chords above the lines and part names like “chorus” help me place them.</p>
+        <textarea id="hearWords" class="verse-in hear-words" rows="6" spellcheck="false" placeholder="paste the lyrics here…">${esc(hear.words || "")}</textarea>
+        <label class="hear-along"><input type="checkbox" id="hearTune"${hear.tune === false ? "" : " checked"}> ${esc(B().name)} follows the melody I heard</label>
         <div class="row"><button class="btn surprise" type="button" data-hear="make">make it a song</button><button class="btn" type="button" data-hear="again">try another file</button></div>
         <h3 class="subhead">the parts I heard</h3>${parts}
         <p class="note">Once it's a song, tap any chord to fix it. Checking a guess by ear is great practice.</p>`;
@@ -5731,7 +5741,7 @@
 
   // the learned song, ready to play, change and sing over
   async function hearMake() {
-    const r = hear.res, P = hear.parts, meter = r.per === 3 ? "3/4" : "4/4", M = METERS[meter], spell = hearSpell(r.key), V = hear.voice;
+    const r = hear.res, P = hear.parts, meter = r.per === 3 ? "3/4" : "4/4", spell = hearSpell(r.key), V = hear.voice;
     const title = (hear.name || "a song").replace(/\.[a-z0-9]{2,4}$/i, "").replace(/[_]+/g, " ").trim().slice(0, 60) || "a song";
     const s = newSong(title, "", { key: r.key.tonic + (r.key.minor ? "m" : "M"), bpm: Math.max(50, Math.min(150, Math.round(r.bpm))), ownTune: hear.tune === false }, meter);
     // runs: a part played several times in a row
@@ -5740,35 +5750,11 @@
     const U = r.units, upb = r.per === 4 ? 2 : 1;
     const span = (at, n) => { const u = U.slice(at, at + n); return { t0: u[0] ? u[0].t0 : 0, t1: u.length ? u[u.length - 1].t1 : 0, u }; };
     const barsOf = u => { const b = []; for (let i = 0; i < u.length; i += upb) b.push(u[i].t0); return { bars: b, end: u.length ? u[u.length - 1].t1 : 0 }; };
-    // ---- the words, and which run each line was sung in
-    const text = hear.words || "";
-    const typed = (hear.stamps || []).some(v => v != null);
-    const runLines = runs.map(() => null);
-    if (typed) {
-      const onsets = V ? V.notes.map(nt => nt.t0) : [];
-      const snapped = snapStamps(hear.stamps || [], onsets);
-      let wi = 0;
-      const lines = [];
-      text.replace(/\r/g, "").split("\n").forEach(raw => {
-        const toks = raw.trim().split(/\s+/).filter(Boolean), st = toks.map(() => snapped[wi++] ?? null);
-        if (!toks.length || isChordLine(raw) || (PART_WORD.test(raw) && toks.length <= 5)) return;
-        lines.push({ text: toks.join(" ").replace(/^\+/, ""), stamps: st, t: st.find(v => v != null) ?? null });
-      });
-      // lines without a time follow the line before them
-      let lastRun = 0;
-      lines.forEach(l => {
-        let k = lastRun;
-        if (l.t != null) {
-          k = runs.findIndex(rn => { const sp = span(rn.at, P.parts[rn.part].units.length * rn.n); return l.t >= sp.t0 - 0.4 && l.t < sp.t1 - 0.2; });
-          if (k < 0) k = runs.reduce((bst, rn, i) => { const sp = span(rn.at, P.parts[rn.part].units.length * rn.n); const d = Math.min(Math.abs(l.t - sp.t0), Math.abs(l.t - sp.t1)); return d < bst[1] ? [i, d] : bst; }, [0, 1e9])[0];
-        }
-        lastRun = k;
-        (runLines[k] = runLines[k] || []).push(l);
-      });
-    } else {
-      const blocks = readWords(text), words = blocks.length ? placeWords(blocks, P.parts, runs) : runs.map(() => null);
-      words.forEach((b, k) => { if (b != null) runLines[k] = blocks[b].lines.map(t => ({ text: t, stamps: null, t: null })); });
-    }
+    // ---- pasted words, placed on the parts they belong to
+    const blocks = readWords(hear.words || ""), placed = blocks.length ? placeWords(blocks, P.parts, runs) : runs.map(() => null);
+    const runLines = placed.map(b => (b == null ? null : blocks[b].lines.map(t => ({ text: t }))));
+    // the melody comes from the voice follower when it heard a voice; it's steadier than the rough pass
+    const tr = V && V.notes.length > 8 ? { ...r, mel: V.line } : r;
     // ---- parts, the song's order, and where each stretch sits in the demo
     const secs = new Map(), order = [], entries = [], perName = {};
     runs.forEach((run, k) => {
@@ -5776,7 +5762,7 @@
       if (!lines) {
         // no words: the part as a loop, played as many times as it came round
         const key = "p" + run.part;
-        if (!secs.has(key)) { const x = newSection(p.name, unitsToProg(p.units, r.per, spell), meter); x.tune = tuneOf(r, U.slice(run.at, run.at + len)); secs.set(key, x); }
+        if (!secs.has(key)) { const x = newSection(p.name, unitsToProg(p.units, r.per, spell), meter); x.tune = tuneOf(tr, U.slice(run.at, run.at + len)); secs.set(key, x); }
         for (let i = 0; i < run.n; i++) { const sp = span(run.at + i * len, len); order.push(secs.get(key).id); entries.push({ sid: secs.get(key).id, ...barsOf(sp.u) }); }
         return;
       }
@@ -5788,10 +5774,7 @@
         perName[p.name] = (perName[p.name] || 0) + 1;
         const x = newSection(nm, Array(run.n).fill(unitsToProg(p.units, r.per, spell)).join(" "), meter);
         x.verse = verse;
-        x.tune = tuneOf(r, sp.u);
-        if (V && V.notes.length) {
-          try { x.lead = { verse, sig: null, lines: leadFor(lines, V, sp.t0, sp.t1, bm.bars, bm.end, M, r.key) }; } catch { x.lead = null; }
-        }
+        x.tune = tuneOf(tr, sp.u);
         secs.set(key, x);
       }
       order.push(secs.get(key).id);
@@ -5808,8 +5791,7 @@
     openSong(s);
     saveSongs();
     closeSheet();
-    const words = runLines.some(Boolean);
-    toast(!kept ? `added “${title}”. this browser won't keep the demo after you close it` : words ? `added “${title}” with your demo and words. tap “demo” to switch who sings` : `added “${title}” with your demo`);
+    toast(!kept ? `added “${title}”. this browser won't keep the demo after you close it` : `added “${title}” with your demo. tap “demo + band” to switch who plays`);
   }
 
   // true when the click was ours
@@ -5820,9 +5802,9 @@
     if (b.dataset.hseek != null) { const bar = hearBars()[+b.dataset.hseek]; if (bar) hearPlay(bar.t0 - 0.05); return true; }
     if (b.dataset.hpart != null) { const i = +b.dataset.hpart, k = hear.parts.order.indexOf(i); if (k >= 0) hearPlay(hear.res.units[hear.parts.starts[k]].t0 - 0.05); return true; }
     const a = b.dataset.hear;
-    if (a === "play") { if (hear.src) hearStop(); else { hearPlay(hear.resumeAt || 0); document.getElementById("hearWords")?.focus(); } }
+    if (a === "play") { if (hear.src) hearStop(); else hearPlay(hear.resumeAt || 0); }
     else if (a === "again") { hearStop(); hear = { stage: "pick" }; renderSheet(); }
-    else if (a === "back") { const p = hearPos(); hearPlay(Math.max(0, (p ?? 0) - 5)); document.getElementById("hearWords")?.focus(); }
+    else if (a === "back") { const p = hearPos(); hearPlay(Math.max(0, (p ?? hear.resumeAt ?? 0) - 5)); }
     else if (a === "make") hearMake();
     return true;
   }
@@ -5904,8 +5886,8 @@
   }
 
   // =========================================================
-  // The voice in a recording: follow the singer's pitch, cut it
-  // into notes and phrases, then lay the words on those notes
+  // The voice in a recording: follow the singer's pitch and cut
+  // it into notes and phrases
   // =========================================================
   // L, R: the two channels at HEAR_SR (R may be L for mono files)
   async function hearVoice(L, R, prog = () => {}) {
@@ -6055,98 +6037,10 @@
     return { notes, phrases, line: { f: line, hop: hop * 2, t0: N / 2 / sr }, stereo };
   }
 
-  // ---------- words onto the sung notes ----------
-  // lines: [{ sy: syllables, t: a typed start time or null }], notes: the sung notes in this stretch
-  // → for each line, which notes it covers { a, b } (or null). Lines like to begin after a breath,
-  // cover about as many notes as they have syllables, and start near any time you typed.
-  function alignLines(lines, notes) {
-    const NL = lines.length, Nn = notes.length, INF = 1e9;
-    if (!NL) return [];
-    const gapBefore = k => (k <= 0 ? 1 : k >= Nn ? 1 : notes[k].t0 - notes[k - 1].t1);
-    const fitN = (s, n) => (Math.abs(s - n) / Math.max(s, n, 1)) * 3;
-    const dp = Array.from({ length: NL + 1 }, () => new Float64Array(Nn + 1).fill(INF)), bk = Array.from({ length: NL + 1 }, () => new Int32Array(Nn + 1).fill(-1)), sk = Array.from({ length: NL + 1 }, () => new Int32Array(Nn + 1));
-    dp[0][0] = 0;
-    for (let i = 0; i < NL; i++) for (let j = 0; j <= Nn; j++) {
-      const c = dp[i][j];
-      if (c >= INF) continue;
-      const S = lines[i].sy.length;
-      // a line with no notes at all (it wasn't sung, or I couldn't hear it)
-      if (c + 3.5 < dp[i + 1][j]) { dp[i + 1][j] = c + 3.5; bk[i + 1][j] = j; sk[i + 1][j] = j; }
-      // skip a few notes first (an "ooh"), then take a run of notes
-      let skipC = 0;
-      for (let a = j; a <= Math.min(Nn - 1, j + 6); a++) {
-        if (a > j) skipC += notes[a - 1].lone ? 0.15 : 0.45;
-        const lo = a + Math.max(1, Math.floor(S * 0.4)), hi = Math.min(Nn, a + Math.ceil(S * 2.2) + 2);
-        for (let b = lo; b <= hi; b++) {
-          const brk = (gap => (gap > 0.35 ? 0 : gap > 0.18 ? 0.4 : 1))(gapBefore(a)) + (b < Nn ? (gap => (gap > 0.35 ? 0 : gap > 0.18 ? 0.4 : 1))(gapBefore(b)) * 0.5 : 0);
-          const near = lines[i].t == null ? 0 : Math.min(2.5, Math.abs(notes[a].t0 - lines[i].t) * 1.2);
-          const v = c + skipC + fitN(S, b - a) + brk + near;
-          if (v < dp[i + 1][b]) { dp[i + 1][b] = v; bk[i + 1][b] = j; sk[i + 1][b] = a; }
-        }
-      }
-    }
-    // leftover notes at the end cost a little
-    let bj = 0;
-    for (let j = 0; j <= Nn; j++) if (dp[NL][j] + (Nn - j) * 0.45 < dp[NL][bj] + (Nn - bj) * 0.45) bj = j;
-    const out = new Array(NL).fill(null);
-    for (let i = NL, j = bj; i > 0; i--) {
-      const pj = bk[i][j], a = sk[i][j];
-      if (pj < 0) break;
-      out[i - 1] = a < j ? { a, b: j } : null;
-      j = pj;
-    }
-    return out;
-  }
-  // one line's syllables onto its notes: a syllable can hold across several notes,
-  // or two quick syllables can share one → [{ s, t0, t1, midi, tie }]
-  // want: optional time each syllable was typed (null where unknown); it pulls the syllable toward it
-  function alignSyllables(sy, notes, want = []) {
-    const S = sy.length, Nn = notes.length, INF = 1e9;
-    if (!S) return [];
-    if (!Nn) return null;
-    const dur = k => notes[k].t1 - notes[k].t0;
-    const dp = Array.from({ length: S + 1 }, () => new Float64Array(Nn + 1).fill(INF)), bk = Array.from({ length: S + 1 }, () => new Array(Nn + 1));
-    dp[0][0] = 0;
-    for (let i = 0; i <= S; i++) for (let j = 0; j <= Nn; j++) {
-      const c = dp[i][j];
-      if (c >= INF) continue;
-      if (i === S) { if (j < Nn && c + 0.5 < dp[i][j + 1]) { dp[i][j + 1] = c + 0.5; bk[i][j + 1] = [i, j, "skip"]; } continue; }
-      const go = (i2, j2, add, how) => { if (i2 <= S && j2 <= Nn && c + add < dp[i2][j2]) { dp[i2][j2] = c + add; bk[i2][j2] = [i, j, how]; } };
-      const st = sy[i].stress, pull = want[i] == null || j >= Nn ? 0 : Math.min(1.2, Math.abs(notes[j].t0 - want[i]) * 2);
-      for (let m = 1; m <= 3 && j + m <= Nn; m++) {
-        let d = 0; for (let q = j; q < j + m; q++) d += dur(q);
-        go(i + 1, j + m, (m - 1) * 0.55 + (st && d < 0.14 ? 0.3 : 0) + (!st && d > 0.6 ? 0.15 : 0) + pull, "m" + m);
-      }
-      if (j < Nn && i + 1 < S) go(i + 2, j + 1, 0.9 + (dur(j) < 0.2 ? 0.5 : 0), "share");
-      if (j < Nn) go(i, j + 1, notes[j].lone ? 0.2 : 0.7, "skip");
-    }
-    if (dp[S][Nn] >= INF) return null;
-    const out = [];
-    let i = S, j = Nn;
-    while (i > 0 || j > 0) {
-      const b = bk[i][j];
-      if (!b) break;
-      const [pi, pj, how] = b;
-      if (how === "skip") { i = pi; j = pj; continue; }
-      if (how === "share") {
-        const nt = notes[pj], mid = (nt.t0 + nt.t1) / 2;
-        out.unshift({ s: pi + 1, t0: mid, t1: nt.t1, midi: nt.midi }, );
-        out.unshift({ s: pi, t0: nt.t0, t1: mid, midi: nt.midi });
-      } else {
-        const m = +how.slice(1);
-        const part = [];
-        for (let q = pj; q < pj + m; q++) part.push({ s: pi, t0: notes[q].t0, t1: notes[q].t1, midi: notes[q].midi, tie: q > pj });
-        out.unshift(...part);
-      }
-      i = pi; j = pj;
-    }
-    return out;
-  }
 
   // =========================================================
   // Your demo, kept with the song. It plays in step with the
-  // chords, bar by bar, with the band or on its own; and the
-  // melody Pixie heard in it becomes the part's lead line.
+  // chords, bar by bar, with the band or on its own.
   // =========================================================
   const DEMO_DB = "pixie-demos";
   let demoDbP = null;
@@ -6231,194 +6125,10 @@
     song.demo.mode = DEMO_MODES[(i + 1) % DEMO_MODES.length][0];
     saveSongs(); renderDemoBtn();
     if (demoMode() !== "off" && !(await demoBuffer())) { toast("I can't find the demo in this browser anymore. Learn the song again to bring it back."); return; }
-    toast({ band: "your demo, with the band", alone: "just your demo, chords lighting up", off: `${B().name} sings your melody` }[demoMode()]);
+    toast({ band: "your demo, with the band", alone: "just your demo, chords lighting up", off: `${B().name} sings it` }[demoMode()]);
     if (playing) { stop(); playAll(); }
   }
 
-  // ---------- words typed along with the demo: each word remembers when it came in ----------
-  const TYPE_LAG = 0.5; // how long after hearing a word the first key usually lands
-  function hearTyped(el) {
-    const words = el.value.split(/\s+/).filter(Boolean), old = hear.wlist || [], st = (hear.stamps || []).slice(0, words.length);
-    const pos = hear.src ? hearPos() : null, atEnd = el.selectionStart >= el.value.trimEnd().length;
-    const added = words.length - old.length;
-    for (let i = 0; i < words.length; i++) {
-      if (st[i] != null) continue;
-      // only the word being typed right now, at the end, while the demo plays, gets a time
-      if (pos != null && atEnd && added <= 2 && i >= words.length - 1 - Math.max(0, added)) st[i] = Math.max(0, pos - TYPE_LAG);
-      else st[i] = st[i] ?? null;
-    }
-    hear.wlist = words; hear.stamps = st; hear.words = el.value;
-    const n = st.filter(v => v != null).length, note = document.getElementById("hearTimed");
-    if (note) note.textContent = n ? `${n} of ${words.length} words timed` : "";
-  }
-  // nudge each typed time onto the moment the voice actually started a note
-  function snapStamps(stamps, onsets) {
-    let last = -1;
-    return stamps.map(s => {
-      if (s == null) return null;
-      let best = s, bd = 0.75;
-      for (const v of onsets) {
-        if (v < s - 0.75) continue;
-        if (v > s + 0.3) break;
-        const d = Math.abs(v - s) * (v > s ? 1.6 : 1);
-        if (d < bd && v > last + 0.07) { bd = d; best = v; }
-      }
-      best = Math.max(best, last + 0.07);
-      last = best;
-      return best;
-    });
-  }
-
-  // ---------- a part's lead line: the sung notes, placed in beats ----------
-  // lines: [{ text, stamps (per word, snapped, or null) }] sung inside [T0, T1] of the demo
-  // bars: demo time of each bar line in this part · M: meter · key: to store notes from the home note
-  function leadFor(lines, voice, T0, T1, bars, end, M, key) {
-    const notes = voice.notes.filter(nt => nt.t0 >= T0 - 0.25 && nt.t0 < T1 + 0.1);
-    const beatOf = t => {
-      let b = 0; while (b + 1 < bars.length && bars[b + 1] <= t) b++;
-      const b0 = bars[b], b1 = bars[b + 1] ?? end;
-      return Math.max(0, b * M.n + (t - b0) / Math.max(0.05, b1 - b0) * M.n);
-    };
-    const pitchAt = t => {
-      const L = voice.line, f = Math.round((t - L.t0) / L.hop);
-      for (const d of [0, 1, -1, 2, -2, 3, -3]) { const v = L.f[f + d]; if (v) return v; }
-      return 0;
-    };
-    const Ls = lines.map(l => {
-      // syllables, and the typed time of each word's first syllable
-      const sy = [], want = [];
-      l.text.split(/\s+/).filter(Boolean).forEach((w, wi) => {
-        const s = lineSyllables(w);
-        s.forEach((x, k) => { sy.push(x); want.push(k === 0 && l.stamps ? l.stamps[wi] ?? null : null); });
-      });
-      return { sy, want, t: want.find(v => v != null) ?? null };
-    });
-    const spans = alignLines(Ls, notes);
-    let prevEnd = T0, lastMidi = 0;
-    const out = Ls.map((L, li) => {
-      if (!L.sy.length) return [];
-      const sp = spans[li];
-      let al = sp ? alignSyllables(L.sy, notes.slice(sp.a, sp.b), L.want) : null;
-      if (!al) {
-        // I couldn't hear this line: space its syllables out from where it was typed (or after the last one)
-        const t0 = L.t ?? prevEnd + 0.3;
-        al = L.sy.map((_, s) => { const t = t0 + s * 0.28; return { s, t0: t, t1: t + 0.25, midi: pitchAt(t) || lastMidi || 60 + key.tonic }; });
-      }
-      prevEnd = al.length ? al[al.length - 1].t1 : prevEnd;
-      return al.map(a => {
-        lastMidi = a.midi;
-        const b = beatOf(a.t0), e = beatOf(a.t1);
-        return { s: a.s, b: +b.toFixed(3), d: +Math.max(0.2, e - b).toFixed(3), m: a.midi - key.tonic, tie: a.tie ? 1 : 0 };
-      });
-    });
-    return out;
-  }
-  // the part's lead line → everything the singer and the lane need, chord by chord
-  function leadChain(section, d, who) {
-    const out = new Map(), LD = section.lead, list = d.list, key = d.key;
-    const texts = section.verse.split("\n").map(x => x.trim()).filter(Boolean);
-    if (!list.length) return out;
-    const chordAt = beat => { let k = 0; while (k + 1 < list.length && list[k + 1].at <= beat + 1e-6) k++; return k; };
-    // bring the tune into the singer's range, keeping its shape
-    const all = LD.lines.flat().map(n => n.m + key.tonic).sort((a, b) => a - b);
-    const [lo, hi] = (SING_STYLES[who] || SING_STYLES.wren).range;
-    const shift = all.length ? Math.round(((lo + hi) / 2 - all[Math.floor(all.length / 2)]) / 12) * 12 : 0;
-    const per = list.map(c => ({ c, sy: [], notes: [], lines: [] }));
-    texts.forEach((text, li) => {
-      const ln = LD.lines[li] || [];
-      if (!ln.length) return;
-      const sy = lineSyllables(text);
-      // each word lives in the chord where its first syllable is sung
-      const wordOf = []; let w = -1; sy.forEach((x, k) => { if (x.first || w < 0) w++; wordOf[k] = w; });
-      const wordBeat = {};
-      ln.forEach(n => { const wd = wordOf[n.s]; if (wd != null && wordBeat[wd] == null && !n.tie) wordBeat[wd] = n.b; });
-      const localIdx = {};
-      sy.forEach((x, k) => {
-        const wb = wordBeat[wordOf[k]];
-        const ci = chordAt(wb ?? (ln[0] ? ln[0].b : 0));
-        localIdx[k] = [ci, per[ci].sy.length];
-        per[ci].sy.push(x);
-      });
-      const first = chordAt(ln[0].b), lastC = chordAt(ln[ln.length - 1].b);
-      const chords = list.slice(first, lastC + 1);
-      const isSmall = k => { const t = text.split(/\s+/).filter(Boolean); const word = (t[wordOf[k]] || "").toLowerCase().replace(/[^a-z']/g, ""); return SMALL.has(word); };
-      const notes = ln.map(n => ({ midi: n.m + key.tonic + shift, heard: n.m + key.tonic, start: n.b - list[first].at, dur: n.d, s: n.s, tie: !!n.tie, ci: Math.max(0, chordAt(n.b) - first), stress: !!sy[n.s] && !!sy[n.s].stress, light: isSmall(n.s) && !(sy[n.s] || {}).stress }));
-      per[first].lines.push({ sy, notes, chords });
-      ln.forEach(n => {
-        const [ci, s] = localIdx[n.s] || [chordAt(n.b), 0], c = list[ci];
-        per[ci].notes.push({ midi: n.m + key.tonic + shift, start: n.b - c.at, dur: n.d, s, tie: !!n.tie, emph: null });
-      });
-    });
-    per.forEach(p => { if (p.sy.length || p.lines.length) out.set(p.c.i, { sy: p.sy, notes: p.notes, scat: false, lines: p.lines, line: null, inLine: !p.lines.length }); });
-    return out;
-  }
-  // is this part's lead line still about these words and these chords?
-  const leadOK = (section, list) => !!section.lead && Array.isArray(section.lead.lines) && section.lead.verse === section.verse && (section.lead.sig == null || section.lead.sig === flowSig(list));
-
-  // ---------- the tune lane: your melody as notes you can see, hear and nudge ----------
-  let tuneSel = null; // [line, note]
-  const TUNE_PX = 58;
-  function tuneHTML() {
-    const x = sec(), LD = x.lead;
-    if (!leadOK(x, current)) return `<p class="note">This part doesn't have a melody from a demo yet. Learn a song by ear and type the words along with it, and its tune shows up here.</p>`;
-    const flat = LD.lines.flat(), key = K.tonic;
-    const ms = flat.map(n => n.m + key), lo = Math.min(...ms) - 1, hi = Math.max(...ms) + 1, rows = hi - lo + 1, RH = Math.max(7, Math.min(12, Math.floor(200 / rows)));
-    const total = current.reduce((a, c) => a + c.beats, 0), W = total * TUNE_PX;
-    const texts = x.verse.split("\n").map(t => t.trim()).filter(Boolean);
-    let grid = "", chords = "";
-    for (let b = 0; b <= total; b += Mtr.n) grid += `<i class="tl-bar" style="left:${b * TUNE_PX}px"></i>`;
-    for (let m = lo; m <= hi; m++) if ([0, 5].includes(mod(m - key))) grid += `<i class="tl-row" style="top:${(hi - m) * RH}px"></i>`;
-    current.forEach(c => { chords += `<span class="tl-ch" style="left:${c.at * TUNE_PX}px;${fnVar(c.a.fn)}">${esc(pretty(c.tok.replace(/:\d+$/, "")))}</span>`; });
-    let pills = "";
-    LD.lines.forEach((ln, li) => {
-      const sy = lineSyllables(texts[li] || "");
-      ln.forEach((n, k) => {
-        const on = tuneSel && tuneSel[0] === li && tuneSel[1] === k;
-        pills += `<button type="button" class="tl-n${n.tie ? " tie" : ""}${on ? " on" : ""}" data-tn="${li}:${k}" style="left:${n.b * TUNE_PX}px;min-width:${Math.max(14, n.d * TUNE_PX - 2)}px;top:${(hi - (n.m + key)) * RH - 4}px" aria-label="${esc((sy[n.s] || {}).show || "")} ${esc(pretty(FALLBACK[mod(n.m + key)]))}">${n.tie ? "" : esc((sy[n.s] || {}).show || "")}</button>`;
-      });
-    });
-    const sel = tuneSel && (LD.lines[tuneSel[0]] || [])[tuneSel[1]];
-    return `<p class="note">Your melody from the demo, one pill per sung syllable. Tap one to hear it and nudge it; the keyboard shows each note as it's sung.</p>
-      <div class="tl-wrap"><div class="tl" style="width:${W}px;height:${rows * RH + 22}px"><div class="tl-chs">${chords}</div><div class="tl-body" style="height:${rows * RH}px">${grid}${pills}<i class="tl-head" id="tlHead"></i></div></div></div>
-      <div class="row tl-tools">${sel ? `<b class="tl-name">${esc(pretty(FALLBACK[mod(sel.m + key)]))}</b>
-        <button class="btn" type="button" data-tune="left" aria-label="Earlier">◀</button><button class="btn" type="button" data-tune="right" aria-label="Later">▶</button>
-        <button class="btn" type="button" data-tune="up" aria-label="Higher">▲</button><button class="btn" type="button" data-tune="down" aria-label="Lower">▼</button>` : `<span class="note">tap a note to change it</span>`}
-        <button class="btn" type="button" data-tune="line">▶ hear this part</button></div>`;
-  }
-  function tuneClick(e) {
-    const p = e.target.closest("[data-tn]"), t = e.target.closest("[data-tune]");
-    const LD = sec().lead;
-    if (p) {
-      tuneSel = p.dataset.tn.split(":").map(Number);
-      const n = LD.lines[tuneSel[0]][tuneSel[1]];
-      audioReady().then(ok => { if (ok) singWord((lineSyllables((sec().verse.split("\n").map(x => x.trim()).filter(Boolean)[tuneSel[0]]) || "")[n.s] || {}).show || "la", n.m + K.tonic + 12 * Math.round((((SING_STYLES[prefs.buddy] || SING_STYLES.wren).range[0] + 6) - (n.m + K.tonic)) / 12), ac.currentTime + 0.03, 0.5, prefs.buddy); });
-      renderSheet(); return true;
-    }
-    if (!t) return false;
-    const a = t.dataset.tune;
-    if (a === "line") { closeSheet(); if (!playing) playAll(); return true; }
-    if (!tuneSel) return true;
-    const n = LD.lines[tuneSel[0]][tuneSel[1]];
-    if (a === "left") n.b = Math.max(0, +(n.b - 0.25).toFixed(3));
-    if (a === "right") n.b = +(n.b + 0.25).toFixed(3);
-    if (a === "up") n.m++;
-    if (a === "down") n.m--;
-    saveSongs(); renderSheet(); renderStage();
-    return true;
-  }
-  // light the key being sung, so you can learn to play your melody
-  function markSung(midi, dur) {
-    document.querySelectorAll(".kbd .sung").forEach(el => el.classList.remove("sung"));
-    let m = midi;
-    const keys = document.querySelectorAll(".kbd [data-k]");
-    if (!keys.length) return;
-    const ks = [...keys].map(k => +k.dataset.k), kmin = Math.min(...ks), kmax = Math.max(...ks);
-    while (m < kmin) m += 12; while (m > kmax) m -= 12;
-    const el = document.querySelector(`.kbd [data-k="${m}"]`);
-    if (!el) return;
-    el.classList.add("sung");
-    clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("sung"), Math.max(120, dur * 1000));
-  }
 
   // =========================================================
   // App state
@@ -6715,8 +6425,6 @@
   function melodyChain(sIdx) {
     const section = song.sections[sIdx], d = sectionData(sIdx), out = new Map(), who = prefs.buddy;
     if (section.verse != null && (!Array.isArray(section.cont) || section.flowSig !== flowSig(d.list))) flowVerse(section, d.list);
-    // a part learned from a demo sings the melody that was heard in it
-    if (leadOK(section, d.list) && !S().ownTune) return leadChain(section, d, who);
     const cont = section.cont || [], wordsOf = c => (section.words[c.i] || "").trim();
     const lines = [];
     d.list.forEach((c, k) => { if (k && cont[d.list[k - 1].i] && lines.length) lines[lines.length - 1].push(c); else lines.push([c]); });
@@ -6730,7 +6438,8 @@
         const shift = Math.round(((lo + hi) / 2 - mid) / 12) * 12;
         heardTune = beat => {
           const j = Math.round(beat * 2);
-          for (const d2 of [0, 1, -1, 2, -2]) { const v = T[j + d2]; if (v >= 0) return v + d.key.tonic + shift; }
+          // stray octave slips from the pitch follower get folded back into the singer's range
+          for (const d2 of [0, 1, -1, 2, -2]) { const v0 = T[j + d2]; if (v0 >= 0) { let v = v0 + d.key.tonic + shift; while (v > hi + 2) v -= 12; while (v < lo - 2) v += 12; return v; } }
           return null;
         };
       }
@@ -6820,7 +6529,7 @@
     const side = {
       simple: inside + `<button class="pal more" type="button" data-act="more">+ chords</button>`,
       learn: inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
-      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button>${sec().lead ? `<button class="pal more" type="button" data-open="tune">♪ tune</button>` : ""}<button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
+      write: `<button class="pal mh-in" type="button" data-act="words">✎ songbook</button><button class="pal more" type="button" data-act="more">+ chords</button><button class="pal more" type="button" data-act="songsheet">▤ sheet</button>`,
       studio: `<button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button><button class="pal vibe" type="button" data-act="vibe" aria-label="Change the vibe"><small>vibe</small>${esc(vibeOf().name)}</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
@@ -7339,8 +7048,6 @@
         const hn = L1.notes.filter((n, k) => !n.light || k === L1.notes.length - 1);
         singPhrase({ ...L1, notes: hn.map(n => ({ ...n, midi: above(n) })) }, t, cl, who, moodOf(c), { delay: 0.012, cents: -6, pan: 0.55, gain: 0.4, quiet: true });
       }
-      // the sung note lights up on the keyboard, so you can learn to play your melody
-      if (!alone) L1.notes.forEach(n => { if (!n.tie) later(() => { if (playing) markSung(n.heard ?? n.midi, n.dur * cl); }, (t + n.start * cl - ac.currentTime) * 1000); });
     }
     });
     // ...and soft oohs underneath every chord
@@ -7697,7 +7404,6 @@
   // =========================================================
   const flowSig = list => list.map(c => c.tok + ":" + c.beats).join(" ");
   function flowVerse(section, list) {
-    if (section.lead && section.lead.verse === section.verse && list.length && (section.lead.sig == null || section.lead.sig === flowSig(list))) return flowLead(section, list);
     const raw = (section.verse || "").split(/\n/).map(s => s.trim());
     const lines = raw.filter(Boolean);
     const C = list.length, out = Array(C).fill(""), on = Array(C).fill(0);
@@ -7737,29 +7443,6 @@
     section.cont = [];
     list.forEach((c, k) => { if (on[k]) section.cont[c.i] = 1; });
     section.flowSig = flowSig(list);
-  }
-
-  // a verse learned from a demo: each word goes on the chord where it was sung
-  function flowLead(section, list) {
-    const LD = section.lead, texts = section.verse.split("\n").map(x => x.trim()).filter(Boolean), out = list.map(() => []), lineIn = list.map(() => []);
-    const chordAt = beat => { let k = 0; while (k + 1 < list.length && list[k + 1].at <= beat + 1e-6) k++; return k; };
-    let lastK = 0;
-    texts.forEach((text, li) => {
-      const ln = LD.lines[li] || [], toks = text.split(/\s+/).filter(Boolean);
-      let s0 = 0;
-      toks.forEach(tok => {
-        const n = lineSyllables(tok).length, nt = n ? ln.find(x => x.s === s0 && !x.tie) : null;
-        const k = nt ? chordAt(nt.b) : lastK;
-        out[k].push(tok); lineIn[k].push(li); lastK = k; s0 += n;
-      });
-    });
-    if (!Array.isArray(section.words)) section.words = [];
-    list.forEach((c, k) => { section.words[c.i] = out[k].join(" "); });
-    // a line runs on into the next chord when the next chord's first word is from the same line
-    section.cont = [];
-    list.forEach((c, k) => { if (k + 1 < list.length && lineIn[k].length && lineIn[k + 1].length && lineIn[k][lineIn[k].length - 1] === lineIn[k + 1][0]) section.cont[c.i] = 1; });
-    LD.sig = flowSig(list);
-    section.flowSig = LD.sig;
   }
 
   // ---------- the lead answers the singer ----------
@@ -8026,7 +7709,6 @@
   function renderSheet() {
     const body = $("sheetBody");
     if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
-    if (sheetMode === "tune") { $("sheetTitle").textContent = `the tune · ${sec().name.toLowerCase()}`; body.innerHTML = tuneHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
       const auto = !parseKeySetting(S().key);
@@ -8646,7 +8328,6 @@
   $("sheetBody").addEventListener("click", async e => {
     if (sheetMode === "house" && houseClick(e)) return;
     if (sheetMode === "listen" && hearClick(e)) return;
-    if (sheetMode === "tune" && tuneClick(e)) return;
     const ownT = e.target.closest("[data-owntune]");
     if (ownT) { setting("ownTune", ownT.dataset.owntune === "1"); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
@@ -8920,7 +8601,6 @@
     else { bookPage = 0; renderSheet(); }
   });
   $("sheetBody").addEventListener("input", e => {
-    if (e.target.id === "hearWords") { hearTyped(e.target); return; }
     if (e.target.id === "verseText") {
       sec().verse = e.target.value.slice(0, 2000);
       flowVerse(sec(), current);
