@@ -1318,6 +1318,15 @@
   .al-tools .lbl { margin-left: 4px; }
   .al-tools .round { width: 32px; height: 32px; font-size: 16px; }
   .al-new { min-height: 44px; font-size: 18px; }
+  .al-line { width: 100%; text-align: left; color: var(--ink); font: inherit; padding: 6px 8px; }
+  .al-txt b { font: 700 18px var(--voice); padding: 1px 0; overflow-wrap: anywhere; }
+  .words-box { min-height: 120px; font-size: 18px; line-height: 1.5; resize: vertical; }
+  .words-write .note, .words-sing .note { margin: 8px 0; }
+  .sing-lines { display: grid; gap: 6px; margin: 10px 0; }
+  .sing-line { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); padding: 8px 10px; cursor: pointer; font: 700 18px var(--voice); }
+  .sing-line i { flex: none; font-style: normal; width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: var(--card); font: 800 11px var(--body); display: grid; place-items: center; }
+  .sing-line.wait { border-style: dashed; color: var(--soft); cursor: default; }
+  .sing-line.wait i { background: var(--line); }
   .along-cta { display: grid; justify-items: start; gap: 2px; text-align: left; padding: 10px 14px; }
   .along-cta small { font-weight: 700; font-size: 12px; opacity: .8; }
   .timed-words { min-height: 44px; margin: 0; }
@@ -6669,7 +6678,7 @@
     if (tuneTab === "sing") {
       const rows = TUNE_ROWS.filter(r => !(timed && (r[0] === "enter" || r[0] === "breath")));
       const main = TUNE_MAIN.map(k => rows.find(r => r[0] === k)).filter(Boolean), more = rows.filter(r => !TUNE_MAIN.includes(r[0]));
-      body = `${hasWords ? "" : `<p class="note"><button class="link" type="button" data-open="along">Write some words for this part</button> to hear the line. The settings work either way.</p>`}
+      body = `${hasWords ? "" : `<p class="note"><button class="link" type="button" data-open="along">Write some words for this part</button> to hear the tune. The settings work either way.</p>`}
         ${main.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
         ${tuneTakeHTML()}
         ${fold("sing", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("") + (timed ? `<p class="note">Your lines are timed by hand, so they come in and breathe where you held them.</p>` : ""))}
@@ -6682,7 +6691,8 @@
         ${R.kind === "hook" ? `<div class="row"><button class="btn" type="button" data-tuneact="newhook">↻ a different hook</button></div>` : ""}
         ${riffTakeHTML()}
         ${main.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join("")}
-        ${fold("riff", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join(""))}`;
+        ${fold("riff", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, R, "riffset")).join(""))}
+        ${fold("answers", "answers after each line", answersHTML())}`;
     }
     return `<div class="tune-sheet">${tabs}${top}${body}
       <div class="row"><button class="link" type="button" data-tuneact="reset">back to ${esc(B().name)}'s way</button></div>
@@ -6800,9 +6810,8 @@
     const empty = !current.some(c => (words()[c.i] || "").trim());
     if (empty || isTimed(x)) {
       const saved = { verse: x.verse, words: (x.words || []).slice(), flowSig: x.flowSig, cont: x.cont, lines: x.lines };
-      x.lines = null;
-      if (empty) x.verse = SAMPLE_WORDS;
-      flowVerse(x, current);
+      x.lines = (empty ? SAMPLE_WORDS.split("\n") : ensureLines(x).map(l => l.t)).map(t => ({ t, a: null, b: null }));
+      wordsSync(x, current);
       lessonRestore = () => { Object.assign(x, saved); renderStage(); };
     }
     tuneOverride = { sing: d[1].sing || {}, riff: d[1].riff || {}, parallel: !!d[1].parallel };
@@ -6820,15 +6829,45 @@
   }
 
   // =========================================================
-  // Write along: the part goes round, you type or paste your
-  // lines, and you hold a button while each one is sung. Where
-  // you press is where the line comes in; where you let go, it ends.
+  // Words: a part's lines are the one record of what's sung.
+  // Each line is its words and, once you've held along to it,
+  // where it starts and ends. Everything else (the words on each
+  // chord, the verse text, the song sheet) is worked out from them.
   // =========================================================
   // section.lines: [{ t: words, a: first beat, b: last beat }] counted from the
-  // part's start; a line with no a is waiting to be placed
-  const isTimed = s => !!s && Array.isArray(s.lines) && s.lines.some(l => l && l.a != null);
+  // part's start; a and b stay null until the line is placed by hand
+  const isTimed = s => !!s && Array.isArray(s.lines) && s.lines.some(l => l && l.a != null && (l.t || "").trim());
+  // older songs kept their words as a verse, or as words on each chord: turn them into lines once
+  function ensureLines(section) {
+    if (Array.isArray(section.lines)) return section.lines;
+    let ts = [];
+    if (section.verse != null) ts = section.verse.split(/\n/).map(t => t.trim());
+    else {
+      const w = section.words || [], cont = section.cont || [];
+      let cur = null;
+      w.forEach((x, i) => {
+        const v = (x || "").trim();
+        if (!cur || !cont[i - 1]) { cur = []; ts.push(cur); }
+        if (v) cur.push(v);
+      });
+      ts = ts.map(g => g.join(" "));
+    }
+    while (ts.length && !ts[ts.length - 1]) ts.pop();
+    section.lines = ts.map(t => ({ t: t.slice(0, 120), a: null, b: null }));
+    return section.lines;
+  }
+  const filled = section => ensureLines(section).filter(l => (l.t || "").trim()).length;
+  // more lines than chords: Pixie shares the part out evenly by beats, a line each
+  const crowded = (section, list) => !isTimed(section) && filled(section) > list.length;
+  function evenPlaces(section, T) {
+    const ls = ensureLines(section), idx = ls.map((l, k) => ((l.t || "").trim() ? k : -1)).filter(k => k >= 0), n = idx.length;
+    const out = ls.map(l => ({ t: l.t, a: null, b: null }));
+    idx.forEach((k, j) => { out[k].a = Math.round(j * T / n * 2) / 2; out[k].b = Math.max(out[k].a + 0.5, Math.round((j + 1) * T / n * 2) / 2); });
+    return out;
+  }
   function placedLines(section, T) {
-    return (section.lines || []).filter(l => l && l.a != null && (l.t || "").trim())
+    const src = isTimed(section) ? section.lines : evenPlaces(section, T);
+    return src.filter(l => l && l.a != null && (l.t || "").trim())
       .map(l => { const a = Math.max(0, Math.min(T - 0.5, l.a)); return { t: l.t.trim(), a, b: Math.max(a + 0.5, Math.min(T, l.b)) }; })
       .sort((x, y) => x.a - y.a);
   }
@@ -6851,7 +6890,7 @@
     });
     return segs;
   }
-  // keep each chord's words (for the strip, the lane and the song sheet) in step with the timed lines
+  // keep each chord's words (for the strip, the lane and the song sheet) in step with the lines
   function syncTimed(section, list) {
     const T = list.reduce((x, c) => Math.max(x, c.at + c.beats), 0), w = {}, cont = [];
     placedLines(section, T).forEach(ln => {
@@ -6868,8 +6907,51 @@
       section.words[c.i] = v;
     });
     section.cont = cont;
-    section.verse = (section.lines || []).map(l => l.t || "").join("\n");
     section.flowSig = flowSig(list);
+  }
+  // the one way words reach the chords: from the lines, whenever the lines or the chords change
+  const wordsSigs = new WeakMap();
+  function wordsSync(section, list) {
+    const ls = ensureLines(section), sig = flowSig(list) + "|" + ls.map(l => `${l.t}@${l.a}-${l.b}`).join("\n");
+    if (wordsSigs.get(section) === sig && Array.isArray(section.cont)) return;
+    section.verse = ls.map(l => l.t || "").join("\n").replace(/\n+$/, "");
+    if (isTimed(section) || crowded(section, list)) syncTimed(section, list);
+    else flowVerse(section, list);
+    wordsSigs.set(section, sig);
+  }
+  const singsByLine = (section, list) => isTimed(section) || crowded(section, list);
+  // typing in the words box: lines you didn't touch keep their places, an edited
+  // line keeps its place, a new line waits to be placed, a deleted line takes its place with it
+  function setLineTexts(section, texts) {
+    const old = ensureLines(section), n = texts.length, m = old.length, key = t => (t || "").trim();
+    // lines whose words didn't change find their old selves (longest run in order)...
+    const L = Array.from({ length: n + 1 }, () => new Int16Array(m + 1));
+    for (let x = n - 1; x >= 0; x--) for (let y = m - 1; y >= 0; y--) L[x][y] = key(texts[x]) && key(texts[x]) === key(old[y].t) ? L[x + 1][y + 1] + 1 : Math.max(L[x + 1][y], L[x][y + 1]);
+    const match = Array(n).fill(-1);
+    for (let x = 0, y = 0; x < n && y < m;) {
+      if (key(texts[x]) && key(texts[x]) === key(old[y].t) && L[x][y] === L[x + 1][y + 1] + 1) { match[x] = y; x++; y++; }
+      else if (L[x + 1][y] >= L[x][y + 1]) x++; else y++;
+    }
+    // ...and between those, an edited line takes the place of the old line in the same spot
+    const out = [];
+    let y0 = 0;
+    for (let x = 0; x < n;) {
+      if (match[x] >= 0) { out.push({ ...old[match[x]], t: texts[x] }); y0 = match[x] + 1; x++; continue; }
+      let x1 = x; while (x1 < n && match[x1] < 0) x1++;
+      const y1 = x1 < n ? match[x1] : m;
+      // same count: a straight swap of words, spot for spot; otherwise the closest words win the old spot
+      const olds = old.slice(y0, y1), news = texts.slice(x, x1), took = new Set();
+      const sim = (u, v) => { const A = new Set(key(u).toLowerCase().split(/\s+/)), B = key(v).toLowerCase().split(/\s+/); return B.filter(w => A.has(w)).length / Math.max(A.size, B.length, 1); };
+      news.forEach((t, k) => {
+        let o = -1;
+        if (olds.length === news.length) o = k;
+        else olds.forEach((ol, j) => { if (!took.has(j) && sim(ol.t, t) >= 0.34 && (o < 0 || sim(ol.t, t) > sim(olds[o].t, t))) o = j; });
+        if (o >= 0) took.add(o);
+        out.push(o >= 0 ? { ...olds[o], t } : { t, a: null, b: null });
+      });
+      x = x1;
+    }
+    section.lines = out.map(l => ({ ...l, t: l.t.slice(0, 120) }));
   }
   // the sung tune for a part whose lines you timed yourself
   function timedChain(section, d) {
@@ -6911,9 +6993,9 @@
     return out;
   }
 
-  // ---------- the write-along sheet ----------
-  // words live behind one door: write along (timed while it plays) or the songbook (all at once, and the lead's answers)
-  const wordsTabs = on => `<div class="tabs" role="tablist"><button type="button" role="tab" data-open="along" aria-selected="${on === "along"}">✦ write along</button><button type="button" role="tab" data-open="book" aria-selected="${on === "book"}">✎ songbook</button></div>`;
+  // ---------- the words sheet: write, place, sing ----------
+  let wStep = "write";
+  const wordsTabs = () => `<div class="tabs steps" role="tablist">${[["write", "1 · write"], ["place", "2 · place"], ["sing", "3 · sing"]].map(([id, n]) => `<button type="button" role="tab" data-wstep="${id}" aria-selected="${wStep === id}">${n}</button>`).join("")}</div>`;
   let alongSel = 0, alongHold = null, alongRaf = 0;
   // what's playing right now, in beats from the start of the open part (null if it isn't)
   function beatNow() {
@@ -6925,25 +7007,31 @@
     }
     return null;
   }
-  // before you've timed anything, the lines sit where Pixie spread them
-  function guessLines() {
-    const section = sec(), cont = section.cont || [], out = [];
+  // where each line sits right now: placed by hand, or Pixie's spacing
+  function guessPlaces() {
+    const section = sec(), ls = ensureLines(section);
+    if (crowded(section, current)) return evenPlaces(section, Math.max(total, 1));
+    const cont = section.cont || [], groups = [];
     let cur = null;
     current.forEach((c, k) => {
       const w = (words()[c.i] || "").trim();
-      if (!cur || !(k && cont[current[k - 1].i])) { cur = { t: "", a: null, b: null, guess: true }; out.push(cur); }
-      if (w) { if (cur.a == null) cur.a = c.at; cur.t = (cur.t ? cur.t + " " : "") + w; cur.b = c.at + c.beats; }
+      if (!cur || !(k && cont[current[k - 1].i])) { cur = { a: null, b: null }; groups.push(cur); }
+      if (w) { if (cur.a == null) cur.a = c.at; cur.b = c.at + c.beats; }
     });
-    return out.filter(l => l.t);
+    const gs = groups.filter(g => g.a != null);
+    let j = 0;
+    return ls.map(l => { if (!(l.t || "").trim()) return { t: l.t, a: null, b: null }; const g = gs[j++]; return { t: l.t, a: g ? g.a : null, b: g ? g.b : null }; });
   }
-  const alongLines = () => (isTimed(sec()) ? sec().lines : guessLines());
-  // from here on the timing is yours: the guesses become real places
+  const alongLines = () => (isTimed(sec()) ? sec().lines : guessPlaces());
+  // from here on the timing is yours: Pixie's spacing becomes real places
   function alongOwn() {
     const section = sec();
-    if (!isTimed(section)) section.lines = guessLines().map(l => ({ t: l.t, a: l.a, b: l.b }));
-    if (!Array.isArray(section.lines)) section.lines = [];
+    if (!isTimed(section)) { const g = guessPlaces(); section.lines = ensureLines(section).map((l, k) => ({ t: l.t, a: g[k] ? g[k].a : null, b: g[k] ? g[k].b : null })); }
     return section.lines;
   }
+  const hasText = l => !!(l && (l.t || "").trim());
+  const nextWaiting = (lines, from) => { for (let d = 1; d <= lines.length; d++) { const k = (from + d) % lines.length; if (hasText(lines[k]) && lines[k].a == null) return k; } return -1; };
+  const firstLine = lines => { const w = lines.findIndex(l => hasText(l) && l.a == null); return w >= 0 ? w : lines.findIndex(hasText); };
   const rowBeats = () => Mtr.n * (Mtr.n <= 4 ? 4 : 2);
   const beatLabel = b => {
     const bar = Math.floor(b / Mtr.n) + 1, inBar = b - (bar - 1) * Mtr.n, whole = Math.floor(inBar + 1e-6);
@@ -6963,7 +7051,7 @@
         blocks += `<span class="al-ch" data-j="${c.j}" style="left:${pct(a)}%;width:calc(${pct(e + r0 - a)}% - 2px);${fnVar(c.a.fn)}">${a === c.at ? symbolHTML(c.ch) : ""}</span>`;
       });
       lines.forEach((l, k) => {
-        if (l.a == null || !l.t && l.a == null) return;
+        if (l.a == null || !hasText(l)) return;
         const a = Math.max(l.a, r0), e = Math.min(l.b, r1);
         if (e <= a) return;
         pills += `<button type="button" class="al-pill${k === alongSel ? " on" : ""}${guess ? " guess" : ""}" data-line="${k}" style="left:${pct(a)}%;width:calc(${pct(e + r0 - a)}% - 2px)" aria-label="Line ${k + 1}">${a === l.a ? esc(l.t || "…") : ""}</button>`;
@@ -6974,30 +7062,50 @@
   }
   function alongListHTML() {
     const lines = alongLines(), guess = !isTimed(sec());
-    if (!lines.length) return "";
     return lines.map((l, k) => {
+      if (!hasText(l)) return "";
       const on = k === alongSel, c = l.a != null ? chordAt(l.a) : null;
-      const where = l.a == null ? "waiting · hold to place it" : `${guess ? "Pixie's guess · " : ""}comes in on ${esc(pretty(c.tok))} · ${beatLabel(l.a)} · ${+(l.b - l.a).toFixed(1)} beats`;
-      return `<div class="al-line${on ? " on" : ""}${l.a == null ? " wait" : ""}" data-line="${k}">
-        <span class="al-n">${k + 1}</span>
-        <div class="al-txt"><input type="text" data-lt="${k}" value="${esc(l.t || "")}" placeholder="words for this line" enterkeyhint="done" autocomplete="off" aria-label="Words for line ${k + 1}"><small>${where}</small></div>
-      </div>${on && l.a != null ? `<div class="al-tools" role="group" aria-label="Fine-tune line ${k + 1}">
+      const where = l.a == null ? "waiting · not sung until you place it" : `${guess ? "Pixie's spacing · " : ""}comes in on ${esc(pretty(c.tok))} · ${beatLabel(l.a)} · ${+(l.b - l.a).toFixed(1)} beats`;
+      return `<button type="button" class="al-line${on ? " on" : ""}${l.a == null ? " wait" : ""}" data-line="${k}">
+        <span class="al-n">${lines.slice(0, k + 1).filter(hasText).length}</span>
+        <span class="al-txt"><b>${esc(l.t)}</b><small>${where}</small></span>
+      </button>${on && l.a != null ? `<div class="al-tools" role="group" aria-label="Fine-tune this line">
         <span class="lbl">starts</span><button type="button" class="round" data-alnudge="a" data-d="-0.5" aria-label="Start half a beat earlier">‹</button><button type="button" class="round" data-alnudge="a" data-d="0.5" aria-label="Start half a beat later">›</button>
         <span class="lbl">ends</span><button type="button" class="round" data-alnudge="b" data-d="-0.5" aria-label="End half a beat sooner">‹</button><button type="button" class="round" data-alnudge="b" data-d="0.5" aria-label="End half a beat later">›</button>
-        <button type="button" class="round" data-alnudge="x" aria-label="Remove this line">✕</button></div>` : ""}`;
+        ${guess ? "" : `<button type="button" class="round" data-alnudge="x" aria-label="Unplace this line">✕</button>`}</div>` : ""}`;
     }).join("");
   }
   function alongHoldLabel() {
-    const lines = alongLines(), l = lines[alongSel];
-    const what = l ? `line ${alongSel + 1}${l.t ? `: “${esc(l.t.length > 34 ? l.t.slice(0, 32) + "…" : l.t)}”` : ""}` : "a new line";
+    const l = alongLines()[alongSel];
+    const what = hasText(l) ? `“${esc(l.t.length > 34 ? l.t.slice(0, 32) + "…" : l.t)}”` : "pick a line below";
     return playing ? `<b>hold while it's sung</b><small>${what}</small>` : `<b>▶ play, then hold while it's sung</b><small>${what}</small>`;
   }
-  const alongHow = () => isTimed(sec()) ? "Press when the line starts, let go when it ends. Tap a line to redo it or fine-tune it."
-    : alongLines().length ? "These are Pixie's guesses. Hold along to put each line where it really goes."
-    : "Type or paste your lines below, then play and hold the button while each one is sung.";
-  function alongHTML() {
+  const alongHow = () => isTimed(sec()) ? "Press when the line starts, let go when it ends. It moves on to the next line by itself. Tap a line to redo it or fine-tune it."
+    : "These are Pixie's spacings. Hold along to put each line where it really goes.";
+  // step 1: the words, one line per row
+  function writeNote() {
+    const section = sec(), n = filled(section);
+    if (!n) return `One row is one sung line. Pixie spreads them over your ${current.length} chord${current.length === 1 ? "" : "s"}, so you can hear them straight away.`;
+    if (isTimed(section)) {
+      const wait = section.lines.filter(l => hasText(l) && l.a == null).length;
+      return `${n - wait} of ${n} line${n === 1 ? "" : "s"} placed by hand.` + (wait ? ` ${wait === 1 ? "One line waits" : wait + " lines wait"} to be placed in step 2, and ${wait === 1 ? "isn't" : "aren't"} sung until then.` : " Edit a line and it keeps its place.");
+    }
+    return crowded(section, current) ? `${n} lines on ${current.length} chords, so Pixie shares the part out evenly. Place them yourself in step 2.`
+      : `${n} line${n === 1 ? "" : "s"}, spread over your chords by Pixie. Want them somewhere else? Place them in step 2.`;
+  }
+  function writeHTML() {
+    const ls = ensureLines(sec()), text = ls.map(l => l.t || "").join("\n");
+    return `<div class="words-write">
+      <textarea id="wordsText" class="verse-in words-box" rows="${Math.max(4, Math.min(9, ls.length + 1))}" spellcheck="true" placeholder="write the ${esc(sec().name.toLowerCase())} here&#10;one line per row">${esc(text)}</textarea>
+      <p class="note" id="wordsNote">${writeNote()}</p>
+      <div class="row"><button class="btn surprise" type="button" data-alact="play">${playing ? "■ stop" : `▶ hear the ${esc(sec().name.toLowerCase())}`}</button>${filled(sec()) ? `<button class="btn" type="button" data-wstep="place">next: place the lines ›</button>` : ""}</div>
+    </div>`;
+  }
+  // step 2: hold along
+  function placeHTML() {
+    if (!filled(sec())) return `<p class="note">Write some lines first, then come back and hold along while they're sung.</p><div class="row"><button class="btn surprise" type="button" data-wstep="write">‹ write the words</button></div>`;
     const lines = alongLines();
-    if (alongSel != null && alongSel >= lines.length) alongSel = lines.length ? 0 : null;
+    if (alongSel == null || !hasText(lines[alongSel])) alongSel = firstLine(lines);
     const demo = song.demo ? `<button class="btn" type="button" data-alact="demo">${esc((DEMO_MODES.find(x => x[0] === demoMode()) || DEMO_MODES[0])[1])}</button>` : "";
     return `<div class="along">
       <div class="al-dock">
@@ -7007,9 +7115,23 @@
       </div>
       <p class="note al-how" id="alHow">${alongHow()}</p>
       <div class="al-lines" id="alLines">${alongListHTML()}</div>
-      <textarea class="verse-in al-new" id="alNew" rows="1" placeholder="type a line and press enter, or paste a few" enterkeyhint="enter" aria-label="Add lines"></textarea>
       ${isTimed(sec()) ? `<div class="row"><button class="btn" type="button" data-alact="unpin">let Pixie space them again</button></div>` : ""}
     </div>`;
+  }
+  // step 3: hear it, try another tune, go deeper
+  function singHTML() {
+    if (!filled(sec())) return `<p class="note">Nothing to sing yet.</p><div class="row"><button class="btn surprise" type="button" data-wstep="write">‹ write the words</button></div>`;
+    const lines = alongLines(), wait = lines.filter(l => hasText(l) && l.a == null).length;
+    return `<div class="words-sing">
+      <div class="row"><button class="btn surprise" type="button" data-alact="play">${playing ? "■ stop" : `▶ hear the ${esc(sec().name.toLowerCase())}`}</button><button class="btn" type="button" data-alact="again">↻ ${esc(B().name)} sings it another way</button></div>
+      <div class="sing-lines">${lines.map((l, k) => !hasText(l) ? "" : `<button type="button" class="sing-line${l.a == null ? " wait" : ""}" data-singline="${k}"${l.a == null ? " disabled" : ""}><i>${l.a == null ? "·" : "▶"}</i><span>${esc(l.t)}</span></button>`).join("")}</div>
+      ${wait ? `<p class="note">${wait === 1 ? "One line isn't" : wait + " lines aren't"} placed yet. <button class="link" type="button" data-wstep="place">place ${wait === 1 ? "it" : "them"}</button></p>` : ""}
+      <div class="row"><button class="btn" type="button" data-alact="tune">♪ shape the tune</button>${keysOn() ? `<button class="btn" type="button" data-alact="playtune">🎹 play the tune yourself</button>` : ""}<button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
+      <p class="note">On the home screen, tap a word in the lyric lane to nudge that syllable up or down.</p>
+    </div>`;
+  }
+  function alongHTML() {
+    return wStep === "write" ? writeHTML() : wStep === "sing" ? singHTML() : placeHTML();
   }
   function alongRefresh(list = true) {
     if (sheetMode !== "along") return;
@@ -7019,10 +7141,10 @@
     if (h) h.innerHTML = alongHoldLabel();
     if ($("alHow")) $("alHow").textContent = alongHow();
     const p = $("sheetBody").querySelector('[data-alact="play"]');
-    if (p) p.textContent = playing ? "■ stop" : `▶ play the ${sec().name.toLowerCase()}`;
+    if (p) p.textContent = playing ? "■ stop" : `${wStep === "place" ? "▶ play" : "▶ hear"} the ${sec().name.toLowerCase()}`;
   }
   function alongSaved() {
-    syncTimed(sec(), current);
+    wordsSync(sec(), current);
     saveSongs();
     renderStrip(); renderStage();
   }
@@ -7056,6 +7178,7 @@
   // press: the line starts here
   function alongDown() {
     if (!playing) { alongPlay(); toast("hold the button when the line starts"); return; }
+    if (alongSel == null || !hasText(alongLines()[alongSel])) { toast("pick a line to place first"); return; }
     const b = beatNow();
     if (b == null) return;
     alongHold = { a: b, pass: passNo };
@@ -7071,74 +7194,61 @@
     let e = beatNow();
     if (e == null || e < h.a || passNo !== h.pass) e = T; // went round the loop while holding
     let a = Math.max(0, Math.round((h.a - 0.12) * 2) / 2), b = Math.round(e * 2) / 2;
-    const lines = alongOwn();
+    const lines = alongOwn(), me = lines[alongSel];
+    if (!hasText(me) || a >= T) return;
     if (e - h.a < 0.4) {
       // a tap: run to the next line, or two bars at most
-      const nxt = lines.filter((l, k) => k !== alongSel && l.a != null && l.a > a).reduce((m, l) => Math.min(m, l.a), T);
+      const nxt = lines.filter(l => l !== me && l.a != null && l.a > a).reduce((m, l) => Math.min(m, l.a), T);
       b = Math.min(nxt, a + Mtr.n * 2, T);
     }
     b = Math.max(a + 0.5, Math.min(T, b));
-    if (a >= T) return;
-    let k = alongSel;
-    if (k == null || k >= lines.length) { lines.push({ t: "", a, b }); k = lines.length - 1; }
-    else { lines[k].a = a; lines[k].b = b; }
-    // nothing overlaps: the lines around this one make room
-    lines.forEach((l, j) => {
-      if (j === k || l.a == null) return;
+    me.a = a; me.b = b;
+    // nothing overlaps: a line running into this one stops where it starts, and a line it covers waits again
+    const bumped = [];
+    lines.forEach(l => {
+      if (l === me || l.a == null) return;
       if (l.a < a && l.b > a) l.b = a;
-      else if (l.a >= a && l.a < b) lines[k].b = b = Math.max(a + 0.5, l.a);
+      else if (l.a >= a && l.a < b) { if (l.b <= b + 0.01) { l.a = null; l.b = null; bumped.push(l); } else l.a = b; }
+      if (l.a != null && l.b - l.a < 0.5) { l.a = null; l.b = null; bumped.push(l); }
     });
-    lines.forEach(l => { if (l.a != null && l.b - l.a < 0.5) { l.a = null; l.b = null; } });
-    const placed = lines[k];
-    // walk on to the next line; after the last, round again to fine-tune
-    alongSel = lines.length ? (k + 1) % lines.length : null;
+    // the words stay in the order they're sung: placed lines are sorted by time in their own slots
+    const slots = lines.map((l, k) => (l.a != null ? k : -1)).filter(k => k >= 0), placed = slots.map(k => lines[k]).sort((x, y) => x.a - y.a);
+    slots.forEach((k, j) => { lines[k] = placed[j]; });
+    const k = lines.indexOf(me), nw = nextWaiting(lines, k);
+    // walk on to the next waiting line; once they're all placed, the next line to fine-tune
+    alongSel = nw >= 0 ? nw : (() => { for (let d = 1; d <= lines.length; d++) { const j = (k + d) % lines.length; if (hasText(lines[j])) return j; } return k; })();
     alongSaved();
     alongRefresh();
-    if (!placed.t) {
-      alongSel = k; alongRefresh();
-      setTimeout(() => $("sheetBody").querySelector(`[data-lt="${k}"]`)?.focus(), 30);
-      toast("placed. now type the words for it");
-    }
-  }
-  function alongAdd(text) {
-    const add = text.split(/\n/).map(x => x.trim()).filter(Boolean).map(x => x.slice(0, 120));
-    if (!add.length) return;
-    const section = sec();
-    if (!isTimed(section)) {
-      // nothing timed yet: Pixie spreads the lines out as a first guess
-      section.verse = ((section.verse || "").trim() ? section.verse.replace(/\n+$/, "") + "\n" : "") + add.join("\n");
-      flowVerse(section, current);
-      saveSongs(); renderStrip(); renderStage();
-      if (alongSel == null) alongSel = 0;
-    } else {
-      const n0 = section.lines.length;
-      add.forEach(t => section.lines.push({ t, a: null, b: null }));
-      if (alongSel == null || section.lines[alongSel]?.a != null) alongSel = n0;
-      alongSaved();
-    }
-    alongRefresh();
+    if (bumped.length) toast(`${bumped.length === 1 ? `“${bumped[0].t.slice(0, 24)}” was` : bumped.length + " lines were"} under that, so ${bumped.length === 1 ? "it waits" : "they wait"} to be placed again`);
   }
   function alongClick(e) {
+    const st = e.target.closest("[data-wstep]");
+    if (st) { wStep = st.dataset.wstep; if (wStep === "place") alongSel = firstLine(alongLines()); renderSheet(); return true; }
     const act = e.target.closest("[data-alact]");
     if (act) {
       const a = act.dataset.alact;
       if (a === "play") alongPlay();
       else if (a === "demo") { cycleDemo().then(() => { renderSheet(); if (playing) alongFrame(); }); }
       else if (a === "unpin") {
-        const section = sec();
-        section.verse = (section.lines || []).map(l => l.t || "").filter(Boolean).join("\n");
-        section.lines = null;
-        flowVerse(section, current);
-        saveSongs(); renderStrip(); renderStage(); renderSheet();
+        ensureLines(sec()).forEach(l => { l.a = null; l.b = null; });
+        alongSaved(); renderSheet();
         toast("Pixie spaces the lines out again");
-      }
+      } else if (a === "again") {
+        sec().seed = (sec().seed || 1) + 1; saveSongs(); renderStrip(); renderStage();
+        const r = act.getBoundingClientRect(); flourish(r.left + r.width / 2, r.top, ["♪", "♩", "♪"], "var(--lh)");
+        if (playing) stop();
+        previewPart(16);
+      } else if (a === "tune") { tuneTab = "sing"; openSheet("tune"); }
+      else if (a === "playtune") { tuneTab = "sing"; openSheet("tune"); tuneRecStart(); }
       return true;
     }
+    const sl = e.target.closest("[data-singline]");
+    if (sl) { const l = alongLines()[+sl.dataset.singline]; if (l && l.a != null) lineSing(l); return true; }
     const nd = e.target.closest("[data-alnudge]");
     if (nd) {
       const lines = alongOwn(), l = lines[alongSel];
       if (!l) return true;
-      if (nd.dataset.alnudge === "x") { lines.splice(alongSel, 1); alongSel = lines.length ? Math.min(alongSel, lines.length - 1) : null; }
+      if (nd.dataset.alnudge === "x") { l.a = null; l.b = null; }
       else {
         const d = +nd.dataset.d, k = nd.dataset.alnudge;
         if (k === "a") l.a = Math.max(0, Math.min(l.b - 0.5, l.a + d));
@@ -7148,25 +7258,30 @@
       return true;
     }
     const ln = e.target.closest("[data-line]");
-    if (ln && !e.target.closest("input")) { alongSel = +ln.dataset.line; alongRefresh(); return true; }
-    if (ln) { if (alongSel !== +ln.dataset.line) { alongSel = +ln.dataset.line; alongRefresh(false); $("alHold").innerHTML = alongHoldLabel(); $("sheetBody").querySelectorAll(".al-line").forEach(x => x.classList.toggle("on", +x.dataset.line === alongSel)); } return true; }
+    if (ln) { alongSel = +ln.dataset.line; alongRefresh(); return true; }
     return false;
+  }
+  // one line on its own: its chords, its words, its tune
+  async function lineSing(l) {
+    if (playing) stop();
+    if (!(await audioReady())) return;
+    const cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.05, chain = melodyChain(secIdx);
+    const cs = current.filter(c => c.at + c.beats > l.a + 0.01 && c.at < l.b - 0.01);
+    cs.forEach(c => {
+      const t = t0 + (c.at - cs[0].at) * cl, mel = chain.get(c.i);
+      playChord(c.v, t, c.beats, cl, S().style, { M: Mtr, pos0: c.pos0 });
+      playRiff(sec(), c, current, K, t, cl, mel);
+      if (mel) singChord(c, mel, t, cl, secIdx, true);
+    });
   }
   function alongInput(e) {
     const t = e.target;
-    if (t.id === "alNew") {
-      if (/\n/.test(t.value)) { alongAdd(t.value); t.value = ""; }
-      return true;
-    }
-    if (t.dataset.lt != null) {
-      const k = +t.dataset.lt, lines = alongOwn();
-      if (!lines[k]) return true;
-      lines[k].t = t.value.slice(0, 120);
-      alongSaved();
-      alongRefresh(false);
-      return true;
-    }
-    return false;
+    if (t.id !== "wordsText") return false;
+    setLineTexts(sec(), t.value.slice(0, 4000).split(/\n/));
+    alongSaved();
+    if ($("wordsNote")) $("wordsNote").textContent = writeNote();
+    t.rows = Math.max(4, Math.min(9, t.value.split(/\n/).length + 1));
+    return true;
   }
 
   // =========================================================
@@ -7793,7 +7908,7 @@
     lastHeldTok = tok;
     // arranging (or "add it" chosen): every chord you play goes on the end; "swap" replaces the chord you're on
     const wmode = prefs.keysWrite || "show";
-    if (!sheetMode && (arranging || (prefs.view === "write" && wmode === "add"))) { addChord(tok); toast(`added ${pretty(tok)}`); return true; }
+    if (!sheetMode && (arranging || (prefs.view === "write" && wmode === "add"))) { addChord(tok, true); toast(`added ${pretty(tok)}`); return true; }
     if (!sheetMode && prefs.view === "write" && wmode === "swap" && current[sel]) {
       const c = current[sel], raw = tok + (c.raw.includes(":") ? ":" + c.beats : ""), j = sel;
       setProg(replaceToken(sec().prog, c.i, raw), true); sel = j; renderStage();
@@ -7817,10 +7932,12 @@
   function heldAct(a) {
     const chip = $("heldChip"), tok = chip && chip.dataset.tok;
     if (!tok) return;
-    if (a === "add") { addChord(tok); toast(`added ${pretty(tok)}`); }
+    // (with a keyboard you've just heard it; tapped on a phone, you hear it once)
+    const quiet = keysOn();
+    if (a === "add") { addChord(tok, quiet); toast(`added ${pretty(tok)}`); }
     else if (a === "swap" && current[sel]) {
       const c = current[sel], raw = tok + (c.raw.includes(":") ? ":" + c.beats : ""), j = sel;
-      setProg(replaceToken(sec().prog, c.i, raw), true); sel = j; renderStage(); playOne(sel);
+      setProg(replaceToken(sec().prog, c.i, raw), true); sel = j; renderStage(); if (!quiet) playOne(sel);
       toast(`swapped in ${pretty(tok)}`);
     }
     chip.hidden = true;
@@ -8945,8 +9062,8 @@
   // is sung in one breath, and each chord keeps its own slice for the lane
   function melodyChain(sIdx) {
     const section = song.sections[sIdx], d = sectionData(sIdx), out = new Map(), who = prefs.buddy;
-    if (isTimed(section)) return timedChain(section, d);
-    if (section.verse != null && (!Array.isArray(section.cont) || section.flowSig !== flowSig(d.list))) flowVerse(section, d.list);
+    wordsSync(section, d.list);
+    if (singsByLine(section, d.list)) return timedChain(section, d);
     const cont = section.cont || [], wordsOf = c => (section.words[c.i] || "").trim();
     const lines = [];
     d.list.forEach((c, k) => { if (k && cont[d.list[k - 1].i] && lines.length) lines[lines.length - 1].push(c); else lines.push([c]); });
@@ -8994,8 +9111,7 @@
   function renderAll() {
     const r = compute(sec(), S(), secIdx);
     items = r.items; current = r.current; K = r.key; Mtr = r.M; total = r.total;
-    if (isTimed(sec())) { if (sec().flowSig !== flowSig(current)) syncTimed(sec(), current); }
-    else if (sec().verse != null && (sec().flowSig !== flowSig(current) || !Array.isArray(sec().cont))) flowVerse(sec(), current);
+    wordsSync(sec(), current);
     range = computeRange(current);
     VOICE = S().voice || B().voice;
     if (sel >= current.length) sel = Math.max(0, current.length - 1);
@@ -10117,47 +10233,8 @@
     if (notes.length) playLead(notes, t0, cl, prefs.buddy);
   }
 
-  // ---------- the songbook: a cover with the whole verse, then a page per line ----------
-  let bookPage = 0;
-  function flowHTML() {
-    return current.map((c, k) => `<button class="fl" type="button" data-page="${k + 1}" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><i>${esc(words()[c.i] || "·")}</i></button>`).join("") || `<span class="note">add some chords first</span>`;
-  }
-  // one line, roomy: the singer's words on their tune, then the lead's reply
-  function pageSky(c) {
-    const section = sec(), m = melodyChain(secIdx).get(c.i);
-    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range;
-    const X = u => 3 + (u / c.beats) * 94, Y = midi => 12 + (1 - (midi - lo) / (hi - lo)) * 62;
-    const f = n => n.toFixed(2);
-    let svg = "", out = "";
-    const pcs = new Set(c.ch.ivs.map(iv => mod(c.ch.rootPc + iv)));
-    for (let k = lo; k <= hi; k++) if (pcs.has(mod(k))) svg += `<line class="sky-div" x1="2" x2="98" y1="${f(Y(k))}" y2="${f(Y(k))}" vector-effect="non-scaling-stroke"/>`;
-    const rb = replyOn(section, c) ? replyBeats(c) : 0;
-    if (rb) svg += `<rect class="reply-zone" x="${f(X(c.beats - rb))}" y="3" width="${f(X(c.beats) - X(c.beats - rb))}" height="94" rx="2"/>`;
-    if (m) {
-      const pts = m.notes.map(nt => [X(nt.start + Math.min(nt.dur, 0.5) / 2), Y(nt.midi)]);
-      if (pts.length > 1) {
-        let d = `M${f(pts[0][0])} ${f(pts[0][1])}`;
-        for (let k = 1; k < pts.length - 1; k++) d += `Q${f(pts[k][0])} ${f(pts[k][1])} ${f((pts[k][0] + pts[k + 1][0]) / 2)} ${f((pts[k][1] + pts[k + 1][1]) / 2)}`;
-        d += `L${f(pts[pts.length - 1][0])} ${f(pts[pts.length - 1][1])}`;
-        svg += `<path class="vine voice" d="${d}" vector-effect="non-scaling-stroke"/>`;
-      }
-      m.notes.forEach((nt, k) => {
-        const x = pts[k][0], edge = x < 9 ? " edge-l" : x > 91 ? " edge-r" : "";
-        out += `<span class="bead${edge}${nt.emph ? " emph-" + nt.emph : ""}" style="left:${f(x)}%;top:${f(pts[k][1])}%">${esc(m.sy[nt.s].show)}</span>`;
-      });
-    }
-    if (rb) {
-      const idx = current.indexOf(c), next = current[idx + 1] || current[0];
-      const ln = lickNotes(lickIdFor(section, c), c, next, K, m ? m.notes.map(n => n.midi) : [], prefs.buddy, section.seed || 1);
-      const lmin = Math.min(...ln.map(n => n.midi)), lmax = Math.max(...ln.map(n => n.midi)), span = Math.max(5, lmax - lmin);
-      ln.forEach(nt => {
-        const x0 = X(nt.start) + 0.6, x1 = Math.min(X(c.beats) - 0.6, X(nt.start + nt.dur) - 0.6), y = 22 + (1 - (nt.midi - lmin) / span) * 40;
-        svg += `<rect class="lk-n reply-note" x="${f(x0)}" y="${f(y - 2.5)}" width="${f(Math.max(1.2, x1 - x0))}" height="5" rx="1"/>`;
-      });
-      out += `<span class="reply-tag" style="left:${f(X(c.beats - rb / 2))}%">${esc(leadName())}</span>`;
-    }
-    return `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">${svg}</svg>${out}`;
-  }
+  // ---------- the lead's answers: which little lick fills the gap after each line ----------
+  let lickAt = 0;
   // a tiny picture of each lick for its card
   function lickArt(id, c) {
     const idx = current.indexOf(c), next = current[idx + 1] || current[0], m = melodyChain(secIdx).get(c.i);
@@ -10166,41 +10243,17 @@
     const a = Math.min(...ln.map(n => n.start)), b = Math.max(...ln.map(n => n.start + n.dur)), lo = Math.min(...ln.map(n => n.midi)), hi = Math.max(lo + 5, ...ln.map(n => n.midi));
     return `<svg viewBox="0 0 40 16" aria-hidden="true">${ln.map(n => { const x = 3 + (n.start - a) / (b - a) * 34, w = Math.max(2, n.dur / (b - a) * 34 - 1), y = 13 - (n.midi - lo) / (hi - lo) * 10; return `<rect class="lk-n" x="${x.toFixed(1)}" y="${(y - 1.4).toFixed(1)}" width="${w.toFixed(1)}" height="2.8" rx="1.4"/>`; }).join("")}</svg>`;
   }
-  function refreshPage() {
-    const c = current[bookPage - 1], sky = $("pageSky");
-    if (c && sky) sky.innerHTML = pageSky(c);
-  }
-  function refreshBook() {
-    const fl = $("flow");
-    if (fl) fl.innerHTML = flowHTML();
-    refreshPage();
-  }
-  const pagerHTML = () => `<div class="pager">
-      <button class="round" type="button" data-page="${bookPage - 1}"${bookPage ? "" : " disabled"} aria-label="Previous page">‹</button>
-      <span class="dots">${[0, ...current.map((_, k) => k + 1)].map(k => `<button type="button" class="dot${k === bookPage ? " on" : ""}" data-page="${k}" aria-label="${k ? "Line " + k : "The whole verse"}"></button>`).join("")}</span>
-      <button class="round" type="button" data-page="${bookPage + 1}"${bookPage < current.length ? "" : " disabled"} aria-label="Next page">›</button></div>`;
-  function bookHTML() {
+  function answersHTML() {
     const section = sec();
-    if (section.verse == null) section.verse = current.map(c => words()[c.i] || "").join("\n").replace(/\n+$/, "");
-    bookPage = Math.max(0, Math.min(current.length, bookPage));
-    const timed = isTimed(section);
-    if (!bookPage) return `<div class="book">
-      <textarea id="verseText" class="verse-in" rows="4" spellcheck="true" placeholder="write the ${esc(section.name.toLowerCase())} a line at a time&#10;it flows onto your chords as you go">${esc(section.verse)}</textarea>
-      <div class="flow" id="flow">${flowHTML()}</div>
-      <p class="note">tap a line to turn to its page · ${esc(B().name)} picks the tune and answers each line on the ${esc(leadName())}</p>
-      <div class="row"><button class="btn surprise" type="button" data-book="hear">▶ hear the ${esc(section.name.toLowerCase())}</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
-      ${pagerHTML()}</div>`;
-    const c = current[bookPage - 1], pick = (section.licks || [])[c.i], cur = lickIdFor(section, c), rb = replyBeats(c);
+    lickAt = Math.max(0, Math.min(current.length - 1, lickAt));
+    const c = current[lickAt];
+    if (!c) return `<p class="note">add some chords first</p>`;
+    const pick = (section.licks || [])[c.i], cur = lickIdFor(section, c), rb = replyBeats(c);
+    const chips = current.map((x, k) => `<button class="choice" type="button" data-lickat="${k}" aria-pressed="${k === lickAt}" style="${fnVar(x.a.fn)}">${symbolHTML(x.ch)}</button>`).join("");
     const cards = rb ? [...lickSet(), ["rest", "let it breathe"]].map(([id, name]) => `<button class="lick${cur === id ? " on" : ""}" type="button" data-lick="${id}" aria-pressed="${cur === id}">${lickArt(id, c)}<span>${esc(name)}</span></button>`).join("") : "";
-    return `<div class="book page">
-      <div class="page-head"><span class="page-chord" style="${fnVar(c.a.fn)}">${symbolHTML(c.ch)}</span><span class="lbl">line ${bookPage} of ${current.length}</span></div>
-      ${timed ? `<p class="verse-in line-in timed-words">${esc(words()[c.i] || "") || "<i>no words on this chord</i>"}</p><p class="note">your lines are timed by hand · <button class="link" type="button" data-open="along">change them in write along</button></p>` : `<input class="verse-in line-in" id="pageLine" type="text" value="${esc(words()[c.i] || "")}" placeholder="words for ${esc(pretty(c.tok))}" enterkeyhint="next" autocomplete="off" aria-label="Words for line ${bookPage}">`}
-      <div class="sky page-sky" id="pageSky">${pageSky(c)}</div>
-      <div class="row"><button class="btn surprise" type="button" data-book="line">▶ hear this line</button><button class="btn" type="button" data-book="again">↻ ${esc(B().name)} sings it another way</button></div>
-      ${rb ? `<div class="sky-head"><span class="lbl">then the ${esc(leadName())} answers${pick ? "" : ` · ${esc(B().name)}'s pick`}</span></div>
-      <div class="licks">${cards}</div>` : `<p class="note">this chord is too short for an answer</p>`}
-      ${L("lead") ? "" : `<p class="note">the lead is switched off in view</p>`}
-      ${pagerHTML()}</div>`;
+    return `<p class="note">After each sung line, the ${esc(leadName())} can answer in the gap. Pick a chord, then its answer${pick ? "" : ` (now: ${esc(B().name)}'s pick)`}.</p>
+      <div class="choices tune-choices">${chips}</div>
+      ${rb ? `<div class="licks">${cards}</div>` : `<p class="note">${esc(pretty(c.tok))} is too short for an answer.</p>`}`;
   }
   function flourish(x, y, glyphs, color) {
     if (reduceMotion) return;
@@ -10253,6 +10306,7 @@
   // =========================================================
   let sheetMode = null, confirmDel = null;
   function openSheet(mode) {
+    if (mode === "book") mode = "along"; // the old songbook lives in the words sheet now
     closeEgg();
     if (mode !== "listen") hearStop();
     // the songbook opens on the page for the chord you're on, or the cover
@@ -10261,8 +10315,7 @@
     if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
     $("sheet").classList.toggle("wide", mode === "house");
     $("sheet").classList.toggle("tall", mode === "along");
-    if (mode === "book") bookPage = current[sel] && (words()[current[sel].i] || "").trim() ? sel + 1 : 0;
-    if (mode === "along") { const ls = alongLines(), w = ls.findIndex(l => l.a == null); alongSel = ls.length ? (w >= 0 ? w : 0) : null; }
+    if (mode === "along") { const ls = alongLines(); alongSel = firstLine(ls); if (!filled(sec())) wStep = "write"; }
     // a different sheet opens at its top, not where the last one was scrolled to
     if (mode !== sheetMode) $("sheetBody").scrollTop = 0;
     sheetMode = mode;
@@ -10270,7 +10323,7 @@
     $("scrim").hidden = false;
     renderSheet();
     // an empty songbook opens ready to write
-    const vt = mode === "book" && $("verseText");
+    const vt = mode === "along" && $("wordsText");
     if (vt && !vt.value.trim()) vt.focus(); else $("closeSheet").focus();
   }
   function closeSheet() {
@@ -10343,7 +10396,7 @@
     if (sheetMode === "rack") { $("sheetTitle").textContent = "the rack"; body.innerHTML = rackHTML(); return; }
     if (sheetMode === "keys") { $("sheetTitle").textContent = "your keyboard"; body.innerHTML = keysHubHTML(); return; }
     if (sheetMode === "playin") { $("sheetTitle").textContent = "play in chords"; body.innerHTML = playinHTML(); return; }
-    if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs("along") + alongHTML(); alongFrame(); return; }
+    if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs() + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
@@ -10515,9 +10568,6 @@
       $("sheetTitle").textContent = `${keyLabel(houseKey())} · the house`;
       body.innerHTML = houseHTML();
       requestAnimationFrame(() => houseFollow(current[sel]));
-    } else if (sheetMode === "book") {
-      $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`;
-      body.innerHTML = wordsTabs("book") + bookHTML();
     } else if (sheetMode === "chord") {
       const c = current[sel];
       if (!c) { closeSheet(); return; }
@@ -10714,12 +10764,13 @@
     const pick = ivs.map(iv => p.di.find(c => c.iv === iv)).filter(Boolean);
     return { pick: pick.length ? pick : p.di.slice(0, 3), all: p.di, borrowed: p.borrowed };
   }
-  function addChord(tok) {
+  // quiet: you just played it yourself, so Pixie doesn't play it back
+  function addChord(tok, quiet) {
     const t = sec().prog.trim();
     setProg((t ? t + " " : "") + tok, true);
     sel = current.length - 1;
     renderStage();
-    playOne(sel);
+    if (!quiet) playOne(sel);
   }
 
   palEl.addEventListener("click", e => {
@@ -10731,7 +10782,7 @@
     if (e.target.closest('[data-act="arrange"]')) { setArranging(!arranging); return; }
     if (e.target.closest('[data-act="stories"]')) { storyAt = null; openSheet("stories"); return; }
     if (e.target.closest('[data-act="songsheet"]')) { openSheet("songsheet"); return; }
-    if (e.target.closest('[data-act="words"]')) { openSheet("book"); return; }
+    if (e.target.closest('[data-act="words"]')) { openSheet("along"); return; }
     if (e.target.closest('[data-act="along"]')) { openSheet("along"); return; }
     if (e.target.closest('[data-act="taperec"]')) { $("rec").click(); return; }
     if (e.target.closest('[data-act="rack"]')) { openSheet("rack"); return; }
@@ -10940,7 +10991,7 @@
     else if (act === "beats") { cycleBeats(); refocus('[data-act="beats"]'); }
     else if (act === "surprise") { surprise(); refocus('[data-act="surprise"]'); }
     else if (act === "chord" && c) openSheet("chord");
-    else if (act === "words") openSheet("book");
+    else if (act === "words") openSheet("along");
     else if (act === "along") openSheet("along");
     else if (act === "stories") { storyAt = null; openSheet("stories"); }
     else if (act === "undo") undoLast();
@@ -11089,10 +11140,10 @@
       } else if (a === "surprise") { surprise(); renderSheet(); } else playOne(sel);
       return;
     }
-    const pageB = e.target.closest("[data-page]"), lickB = e.target.closest("[data-lick]");
-    if (pageB && !pageB.disabled) { bookPage = +pageB.dataset.page; if (bookPage) { sel = bookPage - 1; renderStage(); } renderSheet(); return; }
+    const lickB = e.target.closest("[data-lick]"), lickC = e.target.closest("[data-lickat]");
+    if (lickC) { lickAt = +lickC.dataset.lickat; renderSheet(); if (!playing) previewSing(current[lickAt]); return; }
     if (lickB) {
-      const c = current[bookPage - 1];
+      const c = current[lickAt];
       if (!c) return;
       const section = sec();
       if (!Array.isArray(section.licks)) section.licks = [];
@@ -11102,19 +11153,6 @@
       const r = lickB.getBoundingClientRect();
       if (lickB.dataset.lick !== "rest") flourish(r.left + r.width / 2, r.top, ["♪", "♫"], "var(--surprise)");
       if (!playing) previewSing(c);
-      return;
-    }
-    const bookB = e.target.closest("[data-book]");
-    if (bookB) {
-      const a = bookB.dataset.book;
-      if (a === "hear") { if (!playing) { sel = 0; playAll(); } else stop(); }
-      else if (a === "line") { const c = current[bookPage - 1]; if (c && !playing) previewSing(c); }
-      else if (a === "again") {
-        sec().seed = (sec().seed || 1) + 1; saveSongs();
-        refreshBook(); renderStrip(); renderStage();
-        const r = bookB.getBoundingClientRect(); flourish(r.left + r.width / 2, r.top, ["♪", "♩", "♪"], "var(--lh)");
-        if (!playing) previewSing(current[bookPage - 1] || current.find(c => words()[c.i]) || current[0]);
-      }
       return;
     }
     const tl = e.target.closest("[data-tapelen]");
@@ -11323,47 +11361,11 @@
     }
   });
   $("sheetBody").addEventListener("keydown", e => {
-    if (sheetMode === "along") {
-      if (e.target.id === "alNew" && e.key === "Enter" && !e.shiftKey) { e.preventDefault(); alongAdd(e.target.value); e.target.value = ""; return; }
-      if (e.target.dataset.lt != null && e.key === "Enter") { e.preventDefault(); e.target.blur(); return; }
-    }
     if (sheetMode === "house" && (e.key === "Enter" || e.key === " ") && e.target.closest("[data-room],[data-stone],[data-guest]")) { e.preventDefault(); houseClick(e); return; }
-    if (e.target.id !== "pageLine" || e.key !== "Enter") return;
-    e.preventDefault();
-    if (bookPage < current.length) { bookPage++; sel = bookPage - 1; renderStage(); renderSheet(); $("pageLine")?.focus(); }
-    else { bookPage = 0; renderSheet(); }
   });
   $("sheetBody").addEventListener("input", e => {
     if (sheetMode === "along" && alongInput(e)) return;
     if (sheetMode === "rack" && rackInput(e)) return;
-    if (e.target.id === "verseText" && isTimed(sec())) {
-      // lines timed by hand keep their places: line 1 stays line 1, new lines wait to be placed
-      const txt = e.target.value.slice(0, 2000).split(/\n/), ls = sec().lines;
-      txt.forEach((t, k) => { if (ls[k]) ls[k].t = t.trim(); else ls.push({ t: t.trim(), a: null, b: null }); });
-      ls.length = Math.max(txt.length, 0);
-      syncTimed(sec(), current); sec().verse = e.target.value.slice(0, 2000);
-      saveSongs();
-      refreshBook(); renderStrip(); renderStage();
-      return;
-    }
-    if (e.target.id === "verseText") {
-      sec().verse = e.target.value.slice(0, 2000);
-      flowVerse(sec(), current);
-      saveSongs();
-      refreshBook(); renderStrip(); renderStage();
-      return;
-    }
-    if (e.target.id === "pageLine") {
-      const c = current[bookPage - 1];
-      if (!c) return;
-      words()[c.i] = e.target.value.slice(0, 80);
-      // keep the whole verse in step: one line per chord
-      sec().verse = current.map(x => words()[x.i] || "").join("\n");
-      sec().flowSig = flowSig(current);
-      saveSongs();
-      refreshPage(); renderStrip(); renderStage();
-      return;
-    }
     if (e.target.id === "kBpm") { setting("bpm", +e.target.value); $("kBpmVal").textContent = e.target.value; renderDeck(); applyFx(); }
     if (e.target.id === "kFills") {
       prefs.fills = +e.target.value; savePrefs();
@@ -11447,7 +11449,7 @@
 
   $("sheetBody").addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.fold) folds[d.dataset.fold] = d.open; }, true);
   $("sheetBody").addEventListener("pointerdown", e => {
-    if (sheetMode !== "along" || !e.target.closest("#alHold")) return;
+    if (sheetMode !== "along" || wStep !== "place" || !e.target.closest("#alHold")) return;
     e.preventDefault();
     alongDown();
   });
@@ -11456,7 +11458,7 @@
   document.addEventListener("pointercancel", alongLetGo);
   document.addEventListener("keyup", e => { if (e.key === " " && sheetMode === "along") alongLetGo(); });
   document.addEventListener("keydown", e => {
-    if (sheetMode === "along" && e.key === " " && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) {
+    if (sheetMode === "along" && wStep === "place" && e.key === " " && !/INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName)) {
       e.preventDefault();
       if (!e.repeat) alongDown();
       return;
