@@ -4865,6 +4865,10 @@
     const startT = tStart - 0.45;
     // (no breath-in before the line: through the mouth's resonances it came out as a low drag in the gaps, not a breath)
     const hi = (SING_STYLES[who] || SING_STYLES.wren).range[1];
+    // each note's start, a hair off the grid like a person, worked out up front so a
+    // note can let go in time for the next word's first sounds
+    const tsOf = notes.map(nt => t0 + nt.start * cl + (human ? (Math.random() - 0.5) * 0.018 : 0));
+    const onWant = j => { const n = notes[j], p = n && !n.tie && (mel.sy[n.s] || {}).ph; return p ? p.on.reduce((a, x) => a + (CONS[x] ? cLen(CONS[x]) : 0), 0) : 0; };
 
     notes.forEach((nt, i) => {
       // a line can cross chords: each note leans into the one under it
@@ -4884,11 +4888,12 @@
       if (nt.midi > hi - 4) { const k = Math.min(0.35, (nt.midi - hi + 4) * 0.08); V1 = V1.map((x, j) => x + (VF.ah[j] - x) * k); if (V2) V2 = V2.map((x, j) => x + (VF.ah[j] - x) * k * 0.6); }
       // Dusty's drawl: "I" leans to "ah", glides late and lazily
       if (V.drawl && nuc[0] === "aa" && nuc[1] === "iy") V2 = V1.map((x, k) => x + (VF.iy[k] - x) * 0.45);
-      const ts = t0 + nt.start * cl + (human ? (Math.random() - 0.5) * 0.018 : 0); // a hair off the grid, like a person
+      const ts = tsOf[i];
       const stressed = (nt.stress ?? syl.stress) || nt.emph === "p";
       // little words ("the", "to", "a") are said lightly, their vowels relaxed
       if (light) { V1 = V1.map((x, j) => x + (VF.ax[j] - x) * 0.25); if (V2) V2 = V2.map((x, j) => x + (VF.ax[j] - x) * 0.25); }
-      const dur = Math.max(0.1, nt.dur * cl * (V.speak && !stressed && i < notes.length - 1 ? 0.65 : 1));
+      let dur = Math.max(0.1, nt.dur * cl * (V.speak && !stressed && i < notes.length - 1 ? 0.65 : 1));
+      if (i < notes.length - 1) dur = Math.max(0.06, Math.min(dur, tsOf[i + 1] - onWant(i + 1) * 0.6 - 0.004 - ts));
       const te = ts + dur;
       const f = mf(nt.midi);
       // high voices have harmonics far apart: widen the mouth's resonances so
@@ -4902,7 +4907,9 @@
       const onC = tie ? [] : ph.on.map(p => [p, CONS[p]]).filter(([, C]) => C);
       const want = onC.reduce((a, [, C]) => a + cLen(C), 0);
       const from = Math.max(ts - want, prevEnd + 0.004);
-      const scale = want ? Math.min(1, (ts - from) / want) : 1;
+      // no room at all (a note running right into this one) squeezes the consonants, never
+      // flips them past the vowel: a hiss turned on after the vowel stays on the whole note
+      const scale = want ? Math.max(0, Math.min(1, (ts - from) / want)) : 1;
       let t = ts - want * scale;
       if (!onC.length && syl.first && i > 0 && human && ts - prevEnd < 0.1) { setAmp(ts - 0.03, 0.12, 0.008); setBreath(ts - 0.03, 0, 0.01); }
       // pitch moves with the first voiced sound of the syllable
