@@ -1484,7 +1484,7 @@
     .whatif-btn { bottom: 6px; }
     .shape-row { padding-top: 2px; padding-bottom: 2px; }
     .mh-side { gap: 3px !important; }
-    .mh-side .pal { min-height: 24px !important; padding: 0 10px !important; font-size: 12px !important; }
+    .mh-side .pal { min-height: 28px !important; padding: 0 10px !important; font-size: 15px !important; }
     .mini-house { max-height: 70px; width: auto; }
     .stage { padding-top: 8px; padding-bottom: 8px; }
     .lane-row { margin-top: 2px; margin-bottom: 2px; }
@@ -1614,6 +1614,9 @@
     .lane-mini { font-size: 18px; }
     .shape-name b { font-size: 19px; }
     .stage::after { height: 12px; top: -7px; }
+    .mode-write .mh-side { gap: 3px; }
+    .mode-write .mh-side .pal.mh-in, .mode-write .mh-side .pal.chords-pill, .mode-write .mh-side .pal.more, .mh-side .pal { font-size: 14.5px !important; min-height: 25px !important; }
+    .reels .dl { display: none; }
   }
 
   /* =========================================================
@@ -1633,6 +1636,70 @@
   .sheet.dragging { transition: none; }
   .sheet.letgo { transition: transform .22s ease-out; }
   body.sheet-open { overflow: hidden; }
+  /* ---------- one rhythm for every sheet ---------- */
+  .link { font-family: var(--body); font-weight: 800; letter-spacing: 0; text-decoration-thickness: 1.5px; }
+  #closeSheet:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+  #closeSheet:focus-visible { outline: 2px solid var(--lh); outline-offset: 2px; }
+  .sheet-body { gap: 20px; padding-bottom: 18px; }
+  .sheet-body > .knob { display: grid; gap: 8px; }
+  .sheet-body .knob > .lbl { margin: 0; }
+  .sheet-body .note { margin: 0; }
+  .sheet-body .row { gap: 8px; }
+  /* who you play with: five small portraits in a row */
+  .friend-row { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 4px; }
+  .buddy-card.buddy-mini { flex: 1 1 0; min-width: 56px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 5px 4px 6px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); color: var(--ink); cursor: pointer; }
+  .buddy-mini .portrait { width: 100%; max-width: 52px; height: 54px; border-radius: 10px; }
+  .buddy-mini span { font: 700 15px/1 var(--hand); color: var(--ink); -webkit-text-stroke: .3px currentColor; }
+  .buddy-card.buddy-mini[aria-pressed="true"] { background: var(--pick); border: 2px solid var(--ink); transform: rotate(-1.5deg); }
+  .presets.ways .choice { flex: 1 1 calc(50% - 8px); text-align: left; }
+  .ab .chip { justify-self: start; }
+  /* ---------- the song, top to bottom ---------- */
+  .sm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .sm-list { list-style: none; margin: 0; padding: 0 0 0 6px; display: grid; gap: 10px; }
+  .sm-row { position: relative; display: grid; grid-template-columns: 30px 1fr; gap: 6px 8px; padding: 9px 8px 9px 7px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); }
+  .sm-row:nth-child(2n) { transform: rotate(.4deg); } .sm-row:nth-child(2n+1) { transform: rotate(-.4deg); }
+  .sm-row.on { background: color-mix(in srgb, var(--lamp) 26%, var(--card)); border-width: 2px; }
+  .sm-row.linked::before { content: ""; position: absolute; left: -7px; top: 12px; bottom: 12px; width: 4px; border-radius: 2px; background: var(--surprise); }
+  .sm-row.lift { z-index: 5; box-shadow: 0 14px 24px -12px rgba(20, 16, 28, .55); transform: none; }
+  .sm-grip { grid-row: span 2; align-self: stretch; border: 0; border-radius: 10px; background: var(--card-2); color: var(--ink); font: 800 16px var(--body); cursor: grab; touch-action: none; display: grid; place-items: center; }
+  .sm-grip::after { content: "⋮⋮"; display: block; font-size: 10px; letter-spacing: -2px; color: var(--soft); margin-top: -6px; }
+  .sm-main { display: grid; gap: 6px; min-width: 0; border: 0; background: none; padding: 0; text-align: left; color: inherit; cursor: pointer; }
+  .sm-name { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; font: 700 23px/1 var(--hand); -webkit-text-stroke: .4px currentColor; }
+  .sm-name small { font: 700 12px var(--body); -webkit-text-stroke: 0; color: var(--soft); }
+  .sm-name small.sm-here { color: var(--ink); background: var(--lamp); color: #2f2a3d; border-radius: 999px; padding: 1px 8px; }
+  .sm-strip { display: flex; gap: 2px; height: 24px; border-radius: 8px; overflow: hidden; }
+  .sm-strip i { display: grid; place-items: center; min-width: 26px; background: color-mix(in srgb, var(--fn) 70%, var(--card)); font-style: normal; }
+  .sm-strip i b { font: 800 12px var(--body); color: #2f2a3d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 3px; }
+  .sm-strip .none { flex: 1; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--soft) 30%, transparent) 0 6px, transparent 6px 10px); font: 700 12px var(--body); color: var(--soft); }
+  .sm-acts { grid-column: 2; display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-width: 0; }
+  .sm-acts:has(.sm-ask) { flex-wrap: wrap; gap: 6px; }
+  .sm-acts .round { width: 32px; height: 32px; font-size: 15px; padding: 0; }
+  .sm-acts .chip { min-height: 32px; padding: 0 8px; font-size: 13.5px; white-space: nowrap; }
+  .sm-x { margin-left: auto; color: var(--tension); }
+  .sm-ask { flex-basis: 100%; font-weight: 700; font-size: 13.5px; }
+  .chip.sm-danger { background: var(--tension); color: #2f2a3d; }
+  .blk.on b::after { content: " ▾"; font-size: .85em; opacity: .7; }
+  /* the doors beside the house are the same size in every mode */
+  .mode-write .mh-side .pal.mh-in, .mode-write .mh-side .pal.chords-pill, .mode-write .mh-side .pal.more { font-size: 16.5px; min-height: 30px; padding: 0 11px; }
+  /* the tape reels get a name like every other button on the bar */
+  .reels { position: relative; flex-wrap: wrap; justify-content: center; row-gap: 0; }
+  .reels .dl { flex-basis: 100%; text-align: center; font: 800 9.5px/1 var(--body); letter-spacing: .02em; opacity: .82; margin-top: 2px; color: #efe7dc; }
+  /* on phones the moon keeps to the corner, clear of the song's name and parts */
+  @media (max-width: 700px) { .bd-orb { left: auto; right: 4px; width: 44px; height: 44px; transform: translateY(48px); } }
+  /* lessons read like a table of contents: a number, the title, one line under it */
+  .lesson-card { align-items: flex-start; padding: 10px 12px; }
+  .lesson-card .ln-n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); font: 800 13px/26px var(--body); text-align: center; font-style: normal; margin-top: 1px; }
+  .lesson-card > span { display: grid; gap: 2px; min-width: 0; }
+  .lesson-card b { font-size: 16px; line-height: 1.2; }
+  .lesson-card small { font-size: 13px; color: var(--soft); line-height: 1.3; }
+  /* sentences read in the rounded face; the typewriter is for short labels only */
+  .play-card .sc-text b { font-family: var(--hand); font-size: 21px; -webkit-text-stroke: .4px currentColor; }
+  .play-card .sc-text span { font-family: var(--body); font-weight: 600; font-size: 13.5px; line-height: 1.35; letter-spacing: 0; }
+  /* toasts never sit on top of what you're tapping: they let taps through (unless they carry an undo),
+     and while a sheet is open they show in the strip above it */
+  .toast { pointer-events: none; }
+  .toast.has-undo { pointer-events: auto; }
+  body.sheet-open .toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 6px); max-width: calc(100% - 24px); }
   /* a picked choice sits on the "picked" color, so its words use the page ink (readable in both themes) */
   .choice[aria-pressed="true"], .color-chip.on, .lick.on, .vp[aria-pressed="true"] { color: var(--ink); }
 </style>
@@ -1706,6 +1773,7 @@
         <button class="reels" id="rec" type="button" aria-label="Record the loop" title="record the loop"><i class="recdot" aria-hidden="true"></i>
           <svg class="reel" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5"/><circle cx="11" cy="11" r="3"/><path d="M11 2v5.5M11 14.5V20M2.8 6.5l4.6 2.7M14.6 12.8l4.6 2.7M2.8 15.5l4.6-2.7M14.6 9.2l4.6-2.7"/></svg>
           <svg class="reel" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9.5"/><circle cx="11" cy="11" r="3"/><path d="M11 2v5.5M11 14.5V20M2.8 6.5l4.6 2.7M14.6 12.8l4.6 2.7M2.8 15.5l4.6-2.7M14.6 9.2l4.6-2.7"/></svg>
+          <span class="dl">record</span>
         </button>
         <div class="lights" id="lights" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       </div>
@@ -6881,7 +6949,7 @@
   const learnTabs = on => `<div class="tabs four" role="tablist">${[["stories", "✦ stories"], ["lessons", "♪ tunes"], ["street", "⌂ street"], ["play", "▶ play"]].map(([id, n]) => `<button type="button" role="tab" data-open="${id}" aria-selected="${on === id}">${n}</button>`).join("")}</div>`;
   function lessonsHTML() {
     if (lessonAt == null) return `<p class="note">Short lessons about what goes on top of your chords. Every example plays in the part you're working on.</p>
-      <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card" type="button" data-lesson="${i}"><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></button>`).join("")}</div>`;
+      <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card lesson-card" type="button" data-lesson="${i}"><i class="ln-n">${i + 1}</i><span><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></span></button>`).join("")}</div>`;
     const l = LESSONS[lessonAt];
     return `<article class="card lesson"><h3>${esc(l.title)}</h3>${l.text.map(p => `<p>${esc(p)}</p>`).join("")}
       <div class="row">${l.demos.map((d, k) => `<button class="btn${k ? "" : " surprise"}" type="button" data-lessondemo="${k}">${esc(d[0])}</button>`).join("")}</div>
@@ -7485,7 +7553,7 @@
     const chans = CHANNELS.map(([id, label]) => `<div class="chan"><span>${esc(label)}</span>
         <button type="button" class="ms m" data-chan="mute" data-id="${id}" aria-pressed="${!!c.mute[id]}" aria-label="Mute the ${esc(label)}">M</button>
         <button type="button" class="ms s" data-chan="solo" data-id="${id}" aria-pressed="${!!c.solo[id]}" aria-label="Solo the ${esc(label)}">S</button></div>`).join("");
-    const slot = k => `<div class="ab${cur === k ? " on" : ""}"><b>${k}</b>${ab[k] ? `<button type="button" class="btn" data-ab="use" data-k="${k}">${cur === k ? "listening" : "listen"}</button>` : `<small>empty</small>`}<button type="button" class="link" data-ab="keep" data-k="${k}">${ab[k] ? "keep this mix here" : "keep this mix as " + k}</button></div>`;
+    const slot = k => `<div class="ab${cur === k ? " on" : ""}"><b>${k}</b>${ab[k] ? `<button type="button" class="btn" data-ab="use" data-k="${k}">${cur === k ? "listening" : "listen"}</button>` : `<small>empty</small>`}<button type="button" class="chip" data-ab="keep" data-k="${k}">${ab[k] ? "↻ keep this mix" : "keep this mix"}</button></div>`;
     return `<div class="rack">
       <div class="knob"><span class="lbl">pedals · on the whole mix</span><div class="pedals">${pedals}</div></div>
       <div class="knob"><span class="lbl">mute and solo</span><div class="chans">${chans}</div>
@@ -7493,9 +7561,6 @@
       <div class="knob"><span class="lbl">compare two mixes</span><div class="abs">${slot("A")}${slot("B")}</div>
         <p class="note">Keep a mix in A, change things, keep it in B, then flip between them while it plays.</p></div>
       <div class="knob"><span class="lbl">vibe</span><div class="presets">${VIBES.map(v => `<button class="choice" type="button" data-vibe="${v.id}" aria-pressed="${vibeOf().id === v.id}">${esc(v.name)}<small>${esc(v.note)}</small></button>`).join("")}</div></div>
-      <div class="knob"><span class="lbl">play along live</span><p class="note">Press play and play over the band on your own keyboard. Whatever you play goes through the desk and the pedals, and onto the tape.</p></div>
-      ${keysKnobHTML()}
-      ${tapeLenHTML()}
       <div class="row"><button class="btn" type="button" data-rack="flat">everything back to flat</button>${(song.takes || []).length ? `<button class="btn" type="button" data-rack="takes">▤ your takes (${song.takes.length})</button>` : ""}</div>
     </div>`;
   }
@@ -8854,6 +8919,174 @@
   }, 1800);
 
   // =========================================================
+  // The song, top to bottom: every part in the order it plays,
+  // and what you can do to each one right there. Move it, play it
+  // again, make a copy to change on its own, rename it, take it
+  // out, and add new parts on the end. Every change can be undone.
+  // =========================================================
+  let mapConfirm = null; // the part waiting on "take it out?"
+  let smDrag = null;
+  const mmss = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+  function songSeconds() {
+    return song.order.reduce((a, id) => { const d = sectionData(idxOf(id)); return a + d.list.reduce((x, c) => x + c.beats, 0) * countSec(d.M, S().bpm); }, 0);
+  }
+  // "Verse" → "Verse 2" (or the next free number)
+  function twinName(name) {
+    const base = name.replace(/\s+\d+$/, "");
+    let k = 2;
+    while (song.sections.some(x => x.name === `${base} ${k}`)) k++;
+    return `${base} ${k}`;
+  }
+  const songSnap = () => undoStack.push({ kind: "song", order: song.order.slice(), sections: JSON.parse(JSON.stringify(song.sections)), pos: ordPos });
+  function songUndo(u) {
+    song.order = u.order; song.sections = u.sections;
+    ordPos = Math.min(u.pos, song.order.length - 1);
+    secIdx = Math.max(0, idxOf(song.order[ordPos]));
+    input.value = sec().prog; sel = 0;
+    saveSongs(); renderAll();
+    if (sheetMode === "map") renderSheet();
+    tipOverride = "Back the way it was."; renderStage();
+  }
+
+  function mapHTML() {
+    const n = song.order.length;
+    const rows = song.order.map((id, p) => {
+      const i = idxOf(id), x = song.sections[i], d = sectionData(i), copies = song.order.filter(v => v === id).length, first = song.order.indexOf(id);
+      const strip = d.list.length ? d.list.map(c => `<i style="flex:${c.beats};${fnVar(c.a.fn)}"><b>${esc(pretty(c.tok.replace(/:\d+$/, "")))}</b></i>`).join("") : `<i class="none">no chords yet</i>`;
+      const again = copies > 1 ? (first === p ? `plays ${copies === 2 ? "twice" : copies + " times"}` : `again, same as part ${first + 1}`) : "";
+      const acts = mapConfirm === p
+        ? `<span class="sm-ask">${copies > 1 ? "Take out this repeat?" : `Take out the ${esc(x.name.toLowerCase())}? Its chords and words go too.`}</span>
+           <button class="chip sm-danger" type="button" data-map="del-yes" data-p="${p}">take it out</button><button class="chip" type="button" data-map="del-no">keep it</button>`
+        : `<button class="round" type="button" data-map="up" data-p="${p}"${p ? "" : " disabled"} aria-label="Move ${esc(x.name)} earlier">↑</button>
+           <button class="round" type="button" data-map="down" data-p="${p}"${p < n - 1 ? "" : " disabled"} aria-label="Move ${esc(x.name)} later">↓</button>
+           <button class="chip" type="button" data-map="repeat" data-p="${p}">↻ again</button>
+           <button class="chip" type="button" data-map="copy" data-p="${p}">⧉ copy</button>
+           <button class="round" type="button" data-map="edit" data-p="${p}" aria-label="Rename ${esc(x.name)} or change its time" title="rename">✎</button>
+           ${n > 1 ? `<button class="round sm-x" type="button" data-map="del" data-p="${p}" aria-label="Take out ${esc(x.name)}">✕</button>` : ""}`;
+      return `<li class="sm-row${p === ordPos ? " on" : ""}${copies > 1 ? " linked" : ""}" data-p="${p}">
+        <button class="sm-grip" type="button" data-map="grip" data-p="${p}" aria-label="Part ${p + 1}. Drag to move it">${p + 1}</button>
+        <button class="sm-main" type="button" data-map="open" data-p="${p}" aria-label="Open the ${esc(x.name)}">
+          <span class="sm-name">${esc(x.name.toLowerCase())}${again ? `<small>↻ ${again}</small>` : ""}${p === ordPos ? `<small class="sm-here">open now</small>` : ""}</span>
+          <span class="sm-strip">${strip}</span>
+        </button>
+        <div class="sm-acts">${acts}</div>
+      </li>`;
+    }).join("");
+    return `<div class="song-map">
+      <div class="sm-top"><p class="note">${n} part${n === 1 ? "" : "s"} · about ${mmss(songSeconds())} · ${esc(pretty(keyName(K)))}</p><button class="btn surprise" type="button" data-map="play">▶ play the whole song</button></div>
+      <ol class="sm-list" id="smList">${rows}</ol>
+      <p class="note"><b>↻ again</b> plays the same part once more: change one and both change, like a chorus that comes back. <b>⧉ copy</b> makes a twin you can change on its own. Drag a number to move a part.</p>
+      <div class="knob" id="smAdd"><span class="lbl">add a part on the end</span>
+        <div class="presets">${SECTION_NAMES.map(nm => `<button class="choice" type="button" data-map="add" data-name="${nm}">+ ${nm.toLowerCase()}<small>${esc(roleOf(nm).note)}</small></button>`).join("")}</div></div>
+    </div>`;
+  }
+
+  function mapAct(a, p, el) {
+    const n = song.order.length;
+    if (a === "grip") return;
+    if (a === "open") { mapConfirm = null; switchSection(idxOf(song.order[p]), p); renderSheet(); return; }
+    if (a === "edit") { mapConfirm = null; switchSection(idxOf(song.order[p]), p); openSheet("secedit"); return; }
+    if (a === "play") {
+      closeSheet(); if (playing) stop();
+      prefs.wholeSong = true; savePrefs();
+      ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); input.value = sec().prog; renderAll();
+      playAll(); return;
+    }
+    if (a === "del") { mapConfirm = p; renderSheet(); return; }
+    if (a === "del-no") { mapConfirm = null; renderSheet(); return; }
+    if (a === "add") {
+      songSnap();
+      const x = newSection(el.dataset.name, "", songMeter());
+      song.sections.push(x); song.order.push(x.id);
+      saveSongs();
+      switchSection(song.sections.length - 1, song.order.length - 1);
+      openSheet("add");
+      toast(`a ${x.name.toLowerCase()} on the end. Now its chords`, true);
+      return;
+    }
+    const name = song.sections[idxOf(song.order[p])].name.toLowerCase();
+    let msg = "";
+    songSnap();
+    if (a === "up" || a === "down") {
+      const to = p + (a === "up" ? -1 : 1);
+      if (to < 0 || to >= n) { undoStack.pop(); return; }
+      [song.order[p], song.order[to]] = [song.order[to], song.order[p]];
+      if (ordPos === p) ordPos = to; else if (ordPos === to) ordPos = p;
+      msg = `moved the ${name} ${a === "up" ? "earlier" : "later"}`;
+    } else if (a === "repeat") {
+      song.order.splice(p + 1, 0, song.order[p]);
+      if (ordPos > p) ordPos++;
+      msg = `the ${name} again, right after`;
+    } else if (a === "copy") {
+      const src = song.sections[idxOf(song.order[p])], x = JSON.parse(JSON.stringify(src));
+      x.id = uid(); x.name = twinName(src.name);
+      song.sections.push(x); song.order.splice(p + 1, 0, x.id);
+      if (ordPos > p) ordPos++;
+      msg = `made ${x.name.toLowerCase()}, a copy to change on its own`;
+    } else if (a === "del-yes") {
+      if (n < 2) { undoStack.pop(); return; }
+      const id = song.order[p];
+      song.order.splice(p, 1);
+      if (!song.order.includes(id)) song.sections.splice(idxOf(id), 1);
+      if (ordPos > p || ordPos >= song.order.length) ordPos--;
+      mapConfirm = null;
+      msg = `took out the ${name}`;
+    }
+    ordPos = Math.max(0, Math.min(ordPos, song.order.length - 1));
+    secIdx = Math.max(0, idxOf(song.order[ordPos]));
+    input.value = sec().prog;
+    saveSongs(); renderAll(); renderSheet();
+    toast(msg, true);
+  }
+  function mapClick(e) {
+    const b = e.target.closest("[data-map]");
+    if (!b || b.disabled) return false;
+    if (smDrag && smDrag.moved) return true;
+    mapAct(b.dataset.map, +b.dataset.p, b);
+    return true;
+  }
+  // drag a part by its number to move it up or down the song
+  document.addEventListener("pointerdown", e => {
+    if (sheetMode !== "map") return;
+    const g = e.target.closest('[data-map="grip"]');
+    if (!g) return;
+    const row = g.closest(".sm-row");
+    smDrag = { row, from: +row.dataset.p, y0: e.clientY, moved: false, id: e.pointerId };
+    try { g.setPointerCapture(e.pointerId); } catch {}
+  });
+  document.addEventListener("pointermove", e => {
+    if (!smDrag || e.pointerId !== smDrag.id) return;
+    const dy = e.clientY - smDrag.y0;
+    if (!smDrag.moved && Math.abs(dy) < 6) return;
+    smDrag.moved = true;
+    smDrag.row.classList.add("lift");
+    smDrag.row.style.transform = `translateY(${dy}px)`;
+  });
+  const smEnd = e => {
+    if (!smDrag || e.pointerId !== smDrag.id) return;
+    const d = smDrag;
+    setTimeout(() => { smDrag = null; }, 0);
+    if (!d.moved) return;
+    const rows = [...document.querySelectorAll("#smList .sm-row")].filter(r => r !== d.row);
+    let to = rows.findIndex(r => { const b = r.getBoundingClientRect(); return e.clientY < b.top + b.height / 2; });
+    if (to < 0) to = rows.length;
+    if (e.type === "pointerup" && to !== d.from) {
+      songSnap();
+      const [id] = song.order.splice(d.from, 1);
+      song.order.splice(to, 0, id);
+      if (ordPos === d.from) ordPos = to;
+      else if (d.from < ordPos && to >= ordPos) ordPos--;
+      else if (d.from > ordPos && to <= ordPos) ordPos++;
+      secIdx = Math.max(0, idxOf(song.order[ordPos]));
+      saveSongs(); renderAll();
+      toast(`moved the ${song.sections[idxOf(id)].name.toLowerCase()} to part ${to + 1}`, true);
+    }
+    renderSheet();
+  };
+  document.addEventListener("pointerup", smEnd);
+  document.addEventListener("pointercancel", smEnd);
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -9234,8 +9467,8 @@
       const strip = d.list.length ? d.list.map(c => `<i style="flex:${c.beats};background:var(--${c.a.fn})"></i>`).join("") : `<i class="none"></i>`;
       const on = p === ordPos, same = !on && id === sec().id;
       const w = Math.max(52, Math.min(110, 40 + T * 2.2));
-      return `<button class="blk${on ? " on" : ""}${same ? " same" : ""}" type="button" data-pos="${p}" style="width:${w.toFixed(0)}px" aria-current="${on}" aria-label="${esc(x.name)}${on ? ", open. Tap for options" : ""}"><b>${esc(x.name.toLowerCase())}</b><span class="mini">${strip}</span></button>`;
-    }).join("") + `<button class="blk add" type="button" data-act="addsec" aria-label="Add a part">+</button>`;
+      return `<button class="blk${on ? " on" : ""}${same ? " same" : ""}" type="button" data-pos="${p}" style="width:${w.toFixed(0)}px" aria-current="${on}" aria-label="${esc(x.name)}${on ? ", open. Tap to see the whole song" : ""}"><b>${esc(x.name.toLowerCase())}</b><span class="mini">${strip}</span></button>`;
+    }).join("") + `<button class="blk add" type="button" data-act="addsec" aria-label="The whole song: add, move or repeat parts">+</button>`;
   }
 
   // the next row: your best next chords, big, and "more" for everything else
@@ -9711,6 +9944,8 @@
     timers.forEach(clearTimeout);
     timers.clear();
     setPlaying(false);
+    // the band stopped mid-take: the take ends too (after the last note fades)
+    if (recorder && recorder.state === "recording") { const r = recorder; setTimeout(() => { if (r.state !== "inactive") r.stop(); }, 450); }
     if (ac && master) {
       const old = master;
       old.gain.setTargetAtTime(0.0001, ac.currentTime, 0.05);
@@ -9922,7 +10157,7 @@
     tick();
   }
   // ---------- the tape recorder: two times round the part (or the whole song once) ----------
-  let recorder = null, recTimer = null, tapeBlob = null, tapeURL = null, tapeExt = "webm";
+  let recorder = null, recTimer = null, recEnd = 0, tapeBlob = null, tapeURL = null, tapeExt = "webm";
   const TAPE_MAX = 600; // ten minutes at most
   const TAPE_LENS = [["2", "2× the part"], ["4", "4×"], ["8", "8×"], ["song", "the whole song"], ["free", "until I stop"]];
   const tapeLenHTML = () => `<div class="knob"><span class="lbl">tape length</span><div class="presets">${TAPE_LENS.map(([v, n]) => `<button class="choice" type="button" data-tapelen="${v}" aria-pressed="${(prefs.tapeLen || "2") === v}">${n}</button>`).join("")}</div>
@@ -9943,7 +10178,7 @@
     recorder = type ? new MediaRecorder(dest.stream, { mimeType: type }) : new MediaRecorder(dest.stream);
     recorder.ondataavailable = ev => { if (ev.data.size) chunks.push(ev.data); };
     recorder.onstop = () => {
-      clearInterval(recTimer);
+      clearInterval(recTimer); clearTimeout(recEnd);
       try { tapOut.disconnect(dest); } catch {}
       recorder = null;
       document.body.classList.remove("recording");
@@ -9971,7 +10206,9 @@
     const t0 = Date.now();
     recTimer = setInterval(() => { const s = Math.round((Date.now() - t0) / 1000); $("deckInfo").textContent = `recording · ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}${len === "free" ? " · ■ to stop" : ""}`; }, 250);
     await playAll();
-    later(() => { if (recorder) recorder.stop(); }, (secs + 1.8) * 1000);
+    // (its own timer: stopping or restarting the band mustn't cancel the end of the tape)
+    clearTimeout(recEnd);
+    recEnd = setTimeout(() => { if (recorder && recorder.state !== "inactive") recorder.stop(); }, (secs + 1.8) * 1000);
   }
   async function saveTape(blob = tapeBlob, name0 = null) {
     if (!blob) return;
@@ -10063,6 +10300,7 @@
   }
   function undoLast() {
     const u = undoStack.pop();
+    if (u && u.kind === "song") { songUndo(u); return; }
     if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.max(0, Math.min(k, current.length - 1)); tipOverride = "Back the way it was."; renderStage(); if (sheetMode === "add") renderSheet(); }
   }
   function switchSection(i, pos) {
@@ -10183,6 +10421,7 @@
   }
 
   let toastTimer;
+  $("toast").addEventListener("click", e => { if (!e.target.closest(".toast-undo")) $("toast").hidden = true; });
   function toast(msg, undoable) {
     const t = $("toast");
     t.textContent = msg;
@@ -10409,6 +10648,7 @@
     // the songbook opens on the page for the chord you're on, or the cover
     if (mode === "stories" && sheetMode !== "stories" && !(mode === "stories" && storyAt === 0 && sheetMode === "keys")) storyAt = null;
     if (mode === "street" && sheetMode !== "street") streetLit = null;
+    if (mode === "map") mapConfirm = null;
     if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
     $("sheet").classList.toggle("wide", mode === "house");
     $("sheet").classList.toggle("tall", mode === "along");
@@ -10422,7 +10662,7 @@
     renderSheet();
     // an empty songbook opens ready to write
     const vt = mode === "along" && $("wordsText");
-    if (vt && !vt.value.trim()) vt.focus(); else $("closeSheet").focus();
+    if (vt && !vt.value.trim()) vt.focus(); else $("closeSheet").focus({ focusVisible: false });
   }
   function closeSheet() {
     hearStop();
@@ -10495,6 +10735,7 @@
     if (sheetMode === "rack") { $("sheetTitle").textContent = "the rack"; body.innerHTML = rackHTML(); return; }
     if (sheetMode === "keys") { $("sheetTitle").textContent = "your keyboard"; body.innerHTML = keysHubHTML(); return; }
     if (sheetMode === "playin") { $("sheetTitle").textContent = "play in chords"; body.innerHTML = playinHTML(); return; }
+    if (sheetMode === "map") { $("sheetTitle").textContent = "the song"; body.innerHTML = mapHTML(); return; }
     if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs() + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
@@ -10521,19 +10762,14 @@
           <div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-meter="${m}" aria-pressed="${songMeter() === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
           <p class="note">${(() => { const own = song.sections.filter(x => x.ownMeter); return own.length ? `For the whole song, except ${own.map(x => `the ${esc(x.name.toLowerCase())} (${x.meter})`).join(" and ")}. ` : "For the whole song. "; })()}To give one part its own, tap it in the song map.</p></div>
         `)}
-        ${keysKnobHTML()}
-        <div class="knob"><span class="lbl">more</span>
-          <div class="toggles">
-            <button class="link" type="button" data-open="key">the key: ${esc(pretty(keyName(K)))}</button>
-            <button class="link" type="button" data-open="beat">the band: who's playing, piano sound, the beat</button>
-            <button class="link" type="button" data-open="tune">tune & riff for the ${esc(sec().name.toLowerCase())}</button>
-            <button class="link" type="button" data-open="view">what shows: ${esc(VIEWS[prefs.view].name)} mode</button>
-          </div>
-        </div>`;
+        ${keysKnobHTML()}`;
     } else if (sheetMode === "beat") {
       const b = B(), M = Mtr, bt = beatFor(M.id), sp = stepsPer(M), presets = beatPresets(prefs.buddy, M.id);
-      $("sheetTitle").textContent = `${b.name.toLowerCase()}'s band`;
+      $("sheetTitle").textContent = "the band";
       body.innerHTML = `
+        <div class="knob"><span class="lbl">who you play with · ${esc(b.name)}</span>
+          <div class="friend-row">${BUDDY_ORDER.map(id => `<button class="buddy-card buddy-mini" type="button" data-buddy="${id}" aria-pressed="${prefs.buddy === id}" aria-label="${esc(BUDDIES[id].name)}">${portrait(id)}<span>${esc(BUDDIES[id].name)}</span></button>`).join("")}</div>
+          <p class="note">${esc(b.who)}. <button class="link" type="button" data-open="band">meet everyone</button></p></div>
         <div class="knob"><span class="lbl">who's playing</span>
           <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
           <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
@@ -10561,8 +10797,8 @@
         <p class="note">Each mode is a starting point. Change anything below and the mode remembers it.</p>
         <div class="knob"><span class="lbl">on the keyboard</span><div class="presets">${["friends", "arrows", "lens", "names"].map(chip).join("")}</div>
           <p class="note">${esc(B().name)}'s ${esc(FRIENDS[prefs.buddy].many)} sit on the notes you play and hop to the next chord. The ones that stay put are notes the two chords share.</p></div>
-        ${fold("see", "more of what shows", `<div class="presets">${["scene", "talk", "lyrics", "palette", "ribbon", "fx", "entry"].map(chip).join("")}</div>`)}
-        ${fold("hear", "what you hear", `<div class="presets">${HEAR.map(chip).join("")}</div>`)}`;
+        <div class="knob"><span class="lbl">on the screen</span><div class="presets">${["scene", "talk", "lyrics", "palette", "ribbon", "fx", "entry"].map(chip).join("")}</div>
+          <p class="note">Who's playing (the singer, the lead, the beat) is in <button class="link" type="button" data-open="beat">the band</button>.</p></div>`;
     } else if (sheetMode === "key") {
       // move the whole song to another key: tap a key, or step by half steps
       $("sheetTitle").textContent = "key";
@@ -10632,8 +10868,9 @@
         <div class="knob"><span class="lbl">or start from a ready-made one</span>
           <p class="note">${current.length ? `These replace what's in the ${esc(nm)}. You can undo.` : "Four chords at once, each from a street story."}</p>
           <div class="moods">${STORIES.map(st => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
-          <div class="row"><button class="btn" type="button" data-open="library">from the library</button><button class="btn" type="button" data-addact="wizard">start from a note</button></div></div>
-        <p class="note add-foot">Also: <button class="link" type="button" data-addact="type">type chords</button> · <button class="link" type="button" data-addact="find">name a chord from its keys</button></p>`;
+        </div>
+        <div class="knob"><span class="lbl">more ways in</span>
+          <div class="presets ways"><button class="choice" type="button" data-open="library">▤ from the library</button><button class="choice" type="button" data-addact="wizard">♪ start from a note</button><button class="choice" type="button" data-addact="type">⌨ type chords</button><button class="choice" type="button" data-addact="find">? name a chord from its keys</button></div></div>`;
     } else if (sheetMode === "addsec") {
       $("sheetTitle").textContent = "add a part";
       body.innerHTML = `
@@ -10659,8 +10896,8 @@
       $("sheetTitle").textContent = "your tape";
       body.innerHTML = `<div class="tape">
         <svg class="cass" viewBox="0 0 180 110" aria-hidden="true"><rect x="3" y="3" width="174" height="104" rx="10" fill="#2f2a3d"/><rect x="18" y="14" width="144" height="46" rx="4" fill="#f7f1e6"/><text x="90" y="34" text-anchor="middle" font-family="Gaegu, cursive" font-weight="700" font-size="17" fill="#2f2a3d">${esc((song.title || "untitled").slice(0, 22))}</text><text x="90" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" fill="#6f6782">${esc(B().name.toLowerCase())} · ${esc(pretty(keyName(K)))}</text><circle cx="56" cy="80" r="13" fill="#f7f1e6"/><circle cx="124" cy="80" r="13" fill="#f7f1e6"/><circle cx="56" cy="80" r="4" fill="#2f2a3d"/><circle cx="124" cy="80" r="4" fill="#2f2a3d"/><rect x="72" y="74" width="36" height="12" rx="3" fill="#4a4458"/></svg>
-        ${tapeURL ? `<audio controls src="${tapeURL}"></audio>` : (song.takes || [])[0] ? `<audio controls data-takeaudio="${song.takes[0].id}"></audio>` : `<p class="note">No tape yet. Press record, or tap tape in the studio.</p>`}
-        <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn" type="button" data-tape="again">record again</button></div>
+        ${tapeURL ? `<audio controls src="${tapeURL}"></audio>` : (song.takes || [])[0] ? `<audio controls data-takeaudio="${song.takes[0].id}"></audio>` : `<p class="note">No tape yet. The band plays and the tape rolls; play along on your keyboard and you're on it too.</p>`}
+        <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn${tapeURL || (song.takes || [])[0] ? "" : " surprise"}" type="button" data-tape="again">${tapeURL || (song.takes || [])[0] ? "● record another" : "● record"}</button></div>
         </div>${tapeLenHTML()}${takesHTML()}`;
       requestAnimationFrame(fillTakes);
     } else if (sheetMode === "house") {
@@ -10714,7 +10951,7 @@
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
         <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
-        <p class="note">${storageOK ? "Songs save in this browser as you go. Copy one as text below if you want a backup." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
+        <p class="note">${storageOK ? "Songs save in this browser as you go." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
           return `<article class="card song-card" aria-current="${s.id === song.id}">
@@ -10724,15 +10961,13 @@
               : `${s.id === song.id ? "" : `<button class="btn" type="button" data-song="open" data-id="${s.id}">open</button>`}${songs.length > 1 ? `<button class="x" style="color:var(--soft)" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
           </article>`;
         }).join("")}
-        <article class="card">
-          <h3>back up or share</h3>
-          <div class="row"><button class="btn surprise" type="button" data-song="pack">⬇ pack up all my songs</button><button class="btn" type="button" data-song="unpack">⬆ unpack songs</button></div>
-          <p class="note">One file with every song, your settings, and your demos and tapes. Unpack it in another copy of Pixie, like its new home on the web.</p>
-          <input type="file" id="packFile" accept=".json,application/json" hidden>
-          <div class="row"><button class="btn" type="button" data-song="copy">copy “${esc(song.title || "untitled")}” as text</button></div>
+        <div class="knob"><span class="lbl">back up or move</span>
+          <div class="row"><button class="btn" type="button" data-song="pack">⬇ pack up all my songs</button><button class="btn" type="button" data-song="unpack">⬆ unpack songs</button></div>
+          <p class="note">One file with every song, your settings, and your demos and tapes. Unpack it in another copy of Pixie.</p>
+          <input type="file" id="packFile" accept=".json,application/json" hidden></div>
+        ${fold("astext", "songs as text", `<div class="row"><button class="btn" type="button" data-song="copy">copy “${esc(song.title || "untitled")}” as text</button></div>
           <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: moon song&#10;[Verse]&#10;C Am F G&#10;[Chorus · 3/4]&#10;F G C C" aria-label="Paste a song as text"></textarea>
-          <div class="row"><button class="btn" type="button" data-song="import">add pasted song</button></div>
-        </article>`;
+          <div class="row"><button class="btn" type="button" data-song="import">add pasted song</button></div>`)}`;
     }
   }
 
@@ -10769,6 +11004,7 @@
   $("demoBtn").addEventListener("click", cycleDemo);
   $("rec").addEventListener("click", record);
   $("scope").addEventListener("click", () => {
+    if (recorder) { toast("the tape is rolling: part or song is set for this take. Try it on the next one"); return; }
     prefs.wholeSong = !prefs.wholeSong; savePrefs();
     renderAll();
     toast(prefs.wholeSong ? (song.order.length > 1 ? `the whole song, from the ${sec().name.toLowerCase()} on` : "the whole song (it's one part so far)") : `just the ${sec().name.toLowerCase()}`);
@@ -10809,9 +11045,9 @@
     if (mapBlock) return;
     const b = e.target.closest("[data-pos],[data-act]");
     if (!b) return;
-    if (b.dataset.act === "addsec") { openSheet("addsec"); return; }
+    if (b.dataset.act === "addsec") { openSheet("map"); requestAnimationFrame(() => $("smAdd")?.scrollIntoView({ block: "start" })); return; }
     const p = +b.dataset.pos;
-    if (p === ordPos) { openSheet("secedit"); return; }
+    if (p === ordPos) { openSheet("map"); return; }
     switchSection(idxOf(song.order[p]), p);
   });
   $("sections").addEventListener("pointerdown", e => {
@@ -11217,6 +11453,7 @@
     if (sheetMode === "tune" && tuneSheetClick(e)) return;
     if (sheetMode === "lessons" && lessonsClick(e)) return;
     if (sheetMode === "along" && alongClick(e)) return;
+    if (sheetMode === "map" && mapClick(e)) return;
     if ((sheetMode === "knobs" || sheetMode === "rack") && keysClick(e)) return;
     if (sheetMode === "keys" && keysHubClick(e)) return;
     if (sheetMode === "playin" && playinClick(e)) return;
@@ -11613,5 +11850,7 @@
   savePrefs();
   store.set("songs", JSON.stringify(songs));
   store.set("current", song.id);
+  // a door for automated checks (not used by the app itself)
+  window.__pixie = { openSheet, closeSheet };
 })();
 </script>
