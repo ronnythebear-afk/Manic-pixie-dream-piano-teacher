@@ -4506,7 +4506,9 @@
     g.gain.exponentialRampToValueAtTime(Math.max(level, 0.0002), a + rise);
     g.gain.setValueAtTime(Math.max(level, 0.0002), Math.max(a + rise, b - 0.015));
     g.gain.exponentialRampToValueAtTime(0.0001, b);
-    nz.connect(f); f.connect(g); g.connect(tapOut || master); // past the warm tape filter, so s and t stay crisp
+    // (through the voice's own level and a soft top, past the warm tape filter so t and k stay crisp but never snap)
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 7000; lp.Q.value = 0.5;
+    nz.connect(f); f.connect(lp); lp.connect(g); g.connect(voiceTap || tapOut || master);
     nz.start(a, Math.random() * 0.5); nz.stop(b + 0.02);
   }
 
@@ -4757,6 +4759,7 @@
     return input;
   }
   const F4 = 3400;
+  const HISS = 0.32;  // how loud s, sh, f and the pops of p, t, k sit (about 10 dB under what they were)
   const VOT = 0.045; // the puff of breath after p, t, k before the voice comes in
   const BWQ = [7, 13, 16, 15];
   const LEVELS = [1, 0.95, 0.6, 0.35];
@@ -4810,9 +4813,11 @@
     const nas = ac.createGain(); nas.gain.value = 0.0001;
     amp.connect(nasBp); nasBp.connect(nas); nas.connect(out);
     // hiss: fricatives go straight out, not through the mouth
-    const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain();
+    // (softened on top and kept at the voice's own level, so s and sh never come out as static over the song)
+    const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain(), hissLp = ac.createBiquadFilter();
     hissBp.type = "bandpass"; hissBp.frequency.value = 5000; hissBp.Q.value = 1.2; hiss.gain.value = 0.0001;
-    hissSrc.connect(hissBp); hissBp.connect(hiss); hiss.connect(voiceTap || tapOut || master); // skips the warm tape filter
+    hissLp.type = "lowpass"; hissLp.frequency.value = 7000; hissLp.Q.value = 0.5;
+    hissSrc.connect(hissBp); hissBp.connect(hissLp); hissLp.connect(hiss); hiss.connect(voiceTap || tapOut || master); // skips the warm tape filter
     // where the voice goes: centered (or panned for doubles), plus the friend's room
     let dest = voiceBus || master;
     if (opt.pan && ac.createStereoPanner) { const pn = ac.createStereoPanner(); pn.pan.value = opt.pan; pn.connect(dest); dest = pn; }
@@ -4833,11 +4838,13 @@
     const setAmp = (t, a, tau = 0.012) => amp.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
     const setBreath = (t, a, tau = 0.012) => breath.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau);
     const setNas = (t, a, tau = 0.015) => { nas.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); [1, 2].forEach(fi => bands[fi].g.setTargetAtTime(bands[fi].lvl * 3.4 * (a > 0.1 ? 0.25 : 1), q(t), tau)); };
-    const cm = quiet ? 0.3 : 1; // doubles keep their s and t sounds soft so they don't pile up
-    const setHiss = (t, band, Q, a, tau = 0.01) => { a *= cm; if (band) { hissBp.frequency.setValueAtTime(band * Math.min(1.1, sh), q(t)); hissBp.Q.setValueAtTime(Q, q(t)); } hiss.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); };
+    // consonant noise follows the voice's own level (and doubles keep their s and t sounds soft so they don't pile up)
+    const cm = (quiet ? 0.3 : 1) * HISS * Math.min(1.2, V.gain / 0.4) * (opt.gain ?? 1);
+    // (the filter glides to each new sound instead of jumping, which clicked)
+    const setHiss = (t, band, Q, a, tau = 0.012) => { a *= cm; if (band) { hissBp.frequency.setTargetAtTime(band * Math.min(1.1, sh), q(t - 0.012), 0.004); hissBp.Q.setTargetAtTime(Q, q(t - 0.012), 0.004); } hiss.gain.setTargetAtTime(Math.max(a, 0.0001), q(t), tau); };
     const setPitch = (t, f, tau) => srcs.forEach(([o, mult]) => o.frequency.setTargetAtTime(f * mult, q(t), tau));
     const jumpPitch = (t, f) => srcs.forEach(([o, mult]) => o.frequency.setValueAtTime(f * mult, q(t)));
-    const burst = (t, C, soft) => quiet ? null : fricNoise(q(t), q(t) + 0.018, C.band, C.q, 0.055 * V.cons * (C.v ? 0.55 : 1) * (soft ? 0.6 : 1));
+    const burst = (t, C, soft) => quiet ? null : fricNoise(q(t), q(t) + 0.018, C.band, C.q, 0.055 * V.cons * cm * 1.4 * (C.v ? 0.55 : 1) * (soft ? 0.6 : 1));
     let B0 = (V.breath + (sad ? 0.12 : 0)) * 0.35;
     if (sad) { lfo.frequency.value = V.vib[0] * 0.85; }
     const cLen = C => (C.k === "fri" || C.k === "aff" ? 0.075 : C.k === "stop" ? 0.055 + (C.v ? 0 : VOT) : 0.05) * (0.85 + 0.15 * V.cons);
@@ -11964,7 +11971,20 @@
       let bin = ""; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
       return btoa(bin);
     },
-    phones: w => wordPhones(w)
+    phones: w => wordPhones(w),
+    // play the open part (band and singer) and hand back the recording, for listening tests
+    async recordPlay(secs) {
+      if (!(await audioReady())) return null;
+      const dest = ac.createMediaStreamDestination(); tapOut.connect(dest);
+      const rec = new MediaRecorder(dest.stream), chunks = [];
+      rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+      const done = new Promise(r => { rec.onstop = r; });
+      rec.start(); if (playing) stop(); await playAll();
+      await new Promise(r => setTimeout(r, secs * 1000));
+      stop(); await new Promise(r => setTimeout(r, 400)); rec.stop(); await done; try { tapOut.disconnect(dest); } catch {}
+      const u8 = new Uint8Array(await new Blob(chunks).arrayBuffer()); let bin = ""; for (let i = 0; i < u8.length; i++) bin += String.fromCharCode(u8[i]);
+      return btoa(bin);
+    }
   };
 })();
 </script>
