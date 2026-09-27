@@ -4846,8 +4846,7 @@
     jumpPitch(tStart - 0.2, mf(first.midi));
     let prevEnd = tStart - 0.25, lastF = VF.ax;
     const startT = tStart - 0.45;
-    // a soft breath in before the line
-    if (human && !quiet) { setF(tStart - 0.42, VF.ah, 0.01); setBreath(tStart - 0.4, (0.22 + V.breath * 0.3) * 0.6, 0.05); setBreath(tStart - 0.16, 0.0001, 0.03); }
+    // (no breath-in before the line: through the mouth's resonances it came out as a low drag in the gaps, not a breath)
     const hi = (SING_STYLES[who] || SING_STYLES.wren).range[1];
 
     notes.forEach((nt, i) => {
