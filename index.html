@@ -1516,6 +1516,20 @@
   .along-chip.now { background: var(--ink); color: var(--card); }
   .along-chip.ok { background: color-mix(in srgb, var(--lh) 50%, var(--card)); color: var(--ink); }
   .along-chip.ok::after { content: " ✓"; }
+  /* the keyboard sheet, play in chords, your turn */
+  .keys-row { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); padding: 9px 12px; cursor: pointer; }
+  .keys-row b { font-weight: 800; } .keys-row span { flex: 1; color: var(--soft); font-size: 12.5px; font-weight: 700; } .keys-row i { font-style: normal; font-weight: 800; color: var(--soft); }
+  .keys-hub { display: grid; gap: 12px; }
+  .try-list { display: grid; gap: 6px; }
+  .try { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); padding: 8px 12px; text-align: left; cursor: pointer; }
+  .try b { font-weight: 800; font-size: 14px; } .try small { color: var(--soft); font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .playin { display: grid; gap: 10px; }
+  .playin.rec { border: 1.5px solid var(--tension); border-radius: 12px; padding: 10px; background: color-mix(in srgb, var(--tension) 7%, transparent); }
+  .pi-big { font: 800 26px/1.1 var(--body); color: var(--tension); }
+  .pi-bpm { font-weight: 800; align-self: center; }
+  .playin-cta { width: 100%; margin-bottom: 6px; }
+  .kbd rect.echo-target { fill: color-mix(in srgb, var(--lamp) 75%, #fff) !important; }
+  .kbd rect.kb.echo-target { fill: color-mix(in srgb, var(--lamp) 80%, #2f2a3d) !important; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -5249,8 +5263,9 @@
       <div class="story-head">${castHTML(st)}<div><small>chapter ${storyAt + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b></div></div>
       ${st.text.map(p => `<p class="story-p">${esc(p)}</p>`).join("")}
       <div class="route">${routeSVG(st)}</div>
+      <p class="game-say" id="storySay" hidden></p>
       <p class="story-lesson"><b>What the route teaches</b> ${esc(st.lesson)}</p>
-      <div class="row"><button class="btn surprise" type="button" data-storyact="walk">▶ walk the route</button>${show ? "" : `<button class="btn" type="button" data-storyact="use">use it for the ${esc(sec().name.toLowerCase())}</button>`}</div>
+      <div class="row"><button class="btn surprise" type="button" data-storyact="walk">▶ walk the route</button>${keysOn() ? `<button class="btn" type="button" data-storyact="playme">🎹 play it yourself</button>` : ""}${show ? "" : `<button class="btn" type="button" data-storyact="use">use it for the ${esc(sec().name.toLowerCase())}</button>`}</div>
       <div class="row story-nav"><button class="btn" type="button" data-storyact="list">all the stories</button>${storyAt < STORIES.length - 1 ? `<button class="btn" type="button" data-story="${storyAt + 1}">next: ${esc(STORIES[storyAt + 1].title)} →</button>` : ""}</div>
     </div>`;
   }
@@ -6072,6 +6087,7 @@
         <p class="note">Once it's a song, tap any chord to fix it. Checking a guess by ear is great practice.</p>`;
     }
     return `<p class="hear-say">${who} ${esc(hearLine("pick"))}</p>
+      ${keysOn() ? `<div class="row"><button class="btn" type="button" data-open="playin">🎹 or play it in by ear on your keyboard</button></div>` : ""}
       <label class="hear-drop" id="hearDrop"><input type="file" id="hearFile" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.mp4,.aac,.ogg,.flac,.webm">
         <span class="hear-icon" aria-hidden="true">♫</span><b>choose a song file</b><small>mp3, wav, m4a or mp4</small></label>
       <p class="note">The file stays on this device; nothing is uploaded. Songs with clear chords, like a guitar or piano and a voice, come out best. Busy mixes mean more guessing.</p>`;
@@ -6762,6 +6778,7 @@
     const l = LESSONS[lessonAt];
     return `<article class="card lesson"><h3>${esc(l.title)}</h3>${l.text.map(p => `<p>${esc(p)}</p>`).join("")}
       <div class="row">${l.demos.map((d, k) => `<button class="btn${k ? "" : " surprise"}" type="button" data-lessondemo="${k}">${esc(d[0])}</button>`).join("")}</div>
+      ${keysOn() ? `<div class="row"><button class="btn" type="button" data-echo="go">🎹 your turn: play it back</button></div><p class="game-say" id="echoSay">Play an example, then press your turn.</p>` : ""}
       <div class="kbd lesson-kbd" data-lens>${keyboard({ lh: [], rh: [] }, 45, 84, { tall: true, label: () => "" })}</div>${lensLegend()}</article>
       <div class="row"><button class="btn" type="button" data-lesson="list">all the lessons</button>${lessonAt < LESSONS.length - 1 ? `<button class="btn" type="button" data-lesson="${lessonAt + 1}">next: ${esc(LESSONS[lessonAt + 1].title)} →</button>` : ""}
       <button class="link" type="button" data-open="tune">set this part's tune and riff</button></div>`;
@@ -6774,6 +6791,7 @@
   async function lessonDemo(k) {
     const l = LESSONS[lessonAt], d = l.demos[k];
     if (!d) return;
+    demoSeq = []; echo = null;
     if (playing) stop();
     lessonEnd();
     const x = sec();
@@ -6791,6 +6809,7 @@
     await previewPart(16, { sing: true, lead: !!d[1].riff });
   }
   function lessonsClick(e) {
+    if (e.target.closest("[data-echo]")) { echoStart(); return true; }
     const a = e.target.closest("[data-lesson],[data-lessondemo]");
     if (!a) return false;
     if (a.dataset.lessondemo != null) { lessonDemo(+a.dataset.lessondemo); return true; }
@@ -7596,7 +7615,7 @@
   // =========================================================
   const LAPTOP = "awsedftgyhujkolp;'"; // a = C, w = C♯, s = D ... like a piano row
   const kb = { access: null, name: "", status: "off", held: new Map(), sustained: new Set(), pedal: false, oct: 0, peak: [], hooks: [] };
-  const LIVE_VOICES = [["piano", "the piano"], ["lead", "the lead"], ["synth", "sparkle synth"], ["bass", "deep bass"]];
+  const LIVE_VOICES = [["piano", "the piano"], ["lead", "the lead"], ["synth", "sparkle synth"], ["bass", "deep bass (two octaves down)"]];
   const keysOn = () => kb.status === "on" || !!prefs.laptopKeys;
   // anything that wants to hear your playing: return true to keep it to yourself
   const onKeys = fn => kb.hooks.push(fn);
@@ -7620,7 +7639,7 @@
       const was = kb.name;
       kb.name = ins.length ? ins.map(i => i.name).join(", ") : "";
       kb.status = ins.length ? "on" : "waiting";
-      if (kb.name && kb.name !== was && !quiet) toast(`${kb.name} is connected. Play something!`);
+      if (kb.name && kb.name !== was && !quiet) { toast(`${kb.name} is connected. Play something!`); if (sheetMode === "knobs") setTimeout(() => openSheet("keys"), 300); }
       if (sheetMode === "knobs" || sheetMode === "rack") renderSheet();
     };
     kb.access.onstatechange = hook;
@@ -7716,10 +7735,17 @@
       g.gain.exponentialRampToValueAtTime(amp * 0.7, t + 0.01); g.gain.setTargetAtTime(amp * 0.4, t + 0.05, 0.3);
       rel = 0.3;
     } else {
-      osc("sine", 0.5, 0, 1); osc("triangle", 0.5, 0, 0.35);
-      lp.frequency.value = 900;
-      g.gain.exponentialRampToValueAtTime(amp * 1.3, t + 0.01); g.gain.setTargetAtTime(amp * 0.8, t + 0.05, 0.6);
-      rel = 0.2;
+      // deep bass: dropped into the bottom octaves, a growl that closes as it rings, a pure low tone under it
+      const low = m >= 48 ? m - 24 : m >= 36 ? m - 12 : m, fb = 440 * Math.pow(2, (low - 69) / 12), r = fb / f;
+      osc("sawtooth", r, 0, 0.55); osc("square", r, -8, 0.3); osc("sine", r, 0, 1.1);
+      lp.Q.value = 5;
+      lp.frequency.setValueAtTime(Math.min(fb * 16, 2600), t); lp.frequency.exponentialRampToValueAtTime(Math.max(fb * 3, 120), t + 0.35);
+      // a little warmth, like a small amp pushed
+      const ws = ac.createWaveShaper(), curve = new Float32Array(256);
+      for (let i = 0; i < 256; i++) { const x = i / 128 - 1; curve[i] = Math.tanh(x * 2.2); }
+      ws.curve = curve; lp.disconnect(); lp.connect(ws); ws.connect(g);
+      g.gain.exponentialRampToValueAtTime(amp * 1.5, t + 0.008); g.gain.setTargetAtTime(amp * 1.05, t + 0.06, 0.5);
+      rel = 0.14;
     }
     liveNotes.set(m, { g, oscs, rel });
   }
@@ -7765,8 +7791,14 @@
     const tok = heldTok(x);
     if (!tok) return false;
     lastHeldTok = tok;
-    // arranging: every chord you play goes on the end
-    if (arranging && !sheetMode) { addChord(tok); toast(`added ${pretty(tok)}`); return true; }
+    // arranging (or "add it" chosen): every chord you play goes on the end; "swap" replaces the chord you're on
+    const wmode = prefs.keysWrite || "show";
+    if (!sheetMode && (arranging || (prefs.view === "write" && wmode === "add"))) { addChord(tok); toast(`added ${pretty(tok)}`); return true; }
+    if (!sheetMode && prefs.view === "write" && wmode === "swap" && current[sel]) {
+      const c = current[sel], raw = tok + (c.raw.includes(":") ? ":" + c.beats : ""), j = sel;
+      setProg(replaceToken(sec().prog, c.i, raw), true); sel = j; renderStage();
+      toast(`swapped in ${pretty(tok)}`); return true;
+    }
     const chip = $("heldChip");
     if (chip && (prefs.view === "write") && !sheetMode) {
       chip.hidden = false; chip.dataset.tok = tok;
@@ -7793,25 +7825,29 @@
     }
     chip.hidden = true;
   }
-  // the settings row for your keyboard
+  // the settings row for your keyboard: one line, and only what this device can do
+  const touchOnly = () => matchMedia("(pointer: coarse)").matches && !matchMedia("(hover: hover)").matches;
+  const NEW_HOME = "https://pixiechords.netlify.app/";
   function keysKnobHTML() {
-    const st = { on: `${esc(kb.name)} · connected`, waiting: "listening for a keyboard... plug it in", framed: "claude.ai shows Pixie inside a frame that can't use MIDI", blocked: "this page isn't allowed to use MIDI", denied: "MIDI was turned down: allow it from the icon left of the address bar, then connect again", none: "this browser can't hear MIDI (Chrome, Edge or Firefox can)", off: "not connected" }[kb.status] || "not connected";
-    const stuck = kb.status === "framed" || kb.status === "blocked" || (kb.status === "off" && midiFramed());
+    const framed = midiFramed(), midiOK = !!navigator.requestMIDIAccess;
+    // phones without MIDI: one quiet line, nothing to press
+    if (!midiOK && touchOnly()) return `<div class="knob"><span class="lbl">your keyboard</span><p class="note">Plug-in keyboards work in Chrome or Edge on a computer. Here, tap the keys on screen.</p></div>`;
+    if (kb.status === "on" || (prefs.laptopKeys && !framed)) return `<div class="knob"><span class="lbl">your keyboard</span>
+      <button class="keys-row" type="button" data-open="keys"><b>🎹 ${esc(kb.status === "on" ? kb.name.split(",")[0] : "laptop keys")}</b><span>ready · sound, writing, things to try</span><i aria-hidden="true">›</i></button></div>`;
+    const st = { waiting: "listening for a keyboard... plug it in", denied: "MIDI was turned down: allow it from the icon left of the address bar, then connect again", none: "this browser can't hear MIDI (Chrome, Edge or Firefox can)" }[kb.status] || "";
+    if (framed || kb.status === "framed" || kb.status === "blocked") return `<div class="knob"><span class="lbl">your keyboard</span>
+      <div class="take-box"><p class="note">This copy of Pixie lives inside claude.ai, which doesn't allow MIDI. Pixie's own home does: <b>pixiechords.netlify.app</b>. Pack up your songs (in songs) and unpack them there.</p>
+        <div class="row"><a class="btn surprise" href="${NEW_HOME}" target="_blank" rel="noopener">open Pixie's home</a><button class="btn" type="button" data-keys="save">⬇ or download a copy</button></div></div></div>`;
     return `<div class="knob"><span class="lbl">your keyboard</span>
-      <div class="row"><button class="btn${kb.status === "on" ? "" : " surprise"}" type="button" data-keys="midi">${kb.status === "on" ? "✓ " + esc(kb.name.split(",")[0]) : "🎹 connect a MIDI keyboard"}</button>
-        <button class="btn" type="button" data-keys="laptop" aria-pressed="${!!prefs.laptopKeys}">laptop keys ${prefs.laptopKeys ? "on" : "off"}</button></div>
-      ${stuck ? `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-keys="save">⬇ download Pixie for your keyboard</button></div>
-        <p class="note">Save Pixie as a file, then open that file in Chrome (or Arc) and connect there. Your songs and settings come with it. Recorded demos and tapes stay here.</p></div>` : ""}
-      <p class="note">${esc(st)}. ${prefs.laptopKeys ? "Laptop keys: A to ' is a piano row (W, E, T, Y, U are the black keys); Z and X move the octave." : "No keyboard? The laptop's letter keys can play too."}</p>
-      <span class="lbl">it sounds like</span>
-      <div class="presets">${LIVE_VOICES.map(([id, n]) => `<button class="choice" type="button" data-livevoice="${id}" aria-pressed="${(prefs.liveVoice || "piano") === id}">${id === "lead" ? esc((LEADS[prefs.buddy] || LEADS.dusty).name) : n}</button>`).join("")}</div></div>`;
+      <div class="row">${midiOK ? `<button class="btn" type="button" data-keys="midi">🎹 connect a MIDI keyboard</button>` : ""}${touchOnly() ? "" : `<button class="btn" type="button" data-keys="laptop">use the laptop keys</button>`}</div>
+      ${st ? `<p class="note">${esc(st)}.</p>` : ""}</div>`;
   }
   function keysClick(e) {
     const k = e.target.closest("[data-keys]");
     if (k) {
       if (k.dataset.keys === "midi") connectMidi(false).then(() => renderSheet());
       else if (k.dataset.keys === "save") savePixie();
-      else { prefs.laptopKeys = !prefs.laptopKeys; savePrefs(); renderSheet(); toast(prefs.laptopKeys ? "laptop keys on: A S D F G H J K is C D E F G A B C" : "laptop keys off"); }
+      else { prefs.laptopKeys = !prefs.laptopKeys; savePrefs(); if (prefs.laptopKeys && sheetMode !== "keys") openSheet("keys"); else renderSheet(); toast(prefs.laptopKeys ? "laptop keys on: A S D F G H J K is C D E F G A B C" : "laptop keys off"); }
       return true;
     }
     const v = e.target.closest("[data-livevoice]");
@@ -7868,7 +7904,8 @@
     for (let i = 0; i < 12; i++) {
       const t = ringKey(i), [x, y] = at(i, R), isHome = t === home, isSel = t === sel, near = ringDist(t, home) === 1;
       // each roof wears the sky of its key's hour on the sky clock
-      const sky = skyFor(hourFor({ tonic: t, minor: false })), wall = isHome ? st.wall : near ? "#fbf6ec" : "#ece5d8", roof = isHome ? st.roofColor : sky.top;
+      const sky = skyFor(hourFor({ tonic: t, minor: false })), lit = streetLit && streetLit.keys.includes(t), wall = isHome ? st.wall : lit ? "#fff1b8" : near ? "#fbf6ec" : "#ece5d8", roof = isHome ? st.roofColor : sky.top;
+      if (lit) s += `<circle cx="${x.toFixed(1)}" cy="${(y - 2).toFixed(1)}" r="23" fill="#ffd36b" opacity=".3"/>`;
       if (isHome) s += `<circle cx="${x.toFixed(1)}" cy="${(y - 2).toFixed(1)}" r="27" fill="#ffd36b" opacity=".45"/>`;
       s += `<g class="ps-house${isHome ? " home" : ""}${isSel ? " sel" : ""}${near ? " near" : ""}" data-street="${t}" role="button" tabindex="0" aria-label="${esc(majName(t))} major, ${esc(sigText(sigOf({ tonic: t, minor: false })))}${isHome ? ", your song's key" : ""}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
         <path d="M-17-4 0-18 17-4z" fill="${roof}" stroke="#2f2a3d" stroke-width="1.2" stroke-linejoin="round"/>
@@ -7892,6 +7929,7 @@
       <p class="note">${esc(say)}</p>
       ${streetSVG()}
       <p class="ps-about">${about}</p>
+      ${keysOn() ? `<p class="game-say">${streetLit ? `${esc(streetLit.name)} lives in ${streetLit.keys.length} houses: ${streetLit.keys.map(t => esc(majName(t))).join(", ")}. Any of them can use it as a doorway.` : "Play a chord on your keyboard and every house it lives in lights up."}</p>` : ""}
       ${d > 0 && shared.length ? `<div class="knob"><span class="lbl">rooms in both houses</span><div class="presets">${shared.map(r => `<button class="choice" type="button" data-streettok="${esc(r.name)}">${esc(pretty(r.name))}<small>${esc(roomsOf(kH).find(q => q.name === r.name).num)} here · ${esc(r.num)} there</small></button>`).join("")}</div>
         <p class="note">A chord that lives in both houses is a doorway. Land on it, and the song can carry on in either key.</p></div>` : ""}
       <div class="row"><button class="btn surprise" type="button" data-streetact="hear">▶ ${esc(majName(sel))}'s home chords</button>${d > 0 ? `<button class="btn" type="button" data-streetact="walk">walk there from ${esc(majName(home))}</button>` : ""}</div>
@@ -8310,6 +8348,8 @@
   }
   // schedule flashes for notes (in beats from t0), sung or played by the lead
   function lensNotes(notes, t0, cl, c, who) {
+    // (a lesson example remembers its notes, so you can play them back)
+    if (notes && previewing && sheetMode === "lessons") notes.forEach(n => { if (!n.tie) demoSeq.push({ midi: n.midi, who }); });
     if (!notes || !notes.length || !document.querySelector(".kbd[data-lens]")) return;
     notes.forEach(n => { if (n.tie) return; later(() => lensFlash(n.midi, c, who, n.dur * cl * 1000 * 0.9), (t0 + n.start * cl - ac.currentTime) * 1000); });
   }
@@ -8365,6 +8405,239 @@
     renderSheet(); renderAll();
     toast(added || updated ? `unpacked: ${added} new song${added === 1 ? "" : "s"}${updated ? `, ${updated} updated` : ""}${recs ? `, ${recs} recording${recs === 1 ? "" : "s"}` : ""}` : "those songs are already here");
   }
+
+  // =========================================================
+  // The keyboard sheet, playing chords in by ear, and play-to-learn
+  // in every learning corner. Nothing here shows until a keyboard
+  // (or the laptop keys) is ready.
+  // =========================================================
+  const KEYS_WRITE = [["show", "show its name"], ["add", "add it to the part"], ["swap", "swap it in for the chord I'm on"]];
+  function keysHubHTML() {
+    const lead = (LEADS[prefs.buddy] || LEADS.dusty).name, midi = kb.status === "on";
+    const tries = [
+      ["play", "▶ play along with your part", "learning"],
+      ["stories", "✦ play a story's route yourself", "learning"],
+      ["lessons", "♪ your turn: play back a hook", "learning"],
+      ["playin", "🎹 play in chords by ear", "writing"],
+      ["tune", "● play your own riff, or the tune", "writing"],
+      ["rack", "◉ play live over the band onto tape", "studio"]
+    ];
+    return `<div class="keys-hub">
+      <p class="note">${midi ? `<b>${esc(kb.name.split(",")[0])}</b> is connected.` : "The laptop keys are on: A to ' is a piano row, W E T Y U are the black keys, Z and X move the octave."} Whatever you play sounds right away and lights up on the keys.</p>
+      <div class="knob"><span class="lbl">it sounds like</span>
+        <div class="presets">${LIVE_VOICES.map(([id, n]) => `<button class="choice" type="button" data-livevoice="${id}" aria-pressed="${(prefs.liveVoice || "piano") === id}">${id === "lead" ? esc(lead) : n}</button>`).join("")}</div></div>
+      <div class="knob"><span class="lbl">in writing mode, a chord you play will</span>
+        <div class="presets">${KEYS_WRITE.map(([id, n]) => `<button class="choice" type="button" data-keyswrite="${id}" aria-pressed="${(prefs.keysWrite || "show") === id}">${n}</button>`).join("")}</div>
+        <p class="note">With ✎ chords on, every chord you play goes on the end either way.</p></div>
+      <div class="knob"><span class="lbl">things to try</span><div class="try-list">${tries.map(([id, n, where]) => `<button class="try" type="button" data-try="${id}"><b>${n}</b><small>${where}</small></button>`).join("")}</div></div>
+      <div class="row">${midi ? "" : `<button class="btn" type="button" data-keys="midi">🎹 connect a MIDI keyboard</button>`}${touchOnly() ? "" : `<button class="btn" type="button" data-keys="laptop">${prefs.laptopKeys ? "turn off the laptop keys" : "use the laptop keys too"}</button>`}</div>
+    </div>`;
+  }
+  function keysHubClick(e) {
+    const w = e.target.closest("[data-keyswrite]");
+    if (w) { prefs.keysWrite = w.dataset.keyswrite; savePrefs(); renderSheet(); return true; }
+    const t = e.target.closest("[data-try]");
+    if (t) {
+      const id = t.dataset.try;
+      if (id === "play") { playAt = GAMES.findIndex(g => g.id === "along"); game = null; openSheet("play"); }
+      else if (id === "stories") { storyAt = 0; openSheet("stories"); }
+      else if (id === "lessons") { lessonAt = LESSONS.findIndex(l => /hook/i.test(l.title)); openSheet("lessons"); }
+      else if (id === "tune") { tuneTab = "riff"; openSheet("tune"); }
+      else if (id === "rack") { if (prefs.view !== "studio") setView("studio"); openSheet("rack"); }
+      else openSheet(id);
+      return true;
+    }
+    return keysClick(e);
+  }
+
+  // ---------- play in chords: count in, play the changes, and they become a part ----------
+  let playin = null; // { t0, cl, M, chords: [{tok, at}], cur, timer, state }
+  function playinHTML() {
+    const bpm = S().bpm, st = playin && playin.state;
+    if (st === "rec" || st === "count") {
+      const b = playinBeat(), bar = Math.floor(Math.max(0, b) / Mtr.n) + 1, beat = Math.floor(((Math.max(0, b) % Mtr.n) + Mtr.n) % Mtr.n) + 1;
+      return `<div class="playin rec"><b class="pi-big">${st === "count" ? `get ready… ${Math.max(1, Math.ceil(-b))}` : `bar ${bar} · beat ${beat}`}</b>
+        <div class="along-row" id="piChords">${playin.chords.map(c => `<span class="along-chip ok">${esc(pretty(c.tok))}</span>`).join("") || `<span class="note">play your first chord…</span>`}</div>
+        <p class="note">Play the chords the way the song goes. Hold each one until the next; they're snapped to the nearest beat.</p>
+        <div class="row"><button class="btn surprise" type="button" data-pi="stop">■ done</button><button class="btn" type="button" data-pi="cancel">start over</button></div></div>`;
+    }
+    if (st === "done") {
+      const toks = playinToks();
+      return `<div class="playin"><p class="note">Here's what you played${toks.length ? "" : ": nothing yet"}.</p>
+        <div class="along-row">${toks.map(t => `<span class="along-chip">${esc(pretty(t.replace(/:(\d+)$/, " · $1")))}</span>`).join("")}</div>
+        <div class="row">${toks.length ? `<button class="btn surprise" type="button" data-pi="replace">use it for the ${esc(sec().name.toLowerCase())}</button><button class="btn" type="button" data-pi="append">add it to the end</button>` : ""}<button class="btn" type="button" data-pi="again">play it again</button></div>
+        <p class="note">Undo works if you change your mind.</p></div>`;
+    }
+    return `<div class="playin"><p class="note">Figuring out a song by ear? Find the chords on your keyboard, then play them in time. One bar of clicks counts you in, and each chord keeps its length.</p>
+      <div class="row"><button class="btn" type="button" data-pi="slower" aria-label="Slower">−</button><b class="pi-bpm">${bpm} bpm · ${Mtr.id}</b><button class="btn" type="button" data-pi="faster" aria-label="Faster">+</button></div>
+      <div class="row"><button class="btn surprise" type="button" data-pi="go">● count me in</button></div></div>`;
+  }
+  const playinBeat = () => (playin && ac ? (ac.currentTime - playin.t0) / playin.cl : 0);
+  function playinToks() {
+    if (!playin) return [];
+    const list = playin.chords, end = Math.max(playin.end ?? 0, list.length ? list[list.length - 1].at + Mtr.n : 0);
+    const def = defaultCounts(Mtr, S().beats);
+    return list.map((c, k) => {
+      const len = Math.max(1, Math.min(16, Math.round((k < list.length - 1 ? list[k + 1].at : end) - c.at)));
+      return c.tok + (len === def ? "" : ":" + len);
+    });
+  }
+  async function playinGo() {
+    if (!(await audioReady())) return;
+    if (playing) stop();
+    const cl = countSec(Mtr, S().bpm);
+    playin = { t0: ac.currentTime + Mtr.n * cl + 0.1, cl, chords: [], state: "count" };
+    // clicks: the count-in bar, then the beat keeps going quietly while you play
+    const click = () => {
+      if (!playin || (playin.state !== "count" && playin.state !== "rec")) return;
+      const b = Math.round(playinBeat());
+      drumHit(((b % Mtr.n) + Mtr.n) % Mtr.n === 0 ? "snap" : "hat", ac.currentTime + 0.01, b < 0 ? 0.7 : 0.35);
+      if (b >= 0 && playin.state === "count") playin.state = "rec";
+      renderSheet();
+      playin.timer = setTimeout(click, Math.max(40, (playin.t0 + (b + 1) * cl - ac.currentTime) * 1000));
+    };
+    playin.timer = setTimeout(click, 100);
+    renderSheet();
+  }
+  function playinStop(keep) {
+    if (!playin) return;
+    clearTimeout(playin.timer);
+    if (keep) { playin.end = Math.ceil(playinBeat() / Mtr.n) * Mtr.n; playin.state = "done"; } else playin = null;
+    renderSheet();
+  }
+  onKeys((type, m) => {
+    if (!playin || type !== "on") return false;
+    // a chord struck right on the downbeat counts, even a hair early
+    if (playin.state === "count" && playinBeat() > -0.6) playin.state = "rec";
+    if (playin.state !== "rec") return false;
+    // a new chord starts when what you're holding names a different chord
+    setTimeout(() => {
+      if (!playin || playin.state !== "rec") return;
+      const held = [...kb.held.keys()];
+      if (held.length < 2) return;
+      const tok = heldTok(held);
+      if (!tok) return;
+      const last = playin.chords[playin.chords.length - 1];
+      if (last && last.tok === tok) return;
+      const at = Math.max(0, Math.round(playinBeat()));
+      if (last && at <= last.at) { last.tok = tok; return; }
+      playin.chords.push({ tok, at });
+    }, 90);
+    return false;
+  });
+  function playinClick(e) {
+    const b = e.target.closest("[data-pi]");
+    if (!b) return false;
+    const a = b.dataset.pi;
+    if (a === "slower" || a === "faster") { setting("bpm", Math.max(40, Math.min(180, S().bpm + (a === "faster" ? 4 : -4)))); renderDeck(); renderSheet(); }
+    else if (a === "go" || a === "again") playinGo();
+    else if (a === "stop") playinStop(true);
+    else if (a === "cancel") { playinStop(false); }
+    else if (a === "replace" || a === "append") {
+      const toks = playinToks();
+      if (a === "replace") setProg(toks.join(" "), true);
+      else { const t = sec().prog.trim(); setProg((t ? t + " " : "") + toks.join(" "), true); }
+      playin = null; closeSheet(); sel = 0; renderStage();
+      toast(a === "replace" ? `the ${sec().name.toLowerCase()} is what you played` : "added what you played");
+    }
+    return true;
+  }
+
+  // ---------- play to learn: the house lights the chord you play ----------
+  onKeys((type, x) => {
+    if (type !== "chord" || x.length < 2) return false;
+    const top = identify(x)[0];
+    if (!top) return false;
+    const ch = parseChord(NAMES_IN(K)[top.root] + top.q);
+    if (!ch) return false;
+    const c = { ch, a: analyze(ch, K) };
+    miniFollow(c);
+    if (sheetMode === "house") houseFollow(c);
+    if (sheetMode === "street") { streetLitFor(ch); renderSheet(); }
+    return false;
+  });
+  // the street: every house a chord lives in
+  let streetLit = null;
+  function streetLitFor(ch) {
+    const name = pretty(ch.tok), keys = [];
+    for (let t = 0; t < 12; t++) if (roomsOf({ tonic: t, minor: false }).some(r => r.ch.rootPc === ch.rootPc && baseQuality(r.ch.ivs) === baseQuality(ch.ivs))) keys.push(t);
+    streetLit = { name, keys };
+  }
+  // stories: play the route yourself
+  let storyPlay = null; // { j }
+  function storyPlayStart() { storyPlay = { j: 0 }; storyPlayShow(); }
+  function storyPlayShow() {
+    const el = $("storySay"), st = STORIES[storyAt];
+    if (!el || !st || !storyPlay) return;
+    const toks = storyToks(st), tok = toks[storyPlay.j], svg = document.querySelector(".route-svg");
+    svg && svg.querySelectorAll(".on").forEach(n => n.classList.remove("on"));
+    if (!tok) { el.hidden = false; el.textContent = "You walked the whole route. That's the progression, in your hands."; storyPlay = null; return; }
+    const ch = parseChord(tok), notes = [...new Set(ch.ivs.map(iv => mod(ch.rootPc + iv)))].map(p => noteOf(K, p));
+    el.hidden = false; el.textContent = `Step ${storyPlay.j + 1} of ${toks.length}: play ${pretty(tok)} (${notes.join(", ")}).`;
+    svg && svg.querySelector(`.rt-step[data-step="${storyPlay.j}"]`)?.classList.add("on");
+  }
+  onKeys(type => {
+    if (!storyPlay || sheetMode !== "stories" || type !== "on") return false;
+    const st = STORIES[storyAt], tok = storyToks(st)[storyPlay.j], ch = tok && parseChord(tok);
+    if (!ch) return false;
+    const want = new Set(ch.ivs.map(iv => mod(ch.rootPc + iv))), have = new Set([...kb.held.keys()].map(m => mod(m)));
+    if ([...want].every(p => have.has(p))) { storyPlay.j++; setTimeout(storyPlayShow, 250); }
+    return true;
+  });
+  // lessons: your turn, play back the notes you just heard
+  let demoSeq = [], echo = null; // demoSeq: [{ midi, who }]
+  function echoStart() {
+    const lead = demoSeq.filter(n => n.who === "lead"), sung = demoSeq.filter(n => n.who === "sing");
+    const seq = (lead.length >= 4 ? lead : sung).slice(0, 8);
+    if (!seq.length) { toast("play an example first, then it's your turn"); return; }
+    echo = { seq, k: 0 };
+    echoShow();
+  }
+  function echoShow() {
+    const el = $("echoSay"), kbd = document.querySelector(".lesson-kbd svg");
+    if (!el) return;
+    kbd && kbd.querySelectorAll(".echo-target").forEach(n => n.classList.remove("echo-target"));
+    if (!echo) return;
+    const n = echo.seq[echo.k];
+    if (!n) { el.textContent = `${cheer()} You played it back, all ${echo.seq.length} notes.`; echo = null; return; }
+    let m = n.midi; const keys = kbd ? [...kbd.querySelectorAll("rect[data-k]")].map(r => +r.dataset.k) : [];
+    if (keys.length) { while (m < Math.min(...keys)) m += 12; while (m > Math.max(...keys)) m -= 12; kbd.querySelector(`rect[data-k="${m}"]`)?.classList.add("echo-target"); }
+    el.textContent = `Note ${echo.k + 1} of ${echo.seq.length}: ${pretty(NAMES_IN(K)[mod(n.midi)])}${lensDeg(n.midi) ? ` (${lensDeg(n.midi)} in the key)` : ""}. Any octave.`;
+  }
+  onKeys((type, m) => {
+    if (!echo || sheetMode !== "lessons" || type !== "on") return false;
+    const n = echo.seq[echo.k];
+    if (n && mod(m) === mod(n.midi)) { echo.k++; echoShow(); }
+    else if (n) $("echoSay").textContent = `That's ${pretty(NAMES_IN(K)[mod(m)])}. Look for the lit key: ${pretty(NAMES_IN(K)[mod(n.midi)])}.`;
+    return true;
+  });
+  // the playground: stay or hop takes a played chord, next door takes the neighbor's home chord
+  onKeys((type, x) => {
+    if (sheetMode !== "play" || !game || type !== "chord" || x.length < 2) return false;
+    const top = identify(x)[0];
+    if (!top) return false;
+    const tok = NAMES_IN(K)[top.root] + top.q;
+    if (game.id === "hop") {
+      const ch = parseChord(tok), pcs = [...new Set(ch.ivs.slice(0, 3).map(iv => mod(ch.rootPc + iv)))];
+      const to = nearVoicing(game.now, pcs), stay = to.filter(m => game.now.includes(m));
+      game.prev = game.now; game.now = to; game.cur = tok;
+      game.said = `${pretty(tok)}: ${stay.length === 0 ? "everyone hops. Nothing shared." : stay.length === 1 ? "one friend stays, the rest hop." : `${stay.length} friends stay put. Smooth.`}`;
+      renderSheet(); return true;
+    }
+    if (game.id === "door" && top.q === "") {
+      const t = top.root, home = homeMajor(); game.pick = t;
+      game.said = t === game.nb ? `${cheer()} You played ${majName(t)}, right next door.` : `${majName(t)} is ${ringDist(home, t)} houses away. ${soft()}`;
+      renderSheet(); return true;
+    }
+    return false;
+  });
+
+  // the claude.ai copy says, once, where Pixie lives now
+  setTimeout(() => {
+    if (!midiFramed() || prefs.sawHome) return;
+    prefs.sawHome = 1; savePrefs();
+    toast("Pixie has a new home: pixiechords.netlify.app. Pack up your songs (in songs) to bring them along");
+  }, 1800);
 
   // =========================================================
   // App state
@@ -9983,7 +10256,8 @@
     closeEgg();
     if (mode !== "listen") hearStop();
     // the songbook opens on the page for the chord you're on, or the cover
-    if (mode === "stories" && sheetMode !== "stories") storyAt = null;
+    if (mode === "stories" && sheetMode !== "stories" && !(mode === "stories" && storyAt === 0 && sheetMode === "keys")) storyAt = null;
+    if (mode === "street" && sheetMode !== "street") streetLit = null;
     if (mode === "house") { houseSel = null; houseRel = false; if (!prefs.sawHouse) { prefs.sawHouse = 1; savePrefs(); } }
     $("sheet").classList.toggle("wide", mode === "house");
     $("sheet").classList.toggle("tall", mode === "along");
@@ -10001,6 +10275,8 @@
   }
   function closeSheet() {
     hearStop();
+    if (sheetMode === "playin" && playin && playin.state !== "done") playinStop(false);
+    storyPlay = null; echo = null;
     if (sheetMode === "along") { cancelAnimationFrame(alongRaf); alongHold = null; }
     if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
     $("sheet").hidden = true;
@@ -10065,6 +10341,8 @@
     if (sheetMode === "listen") { $("sheetTitle").textContent = "learn a song by ear"; body.innerHTML = hearHTML(); return; }
     if (sheetMode === "tune") { $("sheetTitle").textContent = `tune & riff · ${sec().name.toLowerCase()}`; body.innerHTML = tuneSheetHTML(); return; }
     if (sheetMode === "rack") { $("sheetTitle").textContent = "the rack"; body.innerHTML = rackHTML(); return; }
+    if (sheetMode === "keys") { $("sheetTitle").textContent = "your keyboard"; body.innerHTML = keysHubHTML(); return; }
+    if (sheetMode === "playin") { $("sheetTitle").textContent = "play in chords"; body.innerHTML = playinHTML(); return; }
     if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs("along") + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
@@ -10189,7 +10467,7 @@
       const canUndo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
       $("sheetTitle").textContent = `chords in the ${nm}`;
       const chip = (c, big) => `<button class="pal${big ? " big" : ""}" type="button" data-addtok="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
-      body.innerHTML = `
+      body.innerHTML = `${keysOn() ? `<button class="btn surprise playin-cta" type="button" data-open="playin">🎹 play in chords on your keyboard</button>` : ""}
         <div class="part-row">
           <div class="part-chips">${current.map(c => `<span class="pchip" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><button type="button" data-rmchord="${c.i}" aria-label="Remove ${esc(pretty(c.tok))}">×</button></span>`).join("") || `<span class="none">no chords yet</span>`}</div>
           <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">clear</button>` : ""}</div>
@@ -10768,6 +11046,8 @@
     if (sheetMode === "lessons" && lessonsClick(e)) return;
     if (sheetMode === "along" && alongClick(e)) return;
     if ((sheetMode === "knobs" || sheetMode === "rack") && keysClick(e)) return;
+    if (sheetMode === "keys" && keysHubClick(e)) return;
+    if (sheetMode === "playin" && playinClick(e)) return;
     if (sheetMode === "street" && streetClick(e)) return;
     if (sheetMode === "play" && playClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
@@ -10778,6 +11058,7 @@
       const a = storyAct.dataset.storyact;
       if (a === "list") { storyAt = null; renderSheet(); }
       else if (a === "walk") walkRoute();
+      else if (a === "playme") storyPlayStart();
       else if (a === "use") {
         const st = STORIES[storyAt], m = MOODS.find(x => x.id === st.mood);
         closeSheet(); replacePart(moodProg(m, K), `“${st.title}”`);
