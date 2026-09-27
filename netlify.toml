@@ -1,0 +1,10 @@
+# Pixie Chords is one page: no build step, serve the repo as it is
+[build]
+  publish = "."
+  command = ""
+
+# let the page talk to MIDI keyboards
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "midi=(self)"

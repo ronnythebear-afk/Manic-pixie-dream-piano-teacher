@@ -8316,6 +8316,57 @@
   const lensLegend = () => `<p class="lens-legend"><span class="lg ct">●</span> chord note <span class="lg sc">○</span> color note <span class="lg out">◆</span> outside the key · <span class="lg sing">teal</span> sung, <span class="lg lead">purple</span> the lead · numbers: place in the key</p>`;
 
   // =========================================================
+  // Pack up your songs: everything (songs, settings, demos and
+  // tapes) in one file you can carry to another copy of Pixie
+  // =========================================================
+  const blobToURL = b => new Promise(ok => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = () => ok(null); f.readAsDataURL(b); });
+  async function packSongs() {
+    flushSongs();
+    const pack = { pixie: "songs", v: 1, at: Date.now(), songs, prefs, blobs: {} };
+    try {
+      const keys = await demoTx("readonly", st => st.getAllKeys());
+      for (const k of keys || []) { const b = await demoTx("readonly", st => st.get(k)); if (b) pack.blobs[k] = await blobToURL(b); }
+    } catch {}
+    const blob = new Blob([JSON.stringify(pack)], { type: "application/json" });
+    const name = `pixie songs ${new Date().toISOString().slice(0, 10)}.json`;
+    const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]) : null;
+    const n = songs.length, extra = Object.keys(pack.blobs).length;
+    const said = `packed ${n} song${n === 1 ? "" : "s"}${extra ? ` and ${extra} recording${extra === 1 ? "" : "s"}` : ""}`;
+    if (dl) {
+      try { await dl.save({ filename: name, data: blob }); toast(said); } catch (err) { if (err?.code !== "declined") toast("couldn't save it here"); }
+      return;
+    }
+    const a = document.createElement("a"), u = URL.createObjectURL(blob);
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 4000);
+    toast(said);
+  }
+  async function unpackSongs(file) {
+    let pack;
+    try { pack = JSON.parse(await file.text()); } catch { toast("that file isn't a Pixie song pack"); return; }
+    if (!pack || pack.pixie !== "songs" || !Array.isArray(pack.songs)) { toast("that file isn't a Pixie song pack"); return; }
+    // a brand-new Pixie (just the starter song) takes your settings too
+    const fresh = songs.length === 1 && songs[0].sections.length === 1 && !songs[0].sections[0].words.some(Boolean) && songs[0].title === "my first song";
+    let added = 0, updated = 0;
+    pack.songs.forEach(s => {
+      if (!s || !s.id || !Array.isArray(s.sections)) return;
+      const i = songs.findIndex(x => x.id === s.id);
+      if (i < 0) { songs.push(s); added++; }
+      else if ((s.updated || 0) > (songs[i].updated || 0)) { songs[i] = s; updated++; }
+    });
+    if (fresh && added) songs = songs.filter(x => pack.songs.some(s => s.id === x.id) || x !== songs[0]);
+    let recs = 0;
+    for (const [k, url] of Object.entries(pack.blobs || {})) {
+      try { const b = await (await fetch(url)).blob(); await demoTx("readwrite", st => st.put(b, k)); recs++; } catch {}
+    }
+    if (fresh && pack.prefs && typeof pack.prefs === "object") { Object.assign(prefs, pack.prefs, { midi: prefs.midi }); savePrefs(); applyView(); }
+    saveSongs(); flushSongs();
+    if (fresh && added) openSong(songs.find(s => s.id === (pack.songs[0] || {}).id) || songs[0]);
+    renderSheet(); renderAll();
+    toast(added || updated ? `unpacked: ${added} new song${added === 1 ? "" : "s"}${updated ? `, ${updated} updated` : ""}${recs ? `, ${recs} recording${recs === 1 ? "" : "s"}` : ""}` : "those songs are already here");
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -10248,6 +10299,9 @@
         }).join("")}
         <article class="card">
           <h3>back up or share</h3>
+          <div class="row"><button class="btn surprise" type="button" data-song="pack">⬇ pack up all my songs</button><button class="btn" type="button" data-song="unpack">⬆ unpack songs</button></div>
+          <p class="note">One file with every song, your settings, and your demos and tapes. Unpack it in another copy of Pixie, like its new home on the web.</p>
+          <input type="file" id="packFile" accept=".json,application/json" hidden>
           <div class="row"><button class="btn" type="button" data-song="copy">copy “${esc(song.title || "untitled")}” as text</button></div>
           <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: moon song&#10;[Verse]&#10;C Am F G&#10;[Chorus · 3/4]&#10;F G C C" aria-label="Paste a song as text"></textarea>
           <div class="row"><button class="btn" type="button" data-song="import">add pasted song</button></div>
@@ -10959,6 +11013,8 @@
       return;
     }
     const act = b.dataset.song, id = b.dataset.id;
+    if (act === "pack") { packSongs(); return; }
+    if (act === "unpack") { const f = $("packFile"); f.value = ""; f.onchange = () => f.files[0] && unpackSongs(f.files[0]); f.click(); return; }
     if (act === "new") { wiz = { mode: "new", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
     else if (act === "lyrics") { sheetMode = "lyrics"; renderSheet(); }
     else if (act === "open") { openSong(songs.find(s => s.id === id)); saveSongs(); closeSheet(); }
