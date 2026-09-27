@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>Pixie Chords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1615,6 +1615,26 @@
     .shape-name b { font-size: 19px; }
     .stage::after { height: 12px; top: -7px; }
   }
+
+  /* =========================================================
+     Sheets on phones: sized to the part of the screen you can see
+     (browser bars and the on-screen keyboard taken out), the header
+     with "done" always in view, a handle to pull it down, and the
+     page behind stays put.
+     ========================================================= */
+  .sheet { max-height: calc(var(--vvh, 100dvh) - 44px); bottom: var(--vvb, 0px); padding-top: 8px; overscroll-behavior: contain; }
+  .sheet.tall { height: calc(var(--vvh, 100dvh) - 44px); }
+  .sheet.wide { max-height: calc(var(--vvh, 100dvh) - 20px); }
+  .sheet-head { flex: none; position: relative; padding-top: 12px; touch-action: none; cursor: grab; }
+  .sheet-body { flex: 1 1 auto; min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .sheet-grip { position: absolute; top: -4px; left: 50%; width: 64px; height: 18px; margin-left: -32px; border: 0; padding: 0; background: none; cursor: pointer; }
+  .sheet-grip::before { content: ""; display: block; width: 40px; height: 5px; margin: 6px auto 0; border-radius: 3px; background: color-mix(in srgb, var(--soft) 55%, transparent); }
+  #closeSheet { flex: none; min-height: 40px; min-width: 72px; padding: 0 16px; border-radius: 999px; background: var(--ink); color: var(--bg); border: 0; font: 800 15px var(--body); }
+  .sheet.dragging { transition: none; }
+  .sheet.letgo { transition: transform .22s ease-out; }
+  body.sheet-open { overflow: hidden; }
+  /* a picked choice sits on the "picked" color, so its words use the page ink (readable in both themes) */
+  .choice[aria-pressed="true"], .color-chip.on, .lick.on, .vp[aria-pressed="true"] { color: var(--ink); }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -1704,7 +1724,8 @@
 <div class="egg" id="egg" role="dialog" aria-label="The sky clock" hidden></div>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet" id="sheet" hidden aria-labelledby="sheetTitle">
-  <div class="sheet-head">
+  <div class="sheet-head" id="sheetHead">
+    <button class="sheet-grip" type="button" id="sheetGrip" aria-label="Close"></button>
     <h2 id="sheetTitle">knobs</h2>
     <button class="btn" type="button" id="closeSheet">done</button>
   </div>
@@ -10397,6 +10418,7 @@
     sheetMode = mode;
     $("sheet").hidden = false;
     $("scrim").hidden = false;
+    document.body.classList.add("sheet-open");
     renderSheet();
     // an empty songbook opens ready to write
     const vt = mode === "along" && $("wordsText");
@@ -10410,6 +10432,7 @@
     if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
     $("sheet").hidden = true;
     $("scrim").hidden = true;
+    document.body.classList.remove("sheet-open");
     sheetMode = null; confirmDel = null;
   }
   function songText(s) {
@@ -10757,6 +10780,28 @@
   $("openView").addEventListener("click", () => openSheet("view"));
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
+  $("sheetGrip").addEventListener("click", closeSheet);
+  // pull the sheet down by its head to put it away
+  {
+    const head = $("sheetHead"), sh = $("sheet");
+    let y0 = null, dy = 0;
+    head.addEventListener("pointerdown", e => { if (e.target.closest("#closeSheet")) return; y0 = e.clientY; dy = 0; sh.classList.add("dragging"); sh.classList.remove("letgo"); });
+    window.addEventListener("pointermove", e => { if (y0 == null) return; dy = Math.max(0, e.clientY - y0); sh.style.transform = `translate(-50%, ${dy}px)`; });
+    const up = () => {
+      if (y0 == null) return;
+      y0 = null; sh.classList.remove("dragging"); sh.classList.add("letgo");
+      if (dy > 90) { sh.style.transform = ""; closeSheet(); } else sh.style.transform = "";
+    };
+    window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
+  }
+  // what's really on screen: phones hide some of it behind browser bars and the keyboard
+  function fitToScreen() {
+    const vv = window.visualViewport, r = document.documentElement.style;
+    if (!vv) return;
+    r.setProperty("--vvh", vv.height + "px");
+    r.setProperty("--vvb", Math.max(0, window.innerHeight - vv.height - vv.offsetTop) + "px");
+  }
+  if (window.visualViewport) { visualViewport.addEventListener("resize", fitToScreen); visualViewport.addEventListener("scroll", fitToScreen); fitToScreen(); }
 
   // ---------- the song map: tap to open a part, tap it again for options, drag to reorder ----------
   let mapDrag = null, mapBlock = false;
