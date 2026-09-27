@@ -1,9 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Pixie Chords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Nunito:wght@500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Shrikhand&family=Courier+Prime:wght@700&family=Nunito:wght@500;600;700;800;900&display=swap">
 <style>
   /* afternoon paper (light) and late-night desk (dark) */
   :root {
@@ -1539,6 +1540,81 @@
   .playin-cta { width: 100%; margin-bottom: 6px; }
   .kbd rect.echo-target { fill: color-mix(in srgb, var(--lamp) 75%, #fff) !important; }
   .kbd rect.kb.echo-target { fill: color-mix(in srgb, var(--lamp) 80%, #2f2a3d) !important; }
+
+  /* =========================================================
+     Handmade: the scrapbook look, back on top of the tidy one.
+     Handwriting for chords and names, a typewriter for small labels,
+     tape on the cards, a slight tilt here and there. Buttons, sheets
+     and anything you read at length stay in Nunito.
+     ========================================================= */
+  :root {
+    --hand: "Gaegu", "Chalkboard SE", "Comic Sans MS", "Segoe Print", cursive;
+    --type: "Courier Prime", "Courier New", ui-monospace, monospace;
+    --retro: "Shrikhand", "Cooper Black", Georgia, serif;
+    --tape: color-mix(in srgb, #f3e3b3 78%, transparent);
+  }
+  .logo { font-family: var(--retro); font-weight: 400; font-size: 27px; letter-spacing: 0; transform: rotate(-2.5deg); }
+  .song-title { font-family: var(--hand); font-weight: 700; font-size: 26px; letter-spacing: 0; }
+  .chord-name, .chord-name.as-btn, .t-sym, .pal b, .mh-name, .shape-name b, .sheet-head h2 { font-family: var(--hand); font-weight: 700; letter-spacing: 0; }
+  /* Gaegu's boldest is still a pencil line: a hair of stroke makes it a marker */
+  .chord-name, .t-sym, .pal b, .mh-name, .song-title, .sheet-head h2 { -webkit-text-stroke: .5px currentColor; }
+  .chord-name { -webkit-text-stroke-width: 1.2px; }
+  .chord-name { font-size: 56px; } .chord-name.long { font-size: 44px; } .chord-name.longer { font-size: 34px; }
+  .sheet-head h2 { font-size: 29px; }
+  .shape-name b { font-size: 23px; }
+  .role, .t-num, .blk b, .pill, .keychip, .entry label, .kl-type { font-family: var(--type); font-weight: 700; letter-spacing: 0; }
+  .link { font-family: var(--type); }
+
+  /* chord cards: a strip of washi tape each, and a small lean */
+  .strip { padding-top: 9px; }
+  .tile { position: relative; transform: rotate(var(--r, 0deg)); }
+  .tile:nth-child(3n+1) { --r: -1.4deg; } .tile:nth-child(3n+2) { --r: 1deg; } .tile:nth-child(3n) { --r: -.5deg; }
+  .tile::before {
+    content: ""; display: block; position: absolute; top: -7px; left: 50%; width: 34px; height: 12px; margin-left: -17px;
+    background: color-mix(in srgb, var(--fn, var(--lamp)) 62%, transparent); transform: rotate(-4deg);
+    clip-path: polygon(0 12%, 6% 0, 94% 6%, 100% 0, 97% 55%, 100% 100%, 5% 92%, 0 100%, 3% 50%); pointer-events: none;
+  }
+  .tile:nth-child(2n)::before { transform: rotate(5deg); margin-left: -12px; }
+  .tile .t-sym { font-size: 23px; } .tile .t-sym.mid { font-size: 19px; } .tile .t-sym.long { font-size: 16px; }
+  .tile.sel { transform: rotate(0deg) translateY(-3px); color: #2f2a3d; }
+  .tile.sel .t-num, .tile.sel .t-words, .tile.sel .t-foot { color: #6f6782; }
+  .tile.lifted { transform: rotate(2deg) scale(1.04); }
+  .tile.plus::before, .tile.bad::before { display: none; }
+  .tile.plus { transform: rotate(1.5deg); border-style: dashed; font-family: var(--hand); font-size: 28px; }
+
+  /* the part you're in: a strip of masking tape */
+  .blk { transform: rotate(var(--r, 0deg)); }
+  .blk:nth-child(2n) { --r: 1deg; } .blk:nth-child(2n+1) { --r: -1deg; }
+  .blk.on { border: 0; clip-path: polygon(0 8%, 4% 0, 100% 3%, 97% 50%, 100% 100%, 3% 96%, 0 100%, 2% 50%); box-shadow: none; }
+  .blk.add { border-style: dashed; border-radius: 50%; transform: rotate(0); }
+
+  /* the chord you're on: a card pinned with tape at the corner */
+  .stage { border-radius: var(--wob); }
+  .stage::after {
+    content: ""; position: absolute; top: -9px; left: 22px; width: 58px; height: 16px; background: var(--tape); transform: rotate(-6deg);
+    clip-path: polygon(0 10%, 5% 0, 95% 8%, 100% 0, 98% 55%, 100% 100%, 4% 92%, 0 100%, 2% 50%); pointer-events: none; opacity: .9;
+  }
+  .lane-mini { border: 0; border-bottom: 2px dashed color-mix(in srgb, var(--soft) 70%, transparent); border-radius: 0; background: transparent; font-family: var(--hand); font-size: 21px; text-align: left; padding: 0 4px; }
+
+  /* the little doors beside the house: stickers, hand-lettered */
+  .pal.mh-in, .pal.chords-pill, .pal.mh-story, .pal.more { font-family: var(--hand); font-weight: 700; font-size: 16.5px; border-radius: var(--wob-s); letter-spacing: 0; -webkit-text-stroke: .35px currentColor; }
+  .mh-side .pal { padding: 0 10px; }
+  .mh-side .pal:nth-child(2n+1) { transform: rotate(-1.2deg); }
+  .mh-side .pal:nth-child(2n) { transform: rotate(1deg); }
+  .pal.more { border-style: dashed; }
+
+  /* what your friend says: a note stuck on slightly crooked */
+  .say { transform: rotate(-.8deg); }
+  @media (prefers-reduced-motion: reduce) { .tile, .blk, .say, .pal { transition: none; } }
+  /* short phones: the same scrapbook, packed a little tighter */
+  @media (max-height: 720px) {
+    .strip { padding-top: 6px; }
+    .song-title { font-size: 22px; }
+    .chord-name { font-size: 44px; } .chord-name.long { font-size: 36px; } .chord-name.longer { font-size: 30px; }
+    .lane-mini { font-size: 18px; }
+    .shape-name b { font-size: 19px; }
+    .stage::after { height: 12px; top: -7px; }
+  }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
