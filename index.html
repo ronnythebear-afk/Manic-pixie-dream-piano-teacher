@@ -4508,7 +4508,8 @@
     g.gain.exponentialRampToValueAtTime(0.0001, b);
     // (through the voice's own level and a soft top, past the warm tape filter so t and k stay crisp but never snap)
     const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 7000; lp.Q.value = 0.5;
-    nz.connect(f); f.connect(lp); lp.connect(g); g.connect(voiceTap || tapOut || master);
+    const lp2 = ac.createBiquadFilter(); lp2.type = "lowpass"; lp2.frequency.value = 9500; lp2.Q.value = 0;
+    nz.connect(f); f.connect(lp); lp.connect(lp2); lp2.connect(g); g.connect(voiceTap || tapOut || master);
     nz.start(a, Math.random() * 0.5); nz.stop(b + 0.02);
   }
 
@@ -4764,6 +4765,12 @@
   const BWQ = [7, 13, 16, 15];
   const LEVELS = [1, 0.95, 0.6, 0.35];
   const mf = m => 440 * Math.pow(2, (m - 69) / 12);
+  // two lowpass stages in a row (24 dB per octave) from `node`; returns the last stage
+  function topCut(node, f = 9500) {
+    let last = node;
+    for (let k = 0; k < 2; k++) { const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = f; lp.Q.value = 0; last.connect(lp); last = lp; }
+    return last;
+  }
 
   // mood: { minor, fn } from the chord underneath; the voice leans into it
   // opt: { delay, cents, pan, gain, quiet } for doubles, harmonies and backing pads
@@ -4817,7 +4824,7 @@
     const hissSrc = noise(), hissBp = ac.createBiquadFilter(), hiss = ac.createGain(), hissLp = ac.createBiquadFilter();
     hissBp.type = "bandpass"; hissBp.frequency.value = 5000; hissBp.Q.value = 1.2; hiss.gain.value = 0.0001;
     hissLp.type = "lowpass"; hissLp.frequency.value = 7000; hissLp.Q.value = 0.5;
-    hissSrc.connect(hissBp); hissBp.connect(hissLp); hissLp.connect(hiss); hiss.connect(voiceTap || tapOut || master); // skips the warm tape filter
+    hissSrc.connect(hissBp); hissBp.connect(hissLp); hissLp.connect(hiss); topCut(hiss).connect(voiceTap || tapOut || master); // skips the warm tape filter
     // where the voice goes: centered (or panned for doubles), plus the friend's room
     let dest = voiceBus || master;
     if (opt.pan && ac.createStereoPanner) { const pn = ac.createStereoPanner(); pn.pan.value = opt.pan; pn.connect(dest); dest = pn; }
@@ -4830,8 +4837,11 @@
       d.delayTime.value = V.comb; fb.gain.value = 0.45; mix.gain.value = 0.7;
       tail.connect(d); d.connect(fb); fb.connect(d); d.connect(mix); mix.connect(dest);
     }
-    tail.connect(dest);
-    if (send) tail.connect(send);
+    // a steep ceiling on everything the voice makes: nothing a voice needs lives above ~9 kHz, and without this
+    // the noise in its breath and consonants piled up near the top of the audio range, where phones fold it back as static
+    const ceil = topCut(tail);
+    ceil.connect(dest);
+    if (send) ceil.connect(send);
 
     // ---- automation helpers
     const setF = (t, F, tau) => bands.forEach((b, fi) => b.f.setTargetAtTime((fi < 3 ? F[fi] : F4) * sh, q(t), tau));
@@ -11960,7 +11970,7 @@
       let at = 0;
       const notes = sy.map((x, i) => { const beats = x.stress || x.last ? 1 : 0.5; const n = { midi: mid + shape[i % shape.length], start: at, dur: beats * 0.92, s: i, stress: x.stress }; at += beats; return n; });
       const dest = ac.createMediaStreamDestination(); tapOut.connect(dest);
-      const rec = new MediaRecorder(dest.stream), chunks = [];
+      const pcm = MediaRecorder.isTypeSupported("audio/webm;codecs=pcm"), rec = pcm && window.__pcm ? new MediaRecorder(dest.stream, { mimeType: "audio/webm;codecs=pcm" }) : new MediaRecorder(dest.stream), chunks = [];
       rec.ondataavailable = e => e.data.size && chunks.push(e.data);
       const done = new Promise(r => { rec.onstop = r; });
       rec.start();
@@ -11972,11 +11982,42 @@
       return btoa(bin);
     },
     phones: w => wordPhones(w),
+    // play the open part and capture the exact samples at the output (no recorder in between)
+    async capturePlay(secs) {
+      if (!(await audioReady())) return null;
+      const sp = ac.createScriptProcessor(4096, 2, 2), bufs = [];
+      sp.onaudioprocess = e => { const a = e.inputBuffer.getChannelData(0), b = e.inputBuffer.getChannelData(1), m = new Float32Array(a.length); for (let i = 0; i < a.length; i++) m[i] = (a[i] + b[i]) / 2; bufs.push(m); };
+      const sink = ac.createGain(); sink.gain.value = 0; tapOut.connect(sp); sp.connect(sink); sink.connect(ac.destination);
+      if (playing) stop(); await playAll();
+      await new Promise(r => setTimeout(r, secs * 1000));
+      stop(); await new Promise(r => setTimeout(r, 300)); sp.disconnect(); try { tapOut.disconnect(sp); } catch {}
+      const n = bufs.reduce((x, b) => x + b.length, 0), all = new Float32Array(n); let o = 0; bufs.forEach(b => { all.set(b, o); o += b.length; });
+      const u8 = new Uint8Array(all.buffer); let bin = ""; for (let i = 0; i < u8.length; i += 8192) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+      return { sr: ac.sampleRate, b64: btoa(bin) };
+    },
+    // spectrum probes along the output chain (for tracking down noise)
+    async probe(text, who) {
+      if (!(await audioReady())) return null;
+      const pts = { voiceBus, voiceTap, master, eqHigh, warmth, tapOut }, an = {};
+      Object.entries(pts).forEach(([k, n]) => { if (!n) return; const a = ac.createAnalyser(); a.fftSize = 8192; a.smoothingTimeConstant = 0; n.connect(a); an[k] = a; });
+      const acc = {}; Object.keys(an).forEach(k => (acc[k] = new Float64Array(4096)));
+      singPhrase({ sy: lineSyllables(text), notes: lineSyllables(text).map((x, i) => ({ midi: 64 + (i % 3), start: i * 0.6, dur: 0.55, s: i })) }, ac.currentTime + 0.3, 1, who);
+      for (let f = 0; f < 40; f++) {
+        await new Promise(r => setTimeout(r, 100));
+        Object.entries(an).forEach(([k, a]) => { const d = new Float32Array(a.frequencyBinCount); a.getFloatFrequencyData(d); for (let i = 0; i < d.length; i++) acc[k][i] += Math.pow(10, d[i] / 10); });
+      }
+      const nyq = ac.sampleRate / 2, out = { sr: ac.sampleRate };
+      Object.entries(acc).forEach(([k, v]) => {
+        const band = (a, b) => { let s = 0, t = 0; for (let i = 0; i < v.length; i++) { const f = i * nyq / v.length; t += v[i]; if (f >= a && f < b) s += v[i]; } return (10 * Math.log10(s / t + 1e-15)).toFixed(0); };
+        out[k] = `8-12k ${band(8000, 12000)} | 16-19k ${band(16000, 19000)} | 19k+ ${band(19000, nyq)}`;
+      });
+      return out;
+    },
     // play the open part (band and singer) and hand back the recording, for listening tests
     async recordPlay(secs) {
       if (!(await audioReady())) return null;
       const dest = ac.createMediaStreamDestination(); tapOut.connect(dest);
-      const rec = new MediaRecorder(dest.stream), chunks = [];
+      const pcm = MediaRecorder.isTypeSupported("audio/webm;codecs=pcm"), rec = pcm ? new MediaRecorder(dest.stream, { mimeType: "audio/webm;codecs=pcm" }) : new MediaRecorder(dest.stream), chunks = [];
       rec.ondataavailable = e => e.data.size && chunks.push(e.data);
       const done = new Promise(r => { rec.onstop = r; });
       rec.start(); if (playing) stop(); await playAll();
