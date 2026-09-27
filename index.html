@@ -1,3 +1,5 @@
+<!doctype html>
+<meta charset="utf-8">
 <title>Pixie Chords</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1612,6 +1614,8 @@
 <div class="toast" id="toast" role="status" hidden></div>
 <script>
 (() => {
+  // the page as it arrived, before anything is drawn: used to save a copy you can open on its own
+  const PAGE_SRC = "<!doctype html>\n" + document.documentElement.outerHTML;
   // =========================================================
   // Music theory
   // =========================================================
@@ -7597,12 +7601,17 @@
   // anything that wants to hear your playing: return true to keep it to yourself
   const onKeys = fn => kb.hooks.push(fn);
 
+  // claude.ai shows Pixie inside a frame that isn't allowed to use MIDI: then the way in is a saved copy
+  const midiFramed = () => { try { return window.self !== window.top && (document.featurePolicy ? !document.featurePolicy.allowsFeature("midi") : false); } catch { return true; } };
   async function connectMidi(quiet) {
+    if (midiFramed()) { kb.status = "framed"; if (!quiet) toast("claude.ai doesn't let this page use MIDI. Download Pixie and open the file in Chrome"); return false; }
     if (!navigator.requestMIDIAccess) { kb.status = "none"; if (!quiet) toast("this browser can't hear MIDI keyboards. Chrome, Edge or Firefox can"); return false; }
     try {
       kb.access = await navigator.requestMIDIAccess({ sysex: false });
     } catch (e) {
-      kb.status = "blocked"; if (!quiet) toast("the keyboard was blocked here. Open Pixie in its own tab in Chrome and try again");
+      // said no to the prompt, or the page isn't allowed to ask
+      kb.status = e && e.name === "NotAllowedError" && !midiFramed() && window.self === window.top ? "denied" : "blocked";
+      if (!quiet) toast(kb.status === "denied" ? "MIDI was turned down. Allow it from the icon left of the address bar, then connect again" : "this page isn't allowed to use MIDI. Download Pixie and open the file in Chrome");
       return false;
     }
     const hook = () => {
@@ -7786,10 +7795,13 @@
   }
   // the settings row for your keyboard
   function keysKnobHTML() {
-    const st = { on: `${esc(kb.name)} · connected`, waiting: "listening for a keyboard... plug it in", blocked: "blocked here. Open Pixie in its own Chrome tab", none: "this browser can't hear MIDI (try Chrome)", off: "not connected" }[kb.status] || "not connected";
+    const st = { on: `${esc(kb.name)} · connected`, waiting: "listening for a keyboard... plug it in", framed: "claude.ai shows Pixie inside a frame that can't use MIDI", blocked: "this page isn't allowed to use MIDI", denied: "MIDI was turned down: allow it from the icon left of the address bar, then connect again", none: "this browser can't hear MIDI (Chrome, Edge or Firefox can)", off: "not connected" }[kb.status] || "not connected";
+    const stuck = kb.status === "framed" || kb.status === "blocked" || (kb.status === "off" && midiFramed());
     return `<div class="knob"><span class="lbl">your keyboard</span>
       <div class="row"><button class="btn${kb.status === "on" ? "" : " surprise"}" type="button" data-keys="midi">${kb.status === "on" ? "✓ " + esc(kb.name.split(",")[0]) : "🎹 connect a MIDI keyboard"}</button>
         <button class="btn" type="button" data-keys="laptop" aria-pressed="${!!prefs.laptopKeys}">laptop keys ${prefs.laptopKeys ? "on" : "off"}</button></div>
+      ${stuck ? `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-keys="save">⬇ download Pixie for your keyboard</button></div>
+        <p class="note">Save Pixie as a file, then open that file in Chrome (or Arc) and connect there. Your songs and settings come with it. Recorded demos and tapes stay here.</p></div>` : ""}
       <p class="note">${esc(st)}. ${prefs.laptopKeys ? "Laptop keys: A to ' is a piano row (W, E, T, Y, U are the black keys); Z and X move the octave." : "No keyboard? The laptop's letter keys can play too."}</p>
       <span class="lbl">it sounds like</span>
       <div class="presets">${LIVE_VOICES.map(([id, n]) => `<button class="choice" type="button" data-livevoice="${id}" aria-pressed="${(prefs.liveVoice || "piano") === id}">${id === "lead" ? esc((LEADS[prefs.buddy] || LEADS.dusty).name) : n}</button>`).join("")}</div></div>`;
@@ -7798,12 +7810,32 @@
     const k = e.target.closest("[data-keys]");
     if (k) {
       if (k.dataset.keys === "midi") connectMidi(false).then(() => renderSheet());
+      else if (k.dataset.keys === "save") savePixie();
       else { prefs.laptopKeys = !prefs.laptopKeys; savePrefs(); renderSheet(); toast(prefs.laptopKeys ? "laptop keys on: A S D F G H J K is C D E F G A B C" : "laptop keys off"); }
       return true;
     }
     const v = e.target.closest("[data-livevoice]");
     if (v) { prefs.liveVoice = v.dataset.livevoice; savePrefs(); renderSheet(); audioReady().then(ok => { if (ok) { liveOn(60, 90); setTimeout(() => liveOff(60), 450); } }); return true; }
     return false;
+  }
+
+  // a copy of Pixie you can open on its own, with your songs and settings tucked inside
+  async function savePixie() {
+    const seed = {};
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("pixie:")) seed[k] = localStorage.getItem(k); } } catch {}
+    const carry = `<script>try{if(!localStorage.getItem("pixie:songs")){var s=${JSON.stringify(seed).replace(/</g, "\\u003c")};for(var k in s)localStorage.setItem(k,s[k]);}}catch(e){}<\/script>`;
+    const html = PAGE_SRC.replace(/<head[^>]*>/i, m => m + '<meta charset="utf-8">' + carry);
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" }), name = "pixie-chords.html";
+    const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 3000))]) : null;
+    if (dl) {
+      try { await dl.save({ filename: name, data: blob }); toast("saved. Open pixie-chords.html in Chrome and connect your keyboard there"); }
+      catch (err) { if (err?.code !== "declined") toast("couldn't save it here"); }
+      return;
+    }
+    const a = document.createElement("a"), u = URL.createObjectURL(blob);
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 4000);
+    toast("saved. Open pixie-chords.html in Chrome and connect your keyboard there");
   }
 
   // =========================================================
