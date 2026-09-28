@@ -461,6 +461,10 @@
   @media (prefers-color-scheme: dark) { :root[data-buddy="mort"]:not([data-theme="light"]) { --bg: #151118; --card: #201a24; --card-2: #2a2230; --key-w: #eee6d6; --key-b: #0d0a10; --key-edge: #0d0a10; } }
   :root[data-buddy="mort"][data-theme="dark"] { --bg: #151118; --card: #201a24; --card-2: #2a2230; --key-w: #eee6d6; --key-b: #0d0a10; --key-edge: #0d0a10; }
   :root[data-buddy="mort"] .kb { fill: #140f18; }
+  /* Captain Moss: signal red and sea blue, brass, a navy deck */
+  :root[data-buddy="cap"] { --rh: #d9483b; --lh: #2f7fa8; --lamp: #f2c14e; --surprise: #3fb3a0; --home: #f2c14e; --key-w: #fbf8f1; --deck: #10202e; --bg: #e1e7ea; --card: #f7fafb; --card-2: #eaf0f2; }
+  @media (prefers-color-scheme: dark) { :root[data-buddy="cap"]:not([data-theme="light"]) { --bg: #0f1a22; --card: #182630; --card-2: #20313d; --key-w: #eef2ee; --key-b: #0a1117; --key-edge: #0a1117; } }
+  :root[data-buddy="cap"][data-theme="dark"] { --bg: #0f1a22; --card: #182630; --card-2: #20313d; --key-w: #eef2ee; --key-b: #0a1117; --key-edge: #0a1117; }
 
   /* ---------- more scene motion ---------- */
   .scene .clapL, .scene .clapR, .scene .rattle, .scene .reel2, .scene .sway { transform-box: fill-box; }
@@ -1002,6 +1006,7 @@
   :root[data-buddy="oona"] { --bg: #e4e4e8; --card: #f7f7f9; --card-2: #ececf0; }
   :root[data-buddy="lulu"] { --bg: #eee3ea; --card: #fbf6f9; --card-2: #f4e9ef; }
   :root[data-buddy="mort"] { --bg: #e6e1e6; --card: #faf7f4; --card-2: #efe9ec; }
+  :root[data-buddy="cap"] { --bg: #e1e7ea; --card: #f7fafb; --card-2: #eaf0f2; }
 
   /* every button, one voice */
   .btn, .pal, .chip, .st-link, .pen-btn, .toplinks .link, #openView {
@@ -1736,6 +1741,14 @@
   .sheet-back { flex: none; border: 0; background: var(--chip); color: var(--ink); font: 800 13px/1 var(--body); padding: 8px 12px 8px 10px; border-radius: 999px; cursor: pointer; max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .sheet-back:hover { background: var(--chip-hover); }
   .key-pill small { font-size: 10.5px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
+  /* seven friends, seven rooms */
+  .keepers { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin: 4px 0 12px; }
+  .keeper { display: grid; justify-items: center; gap: 1px; text-align: center; }
+  .keeper .cast-face { width: 38px; height: 40px; }
+  .keeper b { font: 800 13px/1 var(--body); }
+  .keeper small { font: 700 9.5px/1.1 var(--body); color: var(--soft); }
+  .h-keeper { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13.5px; color: var(--soft); font-weight: 600; }
+  .h-keeper .cast-face { flex: none; width: 36px; height: 38px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -2647,9 +2660,54 @@
       reroll: "The same words, sung another way. More vibrato, naturally.",
       drew: "Your line, played by the string section. They've been waiting all night.",
       egg: "The sky turns with the key. I prefer it at midnight, of course."
+    },
+    // Captain Moss: an old sea captain with a pump organ lashed to the deck
+    cap: {
+      name: "Captain Moss", who: "an old sea captain with a pump organ on deck", voice: "organ",
+      blurb: "Stomps, claps, a tambourine, the ship's bell, a wheezy pump organ and a squeezebox. Every chorus is for the whole crew.",
+      sounds: [["stomp", "stomp"], ["clap", "clap"], ["tambourine", "jingle"], ["ship's bell", "shipbell"]],
+      fill: "shanty", crash: "crash", adlib: "ho",
+      beats: {
+        "shanty": ["x.......x.......", "....x.......x...", "..x...x...x...x.", "x..............."],
+        "hornpipe": ["x...x...x...x...", "..x...x...x...x.", "x.x.x.x.x.x.x.x.", "................"],
+        "sea swell": ["x...........x...", "........x.......", "....x.......x...", "................"]
+      },
+      hello: "Ahoy! Pull up a barrel. The organ's wheezy but she's never let me down. What are we singing?",
+      major: { 0: "I. Home port. Lanterns in the windows.", 2: "ii. Casting off the lines.", 4: "iii. Fog on the water. Can't see the shore.", 5: "IV. Wind in the sails! Out we go.", 7: "V. Land ho! Every sailor knows this one pulls you home.", 9: "vi. Home port, but it's raining on the dock.", 11: "vii°. Rocks ahead. Steady on the wheel." },
+      minor: { 0: "Minor home. A cold sea and a long night. Grand for a shanty.", 2: "ii°. A creak in the hull.", 3: "III. The clouds part. Stars to steer by.", 5: "iv. A long pull on the oars.", 7: "V. The harbour light! Home, whether the sea likes it or not.", 8: "VI. A big grey wave, lifting the whole ship.", 10: "VII. The anchor chain rattling down." },
+      borrowed: n => `${n}! A ship from a foreign port. Welcome aboard.`,
+      minorIV: "Minor iv. The sad verse about the one who waits on the shore.",
+      flat7: "♭VII. A sea song chord if ever there was one. Heave!",
+      secondary: n => `${n} is throwing a line to the next chord. Catch it.`,
+      mood: m => `A ${m} one! Crew, gather round.`,
+      surprise: "Changed course! Undo it if you'd rather the old heading.",
+      feelings: [
+        "A shanty is a job song. Keep the beat steady so the whole crew can pull together.",
+        "Leave a gap after each line. That's where the crew shouts back.",
+        "Three chords will sail you round the world. Home, IV and V.",
+        "V pulls you home like a harbour light. Put it right before home.",
+        "Stomp on one, clap on two. Now it's a sea song.",
+        "Sing the chorus louder every time round. That's the rule."
+      ],
+      meters: { "4/4": "Four. Hauling rope, steady and strong.", "3/4": "Three. A waltz on a rolling deck.", "6/8": "Six eight! The jig. The sea's own time.", "5/4": "Five. Like a ship with one short oar.", "7/8": "Seven. Choppy water. Hold on to your hat.", "2/4": "Two! A hornpipe. Quick feet on the deck." },
+      sing: "Right, I'll lead the verse. You come in on the chorus, loud as you like.",
+      reroll: "Same words, a new tune. Every port sings it differently.",
+      drew: "Your line on my squeezebox. The gulls are already humming along.",
+      egg: "The sky turns with the key. A sailor always knows the hour by the stars."
     }
   };
-  const BUDDY_ORDER = ["dusty", "ghost", "wren", "oona", "lulu", "mort"];
+  const BUDDY_ORDER = ["dusty", "ghost", "wren", "oona", "lulu", "mort", "cap"];
+  // each friend keeps one room in every house, by its number: I is Wren's, vii° is Mortimer's
+  const ROOM_KEEPERS = ["wren", "oona", "ghost", "dusty", "cap", "lulu", "mort"];
+  const KEEPER_WHY = {
+    wren: "Wren keeps the home room. It's the campfire everything comes back to.",
+    oona: "Aiden keeps the ii room: coat on, one quiet step out the door, usually on the way to V.",
+    ghost: "Static keeps the iii room. It shares two notes with home and two with V, so it sounds like both through a haze.",
+    dusty: "Dusty keeps the IV room, the big lift upstairs. Country songs practically live here.",
+    cap: "Captain Moss keeps the V room. It pulls hardest toward home, like a harbour light.",
+    lulu: "Lulu keeps the vi room: home's own notes with a shadow on them. Pop's favorite place to cry.",
+    mort: "Mortimer keeps the vii° room in the attic. It's the tensest chord in the house, and it can't wait to get home."
+  };
 
   function buddyRole(b, ch, a, k) {
     const n = pretty(ch.rootName) + ch.qual;
@@ -2720,14 +2778,17 @@
     { id: "bittersweet", name: "bittersweet", face: "❀", steps: [[0, ""], [5, ""], [5, "m"], [0, ""]], why: "One note falls and it aches." },
     { id: "brave", name: "brave", face: "⚑", steps: [[0, ""], [10, ""], [5, ""], [0, ""]], why: "Standing on a hill, loud." },
     { id: "spooky", name: "spooky", face: "☾", minor: true, steps: [[0, "m"], [8, ""], [3, ""], [7, "7"]], why: "Dark, darker, then dragged home." },
-    { id: "lullaby", name: "lullaby", face: "★", steps: [[0, ""], [4, "m"], [5, ""], [0, ""]], why: "Never strays far from home." }
+    { id: "lullaby", name: "lullaby", face: "★", steps: [[0, ""], [4, "m"], [5, ""], [0, ""]], why: "Never strays far from home." },
+    { id: "hearty", name: "hearty", face: "⚓", steps: [[0, ""], [5, ""], [7, ""], [0, ""]], why: "Home, out to sea, the pull, home port." },
+    { id: "dramatic", name: "dramatic", face: "♣", minor: true, steps: [[0, "m"], [10, ""], [8, ""], [7, ""]], why: "Four steps down the grand staircase." },
+    { id: "grand", name: "grand", face: "❦", steps: [[0, ""], [5, ""], [11, "dim"], [4, "m"], [9, "m"], [2, "m"], [7, ""], [0, ""]], why: "Every room in the house, once." }
   ];
   function moodProg(mood, k) {
     const major = k.minor ? { tonic: mod(k.tonic + 3), minor: false } : k;
     const base = mood.minor ? { tonic: k.tonic, minor: true } : major;
     return mood.steps.map(([iv, q]) => scaleNote(base, iv) + q).join(" ");
   }
-  const SUNNY = ["hopeful", "cozy", "dreamy", "brave", "lullaby", "bittersweet"];
+  const SUNNY = ["hopeful", "cozy", "dreamy", "brave", "lullaby", "bittersweet", "hearty"];
   const MOODY_PROGS = [
     { id: "haunted", name: "haunted", face: "☾", steps: [[0, "m"], [8, ""], [3, ""], [7, "7"]], why: "Dark, darker, then dragged home." },
     { id: "rainy", name: "rainy", face: "☂", steps: [[0, "m"], [10, ""], [8, ""], [10, ""]], why: "Down the steps and back up." },
@@ -3133,6 +3194,40 @@
     </g>`;
   }
 
+  // Captain Moss: a navy peacoat with brass buttons, a captain's hat, a spyglass up to look for land
+  function capSVG(x, y, s = 1) {
+    const skin = "#f0c6a4", coat = "#243a5e", hair = "#d9d6cf", brass = "#e2b54a";
+    return `<g transform="translate(${x} ${y}) scale(${s})">
+      <ellipse cx="2" cy=".6" rx="14" ry="1.7" fill="#000" opacity=".28"/>
+      <g class="sway">
+        ${limb("M-3.4-13.6-3.6-1.6", "#1b2a44", 3.6)}${limb("M3.4-13.6 3.8-1.6", "#1b2a44", 3.6)}
+        <path d="M-8 .3h5.6v-2.6h-5.2zM2 .3h6v-2.6h-5.8z" fill="#2a1f1a" stroke="${INK}" stroke-width=".4"/>
+        <path d="M-10.4-34.2h20.8l1.8 23h-24.4z" fill="${coat}" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>
+        <path d="M-3.2-34.2 0-28.6 3.2-34.2z" fill="#f4f1ea" stroke="${INK}" stroke-width=".4"/><path d="M-2.2-32.6h4.4M-1.2-30.8h2.4" stroke="#3f6fa8" stroke-width=".7"/>
+        <path d="M-4.8-35.2q4.8 2.6 9.6 0l-1.4 3.2q-3.4 1.4-6.8 0z" fill="#c8393b" stroke="${INK}" stroke-width=".45"/><path d="M1.6-33.4l2.6 4.4-2.8-.4z" fill="#c8393b" stroke="${INK}" stroke-width=".4"/>
+        <path d="M-3.8-27.6-5.2-12.4M3.8-27.6 5.2-12.4" stroke="#1b2a44" stroke-width=".6" opacity=".8"/>
+        ${[-26, -21.4, -16.8].map(yy => `<circle cx="-2.4" cy="${yy}" r=".8" fill="${brass}" stroke="${INK}" stroke-width=".3"/><circle cx="2.4" cy="${yy}" r=".8" fill="${brass}" stroke="${INK}" stroke-width=".3"/>`).join("")}
+        ${limb("M-9.6-32.4-11.2-19.8", coat, 3.6)}<circle cx="-11.3" cy="-18.8" r="1.5" fill="${skin}" stroke="${INK}" stroke-width=".5"/>
+        <path d="M-10.2-21.4h2.4" stroke="${brass}" stroke-width=".7"/>
+        <rect x="-1.7" y="-37.6" width="3.4" height="2.8" fill="${skin}"/>
+        <circle cx="0" cy="-42.6" r="6.4" fill="${skin}" stroke="${INK}" stroke-width=".8"/>
+        <circle cx="-6.6" cy="-41.2" r="2.2" fill="${hair}" stroke="${INK}" stroke-width=".5"/><circle cx="6.6" cy="-41.2" r="2.2" fill="${hair}" stroke="${INK}" stroke-width=".5"/><circle cx="-6" cy="-38.6" r="1.6" fill="${hair}" stroke="${INK}" stroke-width=".45"/><circle cx="6" cy="-38.6" r="1.6" fill="${hair}" stroke="${INK}" stroke-width=".45"/>
+        <path d="M-4.2-44.8q1.4-1 2.8 0M1.4-44.8q1.4-1 2.8 0" fill="none" stroke="#bdb8ad" stroke-width="1.1" stroke-linecap="round"/>
+        <path d="M-3.8-42.8q1.1 1 2.2 0M1.6-42.8q1.1 1 2.2 0" fill="none" stroke="${INK}" stroke-width=".65" stroke-linecap="round"/>
+        <circle cx="-4.2" cy="-40.2" r="1.5" fill="#e0776a" opacity=".6"/><circle cx="4.2" cy="-40.2" r="1.5" fill="#e0776a" opacity=".6"/>
+        <path d="M-.6-41.8q.6.8 1.2 0" fill="none" stroke="#b8826a" stroke-width=".5"/>
+        <ellipse class="mouth" cx="0" cy="-38.8" rx="1.5" ry="1" fill="#6a2a2a" stroke="${INK}" stroke-width=".35"/>
+        <path d="M-7.6-47.2q0-5.6 7.6-6.2q7.6.6 7.6 6.2z" fill="#f6f3ec" stroke="${INK}" stroke-width=".6"/>
+        <path d="M-7.8-47.6h15.6v1.8h-15.6z" fill="#1b2a44" stroke="${INK}" stroke-width=".4"/>
+        <path d="M-8.4-45.8q8.4 3.2 16.8 0l-.6 1.4q-7.8 2.6-15.6 0z" fill="#161616" stroke="${INK}" stroke-width=".4"/>
+        <path d="M0-52v3.4M-1.4-50.6h2.8M-1.6-49.4q1.6 1.4 3.2 0" fill="none" stroke="${brass}" stroke-width=".6" stroke-linecap="round"/>
+        <g class="hit">${limb("M9.6-32.4 14.6-39.6", coat, 3.6)}<circle cx="14.8" cy="-40.6" r="1.5" fill="${skin}" stroke="${INK}" stroke-width=".5"/>
+          <g transform="translate(15.2 -41.4) rotate(-38)"><rect x="-1.2" y="-1.3" width="10" height="2.6" rx=".6" fill="${brass}" stroke="${INK}" stroke-width=".5"/><rect x="7.8" y="-1.7" width="3" height="3.4" rx=".6" fill="#b8913a" stroke="${INK}" stroke-width=".5"/><path d="M2.4-1.3v2.6M5-1.3v2.6" stroke="#8a6a24" stroke-width=".5"/></g></g>
+        ${pin(-9.6, -32.2)}${pin(9.6, -32.2)}${pin(-3.4, -13.4)}${pin(3.4, -13.4)}
+      </g>
+    </g>`;
+  }
+
   // ---------- the rooms ----------
   const SCENES = {
     dusty: (sky, u) => {
@@ -3263,6 +3358,32 @@
       ${[700, 1050].map(x => `<g transform="translate(${x} 34)"><path d="M0 28V4M-8 28h16" stroke="#b8923e" stroke-width="1.4"/></g>${candles(x, 27, 1)}`).join("")}
       <rect y="62" width="1200" height="22" fill="url(#floor${u})"/><rect y="62" width="1200" height="22" fill="#1c1424" opacity=".45"/><path d="M0 62h1200" stroke="#0a070d" stroke-width="1.6"/>
       ${cut(mortSVG(40, 63, 1.03))}`;
+    },
+    cap: (sky, u) => {
+      const sea = hexMix("#3f7fa6", "#10263a", sky.night), sea2 = hexMix("#5d9cc0", "#1a3650", sky.night), far = hexMix("#6f8fa8", "#1c2c40", sky.night);
+      return `
+      <defs><linearGradient id="sk${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky.top}"/><stop offset="1" stop-color="${sky.bot}"/></linearGradient>
+      <radialGradient id="glow${u}"><stop offset="0" stop-color="#ffd98a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+      <linearGradient id="beam${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3c4" stop-opacity=".5"/><stop offset="1" stop-color="#fff3c4" stop-opacity="0"/></linearGradient></defs>
+      <rect width="1200" height="84" fill="url(#sk${u})"/>${starsIn(30, 7, 0, 3, 1200, 30, sky.night)}
+      ${orb(1040, (40 - sky.el * 28).toFixed(1), 6, sky, u)}
+      <path d="M760 40h140v2H760zM420 40q40-8 90 0z" fill="${far}"/>
+      <g transform="translate(860 16)"><path d="M-4 24 -2.6 4h5.2L4 24z" fill="#f2efe8" stroke="#1a2230" stroke-width=".6"/><path d="M-3.6 18h7.2M-3.1 11h6.2" stroke="#c8393b" stroke-width="2.4"/><rect x="-3" y="0" width="6" height="4" fill="#ffe8a0" stroke="#1a2230" stroke-width=".5"/><path d="M-3.6 0l3.6-3 3.6 3z" fill="#c8393b"/>
+        <path d="M3 2 120-8v20z" fill="url(#beam${u})" opacity="${(0.3 + sky.night * 0.7).toFixed(2)}"/><circle cx="0" cy="2" r="10" fill="url(#glow${u})" opacity="${(0.3 + sky.night * 0.7).toFixed(2)}"/></g>
+      <rect y="40" width="1200" height="22" fill="${sea}"/>
+      <path d="${Array.from({ length: 40 }, (_, i) => `M${i * 30 + (i % 3) * 7} ${44 + (i % 4) * 4}q4-2.4 8 0t8 0`).join("")}" fill="none" stroke="${sea2}" stroke-width="1" opacity=".8"/>
+      ${[[520, 18], [560, 12], [980, 22]].map(([x, y], k) => `<g class="float" style="animation-delay:${-k * .7}s"><path d="M${x - 6} ${y}q3-3 6 0q3-3 6 0" fill="none" stroke="${sky.night > .5 ? "#d9dde6" : "#2a3140"}" stroke-width="1.1" stroke-linecap="round"/></g>`).join("")}
+      <path d="M186 64V0" stroke="#5a3a24" stroke-width="3.4"/><path d="M160 10h52" stroke="#5a3a24" stroke-width="2.2"/>
+      <path d="M162 11q24 7 48 0v5q-24 7-48 0z" fill="#efe6d2" stroke="#3a2618" stroke-width=".6"/>
+      <path d="M186 2 240 60M186 2 132 60M186 20 250 60" stroke="#3a2618" stroke-width=".5" opacity=".7"/>
+      <path d="M186 0v-8l14 4z" fill="#c8393b" stroke="#3a2618" stroke-width=".5"/>
+      <rect y="52" width="1200" height="3" fill="#7a5234"/><path d="${Array.from({ length: 40 }, (_, i) => `M${i * 32 + 8} 55v7`).join("")}" stroke="#7a5234" stroke-width="2.2"/>
+      <g transform="translate(118 38)"><circle cx="0" cy="0" r="10" fill="none" stroke="#8a5a34" stroke-width="2.4"/><circle cx="0" cy="0" r="2.4" fill="#8a5a34"/>${Array.from({ length: 8 }, (_, k) => { const a = k / 8 * Math.PI * 2; return `<path d="M${(Math.cos(a) * 2.4).toFixed(1)} ${(Math.sin(a) * 2.4).toFixed(1)}L${(Math.cos(a) * 13).toFixed(1)} ${(Math.sin(a) * 13).toFixed(1)}" stroke="#8a5a34" stroke-width="1.4" stroke-linecap="round"/>`; }).join("")}<path d="M0 10v14" stroke="#5a3a24" stroke-width="3"/></g>
+      <g transform="translate(250 34)"><rect x="0" y="6" width="44" height="22" rx="2" fill="#6b3f26" stroke="#2a1a10" stroke-width=".8"/><rect x="2" y="-4" width="40" height="11" rx="1.5" fill="#5a331e" stroke="#2a1a10" stroke-width=".7"/>${[6, 12, 18, 24, 30, 36].map(x => `<path d="M${x} -4v-6" stroke="#c9a24a" stroke-width="1.6" stroke-linecap="round"/>`).join("")}<rect x="4" y="7" width="36" height="4" fill="#efe6cf"/><path d="M8 28v-4h8v4M28 28v-4h8v4" fill="#3a2214" stroke="#2a1a10" stroke-width=".5"/></g>
+      <g transform="translate(222 44)"><path d="M0 0v10M-4 10h8" stroke="#2a1a10" stroke-width="1"/><rect x="-3.4" y="-6" width="6.8" height="7" rx="1" fill="#ffd98a" stroke="#2a1a10" stroke-width=".7" opacity=".9"/><path class="flick" d="M0-1q-1.4-1.6 0-3.6 1.4 2 0 3.6z" fill="#ff9a3a"/><circle cx="0" cy="-2" r="10" fill="url(#glow${u})"/></g>
+      ${[[330, 50], [344, 52], [680, 51]].map(([x, y]) => `<g transform="translate(${x} ${y})"><rect x="-5" y="0" width="10" height="12" rx="3" fill="#8a5a34" stroke="#2a1a10" stroke-width=".6"/><path d="M-5 3.4h10M-5 8.6h10" stroke="#4a3020" stroke-width=".9"/></g>`).join("")}
+      <rect y="62" width="1200" height="22" fill="#9a6a44"/><path d="M0 62h1200" stroke="#4a3020" stroke-width="1.6"/><path d="${Array.from({ length: 4 }, (_, r) => `M0 ${67 + r * 5}h1200`).join("")}" stroke="#7a5234" stroke-width=".6"/><path d="${Array.from({ length: 30 }, (_, i) => `M${i * 44 + (i % 2) * 20} ${62 + (i % 4) * 5}v5`).join("")}" stroke="#7a5234" stroke-width=".6"/>
+      ${cut(capSVG(40, 63, 1.08))}`;
     }
   };
 
@@ -3272,8 +3393,8 @@
     const u = "u" + (++sceneN);
     return `<svg class="scene" viewBox="0 0 1200 84" preserveAspectRatio="xMinYMax slice" aria-hidden="true">${(SCENES[id] || SCENES.dusty)(sky || skyFor(20), u)}</svg>`;
   }
-  const CHAR_SVG = { dusty: dustySVG, ghost: ghostSVG, wren: wrenSVG, oona: oonaSVG, lulu: luluSVG, mort: mortSVG };
-  const TALL = { oona: 1, mort: 1 };
+  const CHAR_SVG = { dusty: dustySVG, ghost: ghostSVG, wren: wrenSVG, oona: oonaSVG, lulu: luluSVG, mort: mortSVG, cap: capSVG };
+  const TALL = { oona: 1, mort: 1, cap: 1 };
   const portrait = id => `<svg class="portrait" viewBox="-8 -58 72 76" aria-hidden="true">${cut(CHAR_SVG[id](26, TALL[id] ? 8 : 4, TALL[id] ? (id === "mort" ? 1.02 : 1.08) : 1.15))}</svg>`;
 
   // the clock in the sky: keys around a 24-hour dial
@@ -3310,8 +3431,10 @@
       const cl = Math.max(0, 0.85 - sky.night * 1.3);
       if (cl > 0.05) inner += [[12, 70, 40], [38, 55, 62], [22, 90, 85]].map(([top, dur, delay], i) => `<svg class="bd-cloud" style="top:${top}%;animation-duration:${dur}s;animation-delay:-${delay}s;opacity:${(cl * (i === 1 ? 0.7 : 0.9)).toFixed(2)}" viewBox="0 0 120 50" aria-hidden="true"><path d="M20 42a14 14 0 0 1 4-27 20 20 0 0 1 37-4 16 16 0 0 1 28 8 12 12 0 0 1 11 23z" fill="#fff"/></svg>`).join("");
       inner += `<svg class="bd-orb" style="top:${(2 + (1 - sky.el) * 16).toFixed(1)}px" viewBox="-20 -20 40 40" aria-hidden="true">${orb(0, 0, 9, sky, "b" + u)}</svg>`;
-      const hill = id === "wren" ? hexMix("#6f9a86", "#162520", Math.min(1, sky.night * 1.1)) : hexMix("#8a93b8", "#262a4a", sky.night);
-      const ground = id === "wren"
+      const hill = id === "cap" ? hexMix("#3f7fa6", "#10263a", sky.night) : id === "wren" ? hexMix("#6f9a86", "#162520", Math.min(1, sky.night * 1.1)) : hexMix("#8a93b8", "#262a4a", sky.night);
+      const ground = id === "cap"
+        ? `M0 120V78${Array.from({ length: 30 }, (_, i) => `Q${i * 40 + 20} ${70 + (i % 3) * 3} ${i * 40 + 40} 78`).join("")}V120z`
+        : id === "wren"
         ? `M0 120V70${Array.from({ length: 16 }, (_, i) => `L${i * 80 + 40} ${30 + ((i * 37) % 30)}L${i * 80 + 80} 72`).join("")}V120z`
         : `M0 120V80${Array.from({ length: 30 }, (_, i) => { const x = i * 40, h = 20 + ((i * 53) % 40); return `H${x}V${80 - h}H${x + 30}V80`; }).join("")}H1200V120z`;
       inner += `<svg class="bd-ground" viewBox="0 0 1200 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><path d="${ground}" fill="${hill}" opacity=".85"/>${id === "dusty" ? `<g opacity="${(0.15 + sky.night * 0.6).toFixed(2)}">${Array.from({ length: 40 }, (_, i) => `<rect x="${8 + (i * 97) % 1180}" y="${50 + (i * 13) % 24}" width="3" height="4" fill="#ffd36b"/>`).join("")}</g>` : ""}</svg>`;
@@ -3383,7 +3506,17 @@
       <ellipse cx=".2" cy="-4.2" rx="3.3" ry="3.5" fill="#4d3c60" ${OUTLINE}/>
       <path d="M-1.8 -7.1l-.5-2.7 1.9 1.7zM2.4 -7.1l.6-2.7-1.9 1.7z" fill="#4d3c60" ${OUTLINE}/>
       <circle cx="-.4" cy="-5.2" r=".62" fill="#ffd56b"/><circle cx="1.8" cy="-5.2" r=".62" fill="#ffd56b"/>
-      <path d="M.3 -3.4l.35.9.35-.9z" fill="#fff"/><path d="M-.9 -2.2q1.1.7 2.4 0" fill="none" stroke="#2a2033" stroke-width=".35"/>` }
+      <path d="M.3 -3.4l.35.9.35-.9z" fill="#fff"/><path d="M-.9 -2.2q1.1.7 2.4 0" fill="none" stroke="#2a2033" stroke-width=".35"/>` },
+    // Captain Moss: tiny crabs, claws up, always ready to scuttle sideways
+    cap: { one: "tiny crab", many: "tiny crabs", art: () => `
+      <path d="M-3.6 -1.4l-1.8 1.3M-2.2 -1l-1 1.1M2.4 -1l1 1.1M3.8 -1.4l1.8 1.3" stroke="#b83a2e" stroke-width=".7" stroke-linecap="round"/>
+      <ellipse cx=".2" cy="-2.6" rx="4.2" ry="2.4" fill="#e0533f" ${OUTLINE}/>
+      <path d="M-3.4 -3.6q-2.6-1.2-2.4-4.2q1.6.2 1.6 1.6q.6-1.6 1.8-1q-.2 2.2-1 3.6z" fill="#e0533f" ${OUTLINE}/>
+      <path d="M3.8 -3.6q2.6-1.2 2.4-4.2q-1.6.2-1.6 1.6q-.6-1.6-1.8-1q.2 2.2 1 3.6z" fill="#e0533f" ${OUTLINE}/>
+      <path d="M-.8 -4.6v-1.8M1.4 -4.6v-1.8" stroke="#b83a2e" stroke-width=".55"/>
+      <circle cx="-.8" cy="-6.6" r=".8" fill="#fff" ${OUTLINE}/><circle cx="1.4" cy="-6.6" r=".8" fill="#fff" ${OUTLINE}/>
+      <circle cx="-.6" cy="-6.6" r=".38" fill="#2f2a3d"/><circle cx="1.6" cy="-6.6" r=".38" fill="#2f2a3d"/>
+      <path d="M-.6 -2.2q.8.6 1.6 0" fill="none" stroke="#7a2418" stroke-width=".4"/>` }
   };
   const friendArt = id => (FRIENDS[id] || FRIENDS.dusty).art();
   // who goes where: every note of the new chord, and the old key it comes from (itself if it stays)
@@ -3527,7 +3660,9 @@
     // a glossy FM-style electric piano: a round body and a glassy tine that rings out quickly
     glass: { name: "glass keys", oscs: [["sine", 1, 0, 1], ["sine", 2, 4, .22], ["sine", 14, 0, .3, .1], ["sine", 7, -6, .12, .28]], a: .003, d: .8, s: .28, lp: [14, 3.4], gain: .92 },
     // an old upright in a candlelit parlor: two strings a little apart, and a few bolts that clang
-    parlor: { name: "parlor piano", oscs: [["triangle", 1, -8, .75], ["triangle", 1, 8, .75], ["sine", 2.76, 0, .24, .2], ["sine", 5.4, 0, .09, .12], ["square", 2, 0, .03]], a: .004, d: .34, s: .26, lp: [7, 2.2], gain: 1.12 }
+    parlor: { name: "parlor piano", oscs: [["triangle", 1, -8, .75], ["triangle", 1, 8, .75], ["sine", 2.76, 0, .24, .2], ["sine", 5.4, 0, .09, .12], ["square", 2, 0, .03]], a: .004, d: .34, s: .26, lp: [7, 2.2], gain: 1.12 },
+    // a pump organ on a ship's deck: reedy, held, breathing in slowly with the bellows
+    organ: { name: "pump organ", oscs: [["sawtooth", 1, 0, .34], ["square", 2, 3, .1], ["sine", .5, 0, .42], ["sawtooth", 1, 6, .16], ["sine", 3, 0, .05]], a: .07, d: .4, s: .8, lp: [3.2, 2.6], gain: .95 }
   };
   // songs saved with sounds that were folded into another
   const VOICE_ALIAS = { saloon: "parlor", prepared: "parlor" };
@@ -3630,6 +3765,9 @@
       case "timp": hitTone(t, 104 * p, 96 * p, 0.3 * v, 0.75); hitTone(t, 156 * p, 150 * p, 0.07 * v, 0.4); hitNoise(t, { type: "lowpass", freq: 420, peak: 0.05 * v, decay: 0.06 }); break;
       case "tick": hitTone(t, 2600 * p, 2200 * p, 0.045 * v, 0.018, "square"); hitNoise(t, { type: "bandpass", freq: 5200, q: 2, peak: 0.03 * v, decay: 0.012 }); break;
       case "toll": ring(t, 196 * p, [[1, 0.09, 2.4], [2.4, 0.045, 1.5], [3, 0.035, 1.1], [4.2, 0.02, 0.7], [0.5, 0.05, 2.6]], v, 0.003); break;
+      // Captain Moss's kit: a tambourine and the ship's bell (stomp and clap are shared)
+      case "jingle": [0, 0.008, 0.017].forEach((d, i) => hitNoise(t + d, { type: "bandpass", freq: 8200 + i * 900, q: 1.4, peak: 0.045 * v, decay: 0.09 })); break;
+      case "shipbell": ring(t, 880 * p, [[1, 0.06, 1.3], [2.7, 0.028, 0.7], [5.2, 0.012, 0.3]], v, 0.002); break;
       case "gong": ring(t, 82, [[1, 0.1, 2.6], [1.52, 0.06, 2], [2.3, 0.04, 1.4]], v, 0.02); hitNoise(t, { type: "bandpass", freq: 900, q: 0.6, peak: 0.05 * v, attack: 0.05, decay: 1.4 }); break;
       case "kick808": hitTone(t, 105, 36, 0.4 * v, 0.6); break;
       case "thump": hitTone(t, 88, 48, 0.24 * v, 0.2); hitNoise(t, { type: "lowpass", freq: 300, peak: 0.05 * v, decay: 0.05 }); break;
@@ -3700,6 +3838,14 @@
       const p = i / Math.max(1, N - 1);
       const out = [["timp", 0.35 + p * 0.6, 0, 1], ["timp", 0.3 + p * 0.55, 0.5, 1]];
       if (i === N - 1) out.push(["toll", 1], ["timp", 1, 0, 0.75]);
+      return out;
+    },
+    // the crew stamping and clapping, louder each step, then the ship's bell
+    shanty: (i, N) => {
+      const p = i / Math.max(1, N - 1);
+      const out = [["stomp", 0.55 + p * 0.45], ["clap", 0.35 + p * 0.55, 0.5]];
+      if (i % 2) out.push(["jingle", 0.7, 0.25]);
+      if (i === N - 1) out.push(["shipbell", 1]);
       return out;
     },
     party: (i, N) => {
@@ -3777,7 +3923,9 @@
     // Lulu: a glossy pop pluck, two oscillators a hair apart
     lulu: { name: "sparkle synth", grid: 0.5, low: 74, legato: false, level: 0.06, pan: 0.35, pluck: 0.55, waves: [["sawtooth", 1, 0.5], ["square", 1.003, 0.3], ["sine", 2, 0.25]], lp: 4200 },
     // Mortimer: a small string section, bowed slowly, swelling into each note
-    mort: { name: "string section", grid: 1, low: 60, legato: true, level: 0.058, pan: -0.2, slide: 0.12, swell: 0.22, vib: [5, 8], waves: [["sawtooth", 1, 0.5], ["sawtooth", 1.004, 0.42], ["sawtooth", 0.996, 0.42], ["sine", 0.5, 0.2]], lp: 2200 }
+    mort: { name: "string section", grid: 1, low: 60, legato: true, level: 0.058, pan: -0.2, slide: 0.12, swell: 0.22, vib: [5, 8], waves: [["sawtooth", 1, 0.5], ["sawtooth", 1.004, 0.42], ["sawtooth", 0.996, 0.42], ["sine", 0.5, 0.2]], lp: 2200 },
+    // Captain Moss: a squeezebox, two reeds a hair apart so it shimmers
+    cap: { name: "squeezebox", grid: 0.5, low: 64, legato: true, level: 0.055, pan: 0.3, slide: 0.03, swell: 0.05, vib: [5.5, 4], waves: [["sawtooth", 1, 0.4], ["square", 1.004, 0.25], ["sawtooth", 2, 0.1]], lp: 2600 }
   };
   const mhz = m => 440 * Math.pow(2, (m - 69) / 12);
   function leadBus(L0, gain = 1) {
@@ -4323,7 +4471,8 @@
     wren: { start: 0, legato: 0.92, leap: 0.08, range: [57, 71] },
     oona: { start: 0, legato: 0.9, leap: 0.1, repeat: 0.55, range: [45, 57] },
     lulu: { start: 0, legato: 0.88, leap: 0.4, repeat: 0.2, range: [62, 77] },
-    mort: { start: 0, legato: 0.95, leap: 0.25, range: [48, 62] }
+    mort: { start: 0, legato: 0.95, leap: 0.25, range: [48, 62] },
+    cap: { start: 0, legato: 0.85, leap: 0.15, repeat: 0.35, range: [45, 59] }
   };
   const CONTOUR_N = 16;
   const contourAt = (c, x) => {
@@ -4434,7 +4583,8 @@
     wren: { sync: 0, lift: 0.75, leap: 4 },
     oona: { sync: 0.05, lift: 0.15, leap: 2, flat: true },
     lulu: { sync: 0.3, lift: 0.85, leap: 5 },
-    mort: { sync: 0.05, lift: 0.7, leap: 5 }
+    mort: { sync: 0.05, lift: 0.7, leap: 5 },
+    cap: { sync: 0.1, lift: 0.5, leap: 4 }
   };
 
   // one chord's share of a line → when each syllable starts and how long it lasts
@@ -4676,7 +4826,8 @@
     wren: { name: "breathy hum", src: "triangle", vib: [4.6, 14], glide: 30, breath: 0.6, gain: 0.22, shift: 0.98, tilt: 2400, cons: 0.7 },
     oona: { name: "low, half-spoken baritone", src: "sawtooth", vib: [0, 0], gain: 0.2, shift: 0.84, tilt: 1900, cons: 1 },
     lulu: { name: "bright, doubled pop voice", src: "sawtooth", vib: [5.6, 14], scoop: 30, breath: 0.16, gain: 0.16, shift: 1.14, tilt: 3600, cons: 1.1 },
-    mort: { name: "velvet, haunted baritone", src: "sawtooth", vib: [5.2, 22], glide: 60, gain: 0.2, shift: 0.9, tilt: 2200, cons: 1 }
+    mort: { name: "velvet, haunted baritone", src: "sawtooth", vib: [5.2, 22], glide: 60, gain: 0.2, shift: 0.9, tilt: 2200, cons: 1 },
+    cap: { name: "hearty sea-shanty bass", src: "sawtooth", vib: [5.5, 12], glide: 50, gain: 0.21, shift: 0.84, tilt: 2400, cons: 1.1 }
   };
 
   function fricNoise(a, b, band, q, level) {
@@ -4877,7 +5028,9 @@
     // Lulu: bright pop, a little air on top, a light scoop into the big words
     lulu: { slope: 1.18, vib: [5.6, 12], vibDelay: 0.32, glide: 0.05, scoop: 45, breath: 0.15, shift: 1.14, gain: 0.3, cons: 1.25, jit: 2 },
     // Mortimer: a crooning baritone from an old record, a slow wide vibrato, every word sung like it matters
-    mort: { slope: 1.35, vib: [5.2, 20], vibDelay: 0.2, glide: 0.07, breath: 0.05, shift: 0.88, gain: 0.38, cons: 1.15, jit: 3 }
+    mort: { slope: 1.35, vib: [5.2, 20], vibDelay: 0.2, glide: 0.07, breath: 0.05, shift: 0.88, gain: 0.38, cons: 1.15, jit: 3 },
+    // Captain Moss: a big hearty bass, a bit of salt in it, sung out across the deck
+    cap: { slope: 1.25, vib: [5.5, 10], vibDelay: 0.3, glide: 0.05, breath: 0.07, shift: 0.84, gain: 0.38, cons: 1.2, jit: 5 }
   };
   const VOICE_MIX = 0.35; // how loud the singers sit against the piano
 
@@ -4890,10 +5043,11 @@
     wren: { verb: [1.3, 0.18], warm: true },                                                   // a campfire room
     oona: { slap: 0.07, slapWet: 0.07, verb: [1.1, 0.07], dark: true },                        // close and dry, a wee room
     lulu: { verb: [1.6, 0.13], chorus: 0.3 },                                                  // doubled and shiny, like a record
-    mort: { verb: [2.2, 0.14], dark: true }                                                    // a stone hall, candles flickering
+    mort: { verb: [2.2, 0.14], dark: true },                                                   // a stone hall, candles flickering
+    cap: { slap: 0.09, slapWet: 0.1, verb: [1, 0.08] }                                         // out on an open deck
   };
   // where each friend sits against the beat, in seconds: laid back, locked in, or rushing
-  const FEEL = { dusty: 0.028, ghost: 0, wren: 0.012, oona: 0.05, lulu: -0.008, mort: 0.02 };
+  const FEEL = { dusty: 0.028, ghost: 0, wren: 0.012, oona: 0.05, lulu: -0.008, mort: 0.02, cap: 0.015 };
   const irCache = {};
   function roomImpulse(len, warm) {
     const key = len + (warm ? "w" : "");
@@ -5370,6 +5524,16 @@
       walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#6d6574" stroke="${INK}" stroke-width="1.6"/>${Array.from({ length: Math.floor(h / 10) }, (_, k) => `<path d="M${x} ${y + 10 + k * 10}h${w}" stroke="#58505f" stroke-width=".8"/>${Array.from({ length: Math.floor(w / 20) }, (_, j) => `<path d="M${x + 10 + j * 20 + (k % 2) * 10} ${y + k * 10}v10" stroke="#58505f" stroke-width=".7"/>`).join("")}`).join("")}`,
       door: (x, y) => `<path d="M${x - 11} ${y}v-20q11-14 22 0v20z" fill="#3a2230" stroke="${INK}" stroke-width="1.2"/>${[-6, 0, 6].map(d => `<circle cx="${x + d}" cy="${y - 10}" r=".9" fill="#b8923e"/>`).join("")}<circle cx="${x + 6}" cy="${y - 5}" r="1.3" fill="#b8923e"/>`,
       yard: () => `<g transform="translate(300 300)"><path d="M-8 0v-14q8-10 16 0v14z" fill="#8a8290" stroke="${INK}"/><path d="M0-12v7M-2.6-9.4h5.2" stroke="#4a4450" stroke-width="1.2"/><circle cx="-11" cy="-2" r="2.2" fill="#8e2236"/><path d="M-11 0v-1" stroke="#3b5a3a"/></g>`
+    },
+    cap: {
+      roofColor: "#c8393b", title: "Captain Moss's lighthouse", wall: "#f2efe8", wall2: "#c8393b", trim: "#243a5e", glass: "#ffe08a", sky: ["#8fc0de", "#2f5a7a"], ground: "#3f7fa6",
+      roof: () => `<rect x="120" y="36" width="100" height="28" fill="#243a5e" stroke="${INK}" stroke-width="1.6"/><rect x="130" y="40" width="80" height="20" fill="#ffe08a" stroke="${INK}" stroke-width="1"/><path d="M150 40v20M170 40v20M190 40v20" stroke="${INK}" stroke-width="1"/>
+        <path d="M112 36Q170 0 228 36z" fill="#c8393b" stroke="${INK}" stroke-width="1.6"/><circle cx="170" cy="8" r="3" fill="#e2b54a" stroke="${INK}"/>
+        <path d="M130 50 30 30v40zM210 50 310 30v40z" fill="#fff3c4" opacity=".35"/>
+        <path d="M70 64h200" stroke="${INK}" stroke-width="1.6"/><path d="${Array.from({ length: 11 }, (_, k) => `M${74 + k * 19} 64v-8`).join("")}M72 56h196" stroke="${INK}" stroke-width="1"/>`,
+      walls: (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#f2efe8" stroke="${INK}" stroke-width="1.6"/>${Array.from({ length: Math.floor(h / 36) }, (_, k) => `<rect x="${x}" y="${y + 18 + k * 36}" width="${w}" height="12" fill="#c8393b" opacity=".85"/>`).join("")}`,
+      door: (x, y) => `<path d="M${x - 11} ${y}v-20a11 11 0 0 1 22 0v20z" fill="#243a5e" stroke="${INK}" stroke-width="1.2"/><circle cx="${x}" cy="${y - 18}" r="4" fill="#ffe08a" stroke="#e2b54a" stroke-width="1.4"/><circle cx="${x + 6}" cy="${y - 8}" r="1.2" fill="#e2b54a"/>`,
+      yard: () => `<g transform="translate(300 300)"><path d="M0-22v20M-6-16h12M-9-8q9 10 18 0" fill="none" stroke="#4a5a6a" stroke-width="2.4" stroke-linecap="round"/><circle cx="0" cy="-24" r="2.6" fill="none" stroke="#4a5a6a" stroke-width="1.6"/></g>`
     }
   };
   const hstyle = () => HOUSE_STYLES[prefs.buddy] || HOUSE_STYLES.dusty;
@@ -5433,7 +5597,7 @@
     s += `<g class="cutout" filter="url(#papercut)" transform="translate(48 56) scale(.9)">${st.yard()}</g>`;
     // your friend, in the room that's playing
     const cd = current[sel] ? scaleOf(k).steps.indexOf(mod(current[sel].ch.rootPc - k.tonic)) : -1, cb = cd >= 0 ? boxOf(cd) : null;
-    s += `<g class="h-tenant" id="houseTenant" style="${cb ? `transform:translate(${cb[0] + cb[2] * 0.2}px, ${cb[1] + cb[3] - 3}px)` : "opacity:0"}">${cut(CHAR_SVG[prefs.buddy](0, 0, prefs.buddy === "oona" ? 0.52 : 0.62))}</g>`;
+    s += `<g class="h-tenant" id="houseTenant" style="${cb ? `transform:translate(${cb[0] + cb[2] * 0.2}px, ${cb[1] + cb[3] - 3}px)` : "opacity:0"}">${cut(CHAR_SVG[prefs.buddy](0, 0, TALL[prefs.buddy] ? 0.52 : 0.62))}</g>`;
     return `<svg class="house-svg" viewBox="0 0 340 330" role="group" aria-label="${esc(st.title)}">${s}</svg>`;
   }
 
@@ -5477,6 +5641,7 @@
       const degs = [0, 2, 4].map(j => (r.d + j) % 7 + 1).join(", ");
       return `<div class="h-title"><span class="h-big" style="--fn:var(--${r.fn})">${esc(r.num)}</span><div><b>${esc(pretty(r.name))}</b><span>${esc(fl.tag)}</span></div></div>
         ${line ? `<p class="h-say">“${esc(line)}”</p>` : ""}
+        <p class="h-keeper"><svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[ROOM_KEEPERS[r.d]](26, TALL[ROOM_KEEPERS[r.d]] ? 8 : 4, TALL[ROOM_KEEPERS[r.d]] ? 1.04 : 1.15)}</svg><span>${esc(k.minor ? `${BUDDIES[ROOM_KEEPERS[r.d]].name} keeps this room, in major keys and minor ones.` : KEEPER_WHY[ROOM_KEEPERS[r.d]])}</span></p>
         <p class="h-how"><b>${esc(names)}</b>: stones ${degs}, every other one. Glowing rooms share two of its notes.</p>
         <div class="h-kbd">${miniKeys(k, r.midis)}</div>
         <div class="row"><button class="btn surprise" type="button" data-hplay="room">▶ hear</button>${r.d ? `<button class="btn" type="button" data-hplay="home">▶ walk home</button>` : ""}${add(r.name)}</div>`;
@@ -5524,6 +5689,7 @@
     if (id === "ghost") return `<rect x="52" y="7" width="136" height="6" fill="${c}" stroke="${INK}"/><path d="M76 7V0M71 2h10" stroke="#b9b3cc" stroke-width="1.2"/>`;
     if (id === "oona") return `<rect x="52" y="8" width="136" height="5" fill="${c}" stroke="${INK}" stroke-width=".8"/><rect x="72" y="1" width="8" height="7" fill="#8a6f58" stroke="${INK}" stroke-width=".7"/><rect x="160" y="2" width="8" height="6" fill="#8a6f58" stroke="${INK}" stroke-width=".7"/>`;
     if (id === "wren") return `<path d="M46 13Q120-10 194 13z" fill="${c}" stroke="${INK}" stroke-width="1.2"/><rect x="160" y="0" width="7" height="8" fill="#8a6446" stroke="${INK}" stroke-width=".8"/>`;
+    if (id === "cap") return `<path d="M84 13Q120-6 156 13z" fill="${c}" stroke="${INK}" stroke-width="1.2"/><circle cx="120" cy="1" r="2" fill="#e2b54a" stroke="${INK}" stroke-width=".6"/><path d="M52 13h136" stroke="${INK}" stroke-width="1.2"/>`;
     if (id === "mort") return `<path d="M48 13 120-1 192 13z" fill="${c}" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/><path d="M120-1v-4M118-3.4h4" stroke="${INK}" stroke-width=".9" stroke-linecap="round"/>`;
     if (id === "lulu") return `<path d="M48 13Q64 3 80 13Q96 3 112 13Q128 3 144 13Q160 3 176 13Q184 6 192 13z" fill="${c}" stroke="${INK}" stroke-width="1.2"/>`;
     return `<path d="M48 13 120 0 192 13z" fill="${c}" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/>`;
@@ -5709,7 +5875,22 @@
       text: ["Near the end of the party Lulu fell asleep on the rug, and Wren played something that never left the ground floor.",
         "Home, the quiet roommate, one step upstairs, and home again. No attic. No visitors.",
         "The street went dark one window at a time."],
-      lesson: "I, iii, IV, I. With no tension chord and nothing borrowed, music feels safe. Lullabies and hymns love this." }
+      lesson: "I, iii, IV, I. With no tension chord and nothing borrowed, music feels safe. Lullabies and hymns love this." },
+    { mood: "hearty", title: "Three chords and a tide", cast: ["cap", "dusty"],
+      text: ["Captain Moss's ship came into Pixie Street on the evening tide, which is odd, because Pixie Street is nowhere near the sea.",
+        "Dusty wandered down to the dock with a guitar. The Captain pumped the old organ and played three rooms: home, the lift upstairs to IV, then V in the attic, which leaned so hard toward home that the whole crew sang the last chord before it came.",
+        "“Three chords,” the Captain said. “Every note of the scale lives in one of them. That's why sailors never needed a fourth.” Dusty said country singers had known that for years."],
+      lesson: "I, IV, V, I. Between them, those three chords hold all seven notes of the key, so almost any melody fits on top. V is Captain Moss's room: it pulls hardest toward home, which is why the last step feels like landing." },
+    { mood: "dramatic", title: "The midnight tango", cast: ["mort", "lulu"],
+      text: ["Lulu found Mortimer's manor by following the sound of a tango at two in the morning.",
+        "Mortimer was dancing alone down the grand staircase: minor home, then one step down, and another, and another, until the last step landed on a bright major chord that wanted to go home and didn't.",
+        "“It never quite resolves,” Mortimer said. “That's the charm.” Lulu asked to learn the steps. By sunrise Lulu had a whole album."],
+      lesson: "i, ♭VII, ♭VI, V in minor. The bass walks straight down four steps, and the last chord borrows a raised note so it leans hard toward home. Flamenco and tango call it the Andalusian cadence. It loops beautifully because it ends up in the air." },
+    { mood: "grand", title: "The grand staircase", cast: ["mort", "cap"],
+      text: ["Mortimer threw a masquerade for the whole street. The rule: every guest waits in their own room until the music comes for them.",
+        "The music started with Wren at home and went up to Dusty's room, then climbed to Mortimer's attic. From there every step fell by a fifth: down to Static, over to Lulu, across to Aiden, and up to Captain Moss, who had the honour of leading everyone home.",
+        "Seven chords, seven rooms, seven friends. Nobody was left out, and nobody was visited twice until the very end."],
+      lesson: "I, IV, vii°, iii, vi, ii, V, I. Each root drops a fifth to the next, the strongest pull there is. One drop, IV to vii°, is a half step shorter so the walk stays inside the house. It visits every room exactly once, which is why baroque composers and jazz standards both love it." }
   ];
   let storyAt = null, storyTimers = [];
   // the same key moodProg uses: minor routes live across the street (same home note)
@@ -5739,11 +5920,12 @@
     });
     return `<svg class="route-svg" viewBox="0 0 240 106" aria-hidden="true">${s}</svg>`;
   }
-  const castHTML = st => `<span class="cast">${st.cast.map(id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, id === "oona" ? 8 : 4, id === "oona" ? 1.08 : 1.15)}</svg>`).join("")}</span>`;
+  const castHTML = st => `<span class="cast">${st.cast.map(id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, TALL[id] ? 8 : 4, TALL[id] ? 1.04 : 1.15)}</svg>`).join("")}</span>`;
   function storiesHTML() {
     const read = readStories(), show = false;
     if (storyAt == null) {
-      return `<p class="h-lead">Your five friends are neighbors on Pixie Street, and every house on it is a key. Each story walks a famous route through the rooms.</p>
+      return `<p class="h-lead">Your seven friends are neighbors on Pixie Street, and every house on it is a key. Each friend keeps one room in every house, from Wren at home to Mortimer in the attic. Each story walks a famous route through the rooms.</p>
+        <div class="keepers">${ROOM_KEEPERS.map((id, d) => `<span class="keeper"><svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, TALL[id] ? 8 : 4, TALL[id] ? 1.04 : 1.15)}</svg><b>${["I", "ii", "iii", "IV", "V", "vi", "vii°"][d]}</b><small>${esc(BUDDIES[id].name.replace("Captain ", "Capt. "))}</small></span>`).join("")}</div>
         <div class="story-list">${STORIES.map((st, i) => { const m = MOODS.find(x => x.id === st.mood); return `<button class="story-card${read.includes(i) ? " read" : ""}" type="button" data-story="${i}">
           ${castHTML(st)}<span class="sc-text"><small>chapter ${i + 1} · ${m.face} ${esc(m.name)}</small><b>${esc(st.title)}</b><span>${esc(pretty(moodProg(m, K)))}</span></span></button>`; }).join("")}</div>`;
     }
@@ -5787,7 +5969,8 @@
     wren: "Carry it somewhere with a view.",
     oona: "Written at the bus stop. It was raining.",
     lulu: "Sing it to someone tonight!!",
-    mort: "Composed by candlelight. Best played at midnight."
+    mort: "Composed by candlelight. Best played at midnight.",
+    cap: "Written at sea. Sing it loud enough to reach the shore."
   };
   const cssVar = n => getComputedStyle(document.body).getPropertyValue(n).trim();
   // the key's house for the song sheet: a window lights for every room the song visits
@@ -5858,7 +6041,7 @@
     const fy = H - 110;
     g.strokeStyle = "rgba(47,42,61,.35)"; g.setLineDash([6, 6]); g.beginPath(); g.moveTo(pad, fy - 22); g.lineTo(W - pad, fy - 22); g.stroke(); g.setLineDash([]);
     try {
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -58 72 76" width="144" height="152">${CHAR_SVG[prefs.buddy](26, prefs.buddy === "oona" ? 8 : 4, prefs.buddy === "oona" ? 1.08 : 1.15)}</svg>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 -58 72 76" width="144" height="152">${CHAR_SVG[prefs.buddy](26, TALL[prefs.buddy] ? 8 : 4, TALL[prefs.buddy] ? 1.04 : 1.15)}</svg>`;
       const img = new Image();
       await new Promise((ok, no) => { img.onload = ok; img.onerror = no; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); });
       g.drawImage(img, W - pad - 110, fy - 30, 104, 110);
@@ -5920,14 +6103,14 @@
     if (!ac || !audioOK) { audioReady().then(ok => ok && doorbell()); return; }
     const t = ac.currentTime + 0.02;
     tone(76, t, 0.5, 0.12); tone(72, t + 0.42, 0.8, 0.12);
-    say({ dusty: "Door's open, y'all.", ghost: "Come in, come in. Mind the static.", wren: "Oh! Come sit by the fire.", oona: "It's open. Mind the step, it's wet.", lulu: "Visitor!! Come in, come in, we're filming!", mort: "Ah, a caller at this hour. Do come in." }[prefs.buddy] || "Coming!");
+    say({ dusty: "Door's open, y'all.", ghost: "Come in, come in. Mind the static.", wren: "Oh! Come sit by the fire.", oona: "It's open. Mind the step, it's wet.", lulu: "Visitor!! Come in, come in, we're filming!", mort: "Ah, a caller at this hour. Do come in.", cap: "Ahoy! Permission to come aboard granted." }[prefs.buddy] || "Coming!");
   }
 
   // =========================================================
   // Learning mode: tips you can hear, and a friend who notices your song
   // =========================================================
   // each friend picks their own fills now
-  const FILLS_BY = { dusty: 2, ghost: 3, wren: 1, oona: 1, lulu: 4, mort: 2 };
+  const FILLS_BY = { dusty: 2, ghost: 3, wren: 1, oona: 1, lulu: 4, mort: 2, cap: 2 };
   const fillsFor = () => FILLS_BY[prefs.buddy] ?? 2;
 
   let sayDemo = null, sayPlayed = false, noticeText = null, noticeDemo = null, noticedSig = "", demoTimers = [];
@@ -5968,7 +6151,7 @@
   }
 
   // after the first time through, your friend says one true thing about your part
-  const NOTICE_OPEN = { dusty: "Heard that.", ghost: "Logged it.", wren: "Mm, nice.", oona: "Aye. Heard that.", lulu: "Ooh, obsessed.", mort: "Exquisite." };
+  const NOTICE_OPEN = { dusty: "Heard that.", ghost: "Logged it.", wren: "Mm, nice.", oona: "Aye. Heard that.", lulu: "Ooh, obsessed.", mort: "Exquisite.", cap: "Aye, that'll do." };
   function noticeSong() {
     if (prefs.view !== "learn" || current.length < 2) return;
     const sig = current.map(plainTok).join(" ");
@@ -6533,7 +6716,8 @@
     wren: { pick: "Play me something and I'll listen for the chords.", sure: "I'm pretty sure about these.", mid: "Most of these should be right. Trust your ears where they disagree.", guess: "It's a busy one, so a lot of this is a guess. Play along and fix what sounds wrong." },
     oona: { pick: "Go on, play me something. I'll write down what I hear.", sure: "That's it, I think. Near enough.", mid: "Mostly right. A couple of those are my best guess.", guess: "Lot going on in that one. Treat this as a rough draft." },
     lulu: { pick: "Ooh, play me a song! I'll find the chords, I'm basically a producer.", sure: "Nailed it! Chart-ready.", mid: "Got most of them! Fix a couple and it's a hit.", guess: "Okay that one was a LOT going on. Some of these are guesses, fix whatever sounds weird!" },
-    mort: { pick: "Play me a recording. I'll transcribe it, quill in hand.", sure: "Transcribed. I'd stake my finest cufflinks on it.", mid: "Mostly right. A few chords are shrouded in fog. Check those.", guess: "A crowded ballroom, that one. Some of these are educated guesses. Play along and correct me." }
+    mort: { pick: "Play me a recording. I'll transcribe it, quill in hand.", sure: "Transcribed. I'd stake my finest cufflinks on it.", mid: "Mostly right. A few chords are shrouded in fog. Check those.", guess: "A crowded ballroom, that one. Some of these are educated guesses. Play along and correct me." },
+    cap: { pick: "Put on a record and I'll write the chords down in the ship's log.", sure: "Charted true. I'd bet the ship on these.", mid: "Most of these are right. A few are lost in the fog. Check them by ear.", guess: "Rough waters, that one. Some of these are guesses. Play along and set the course right." }
   };
   const hearLine = k => (HEAR_LINES[prefs.buddy] || HEAR_LINES.wren)[k];
   const hearSpell = key => { const N = namesFor(key); return pc => N[pc]; };
@@ -8077,6 +8261,19 @@
       dim: a => `${a} diminished. A candle goes out.`,
       long: a => `A long ${a}. Let it echo down the hall.`,
       repeat: a => `${a} again. A ghost of itself.`
+    },
+    cap: {
+      cadence: (a, b) => `${a} to ${b}. Land ho, and home port. Drop anchor!`,
+      deceptive: (a, b) => `${a} to ${b}! We sailed for home and landed somewhere else. Happens to the best of us.`,
+      plagal: (a, b) => `${a} to ${b}. The amen. Like the church bell as you come into harbour.`,
+      backdoor: (a, b) => `${a} to ${b}. Home by the back channel, round the lighthouse.`,
+      pop4: () => "Those four chords. Every sailor from here to the Horn knows them.",
+      borrowed: a => `${a}, a ship from a foreign port. Let her dock.`,
+      sus: a => `${a}. Hanging like a sail with no wind. Wait for it...`,
+      seventh: a => `${a} with a seventh. A bit of salt in it.`,
+      dim: a => `${a} diminished. Rocks in the fog. Hold steady.`,
+      long: a => `A long ${a}. Let it roll like a big slow wave.`,
+      repeat: a => `${a} again! A good shanty says it twice so the crew can join in.`
     }
   };
   const WHATIF = {
@@ -8085,7 +8282,8 @@
     wren: (a, b) => `What if ${a} turned into ${b}? Like the weather changing.`,
     oona: (a, b) => `What if the ${a} was a ${b}. Just a thought.`,
     lulu: (a, b) => `Ooh, what if ${a} was ${b}?? Remix!`,
-    mort: (a, b) => `Might I suggest ${b} in place of ${a}? Just a touch darker.`
+    mort: (a, b) => `Might I suggest ${b} in place of ${a}? Just a touch darker.`,
+    cap: (a, b) => `What say we swap ${a} for ${b}? New heading, same ship.`
   };
   const MOMENT_ORDER = ["cadence", "deceptive", "backdoor", "plagal", "pop4", "borrowed", "sus", "seventh", "dim", "long", "repeat"];
   // every little moment in a part, keyed so moving chords around doesn't count as new
@@ -8183,7 +8381,8 @@
     wren: "See the town behind us? Your chords, as rooftops. The tall ones are where it wants to go home.",
     oona: "Have a look out there. That's your song, as a town. Tall bits pull. Low bits rest.",
     lulu: "Wait, look behind me!! Your song is a CITY. Tall buildings are the drama!",
-    mort: "Behold, behind me: your song as a skyline of spires. The tall ones pull. The low ones rest."
+    mort: "Behold, behind me: your song as a skyline of spires. The tall ones pull. The low ones rest.",
+    cap: "Look to shore! Your song's a harbour town. The tall buildings pull. The low ones are home."
   };
   let skylineOn = false;
   const towerOf = c => {
@@ -8581,8 +8780,8 @@
     { id: "door", title: "Next door", note: "Find the house next to yours on Pixie Street. Neighbors sound close; strangers sound far." },
     { id: "along", title: "Play along", note: "Play each chord of your part on your keyboard. Pixie waits for you, or keeps time if you'd like a challenge." }
   ];
-  const cheer = () => ({ dusty: "Yee-haw. You got it.", ghost: "Correct. Uploading a high five.", wren: "Oh, lovely ears.", oona: "Aye. That's it.", lulu: "YES! You're so good at this!", mort: "Bravo. Bravissimo, even." }[prefs.buddy] || "Yes!");
-  const soft = () => ({ dusty: "Close. Give it another listen.", ghost: "Not that one. Replaying.", wren: "Mm, not quite. Listen again?", oona: "No. But it's a good guess.", lulu: "Ooh, not quite! Again!", mort: "Not quite. Listen once more, in the dark." }[prefs.buddy] || "Not quite.");
+  const cheer = () => ({ dusty: "Yee-haw. You got it.", ghost: "Correct. Uploading a high five.", wren: "Oh, lovely ears.", oona: "Aye. That's it.", lulu: "YES! You're so good at this!", mort: "Bravo. Bravissimo, even.", cap: "Ha! Sharp ears, sailor." }[prefs.buddy] || "Yes!");
+  const soft = () => ({ dusty: "Close. Give it another listen.", ghost: "Not that one. Replaying.", wren: "Mm, not quite. Listen again?", oona: "No. But it's a good guess.", lulu: "Ooh, not quite! Again!", mort: "Not quite. Listen once more, in the dark.", cap: "Not that one. Steady, listen again." }[prefs.buddy] || "Not quite.");
   function playHTML() {
     if (playAt == null) return `<div class="play-list">${GAMES.map((g, i) => `<button class="story-card play-card" type="button" data-game="${i}"><span class="pc-ico" aria-hidden="true">${["♪", "✋", "✿", "⌂", "🎹"][i]}</span><span class="sc-text"><b>${esc(g.title)}</b><span>${esc(g.note)}</span></span></button>`).join("")}</div>
       <p class="note">${keysOn() ? `Your keyboard is ready: you can play the answers.` : `Got a MIDI keyboard? Connect it in settings and you can play the answers.`} These use the key your song is in, ${esc(pretty(keyName(K)))}. Change the key and they change with it.</p>`;
@@ -9671,7 +9870,7 @@
   };
 
   // ---------- the tune: words (or a hummed line) over each chord ----------
-  const SCAT = { dusty: "doo", ghost: "bop", wren: "ooh", oona: "mm", lulu: "la", mort: "ah" };
+  const SCAT = { dusty: "doo", ghost: "bop", wren: "ooh", oona: "mm", lulu: "la", mort: "ah", cap: "hey" };
   // Each friend leans on words in their own way: ✦ punch lifts a word to the
   // next chord note, 〰 hold stretches it into the next one
   function autoEmph(sy, notes, who, seed, beats) {
@@ -9704,6 +9903,10 @@
       // said plainly: one word gets leaned on, the longest one
       const long = content.slice().sort((a, b) => b.syls.length - a.syls.length || b.text.length - a.text.length)[0];
       if (long) em[stressOf(long)] = "p";
+    } else if (who === "cap") {
+      // a shanty: punch the words on the downbeats so the crew can pull, and hold the last one
+      content.map(stressOf).filter(onBeat).slice(0, 2).forEach(k => { em[k] = "p"; });
+      if (lastC) em[stressOf(lastC)] = "h";
     } else if (who === "mort") {
       // grand: lean on the longest word, then hold the last one out with all the vibrato
       const long = content.slice(0, -1).sort((a, b) => b.syls.length - a.syls.length || b.text.length - a.text.length)[0];
@@ -10861,6 +11064,7 @@
     wren: [["turn", "a whistle turn"], ["echo", "echo the last words"], ["walk", "skip to the next chord"], ["cry", "a long high note"]],
     oona: [["cry", "one long tremolo note"], ["echo", "say it back, quieter"], ["walk", "step down to the next chord"], ["turn", "a wee turn"]],
     lulu: [["sparkle", "a sparkle run"], ["turn", "a little flip"], ["echo", "echo it, higher"], ["walk", "slide to the next chord"]],
+    cap: [["walk", "a squeezebox run to the next chord"], ["echo", "the crew sings it back"], ["turn", "a hornpipe turn"], ["cry", "one long reedy note"]],
     mort: [["cry", "a long string swell"], ["turn", "a courtly turn"], ["echo", "the strings sigh it back"], ["walk", "a stately step to the next chord"]],
   };
   const lickSet = () => LICK_SETS[prefs.buddy] || LICK_SETS.dusty;
