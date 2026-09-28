@@ -1749,6 +1749,17 @@
   .keeper small { font: 700 9.5px/1.1 var(--body); color: var(--soft); }
   .h-keeper { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13.5px; color: var(--soft); font-weight: 600; }
   .h-keeper .cast-face { flex: none; width: 36px; height: 38px; }
+  /* placing a line by tapping: its chord, then when */
+  .al-pick { display: grid; gap: 7px; padding: 6px 4px 10px 38px; }
+  .al-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+  .al-chip { display: grid; justify-items: center; min-width: 46px; border: 1.5px solid var(--edge); border-bottom: 3px solid var(--fn, var(--line)); border-radius: 12px; background: var(--card); color: var(--ink); padding: 3px 7px 4px; cursor: pointer; }
+  .al-chip small { font: 700 9.5px/1 var(--body); color: var(--soft); }
+  .al-chip b { font: 700 17px/1.1 var(--hand); }
+  .al-chip.on { border-color: var(--ink); background: var(--pick); }
+  .al-chip.hint:not(.on) { border-style: dashed; border-color: var(--ink); }
+  .al-chip:disabled { opacity: .35; cursor: not-allowed; }
+  .seg-row.three { grid-template-columns: repeat(3, 1fr); }
+  .seg-row.three .seg-btn { font-size: 13px; padding: 8px 4px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7728,19 +7739,64 @@
     }
     return h;
   }
+  // placing by tapping: which chord a line comes in on, and when in that chord
+  // lines are always sung in the order they're written, and each one lasts until the next begins
+  const WHENS = [["on", "on the change"], ["after", "a little after"], ["half", "halfway through"]];
+  let placeWhen = "on";
+  const whenOff = (c, w) => (w === "half" ? Math.max(0.5, Math.round(c.beats) / 2) : w === "after" ? (c.beats >= 3 ? 1 : c.beats >= 1 ? 0.5 : 0) : 0);
+  const whenOf = a => { const c = chordAt(a), off = a - c.at; return off < 0.01 ? "on" : Math.abs(off - whenOff(c, "half")) < 0.01 ? "half" : "after"; };
+  // the lines either side of line k that already have a place: this one has to fit between them
+  function placeBounds(lines, k) {
+    let lo = null, hi = null;
+    for (let j = k - 1; j >= 0; j--) if (hasText(lines[j]) && lines[j].a != null) { lo = lines[j].a; break; }
+    for (let j = k + 1; j < lines.length; j++) if (hasText(lines[j]) && lines[j].a != null) { hi = lines[j].a; break; }
+    return { lo, hi };
+  }
+  const fits = (b, a) => a < Math.max(total, 1) - 0.25 && (b.lo == null || a > b.lo + 0.49) && (b.hi == null || a < b.hi - 0.49);
+  // every placed line runs up to the next one (or the end of the part)
+  function reflow(lines) {
+    const T = Math.max(total, 1), placed = lines.filter(l => hasText(l) && l.a != null);
+    placed.forEach((l, j) => { const nx = placed[j + 1]; l.b = Math.max(l.a + 0.5, Math.min(T, nx ? nx.a : T)); });
+  }
+  function placeLine(k, c, w) {
+    const lines = alongOwn(), me = lines[k];
+    if (!hasText(me)) return false;
+    const b = placeBounds(lines, k);
+    // if that moment doesn't fit between its neighbors, try the other moments in the same chord
+    const order = [w, ...WHENS.map(x => x[0]).filter(x => x !== w)], ok = order.find(x => fits(b, c.at + whenOff(c, x)));
+    if (!ok) return false;
+    me.a = c.at + whenOff(c, ok);
+    reflow(lines);
+    alongSaved();
+    return ok;
+  }
+  function pickerHTML(lines, k) {
+    const l = lines[k], b = placeBounds(lines, k), cur = l.a != null ? chordAt(l.a) : null, w = l.a != null ? whenOf(l.a) : placeWhen;
+    // a waiting line: suggest the first chord after the line before it
+    const hint = l.a == null ? current.find(c => WHENS.some(([x]) => fits(b, c.at + whenOff(c, x)))) : null;
+    return `<div class="al-pick" role="group" aria-label="Place this line">
+      <span class="lbl">comes in on</span>
+      <div class="al-chips">${current.map((c, n) => { const can = WHENS.some(([x]) => fits(b, c.at + whenOff(c, x))); return `<button type="button" class="al-chip${cur && cur.j === c.j ? " on" : ""}${hint && hint.j === c.j ? " hint" : ""}" data-alchord="${c.j}"${can ? "" : " disabled"} style="${fnVar(c.a.fn)}"><small>${n + 1}</small><b>${symbolHTML(c.ch)}</b></button>`; }).join("")}</div>
+      <span class="lbl">when</span>
+      <div class="seg-row three">${WHENS.map(([id, n]) => `<button type="button" class="seg-btn" data-alwhen="${id}" aria-pressed="${w === id}">${n}</button>`).join("")}</div>
+      <div class="row">${l.a != null ? `<button type="button" class="btn" data-alact="hearline">▶ hear this line</button>` : ""}${nextText(lines, k) >= 0 ? `<button type="button" class="btn${l.a != null ? " surprise" : ""}" data-alact="nextline">next line ›</button>` : ""}</div>
+      ${l.a != null ? fold("alfine", "fine-tune by half a beat", `<div class="al-tools" role="group" aria-label="Fine-tune this line">
+        <span class="lbl">starts</span><button type="button" class="round" data-alnudge="a" data-d="-0.5" aria-label="Start half a beat earlier">‹</button><button type="button" class="round" data-alnudge="a" data-d="0.5" aria-label="Start half a beat later">›</button>
+        <span class="lbl">ends</span><button type="button" class="round" data-alnudge="b" data-d="-0.5" aria-label="End half a beat sooner">‹</button><button type="button" class="round" data-alnudge="b" data-d="0.5" aria-label="End half a beat later">›</button>
+        <button type="button" class="round" data-alnudge="x" aria-label="Unplace this line">✕</button></div>`) : ""}
+    </div>`;
+  }
+  const nextText = (lines, k) => { for (let j = k + 1; j < lines.length; j++) if (hasText(lines[j])) return j; return -1; };
   function alongListHTML() {
     const lines = alongLines(), guess = !isTimed(sec());
     return lines.map((l, k) => {
       if (!hasText(l)) return "";
       const on = k === alongSel, c = l.a != null ? chordAt(l.a) : null;
-      const where = l.a == null ? "waiting · not sung until you place it" : `${guess ? "Pixie's spacing · " : ""}comes in on ${esc(pretty(c.tok))} · ${beatLabel(l.a)} · ${+(l.b - l.a).toFixed(1)} beats`;
+      const where = l.a == null ? "waiting · tap to place it" : `${guess ? "Pixie's spacing · " : ""}comes in on ${esc(pretty(c.tok))}, ${(WHENS.find(x => x[0] === whenOf(l.a)) || WHENS[0])[1]}`;
       return `<button type="button" class="al-line${on ? " on" : ""}${l.a == null ? " wait" : ""}" data-line="${k}">
         <span class="al-n">${lines.slice(0, k + 1).filter(hasText).length}</span>
         <span class="al-txt"><b>${esc(l.t)}</b><small>${where}</small></span>
-      </button>${on && l.a != null ? `<div class="al-tools" role="group" aria-label="Fine-tune this line">
-        <span class="lbl">starts</span><button type="button" class="round" data-alnudge="a" data-d="-0.5" aria-label="Start half a beat earlier">‹</button><button type="button" class="round" data-alnudge="a" data-d="0.5" aria-label="Start half a beat later">›</button>
-        <span class="lbl">ends</span><button type="button" class="round" data-alnudge="b" data-d="-0.5" aria-label="End half a beat sooner">‹</button><button type="button" class="round" data-alnudge="b" data-d="0.5" aria-label="End half a beat later">›</button>
-        ${guess ? "" : `<button type="button" class="round" data-alnudge="x" aria-label="Unplace this line">✕</button>`}</div>` : ""}`;
+      </button>${on ? pickerHTML(lines, k) : ""}`;
     }).join("");
   }
   function alongHoldLabel() {
@@ -7748,8 +7804,8 @@
     const what = hasText(l) ? `“${esc(l.t.length > 34 ? l.t.slice(0, 32) + "…" : l.t)}”` : "pick a line below";
     return playing ? `<b>hold while it's sung</b><small>${what}</small>` : `<b>▶ play, then hold while it's sung</b><small>${what}</small>`;
   }
-  const alongHow = () => isTimed(sec()) ? "Press when the line starts, let go when it ends. It moves on to the next line by itself. Tap a line to redo it or fine-tune it."
-    : "These are Pixie's spacings. Hold along to put each line where it really goes.";
+  const alongHow = () => isTimed(sec()) ? "Tap a line, pick the chord it comes in on, then when. Each line lasts until the next one starts."
+    : "These are Pixie's spacings. Tap a line and pick the chord it comes in on to put it where it really goes.";
   // step 1: the words, one line per row
   function writeNote() {
     const section = sec(), n = filled(section);
@@ -7779,11 +7835,11 @@
       <div class="al-dock">
       <div class="row al-top"><button class="btn surprise" type="button" data-alact="play">${playing ? "■ stop" : `▶ play the ${esc(sec().name.toLowerCase())}`}</button>${demo}</div>
       <div class="al-time" id="alTime">${alongTimeHTML()}</div>
-      <button class="al-hold" type="button" id="alHold">${alongHoldLabel()}</button>
       </div>
       <p class="note al-how" id="alHow">${alongHow()}</p>
       <div class="al-lines" id="alLines">${alongListHTML()}</div>
-      ${isTimed(sec()) ? `<div class="row"><button class="btn" type="button" data-alact="unpin">let Pixie space them again</button></div>` : ""}
+      <div class="row">${isTimed(sec()) ? `<button class="btn" type="button" data-alact="unpin">let Pixie space them again</button>` : ""}<button class="btn" type="button" data-wstep="sing">next: hear it sung ›</button></div>
+      ${fold("alhold", "or hold along while it plays", `<p class="note">Play the part and hold the button while the line is sung. It places the line you have open above.</p><button class="al-hold" type="button" id="alHold">${alongHoldLabel()}</button>`)}
     </div>`;
   }
   // step 3: hear it, try another tune, go deeper
@@ -7869,25 +7925,16 @@
       const nxt = lines.filter(l => l !== me && l.a != null && l.a > a).reduce((m, l) => Math.min(m, l.a), T);
       b = Math.min(nxt, a + Mtr.n * 2, T);
     }
-    b = Math.max(a + 0.5, Math.min(T, b));
-    me.a = a; me.b = b;
-    // nothing overlaps: a line running into this one stops where it starts, and a line it covers waits again
-    const bumped = [];
-    lines.forEach(l => {
-      if (l === me || l.a == null) return;
-      if (l.a < a && l.b > a) l.b = a;
-      else if (l.a >= a && l.a < b) { if (l.b <= b + 0.01) { l.a = null; l.b = null; bumped.push(l); } else l.a = b; }
-      if (l.a != null && l.b - l.a < 0.5) { l.a = null; l.b = null; bumped.push(l); }
-    });
-    // the words stay in the order they're sung: placed lines are sorted by time in their own slots
-    const slots = lines.map((l, k) => (l.a != null ? k : -1)).filter(k => k >= 0), placed = slots.map(k => lines[k]).sort((x, y) => x.a - y.a);
-    slots.forEach((k, j) => { lines[k] = placed[j]; });
-    const k = lines.indexOf(me), nw = nextWaiting(lines, k);
-    // walk on to the next waiting line; once they're all placed, the next line to fine-tune
-    alongSel = nw >= 0 ? nw : (() => { for (let d = 1; d <= lines.length; d++) { const j = (k + d) % lines.length; if (hasText(lines[j])) return j; } return k; })();
+    const bd = placeBounds(lines, alongSel);
+    if (!fits(bd, a)) { toast("that's before the line above it, or after the line below. Lines stay in the order they're written"); return; }
+    me.a = a;
+    reflow(lines);
+    // a held line can end early (a gap before the next); a tap runs up to the next line
+    if (e - h.a >= 0.4) me.b = Math.max(a + 0.5, Math.min(me.b, b));
+    const nx = nextText(lines, alongSel);
+    if (nx >= 0) alongSel = nx;
     alongSaved();
     alongRefresh();
-    if (bumped.length) toast(`${bumped.length === 1 ? `“${bumped[0].t.slice(0, 24)}” was` : bumped.length + " lines were"} under that, so ${bumped.length === 1 ? "it waits" : "they wait"} to be placed again`);
   }
   function alongClick(e) {
     const st = e.target.closest("[data-wstep]");
@@ -7906,8 +7953,24 @@
         const r = act.getBoundingClientRect(); flourish(r.left + r.width / 2, r.top, ["♪", "♩", "♪"], "var(--lh)");
         if (playing) stop();
         previewPart(16);
-      } else if (a === "tune") { tuneTab = "sing"; openSheet("tune"); }
+      } else if (a === "hearline") { const l = alongLines()[alongSel]; if (l && l.a != null) lineSing(l); }
+      else if (a === "nextline") { const n = nextText(alongLines(), alongSel); if (n >= 0) { alongSel = n; alongRefresh(); $("sheetBody").querySelector(".al-line.on")?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" }); } }
+      else if (a === "tune") { tuneTab = "sing"; openSheet("tune"); }
       else if (a === "playtune") { tuneTab = "sing"; openSheet("tune"); tuneRecStart(); }
+      return true;
+    }
+    const pc = e.target.closest("[data-alchord]"), pw = e.target.closest("[data-alwhen]");
+    if (pc || pw) {
+      const lines = alongLines(), l = lines[alongSel];
+      if (!hasText(l)) return true;
+      let c, w;
+      if (pc) { c = current.find(x => x.j === +pc.dataset.alchord); w = l.a != null ? whenOf(l.a) : placeWhen; }
+      else { w = pw.dataset.alwhen; placeWhen = w; c = l.a != null ? chordAt(l.a) : current.find(x => WHENS.some(([y]) => fits(placeBounds(lines, alongSel), x.at + whenOff(x, y)))); }
+      if (!c) return true;
+      const got = placeLine(alongSel, c, w);
+      if (!got) toast("that spot is taken by the lines around it");
+      else if (got !== w) toast(`${(WHENS.find(x => x[0] === w) || WHENS[0])[1]} runs into the next line, so it comes in ${(WHENS.find(x => x[0] === got) || WHENS[0])[1]}`);
+      alongRefresh();
       return true;
     }
     const sl = e.target.closest("[data-singline]");
@@ -7916,11 +7979,16 @@
     if (nd) {
       const lines = alongOwn(), l = lines[alongSel];
       if (!l) return true;
-      if (nd.dataset.alnudge === "x") { l.a = null; l.b = null; }
+      if (nd.dataset.alnudge === "x") { l.a = null; l.b = null; reflow(lines); }
       else {
         const d = +nd.dataset.d, k = nd.dataset.alnudge;
-        if (k === "a") l.a = Math.max(0, Math.min(l.b - 0.5, l.a + d));
-        else l.b = Math.max(l.a + 0.5, Math.min(total, l.b + d));
+        const bd = placeBounds(lines, alongSel);
+        if (k === "a") {
+          // the line before keeps running up to this one, unless you'd left a gap
+          const old = l.a, na = Math.max(0, Math.min(l.b - 0.5, l.a + d)), prev = lines.slice(0, alongSel).reverse().find(x => hasText(x) && x.a != null);
+          if (fits(bd, na)) { l.a = na; if (prev && (prev.b > na || Math.abs(prev.b - old) < 0.01)) prev.b = Math.max(prev.a + 0.5, na); }
+        }
+        else l.b = Math.max(l.a + 0.5, Math.min(bd.hi ?? total, l.b + d));
       }
       alongSaved(); alongRefresh();
       return true;
