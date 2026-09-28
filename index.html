@@ -1707,6 +1707,29 @@
   .entry-clear:hover, .entry-clear:focus-visible { background: var(--tension); color: #2f2a3d; }
   .entry:has(#prog:placeholder-shown) .entry-clear { visibility: hidden; }
   .part-acts [data-addact="clear"] { color: #2f2a3d; background: color-mix(in srgb, var(--tension) 55%, transparent); }
+  /* the key picker */
+  .seg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .seg-btn { display: grid; gap: 2px; justify-items: center; text-align: center; border: 1.5px solid var(--edge); border-radius: 14px; background: var(--card); color: var(--ink); font: 800 14px/1.2 var(--body); padding: 9px 8px; cursor: pointer; }
+  .seg-btn small { font-weight: 700; font-size: 11px; color: var(--soft); }
+  .seg-btn[aria-pressed="true"] { border-color: var(--ink); background: var(--pick); }
+  .key-pick { display: grid; gap: 8px; }
+  .key-pick .flavor { max-width: 260px; }
+  .key-pick.small .key-grid { grid-template-columns: repeat(6, 1fr); gap: 5px; }
+  .key-pick.small .key-btn { padding: 7px 2px; }
+  .key-pick.small .key-btn b { font-size: 15px; }
+  .key-row { display: flex; align-items: center; gap: 8px; }
+  .key-row .key-pill { margin-left: 0; font-size: 14px; padding: 6px 12px 6px 14px; }
+  .start-key { margin: 2px auto 0; font-size: 14px; }
+  /* the guide: play the colored keys; a curved hop shows where each friend goes, dashed keys are where they land */
+  .land { fill: transparent !important; stroke-dasharray: 1.4 1; stroke-width: .8; }
+  .hopa { --c: var(--rh); } .hopa.lh { --c: var(--lh); }
+  .hop-path { fill: none; stroke: var(--c); stroke-width: 1.7; stroke-linecap: round; }
+  .hop-head { fill: var(--c); stroke: var(--ink); stroke-width: .3; stroke-linejoin: round; }
+  .fr-keep ellipse { fill: color-mix(in srgb, var(--ink) 18%, transparent); stroke: var(--ink); stroke-width: .6; opacity: .8; }
+  /* the way back to the sheet you came from */
+  .sheet-back { flex: none; border: 0; background: var(--chip); color: var(--ink); font: 800 13px/1 var(--body); padding: 8px 12px 8px 10px; border-radius: 999px; cursor: pointer; max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sheet-back:hover { background: var(--chip-hover); }
+  .key-pill small { font-size: 10.5px; font-weight: 800; color: var(--soft); text-transform: uppercase; letter-spacing: .06em; margin-right: 2px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -1800,6 +1823,7 @@
 <aside class="sheet" id="sheet" hidden aria-labelledby="sheetTitle">
   <div class="sheet-head" id="sheetHead">
     <button class="sheet-grip" type="button" id="sheetGrip" aria-label="Close"></button>
+    <button class="sheet-back" type="button" id="sheetBack" hidden></button>
     <h2 id="sheetTitle">knobs</h2>
     <button class="btn" type="button" id="closeSheet">done</button>
   </div>
@@ -2734,7 +2758,7 @@
     // arrows: each finger that moves gets a straight arrow in its own lane
     // above the keys, from the key it's on to the key it goes to
     const pairs = [];
-    if (nv && o.arrows) {
+    if (nv && o.arrows && !o.friends) {
       const hand = (a, b, cl) => moves(a, b).forEach(([p, q]) => { if (Math.abs(q - p) > 2 && has(p) && has(q)) pairs.push({ p, q, cl, a: Math.min(xOf(p), xOf(q)), b: Math.max(xOf(p), xOf(q)) }); });
       if (v.lh.length && nv.lh.length) { hand(v.lh, nv.lh, "lh"); hand(v.rh, nv.rh, "rh"); }
       else hand(allNotes(v), allNotes(nv), "rh");
@@ -2791,6 +2815,24 @@
       });
       over = `<g class="arrows">${land}${arr}</g>`;
     }
+    // with the friends on, each one that moves gets a curved hop to the key it lands on
+    if (o.friends && nv && T) {
+      const now = allNotes(v).filter(has), hops = friendMoves(now, allNotes(nv).filter(has));
+      let arc = "";
+      hops.forEach((p, q) => {
+        if (p === q || !has(p) || !has(q)) return;
+        const x0 = xOf(p), x1 = xOf(q), dir = Math.sign(x1 - x0) || 1, peak = -Math.min(T - 1.2, 3.5 + Math.abs(x1 - x0) * 0.2);
+        const cx = (x0 + x1) / 2, cy = peak * 2 + 0.6, ex = x1, ey = -0.6;
+        // arrowhead along the curve's last stretch
+        const tx = ex - cx, ty = ey - cy, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl, hl = 3, hw = 1.8;
+        const bx0 = ex - ux * hl, by0 = ey - uy * hl;
+        const hc = nv.lh.includes(q) ? "lh" : "rh";
+        arc += `<g class="hopa ${hc}"><path class="hop-path" d="M${x0.toFixed(1)} -.6Q${cx.toFixed(1)} ${cy.toFixed(1)} ${bx0.toFixed(1)} ${by0.toFixed(1)}"/>`
+          + `<path class="hop-head" d="M${ex.toFixed(1)} ${ey.toFixed(1)}L${(bx0 - uy * hw).toFixed(1)} ${(by0 + ux * hw).toFixed(1)}L${(bx0 + uy * hw).toFixed(1)} ${(by0 - ux * hw).toFixed(1)}z"/></g>`;
+        void dir;
+      });
+      over = `<g class="arrows">${land}${arc}</g>`;
+    }
     // paper friends: one on every note, hopping in from where they were, leaning toward where they go next
     let fr = "";
     if (o.friends) {
@@ -2803,6 +2845,8 @@
         const blk = isBlack(m), x = xOf(m), y = blk ? BH - 2.5 : H - (labelled ? 11 : 4), sc = blk ? 0.8 : 1.1;
         const from = src ? src.get(m) : m, moved = src && from !== m, dx = moved ? (has(from) ? xOf(from) - x : (from < m ? -14 : 14)) : 0;
         const go = f.next ? (ahead.get(m) > 0 ? " go-r" : ahead.get(m) < 0 ? " go-l" : " go-0") : "";
+        const keep = f.next && ahead.get(m) === 0;
+        if (keep) fr += `<g class="fr-keep" transform="translate(${x.toFixed(1)} ${(y + 1.4).toFixed(1)})"><ellipse rx="${(3.4 * sc).toFixed(1)}" ry="1"/></g>`;
         fr += `<g class="fr${moved ? " hop" : src ? " stay" : ""}${go}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})"><g class="fr-in" style="--dx:${dx.toFixed(1)}px"><g class="fr-lean"><g transform="scale(${sc})">${art}</g></g></g></g>`;
       });
       fr = `<g class="friends">${fr}</g>`;
@@ -5762,13 +5806,15 @@
     if (playing) stop();
     demoTimers.forEach(clearTimeout); demoTimers = [];
     const t0 = ac.currentTime + 0.05;
+    // in the playground's games the house stays dark: a lit window would give the answer away
+    const dark = sheetMode === "play" && playAt != null;
     toks.forEach((tok, i) => {
       const ch = parseChord(tok); if (!ch) return;
       const root = 48 + ch.rootPc - (ch.rootPc > 6 ? 12 : 0);
       strum({ lh: [root], rh: ch.ivs.slice(0, 4).map(x => root + 12 + x) }, t0 + i * gap, gap * 0.95);
-      demoTimers.push(setTimeout(() => miniFollow({ ch, a: analyze(ch, K) }), (t0 + i * gap - ac.currentTime) * 1000));
+      if (!dark) demoTimers.push(setTimeout(() => miniFollow({ ch, a: analyze(ch, K) }), (t0 + i * gap - ac.currentTime) * 1000));
     });
-    demoTimers.push(setTimeout(() => miniFollow(current[sel]), (toks.length * gap + 0.3) * 1000));
+    if (!dark) demoTimers.push(setTimeout(() => miniFollow(current[sel]), (toks.length * gap + 0.3) * 1000));
   }
 
   // after the first time through, your friend says one true thing about your part
@@ -9262,6 +9308,8 @@
   if (!BUDDIES[prefs.buddy]) prefs.buddy = "dusty";
   // a preview (a lesson example, or the tune sheet) is always heard in full, whatever is switched off
   const L = k => !!prefs.layers[k] || !!(previewing && previewing[k]);
+  // the paper friends and the arrows are one guide now: either switch turns it on
+  const guideOn = () => L("friends") || L("arrows");
   const B = () => BUDDIES[prefs.buddy];
   const savePrefs = () => store.set("prefs", JSON.stringify(prefs));
 
@@ -9599,7 +9647,7 @@
     // the key's house: every chord of the key is a window; tap one to add it
     const mode = prefs.view, kname = esc(pretty(keyName(K)));
     const inside = `<button class="pal mh-in" type="button" data-act="key" aria-label="Go inside the house of ${kname}">⌂ go inside</button>`;
-    const chordsPill = `<button class="pal chords-pill${arranging ? " on" : ""}" type="button" data-act="arrange" aria-pressed="${arranging}">${arranging ? "✓ done" : "✎ chords"}</button>`;
+    const chordsPill = `<button class="pal chords-pill${arranging ? " on" : ""}" type="button" data-act="arrange" aria-pressed="${arranging}">${arranging ? "✓ done" : "⇄ arrange"}</button>`;
     const side = {
       simple: chordsPill + inside,
       learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
@@ -9771,6 +9819,7 @@
       weather(null);
       stageEl.innerHTML = `<p class="empty">nothing in the ${esc(sec().name.toLowerCase())} yet</p>
         <button class="btn surprise start-btn" type="button" data-act="add">+ add chords</button>
+        <button class="key-pill start-key" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it.">${songHasChords() ? "" : "start in "}${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
         <p class="empty" style="margin:0;font-size:16px">${esc(roleOf(sec().name).hint)}</p>`;
       if (!finding) say(tipOverride || B().hello);
       return;
@@ -9784,9 +9833,9 @@
     const tip = tipOverride || tips[tipIdx % tips.length];
     const undo = undoStack.length && undoStack[undoStack.length - 1].sec === secIdx;
     const nextC = nextChord();
-    const arrows = L("arrows") && nextC && nextC !== c;
+    const arrows = guideOn() && nextC && nextC !== c;
     // paper friends: hop in from the last chord drawn, lean toward the next one
-    const friendsOn = L("friends") && !finding, ahead = friendsOn && nextC && nextC !== c, nowNotes = allNotes(c.v), sig = nowNotes.join(",");
+    const friendsOn = guideOn() && !finding, ahead = friendsOn && nextC && nextC !== c, nowNotes = allNotes(c.v), sig = nowNotes.join(",");
     const friends = friendsOn ? { who: prefs.buddy, from: lastFriends && lastFriends.sig !== sig ? lastFriends.notes : null, next: ahead ? allNotes(nextC.v) : null } : null;
     lastFriends = friendsOn ? { sig, notes: nowNotes } : null;
     const look = arrows || ahead;
@@ -9796,14 +9845,14 @@
       <div class="stage-top">
         <button class="chord-name as-btn${c.tok.length > 6 ? " longer" : c.tok.length > 3 ? " long" : ""}" type="button" data-act="chord" title="Colors and surprises for this chord">${symbolHTML(c.ch)}<span class="caret" aria-hidden="true">▾</span></button>
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
-        <button class="key-pill" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it.">${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
+        <button class="key-pill" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it."><small>key</small>${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
       </div>
       <div class="held-chip" id="heldChip" hidden></div>
       ${L("lyrics") ? laneRow(c) : ""}
-      <div class="kbd" data-act="play" title="Tap to hear it"${L("lens") ? " data-lens" : ""}>${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: look ? nextC.v : null, arrows, quiet: !L("names"), band: L("arrows"), friends })}</div>
+      <div class="kbd" data-act="play" title="Tap to hear it"${L("lens") ? " data-lens" : ""}>${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: look ? nextC.v : null, arrows, quiet: !L("names"), band: guideOn(), friends })}</div>
       <div class="shape-row">
-        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${look ? `<br>${keep.size ? `${keep.size} stay for ${esc(pretty(nextC.tok))}` : `all move for ${esc(pretty(nextC.tok))}`}` : ""}</span></div>
+        <div class="shape-name"><b>${esc(c.v.name.toLowerCase())}${ovr ? ` <button class="reset" type="button" data-act="reset">auto</button>` : ""}</b><span>${esc(blurb)}${look ? `<br>${(() => { const n = allNotes(c.v).length, hop = n - keep.size, nx = esc(pretty(nextC.tok)); return keep.size ? `${keep.size} stay${hop ? `, ${hop} hop` : ""} for ${nx}` : `all hop for ${nx}`; })()}` : ""}</span></div>
         <div class="nudges">
           <button class="nudge" type="button" data-act="nudge" data-dir="-1" aria-label="Previous shape">‹</button>
           <button class="nudge" type="button" data-act="nudge" data-dir="1" aria-label="Next shape (${c.opt + 1} of ${c.len})" title="${c.opt + 1} of ${c.len}">›</button>
@@ -10423,6 +10472,7 @@
   function undoLast() {
     const u = undoStack.pop();
     if (u && u.kind === "song") { songUndo(u); return; }
+    if (u && u.kind === "key") { keyUndo(u); return; }
     if (u && u.sec === secIdx) { const k = sel; setProg(u.prog, false); sel = Math.max(0, Math.min(k, current.length - 1)); tipOverride = "Back the way it was."; renderStage(); if (sheetMode === "add") renderSheet(); }
   }
   function switchSection(i, pos) {
@@ -10439,7 +10489,7 @@
   }
   function openSong(s) {
     if (playing) stop();
-    song = s; ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); sel = 0; overrides.clear(); undoStack.length = 0; editingLyric = false;
+    song = s; ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); sel = 0; overrides.clear(); undoStack.length = 0; editingLyric = false; tipOverride = null;
     store.set("current", song.id);
     applySettings();
     renderAll();
@@ -10763,8 +10813,21 @@
   // Sheets: knobs, beat box, view, songs, library
   // =========================================================
   let sheetMode = null, confirmDel = null;
+  // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
+  let sheetTrail = [], goingBack = false;
+  const SHEET_GROUP = { stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", start: "start", addsec: "parts", moods: "moods" };
+  function renderBack() {
+    const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
+    b.hidden = !prev;
+    if (prev) { b.textContent = `‹ ${SHEET_NAMES[prev] || "back"}`; b.setAttribute("aria-label", `Back to ${SHEET_NAMES[prev] || "the last sheet"}`); }
+  }
   function openSheet(mode) {
     if (mode === "book") mode = "along"; // the old songbook lives in the words sheet now
+    if (!goingBack && sheetMode && mode !== sheetMode && !(SHEET_GROUP[mode] && SHEET_GROUP[mode] === SHEET_GROUP[sheetMode])) {
+      const at = sheetTrail.indexOf(mode);
+      if (at >= 0) sheetTrail.length = at; else sheetTrail.push(sheetMode);
+    }
     closeEgg();
     if (mode !== "listen") hearStop();
     // the songbook opens on the page for the chord you're on, or the cover
@@ -10778,6 +10841,7 @@
     // a different sheet opens at its top, not where the last one was scrolled to
     if (mode !== sheetMode) $("sheetBody").scrollTop = 0;
     sheetMode = mode;
+    renderBack();
     $("sheet").hidden = false;
     $("scrim").hidden = false;
     document.body.classList.add("sheet-open");
@@ -10795,8 +10859,9 @@
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
-    sheetMode = null; confirmDel = null;
+    sheetMode = null; confirmDel = null; sheetTrail = [];
   }
+  $("sheetBack").addEventListener("click", () => { const m = sheetTrail.pop(); if (!m) return; goingBack = true; try { openSheet(m); } finally { goingBack = false; } });
   function songText(s) {
     const names = s.order.map(id => s.sections.find(x => x.id === id)?.name).filter(Boolean);
     const order = names.length !== s.sections.length ? `Order: ${names.join(", ")}\n` : "";
@@ -10841,6 +10906,40 @@
     <input type="range" id="kFills" min="0" max="4" step="1" value="${prefs.fills}" aria-valuetext="${FILL_LEVELS[prefs.fills]}">
     <div class="ends"><span>none</span><span>a few</span><span>some</span><span>lots</span><span>wild</span></div></div>`;
 
+  // the key picker: major or minor, then the twelve homes round the circle
+  let keyHow = "move", keyFlavor = null;
+  const songHasChords = () => song.sections.some(x => tokenize(x.prog).length);
+  function guessKeyNow() { const was = S().key; S().key = "auto"; const k = compute(sec(), S(), secIdx).key; S().key = was; return k; }
+  function keyGridHTML(small) {
+    const minor = keyFlavor ?? K.minor, names = minor ? MIN_NAMES : MAJ_NAMES, order = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5].map(n => minor ? mod(n + 9) : n);
+    return `<div class="key-pick${small ? " small" : ""}">
+      <div class="seg-row flavor" role="group" aria-label="Major or minor"><button class="seg-btn" type="button" data-keyflavor="M" aria-pressed="${!minor}">☀ major</button><button class="seg-btn" type="button" data-keyflavor="m" aria-pressed="${minor}">☾ minor</button></div>
+      <div class="key-grid">${order.map(t => { const k = { tonic: t, minor }, on = t === K.tonic && minor === K.minor; return `<button class="key-btn${on ? " on" : ""}" type="button" data-setkey="${t}${minor ? "m" : "M"}" aria-pressed="${on}"><b>${esc(pretty(names[t]))}${minor ? "m" : ""}</b>${small ? "" : `<small>${sigOf(k) ? esc(sigText(sigOf(k))) : "no ♯♭"}</small>`}</button>`; }).join("")}</div></div>`;
+  }
+  // set the key from the picker: before any chords it's just where you start
+  function pickKey(v) {
+    const from = pretty(keyName(K));
+    undoStack.push({ kind: "key", progs: song.sections.map(x => x.prog), key: S().key, sec: secIdx });
+    if (v === "auto") { setting("key", "auto"); renderAll(); toast(`Pixie hears it in ${pretty(keyName(K))}`, true); return; }
+    const k = parseKeySetting(v), wasAuto = !parseKeySetting(S().key), sameFlavor = k.minor === K.minor;
+    if (songHasChords() && keyHow === "move") {
+      // chords keep their shape; a minor key shares its chords with the major a step and a half up
+      const same = k.minor === K.minor ? k.tonic : k.minor ? mod(k.tonic + 3) : mod(k.tonic + 9);
+      let n = mod(same - K.tonic); if (n > 6) n -= 12;
+      if (n) transpose(n);
+    }
+    // a plain move leaves Pixie guessing if it was; anything else pins the new home
+    if (!(songHasChords() && keyHow === "move" && wasAuto && sameFlavor)) setting("key", v);
+    tipOverride = null; renderAll();
+    if (current[sel]) playOne(sel);
+    toast(pretty(keyName(K)) === from ? `in ${from}` : songHasChords() && keyHow === "move" ? `moved to ${pretty(keyName(K))}` : `home is ${pretty(keyName(K))} now`, true);
+  }
+  function keyUndo(u) {
+    song.sections.forEach((x, i) => { if (u.progs[i] != null) x.prog = u.progs[i]; });
+    setting("key", u.key); input.value = sec().prog; saveSongs(); renderAll();
+    if (sheetMode) renderSheet();
+    tipOverride = "Back the way it was."; renderStage();
+  }
   function keyOpts() {
     const auto = !parseKeySetting(S().key);
     let o = `<option value="auto"${auto ? " selected" : ""}>let Pixie guess (${esc(pretty(keyName(K)))})</option>`;
@@ -10917,23 +11016,26 @@
       body.innerHTML = `
         <div class="view-presets modes">${Object.entries(VIEWS).map(([id, v]) => `<button class="vp" type="button" data-view="${id}" aria-pressed="${prefs.view === id}"><svg viewBox="0 0 60 40" aria-hidden="true">${VIEW_ART[id]}</svg><b>${v.icon} ${v.name}</b><small>${v.note}${prefs.view === id && viewEdited() ? " · changed" : ""}</small></button>`).join("")}</div>
         <p class="note">Each mode is a starting point. Change anything below and the mode remembers it.</p>
-        <div class="knob"><span class="lbl">on the keyboard</span><div class="presets">${["friends", "arrows", "lens", "names"].map(chip).join("")}</div>
-          <p class="note">${esc(B().name)}'s ${esc(FRIENDS[prefs.buddy].many)} sit on the notes you play and hop to the next chord. The ones that stay put are notes the two chords share.</p></div>
+        <div class="knob"><span class="lbl">on the keyboard</span><div class="presets"><button class="choice" type="button" data-layertog="guide" aria-pressed="${guideOn()}">${esc(FRIENDS[prefs.buddy].many)} show the way</button>${["lens", "names"].map(chip).join("")}</div>
+          <p class="note">Play the colored keys: ${esc(B().name)}'s ${esc(FRIENDS[prefs.buddy].many)} stand on them. A curved arrow shows where each one hops for the next chord, and the dashed keys are where it lands. The ones that stay put are notes the two chords share.</p></div>
         <div class="knob"><span class="lbl">on the screen</span><div class="presets">${["scene", "talk", "lyrics", "palette", "ribbon", "fx", "entry"].map(chip).join("")}</div>
           <p class="note">Who's playing (the singer, the lead, the beat) is in <button class="link" type="button" data-open="beat">the band</button>.</p></div>`;
     } else if (sheetMode === "key") {
-      // move the whole song to another key: tap a key, or step by half steps
+      // one place for the key: pick a home, and say whether your chords come along
       $("sheetTitle").textContent = "key";
-      const names = K.minor ? MIN_NAMES : MAJ_NAMES, order = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5].map(n => K.minor ? mod(n + 9) : n);
+      const has = songHasChords(), auto = !parseKeySetting(S().key);
       body.innerHTML = `
-        <div class="key-now"><b>${esc(pretty(keyName(K)))}</b><span>${sigOf(K) ? esc(sigText(sigOf(K))) : "no ♯ or ♭"} · ${current.map(c => esc(pretty(c.tok.replace(/:\d+$/, "")))).join(" ")}</span></div>
-        <div class="row key-steps"><button class="btn" type="button" data-shift="-1">− half step</button><button class="btn" type="button" data-shift="1">half step +</button></div>
-        <div class="knob"><span class="lbl">or jump to a key</span>
-          <div class="key-grid">${order.map(t => { const k = { tonic: t, minor: K.minor }, on = t === K.tonic; return `<button class="key-btn${on ? " on" : ""}" type="button" data-movekey="${t}" aria-pressed="${on}"><b>${esc(pretty(names[t]))}${K.minor ? "m" : ""}</b><small>${sigOf(k) ? esc(sigText(sigOf(k))) : "no ♯♭"}</small></button>`; }).join("")}</div>
-          <p class="note">Every chord in the song moves together. It sounds the same, just higher or lower, and the shapes under your hands change. Keys next to each other share all but one note.</p></div>
-        <div class="knob"><span class="lbl">does it feel like a different home?</span>
-          <div class="row"><select id="kKey" aria-label="What key the song is in">${keyOpts()}</select></div>
-          <p class="note">Pixie guesses the key from your chords. If home feels like somewhere else, tell it here. Nothing moves; the names and colors change.</p></div>
+        <div class="key-now"><b>${esc(pretty(keyName(K)))}</b><span>${sigOf(K) ? esc(sigText(sigOf(K))) : "no ♯ or ♭"}${auto && has ? " · Pixie's guess from your chords" : ""}${current.length ? ` · ${current.map(c => esc(pretty(c.tok.replace(/:\d+$/, "")))).join(" ")}` : ""}</span></div>
+        ${has ? `<div class="knob"><span class="lbl">when you pick a key</span>
+          <div class="seg-row" role="group" aria-label="What happens to your chords">
+            <button class="seg-btn" type="button" data-keyhow="move" aria-pressed="${keyHow === "move"}">move my chords there<small>same song, higher or lower</small></button>
+            <button class="seg-btn" type="button" data-keyhow="keep" aria-pressed="${keyHow === "keep"}">keep my chords<small>just call a different chord home</small></button>
+          </div></div>` : `<p class="note">No chords yet, so this is where the song starts. The house fills with this key's chords.</p>`}
+        ${keyGridHTML()}
+        ${has && keyHow === "move" ? `<div class="row key-steps"><button class="btn" type="button" data-shift="-1">− half step</button><button class="btn" type="button" data-shift="1">half step +</button></div>
+          <p class="note">Every chord in the song moves together. It sounds the same, just higher or lower, and the shapes under your hands change. Keys next to each other share all but one note.</p>` : ""}
+        ${has && keyHow === "keep" ? `<p class="note">Nothing moves. The names, numbers and colors change to fit the new home.</p>` : ""}
+        ${has ? `<div class="row"><button class="choice" type="button" data-setkey="auto" aria-pressed="${auto}">✦ let Pixie guess from my chords${auto ? "" : ` (${esc(pretty(keyName(guessKeyNow())))})`}</button></div>` : ""}
         <div class="row"><button class="btn" type="button" data-open="house">⌂ see this key's house</button><button class="btn" type="button" data-open="street">the whole street</button></div>`;
     } else if (sheetMode === "stories") {
       $("sheetTitle").textContent = storyAt == null ? "learning" : `chapter ${storyAt + 1}`;
@@ -10957,6 +11059,7 @@
           <button class="big-choice" type="button" data-wizminor="1" aria-pressed="${wiz.minor === true}"><span>☾</span>moody${nm ? ` · ${nm} minor` : ""}</button></div></div>
         <div class="wiz-step${wiz.minor == null ? " dim" : ""}"><h3>3 · pick a vibe</h3>
           <div class="moods">${list.map(({ m, prog }) => `<button class="mood-btn" type="button" data-wizmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(prog))}</span></button>`).join("") || `<p class="note">choose sunny or moody first</p>`}</div></div>
+        ${wiz.minor != null ? `<div class="row"><button class="choice" type="button" data-wizblank>or just start in ${esc(pretty(keyName({ tonic: t, minor: wiz.minor })))}, no chords yet</button></div>` : ""}
         ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
     } else if (sheetMode === "lyrics") {
       $("sheetTitle").textContent = "lyric sheet";
@@ -10978,6 +11081,8 @@
       $("sheetTitle").textContent = `chords in the ${nm}`;
       const chip = (c, big) => `<button class="pal${big ? " big" : ""}" type="button" data-addtok="${esc(c.tok)}" style="${fnVar(c.fn)}"><b>${esc(pretty(c.tok))}</b><small>${c.num}</small></button>`;
       body.innerHTML = `${keysOn() ? `<button class="btn surprise playin-cta" type="button" data-open="playin">🎹 play in chords on your keyboard</button>` : ""}
+        ${songHasChords() ? `<div class="key-row"><span class="lbl">key</span><button class="key-pill" type="button" data-open="key" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it.">${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button></div>`
+          : `<div class="knob key-start"><span class="lbl">start in a key</span>${keyGridHTML(true)}<p class="note">Tap a home and the house below fills with its chords. Or skip it: Pixie works out the key from whatever you add.</p></div>`}
         <div class="part-row">
           <div class="part-chips">${current.map(c => `<span class="pchip" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><button type="button" data-rmchord="${c.i}" aria-label="Remove ${esc(pretty(c.tok))}">×</button></span>`).join("") || `<span class="none">no chords yet</span>`}</div>
           <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">✕ clear</button>` : ""}</div>
@@ -11585,7 +11690,7 @@
     if (sheetMode === "street" && streetClick(e)) return;
     if (sheetMode === "play" && playClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
-    if (layT) { const k = layT.dataset.layertog; prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
+    if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
     if (storyB) { storyAt = +storyB.dataset.story; markRead(storyAt); storyTimers.forEach(clearTimeout); renderSheet(); $("sheetBody").scrollTop = 0; return; }
     if (storyAct) {
@@ -11605,6 +11710,10 @@
     if (feel) { setting("level", feel.dataset.feel); overrides.clear(); renderAll(); renderSheet(); return; }
     if (hands) { setting("oneHand", hands.dataset.hands === "one"); overrides.clear(); renderAll(); renderSheet(); return; }
     if (shift) { transpose(+shift.dataset.shift); renderSheet(); if (current[sel]) playOne(sel); return; }
+    const sk = e.target.closest("[data-setkey]"), kh = e.target.closest("[data-keyhow]"), kf = e.target.closest("[data-keyflavor]");
+    if (kh) { keyHow = kh.dataset.keyhow; renderSheet(); return; }
+    if (kf) { keyFlavor = kf.dataset.keyflavor === "m"; renderSheet(); return; }
+    if (sk) { pickKey(sk.dataset.setkey); keyFlavor = null; renderSheet(); return; }
     const mk = e.target.closest("[data-movekey]");
     if (mk) { let n = mod(+mk.dataset.movekey - K.tonic); if (n > 6) n -= 12; if (n) { transpose(n); if (current[sel]) playOne(sel); } renderSheet(); return; }
     const colorB = e.target.closest("[data-color]"), chordAct = e.target.closest("[data-chordact]");
@@ -11723,6 +11832,16 @@
       renderSheet();
       const r = 60 + wiz.tonic;
       if (await audioReady()) strum({ lh: [r - 12], rh: [r, r + (wiz.minor ? 3 : 4), r + 7] }, ac.currentTime + 0.02, 1.2);
+      return;
+    }
+    if (e.target.closest("[data-wizblank]") && wiz.minor != null) {
+      // the key is the starting point: an empty part in that key, chords to follow
+      const keySet = wiz.tonic + (wiz.minor ? "m" : "M"), kname = pretty(keyName({ tonic: wiz.tonic, minor: wiz.minor }));
+      if (wiz.mode === "new") { const sg = newSong(`a song in ${kname}`.toLowerCase(), "", { key: keySet }); songs.push(sg); openSong(sg); }
+      else { undoStack.push({ kind: "key", progs: song.sections.map(x => x.prog), key: S().key, sec: secIdx }); setting("key", keySet); renderAll(); }
+      saveSongs();
+      openSheet("add");
+      toast(`starting in ${kname}. Tap a window to add its chords`);
       return;
     }
     if (wmood) {
