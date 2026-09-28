@@ -1760,6 +1760,9 @@
   .al-chip:disabled { opacity: .35; cursor: not-allowed; }
   .seg-row.three { grid-template-columns: repeat(3, 1fr); }
   .seg-row.three .seg-btn { font-size: 13px; padding: 8px 4px; }
+  .seg-row.four { grid-template-columns: repeat(4, 1fr); }
+  .seg-row.four .seg-btn { font-size: 12.5px; padding: 8px 3px; }
+  @media (max-width: 380px) { .seg-row.four { grid-template-columns: repeat(2, 1fr); } }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7352,7 +7355,8 @@
     const kind = RIFF_KINDS.find(k => k[0] === R.kind) || RIFF_KINDS[0];
     const hasWords = current.some(c => (words()[c.i] || "").trim()), timed = isTimed(x);
     const tabs = `<div class="tabs" role="tablist"><button type="button" role="tab" data-tunetab="sing" aria-selected="${tuneTab === "sing"}">the sung line</button><button type="button" role="tab" data-tunetab="riff" aria-selected="${tuneTab === "riff"}">the lead riff</button></div>`;
-    const top = `<div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>`;
+    const top = `<div class="knob tune-focus"><span class="lbl">listen to</span><div class="seg-row four" role="group" aria-label="What you hear while shaping">${[["all", "the whole band"], ["sing", `${esc(B().name.replace("Captain ", ""))} alone`], ["riff", "the riff alone"], ["both", "voice + riff"]].map(([v, n]) => `<button type="button" class="seg-btn" data-tunefocus="${v}" aria-pressed="${tuneFocus === v}">${n}</button>`).join("")}</div></div>
+      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>`;
     let body;
     if (tuneTab === "sing") {
       const rows = TUNE_ROWS.filter(r => !(timed && (r[0] === "enter" || r[0] === "breath")));
@@ -7395,6 +7399,13 @@
   }
   function tuneSheetClick(e) {
     if (takeClick(e)) return true;
+    const fo = e.target.closest("[data-tunefocus]");
+    if (fo) {
+      tuneFocus = fo.dataset.tunefocus; applyMix(); renderSheet();
+      // hearing the riff on its own needs the lead switched on for the preview
+      if (!playing) previewPart(32, { sing: true, lead: tuneFocus === "riff" || tuneFocus === "both" });
+      return true;
+    }
     const tb = e.target.closest("[data-tunetab]");
     if (tb) { tuneTab = tb.dataset.tunetab; renderSheet(); return true; }
     const t = e.target.closest("[data-tuneset],[data-riffset],[data-tuneact]");
@@ -7414,7 +7425,7 @@
       return true;
     }
     const a = t.dataset.tuneact;
-    if (a === "hear") previewPart(64);
+    if (a === "hear") previewPart(64, { sing: true, lead: tuneFocus === "riff" || tuneFocus === "both" });
     else if (a === "leadon") { prefs.layers.lead = true; savePrefs(); applyView(); renderSheet(); previewPart(); }
     else if (a === "newhook") { x.hook = ((x.hook ?? (x.seed || 1)) + 1) % HOOKS.length; saveSongs(); previewPart(); }
     else if (a === "reset") { delete x.sing; delete x.riff; delete x.nudge; delete x.leadTake; delete x.tuneTake; saveSongs(); renderSheet(); renderStage(); previewPart(); }
@@ -8035,7 +8046,13 @@
   const fxOf = () => { const f = (song && song.fx) || {}; const o = {}; PEDALS.forEach(p => { o[p.id] = { on: !!(f[p.id] && f[p.id].on), amt: f[p.id] && f[p.id].amt != null ? f[p.id].amt : 0.5 }; }); return o; };
   const chanOf = () => { const c = (song && song.chan) || {}; return { mute: c.mute || {}, solo: c.solo || {} }; };
   // what a channel is worth right now: muted is silent, and when anything is soloed only the soloed play
+  // while shaping the tune and riff you can listen to just those, without touching the saved mix
+  let tuneFocus = "all";
+  const FOCUS = { all: null, sing: ["voice"], riff: ["lead"], both: ["voice", "lead"] };
   function audible(id) {
+    const f = sheetMode === "tune" && FOCUS[tuneFocus];
+    // the riff sits under the voice in the mix, so on its own it gets a lift to be easy to hear
+    if (f) return f.includes(id) ? (id === "lead" && tuneFocus === "riff" ? 2.2 : 1) : 0;
     const c = chanOf(), anySolo = CHANNELS.some(([k]) => c.solo[k]);
     return c.mute[id] ? 0 : anySolo && !c.solo[id] ? 0 : 1;
   }
@@ -11284,7 +11301,9 @@
     if (mode === "along") { const ls = alongLines(); alongSel = firstLine(ls); if (!filled(sec())) wStep = "write"; }
     // a different sheet opens at its top, not where the last one was scrolled to
     if (mode !== sheetMode) $("sheetBody").scrollTop = 0;
+    const leftTune = sheetMode === "tune" && mode !== "tune";
     sheetMode = mode;
+    if (leftTune || mode === "tune") applyMix();
     renderBack();
     $("sheet").hidden = false;
     $("scrim").hidden = false;
@@ -11303,7 +11322,9 @@
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
+    const wasTune = sheetMode === "tune";
     sheetMode = null; confirmDel = null; sheetTrail = [];
+    if (wasTune) applyMix();
   }
   $("sheetBack").addEventListener("click", () => { const m = sheetTrail.pop(); if (!m) return; goingBack = true; try { openSheet(m); } finally { goingBack = false; } });
   function songText(s) {
