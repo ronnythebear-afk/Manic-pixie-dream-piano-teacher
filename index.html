@@ -1702,6 +1702,11 @@
   body.sheet-open .toast { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 6px); max-width: calc(100% - 24px); }
   /* a picked choice sits on the "picked" color, so its words use the page ink (readable in both themes) */
   .choice[aria-pressed="true"], .color-chip.on, .lick.on, .vp[aria-pressed="true"] { color: var(--ink); }
+  /* clear buttons for a part's chords */
+  .entry-clear { flex: none; border: 0; background: transparent; color: var(--soft); font: 700 12.5px/1 var(--type); padding: 8px 10px; border-radius: 999px; cursor: pointer; }
+  .entry-clear:hover, .entry-clear:focus-visible { background: var(--tension); color: #2f2a3d; }
+  .entry:has(#prog:placeholder-shown) .entry-clear { visibility: hidden; }
+  .part-acts [data-addact="clear"] { color: #2f2a3d; background: color-mix(in srgb, var(--tension) 55%, transparent); }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -1743,6 +1748,7 @@
     <div class="entry">
       <label for="prog">chords</label>
       <input id="prog" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="C Am F G">
+      <button class="entry-clear" id="progClear" type="button" aria-label="Clear the chords in this part">✕ clear</button>
     </div>
     <div class="palette" id="palette" aria-label="Chords that fit this key"></div>
     <main class="stage" id="stage" aria-live="polite"></main>
@@ -10974,7 +10980,7 @@
       body.innerHTML = `${keysOn() ? `<button class="btn surprise playin-cta" type="button" data-open="playin">🎹 play in chords on your keyboard</button>` : ""}
         <div class="part-row">
           <div class="part-chips">${current.map(c => `<span class="pchip" style="${fnVar(c.a.fn)}"><b>${symbolHTML(c.ch)}</b><button type="button" data-rmchord="${c.i}" aria-label="Remove ${esc(pretty(c.tok))}">×</button></span>`).join("") || `<span class="none">no chords yet</span>`}</div>
-          <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">clear</button>` : ""}</div>
+          <div class="part-acts">${canUndo ? `<button class="chip" type="button" data-addact="undo">↶ undo</button>` : ""}${current.length ? `<button class="chip" type="button" data-addact="clear">✕ clear</button>` : ""}</div>
         </div>
         <div class="knob"><span class="lbl">tap a window to add it ${current.length ? "on the end" : ""}</span>
           <div class="sheet-house">${miniHouseHTML(ideas).replace(/data-add=/g, "data-addtok=").replace(/data-paint="open"/, current[sel] ? `data-addtok="${esc(current[sel].tok.replace(/:\d+$/, ""))}"` : "")}</div>
@@ -11112,6 +11118,9 @@
     renderStage();
   });
 
+  // clear the typed chords without the field closing under your thumb
+  $("progClear").addEventListener("pointerdown", e => e.preventDefault());
+  $("progClear").addEventListener("click", () => { clearPart(); input.focus(); });
   input.addEventListener("input", () => { sec().prog = input.value; saveSongs(); renderAll(); });
   input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); playAll(); } });
   input.addEventListener("blur", () => { if (!L("entry")) setTimeout(() => { if (document.activeElement !== input) document.body.classList.remove("entry-open"); }, 150); });
