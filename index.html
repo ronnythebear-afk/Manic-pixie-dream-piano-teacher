@@ -1909,6 +1909,18 @@
   .hw-lbl { font: 700 8.5px var(--body); fill: var(--soft); }
   .hw-num { font: 800 8px var(--body); fill: var(--soft); text-anchor: middle; }
   .shape-row .how-row { flex: 1 1 300px; justify-content: flex-start; margin: 2px 0 0; }
+  /* note letters on the rhythm, and the keys that light as a pattern plays */
+  .hw-note { font: 900 5.6px var(--body); fill: #fff; text-anchor: middle; pointer-events: none; }
+  .pt-hit b { position: absolute; inset: 0; display: grid; place-items: center; font: 900 8px/1 var(--body); color: #fff; }
+  .pt-hit:has(b) { width: 18px; height: 18px; margin-left: -9px; top: 7px; }
+  .pt-kbd svg { width: 100%; height: auto; max-height: 150px; }
+  .pt-kbd rect.pt-use { fill: color-mix(in srgb, var(--rh) 22%, var(--key-w, #fff)); }
+  .pt-kbd rect.kb.pt-use { fill: color-mix(in srgb, var(--rh) 45%, var(--key-b, #2f2a3d)); }
+  .pt-kbd rect.pt-useL { fill: color-mix(in srgb, var(--lh) 24%, var(--key-w, #fff)); }
+  .pt-kbd rect.kb.pt-useL { fill: color-mix(in srgb, var(--lh) 45%, var(--key-b, #2f2a3d)); }
+  .pt-kbd rect.pt-lit.pt-R { fill: var(--rh) !important; }
+  .pt-kbd rect.pt-lit.pt-L { fill: var(--lh) !important; }
+  .pt-kbd-note { margin-top: -4px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -9969,7 +9981,9 @@
     const b = patBar();
     if (!b) return `<p class="note">Add a chord to the ${esc(sec().name.toLowerCase())} first.</p>`;
     const per = Mtr.unit === 8 ? 1 : 2, pct = x => (x / b.beats * 100).toFixed(2);
-    const lane = hand => b.hits.map((h, i) => h.hand !== hand ? "" : `<s class="pt-tail ${hand}" style="left:${pct(h.at)}%;width:${pct(Math.min(h.dur, b.beats - h.at))}%"></s><i class="pt-hit ${hand}${h.notes.length > 1 ? " chord" : ""}" data-hit="${i}" style="left:${pct(h.at)}%"></i>`).join("");
+    // name the notes a hand plays one at a time, unless there are too many to read
+    const nm = m => pretty(noteName(b.c.ch, m)), named = { L: b.hits.filter(h => h.hand === "L").length <= 16, R: b.hits.filter(h => h.hand === "R").length <= 16 };
+    const lane = hand => b.hits.map((h, i) => h.hand !== hand ? "" : `<s class="pt-tail ${hand}" style="left:${pct(h.at)}%;width:${pct(Math.min(h.dur, b.beats - h.at))}%"></s><i class="pt-hit ${hand}${h.notes.length > 1 ? " chord" : ""}" data-hit="${i}" style="left:${pct(h.at)}%">${h.notes.length === 1 && named[hand] ? `<b>${esc(nm(h.notes[0]))}</b>` : ""}</i>`).join("");
     let ticks = "";
     for (let k = 0; k < b.beats * per; k++) ticks += `<span style="left:${pct(k / per)}%" class="${k % per ? "and" : "beat"}">${Mtr.unit === 8 ? k + 1 : k % per ? "&" : k / per + 1}</span>`;
     return `<div class="pt-strip" id="ptStrip">
@@ -9979,6 +9993,34 @@
       <i class="pt-head" hidden></i>
     </div>`;
   }
+  // a keyboard of just the keys the pattern touches: marked faintly, lit in each hand's color as they sound
+  function patKbdHTML() {
+    const b = patBar();
+    if (!b) return "";
+    const all = b.hits.flatMap(h => h.notes), lo = Math.min(...all), hi = Math.max(...all);
+    const from = lo - ((lo % 12 + 12) % 12) , to = hi + (11 - ((hi % 12 + 12) % 12));
+    return `<div class="kbd pt-kbd" id="ptKbd">${keyboard({ lh: [], rh: [] }, from, Math.max(to, from + 23), { label: (m) => (all.includes(m) ? pretty(noteName(b.c.ch, m)) : ""), quiet: true })}</div>
+      <p class="note pt-kbd-note">The keys this pattern uses. They light up as they play.</p>`;
+  }
+  function patMarkUsed() {
+    const b = patBar(), k = $("ptKbd");
+    if (!b || !k) return;
+    const used = new Set(b.hits.flatMap(h => h.notes)), hand = new Map();
+    b.hits.forEach(h => h.notes.forEach(m => hand.set(m, h.hand)));
+    k.querySelectorAll("rect[data-k]").forEach(r => { const m = +r.dataset.k; r.classList.toggle("pt-use", used.has(m)); r.classList.toggle("pt-useL", hand.get(m) === "L"); });
+  }
+  let patLights = [];
+  // light each key when its hit sounds, for every bar of the run
+  function patLightUp(b, start, cl, loops) {
+    patLights.forEach(clearTimeout); patLights = [];
+    for (let n = 0; n < loops; n++) b.hits.forEach(h => {
+      const at = start + (n * b.beats + h.at) * cl, dur = Math.max(0.12, Math.min(h.dur, 1) * cl * 0.9);
+      patLights.push(setTimeout(() => {
+        const k = $("ptKbd"); if (!k) return;
+        h.notes.forEach(m => { const r = k.querySelector(`rect[data-k="${m}"]`); if (r) { r.classList.add("pt-lit", "pt-" + h.hand); setTimeout(() => r.classList.remove("pt-lit", "pt-L", "pt-R"), dur * 1000); } });
+      }, Math.max(0, (at - ac.currentTime) * 1000)));
+    });
+  }
   function patternHTML() {
     const st = patStyle(), info = STYLE_INFO[st], c = patChord();
     const running = !!pat.run;
@@ -9986,6 +10028,7 @@
       <div class="presets style-picks">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-patstyle="${k}" aria-pressed="${st === k}">${esc(v)}<small>${"●".repeat(STYLE_INFO[k].lvl)}${"○".repeat(3 - STYLE_INFO[k].lvl)}</small></button>`).join("")}</div>
       <p class="note"><b>${esc(STYLES[st])}</b>: ${esc(info.note)}${c ? ` Shown on ${esc(pretty(c.tok.replace(/:\d+$/, "")))}, one bar.` : ""}</p>
       ${patStripHTML()}
+      ${patKbdHTML()}
       <div class="row">
         <button class="btn surprise" type="button" data-patact="${running ? "stop" : "along"}">${running ? "■ stop" : "▶ play along"}</button>
         <button class="btn" type="button" data-patact="hear">▶ just listen</button>
@@ -10014,6 +10057,7 @@
     const start = t0 + count * cl, loops = listenOnly ? 2 : PAT_LOOPS;
     for (let n = 0; n < loops; n++) if (listenOnly || pat.guide) playChord(b.c.v, start + n * bar, b.beats, cl, patStyle(), { M: Mtr, pos0: 0, gain: listenOnly ? 1 : 0.45 });
     pat.run = { start, cl, bar, loops, beats: b.beats, hits: b.hits, listen: listenOnly, taps: { L: [], R: [] }, end: start + loops * bar };
+    setTimeout(() => patLightUp(b, start, cl, loops), 0);
     pat.notes = { L: [], R: [] };
     if (!listenOnly) patSay(`Ready... ${Array.from({ length: b.beats }, (_, k) => k + 1).join(", ")}...`);
     if (!listenOnly) { const id = pat.run; setTimeout(() => { if (pat.run === id) patSay("Go! Tap along with the dots. Gold means right on time."); }, (start - ac.currentTime) * 1000); }
@@ -10022,6 +10066,7 @@
   }
   function patStop(quiet) {
     cancelAnimationFrame(pat.raf);
+    patLights.forEach(clearTimeout); patLights = [];
     const r = pat.run;
     pat.run = null;
     if (!quiet && r && !r.listen) patFeedback(r);
@@ -11099,7 +11144,8 @@
     const x = at => (32 + at / beats * 160).toFixed(1);
     let nums = "";
     for (let k = 0; k < beats; k++) nums += `<text x="${x(k)}" y="39" class="hw-num">${k + 1}</text>`;
-    const dots = hits.map(h => `<circle class="hw-${h.hand}" cx="${x(h.at)}" cy="${h.hand === "R" ? 9 : 23}" r="${h.notes.length > 1 ? 4 : 3}"/>`).join("");
+    const roomy = hd => hits.filter(h => h.hand === hd).length <= 8;
+    const dots = hits.map(h => { const y = h.hand === "R" ? 9 : 23, lab = h.notes.length === 1 && roomy(h.hand); return `<circle class="hw-${h.hand}" cx="${x(h.at)}" cy="${y}" r="${lab ? 5.2 : h.notes.length > 1 ? 4 : 3}"/>${lab ? `<text class="hw-note" x="${x(h.at)}" y="${y + 2}">${esc(pretty(noteName(c.ch, h.notes[0])).replace(/♯/, "#").replace(/♭/, "b"))}</text>` : ""}`; }).join("");
     return `<button class="how-row" type="button" data-open="pattern" aria-label="The piano plays ${esc(STYLES[st])}. Tap to change it or play it yourself">
       <span class="how-name"><small>the piano plays</small><b>${esc(STYLES[st])} ▾</b></span>
       <svg class="how-strip" viewBox="0 0 200 42" aria-hidden="true">
@@ -12154,7 +12200,7 @@
     if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs() + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
-    if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); return; }
+    if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); patMarkUsed(); return; }
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
