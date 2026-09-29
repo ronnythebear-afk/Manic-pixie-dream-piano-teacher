@@ -1775,6 +1775,32 @@
     .songline .sections { flex: 1 0 100%; flex-wrap: wrap; overflow: visible; row-gap: 7px; margin-top: 8px; }
     .songline .sections .blk { width: auto !important; min-width: 58px; }
   }
+  /* play the pattern: two lanes of hits, a moving line, two big pads */
+  .pattern { display: grid; gap: 10px; }
+  .pt-strip { position: relative; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); padding: 8px 10px 4px 46px; }
+  .pt-lane { position: relative; height: 34px; border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent); }
+  .pt-lane em { position: absolute; left: -40px; top: 9px; font: 800 11px var(--body); color: var(--soft); font-style: normal; }
+  .pt-hit { position: absolute; top: 9px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--rh); border: 1.5px solid var(--ink); z-index: 1; }
+  .pt-lane.L .pt-hit { background: var(--lh); }
+  .pt-hit.chord { border-radius: 4px; height: 18px; top: 7px; }
+  .pt-tail { position: absolute; top: 14px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--rh) 35%, transparent); }
+  .pt-tail.L { background: color-mix(in srgb, var(--lh) 35%, transparent); }
+  .pt-hit.got { animation: ptGot .5s ease; }
+  .pt-hit.got.on { box-shadow: 0 0 0 4px color-mix(in srgb, var(--home) 70%, transparent); }
+  .pt-hit.got.early, .pt-hit.got.late { box-shadow: 0 0 0 4px color-mix(in srgb, var(--surprise) 55%, transparent); }
+  @keyframes ptGot { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+  .pt-count { position: relative; height: 18px; }
+  .pt-count span { position: absolute; transform: translateX(-50%); font: 700 11px var(--body); color: var(--soft); }
+  .pt-count span.beat { color: var(--ink); font-weight: 900; }
+  .pt-head { position: absolute; top: 4px; bottom: 20px; width: 2px; background: var(--tension); border-radius: 1px; pointer-events: none; }
+  .pt-strip .pt-head { left: 0; }
+  .pt-pads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pt-pad { display: grid; gap: 2px; justify-items: center; min-height: 86px; border: 2px solid var(--ink); border-radius: var(--wob); color: var(--on-color); cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .pt-pad.L { background: var(--lh); } .pt-pad.R { background: var(--rh); }
+  .pt-pad b { font: 800 17px var(--body); } .pt-pad small { font: 700 12px var(--body); opacity: .85; }
+  .pt-pad.hit { animation: ptPad .18s ease; }
+  @keyframes ptPad { 0% { transform: scale(.94); } 100% { transform: scale(1); } }
+  .style-picks .choice small { letter-spacing: 1px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -3888,50 +3914,121 @@
   // Ways to play the notes, following the bar.
   // ctx: { M: meter, pos0: count within the bar where the chord starts }
   // =========================================================
+  // ways the piano plays a chord: each one is a list of hits, so the same list
+  // plays the sound, draws the rhythm, and is what you practise along with
   const STYLES = {
     block: "block chords",
     broken: "rolling",
     ballad: "pulsing",
     pop: "bouncy",
-    waltz: "oom-pah"
+    waltz: "oom-pah",
+    stride: "stride",
+    boogie: "boogie-woogie",
+    alberti: "Alberti",
+    offbeat: "offbeat",
+    push: "three-three-two",
+    cascade: "cascade"
+  };
+  // what each one is, how hard it is to play yourself, and whose favourite it is
+  const STYLE_INFO = {
+    block: { note: "every note together, held. The simplest place to start.", lvl: 1, fan: "wren" },
+    broken: { note: "the chord's notes one at a time, up and back down, over a held bass.", lvl: 2, fan: "wren" },
+    ballad: { note: "the chord again on every beat over a held bass. Steady, like a heartbeat.", lvl: 1, fan: "oona" },
+    pop: { note: "short chords on every half beat, bass on the strong beats. Bright and busy.", lvl: 2, fan: "lulu" },
+    waltz: { note: "bass on the strong beat, chord on the others. Oom, pah, pah.", lvl: 1, fan: "cap" },
+    stride: { note: "the left hand leaps: a low bass note, then a chord up high, back and forth. Old dance-hall piano.", lvl: 3, fan: "dusty" },
+    boogie: { note: "the left hand walks up and down the chord in eighths while the right hand stabs. Rock and roll's grandparent.", lvl: 3, fan: "dusty" },
+    alberti: { note: "low, high, middle, high, round and round. How Mozart kept a chord moving under a tune.", lvl: 2, fan: "mort" },
+    offbeat: { note: "bass on the beat, a short chord on every 'and' in between. Reggae and ska live here.", lvl: 2, fan: "ghost" },
+    push: { note: "three, three, two: the chord lands early and skips. The groove under a lot of pop and Latin music.", lvl: 2, fan: "lulu" },
+    cascade: { note: "the notes run up in a sparkle over a held bass, like water down steps.", lvl: 3, fan: "ghost" }
   };
   const GROOVE_TO_STYLE = { plain: "block", lofi: "ballad", dreamy: "broken", waltz: "waltz", pop: "pop", shaker: "broken" };
 
-  function playChord(v, t, beats, B, pattern, ctx = {}) {
+  // the hits for one chord: { at, dur } in counts from the chord's start, the notes, how hard, which hand
+  function styleHits(v, beats, pattern, ctx = {}) {
     const M = ctx.M || METERS["4/4"], pos0 = ctx.pos0 || 0, n = M.n, eighth = M.unit === 8;
     const hasLH = v.lh.length > 0;
     const low = hasLH ? v.lh : [v.rh[0]];
     const up = hasLH ? v.rh : (v.rh.length > 1 ? v.rh.slice(1) : v.rh);
-    const total = beats * B;
-    const block = (notes, at, dur, vel, spread = 0.02) => notes.forEach((m, i) => tone(m, at + i * spread, dur, vel));
     const barPos = k => (pos0 + k) % n;
     const isGroup = k => M.groups.includes(barPos(k));
     const isDown = k => barPos(k) === 0;
     const per = eighth ? 1 : 2; // pattern notes per count
+    const out = [], hit = (at, notes, dur, vel, hand, spread = 0.012) => { if (notes.length && at < beats - 1e-6) out.push({ at, notes, dur: Math.min(dur, beats - at), vel, hand, spread }); };
+    const L = "L", R = "R";
     if (pattern === "broken") {
-      block(low, t, total, 0.19, 0.012);
-      for (let k = 1; k < beats; k++) if (isDown(k)) block(low, t + k * B, (beats - k) * B, 0.13, 0.012);
+      hit(0, low, beats, 0.19, L);
+      for (let k = 1; k < beats; k++) if (isDown(k)) hit(k, low, beats - k, 0.13, L);
       const seq = up.length > 2 ? up.concat(up.slice(1, -1).reverse()) : up;
-      for (let e = 0; e < beats * per; e++) tone(seq[e % seq.length], t + e * B / per, B / per * 1.8, e % per ? 0.105 : (isGroup(Math.floor(e / per)) ? 0.15 : 0.125));
+      for (let e = 0; e < beats * per; e++) hit(e / per, [seq[e % seq.length]], 1.8 / per, e % per ? 0.105 : (isGroup(Math.floor(e / per)) ? 0.15 : 0.125), R, 0);
     } else if (pattern === "ballad") {
-      block(low, t, total, 0.19, 0.012);
+      hit(0, low, beats, 0.19, L);
       for (let k = 0; k < beats; k++) {
-        if (k > 0 && isDown(k)) block(low, t + k * B, (beats - k) * B, 0.12, 0.012);
-        block(up, t + k * B + 0.01, B * 0.95, isGroup(k) ? 0.14 : 0.085, 0.012);
+        if (k > 0 && isDown(k)) hit(k, low, beats - k, 0.12, L);
+        hit(k + 0.01, up, 0.95, isGroup(k) ? 0.14 : 0.085, R);
       }
     } else if (pattern === "pop") {
-      for (let k = 0; k < beats; k++) if (k === 0 || isGroup(k)) block(low, t + k * B, Math.min(2, beats - k) * B, 0.19, 0.01);
-      for (let e = 0; e < beats * per; e++) block(up, t + e * B / per + 0.005, B / per * 0.7, e % per ? 0.075 : 0.12, 0.006);
+      for (let k = 0; k < beats; k++) if (k === 0 || isGroup(k)) hit(k, low, Math.min(2, beats - k), 0.19, L, 0.01);
+      for (let e = 0; e < beats * per; e++) hit(e / per + 0.005, up, 0.7 / per, e % per ? 0.075 : 0.12, R, 0.006);
     } else if (pattern === "waltz") {
-      // oom on the pulse, pah on the rest
       for (let k = 0; k < beats; k++) {
-        if (k === 0 || isGroup(k)) block(low, t + k * B, B * 1.8, 0.19, 0.01);
-        else block(up, t + k * B, B * 0.6, 0.1, 0.008);
+        if (k === 0 || isGroup(k)) hit(k, low, 1.8, 0.19, L, 0.01);
+        else hit(k, up, 0.6, 0.1, R, 0.008);
       }
+    } else if (pattern === "stride") {
+      // a low bass note on the strong beats (root, then the fifth), a chord up high on the others
+      const root = low[0] - (low[0] >= 48 ? 12 : 0);
+      let alt = 0;
+      for (let k = 0; k < beats; k++) {
+        if (k === 0 || isGroup(k) || (n === 4 && barPos(k) % 2 === 0)) { hit(k, [alt++ % 2 ? root + 7 : root], 0.9, 0.2, L, 0); }
+        else hit(k, up, 0.55, 0.12, R, 0.006);
+      }
+    } else if (pattern === "boogie") {
+      // the left hand walks 1, 3, 5, 6, flat 7, 6, 5, 3 in eighths; the right hand stabs on the offbeats
+      const root = low[0] - (low[0] >= 50 ? 12 : 0), minor = up.some(m => (m - root) % 12 === 3) && !up.some(m => (m - root) % 12 === 4);
+      const walk = [0, minor ? 3 : 4, 7, 9, 10, 9, 7, minor ? 3 : 4];
+      for (let e = 0; e < beats * per; e++) {
+        const step = (barPos(Math.floor(e / per)) * per + (e % per)) % 8;
+        hit(e / per, [root + walk[step]], 0.9 / per, e % per ? 0.13 : 0.17, L, 0);
+      }
+      for (let k = 0; k < beats; k++) if (barPos(k) % 2 === 1) hit(k + 0.5, up, 0.3, 0.12, R, 0.005);
+    } else if (pattern === "alberti") {
+      // low, high, middle, high in eighths, over a soft bass on the downbeat
+      const tri = up.slice().sort((a, b) => a - b), lo = tri[0], hi = tri[tri.length - 1], mid = tri[Math.floor(tri.length / 2)];
+      for (let k = 0; k < beats; k++) if (k === 0 || isDown(k)) hit(k, [low[0]], Math.min(n, beats - k), 0.14, L, 0);
+      const fig = [lo, hi, mid, hi];
+      for (let e = 0; e < beats * per; e++) hit(e / per, [fig[e % 4]], 1.1 / per, e % 4 === 0 ? 0.13 : 0.1, R, 0);
+    } else if (pattern === "offbeat") {
+      for (let k = 0; k < beats; k++) {
+        if (k === 0 || isGroup(k)) hit(k, low, 0.9, 0.19, L, 0.01);
+        hit(k + 0.5, up, 0.28, 0.13, R, 0.004);
+      }
+    } else if (pattern === "push") {
+      // three, three, two: hits on eighths 1, 4 and 7 of every eight
+      for (let e = 0; e < beats * 2; e++) {
+        const step = (barPos(Math.floor(e / 2)) * 2 + (e % 2)) % 8;
+        if (step === 0 || step === 3 || step === 6) { hit(e / 2, low, step === 6 ? 1 : 1.5, 0.18, L, 0.01); hit(e / 2 + 0.005, up, step === 6 ? 0.9 : 1.3, 0.13, R, 0.008); }
+      }
+    } else if (pattern === "cascade") {
+      // up and over: the chord's notes climbing through two octaves in quick steps
+      hit(0, low, beats, 0.18, L);
+      for (let k = 1; k < beats; k++) if (isDown(k)) hit(k, low, beats - k, 0.12, L);
+      const ladder = [...new Set(up.concat(up.map(m => m + 12)))].sort((a, b) => a - b);
+      const q = per * 2;
+      for (let e = 0; e < beats * q; e++) hit(e / q, [ladder[e % ladder.length]], 2 / q, e % q ? 0.07 : 0.11, R, 0);
     } else {
-      block(v.lh, t, total, 0.2, 0.012);
-      block(v.rh, t + 0.03, total, 0.15, 0.022);
+      hit(0, v.lh, beats, 0.2, L);
+      if (v.rh.length) out.push({ at: 0, notes: v.rh, dur: beats, vel: 0.15, hand: R, spread: 0.022, sec: 0.03 });
     }
+    return out;
+  }
+  function playChord(v, t, beats, B, pattern, ctx = {}) {
+    const g = ctx.gain ?? 1;
+    styleHits(v, beats, pattern, ctx).forEach(h => {
+      const at = h.sec != null ? t + h.sec : t + h.at * B;
+      h.notes.forEach((m, i) => tone(m, at + i * h.spread, h.dur * B, h.vel * g));
+    });
   }
   const strum = (v, t, dur) => { v.lh.forEach((m, i) => tone(m, t + i * 0.012, dur, 0.2)); v.rh.forEach((m, i) => tone(m, t + 0.03 + i * 0.022, dur, 0.15)); };
 
@@ -8028,7 +8125,7 @@
     const cs = current.filter(c => c.at + c.beats > l.a + 0.01 && c.at < l.b - 0.01);
     cs.forEach(c => {
       const t = t0 + (c.at - cs[0].at) * cl, mel = chain.get(c.i);
-      playChord(c.v, t, c.beats, cl, S().style, { M: Mtr, pos0: c.pos0 });
+      playChord(c.v, t, c.beats, cl, styleOf(secIdx), { M: Mtr, pos0: c.pos0 });
       playRiff(sec(), c, current, K, t, cl, mel);
       if (mel) singChord(c, mel, t, cl, secIdx, true);
     });
@@ -8875,12 +8972,13 @@
     { id: "build", title: "Build a chord", note: "Tap the keys that make the chord. Every chord is just three notes, stacked." },
     { id: "hop", title: "Stay or hop", note: "Pick where to go next and watch the paper friends. The ones that stay are notes both chords share." },
     { id: "door", title: "Next door", note: "Find the house next to yours on Pixie Street. Neighbors sound close; strangers sound far." },
-    { id: "along", title: "Play along", note: "Play each chord of your part on your keyboard. Pixie waits for you, or keeps time if you'd like a challenge." }
+    { id: "along", title: "Play along", note: "Play each chord of your part on your keyboard. Pixie waits for you, or keeps time if you'd like a challenge." },
+    { id: "pattern", title: "Play the pattern", note: "Stride, boogie-woogie, Alberti and more: see the rhythm each hand plays, then tap or play it along." }
   ];
   const cheer = () => ({ dusty: "Yee-haw. You got it.", ghost: "Correct. Uploading a high five.", wren: "Oh, lovely ears.", oona: "Aye. That's it.", lulu: "YES! You're so good at this!", mort: "Bravo. Bravissimo, even.", cap: "Ha! Sharp ears, sailor." }[prefs.buddy] || "Yes!");
   const soft = () => ({ dusty: "Close. Give it another listen.", ghost: "Not that one. Replaying.", wren: "Mm, not quite. Listen again?", oona: "No. But it's a good guess.", lulu: "Ooh, not quite! Again!", mort: "Not quite. Listen once more, in the dark.", cap: "Not that one. Steady, listen again." }[prefs.buddy] || "Not quite.");
   function playHTML() {
-    if (playAt == null) return `<div class="play-list">${GAMES.map((g, i) => `<button class="story-card play-card" type="button" data-game="${i}"><span class="pc-ico" aria-hidden="true">${["♪", "✋", "✿", "⌂", "🎹"][i]}</span><span class="sc-text"><b>${esc(g.title)}</b><span>${esc(g.note)}</span></span></button>`).join("")}</div>
+    if (playAt == null) return `<div class="play-list">${GAMES.map((g, i) => `<button class="story-card play-card" type="button" data-game="${i}"><span class="pc-ico" aria-hidden="true">${["♪", "✋", "✿", "⌂", "🎹", "♬"][i]}</span><span class="sc-text"><b>${esc(g.title)}</b><span>${esc(g.note)}</span></span></button>`).join("")}</div>
       <p class="note">${keysOn() ? `Your keyboard is ready: you can play the answers.` : `Got a MIDI keyboard? Connect it in settings and you can play the answers.`} These use the key your song is in, ${esc(pretty(keyName(K)))}. Change the key and they change with it.</p>`;
     const g = GAMES[playAt];
     const back = `<div class="row"><button class="btn" type="button" data-game="list">← the playground</button></div>`;
@@ -8949,7 +9047,7 @@
   function playClick(e) {
     if (alongGameClick(e)) return true;
     const gm = e.target.closest("[data-game]");
-    if (gm) { playAt = gm.dataset.game === "list" ? null : +gm.dataset.game; game = null; renderSheet(); return true; }
+    if (gm) { if (gm.dataset.game !== "list" && GAMES[+gm.dataset.game].id === "pattern") { openSheet("pattern"); return true; } playAt = gm.dataset.game === "list" ? null : +gm.dataset.game; game = null; renderSheet(); return true; }
     const act = e.target.closest("[data-gameact]"), rooms = roomsOf(K);
     if (act) {
       const a = act.dataset.gameact;
@@ -9715,6 +9813,170 @@
   };
   document.addEventListener("pointerup", smEnd);
   document.addEventListener("pointercancel", smEnd);
+
+  // =========================================================
+  // Play the pattern: how the piano plays a chord, drawn as a rhythm in two
+  // lanes (left hand, right hand), and you playing it along. Tap the two pads,
+  // or play on your keyboard: low notes are the left hand, high ones the right.
+  // Nothing is scored. Your friend says how it felt.
+  // =========================================================
+  let pat = { style: null, slow: true, guide: true, run: null, raf: 0, notes: { L: [], R: [] } };
+  const patStyle = () => pat.style || styleOf(secIdx);
+  const patChord = () => current[sel] || current[0];
+  // one bar of the pattern on the chord you're on
+  function patBar() {
+    const c = patChord();
+    if (!c) return null;
+    const beats = Mtr.n;
+    return { c, beats, hits: styleHits(c.v, beats, patStyle(), { M: Mtr, pos0: 0 }) };
+  }
+  const patBpm = () => Math.round(S().bpm * (pat.slow ? 0.7 : 1));
+  function patStripHTML() {
+    const b = patBar();
+    if (!b) return `<p class="note">Add a chord to the ${esc(sec().name.toLowerCase())} first.</p>`;
+    const per = Mtr.unit === 8 ? 1 : 2, pct = x => (x / b.beats * 100).toFixed(2);
+    const lane = hand => b.hits.map((h, i) => h.hand !== hand ? "" : `<s class="pt-tail ${hand}" style="left:${pct(h.at)}%;width:${pct(Math.min(h.dur, b.beats - h.at))}%"></s><i class="pt-hit ${hand}${h.notes.length > 1 ? " chord" : ""}" data-hit="${i}" style="left:${pct(h.at)}%"></i>`).join("");
+    let ticks = "";
+    for (let k = 0; k < b.beats * per; k++) ticks += `<span style="left:${pct(k / per)}%" class="${k % per ? "and" : "beat"}">${Mtr.unit === 8 ? k + 1 : k % per ? "&" : k / per + 1}</span>`;
+    return `<div class="pt-strip" id="ptStrip">
+      <div class="pt-lane R"><em>right</em>${lane("R")}</div>
+      <div class="pt-lane L"><em>left</em>${lane("L")}</div>
+      <div class="pt-count">${ticks}</div>
+      <i class="pt-head" hidden></i>
+    </div>`;
+  }
+  function patternHTML() {
+    const st = patStyle(), info = STYLE_INFO[st], c = patChord();
+    const running = !!pat.run;
+    return `<div class="pattern">
+      <div class="presets style-picks">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-patstyle="${k}" aria-pressed="${st === k}">${esc(v)}<small>${"●".repeat(STYLE_INFO[k].lvl)}${"○".repeat(3 - STYLE_INFO[k].lvl)}</small></button>`).join("")}</div>
+      <p class="note"><b>${esc(STYLES[st])}</b>: ${esc(info.note)}${c ? ` Shown on ${esc(pretty(c.tok.replace(/:\d+$/, "")))}, one bar.` : ""}</p>
+      ${patStripHTML()}
+      <div class="row">
+        <button class="btn surprise" type="button" data-patact="${running ? "stop" : "along"}">${running ? "■ stop" : "▶ play along"}</button>
+        <button class="btn" type="button" data-patact="hear">▶ just listen</button>
+        <button class="choice" type="button" data-patact="slow" aria-pressed="${pat.slow}">slow · ${patBpm()} bpm</button>
+        <button class="choice" type="button" data-patact="guide" aria-pressed="${pat.guide}">${esc(B().name.replace("Captain ", ""))} plays too</button>
+      </div>
+      <div class="pt-pads">
+        <button class="pt-pad L" type="button" data-pad="L"><b>left hand</b><small>the low notes</small></button>
+        <button class="pt-pad R" type="button" data-pad="R"><b>right hand</b><small>the chord up top</small></button>
+      </div>
+      <p class="game-say" id="ptSay">${esc(pat.said || (keysOn() ? "Play along on your keyboard, or tap the pads. One bar of clicks counts you in." : "Tap the pads in time with the dots. One bar of clicks counts you in."))}</p>
+      <div class="row">${sec().style === st || (!sec().style && S().style === st) ? `<span class="note">This is how the ${esc(sec().name.toLowerCase())} plays now.</span>` : `<button class="btn" type="button" data-patact="use">use it for the ${esc(sec().name.toLowerCase())}</button>`}<button class="btn" type="button" data-open="beat">the band</button></div>
+    </div>`;
+  }
+  // count in one bar, then go round the bar four times
+  const PAT_LOOPS = 4;
+  async function patStart(listenOnly) {
+    patStop(true);
+    const b = patBar();
+    if (!b || !(await audioReady())) return;
+    if (playing) stop();
+    const cl = 60 / patBpm() * (Mtr.unit === 8 ? 0.5 : 1), bar = b.beats * cl, t0 = ac.currentTime + 0.15;
+    const count = listenOnly ? 0 : b.beats;
+    for (let k = 0; k < count; k++) drumHit("tick", t0 + k * cl, k ? 0.7 : 1);
+    const start = t0 + count * cl, loops = listenOnly ? 2 : PAT_LOOPS;
+    for (let n = 0; n < loops; n++) if (listenOnly || pat.guide) playChord(b.c.v, start + n * bar, b.beats, cl, patStyle(), { M: Mtr, pos0: 0, gain: listenOnly ? 1 : 0.45 });
+    pat.run = { start, cl, bar, loops, beats: b.beats, hits: b.hits, listen: listenOnly, taps: { L: [], R: [] }, end: start + loops * bar };
+    pat.notes = { L: [], R: [] };
+    if (!listenOnly) patSay(`Ready... ${Array.from({ length: b.beats }, (_, k) => k + 1).join(", ")}...`);
+    if (!listenOnly) { const id = pat.run; setTimeout(() => { if (pat.run === id) patSay("Go! Tap along with the dots. Gold means right on time."); }, (start - ac.currentTime) * 1000); }
+    renderSheet();
+    patFrame();
+  }
+  function patStop(quiet) {
+    cancelAnimationFrame(pat.raf);
+    const r = pat.run;
+    pat.run = null;
+    if (!quiet && r && !r.listen) patFeedback(r);
+    if (sheetMode === "pattern" && !quiet) renderSheet();
+  }
+  function patFrame() {
+    cancelAnimationFrame(pat.raf);
+    const r = pat.run, strip = $("ptStrip");
+    if (!r || sheetMode !== "pattern") return;
+    const now = ac.currentTime;
+    if (now > r.end + 0.2) { patStop(); return; }
+    const head = strip && strip.querySelector(".pt-head");
+    if (head) {
+      const x = now - r.start;
+      head.hidden = x < 0;
+      if (x >= 0) head.style.left = `calc(46px + (100% - 56px) * ${((x % r.bar) / r.bar).toFixed(4)})`;
+    }
+    pat.raf = requestAnimationFrame(patFrame);
+  }
+  // a tap or a key: which hit was it closest to, and how early or late
+  function patTap(hand, midi) {
+    const b = patBar();
+    if (!b) return;
+    const r = pat.run;
+    // play the sound right away: the notes of that hand's nearest hit, or the key you pressed
+    let near = null;
+    if (r && !r.listen) {
+      const pos = (ac.currentTime - r.start) / r.cl;
+      if (pos > -0.5 && pos < r.loops * r.beats + 0.5) {
+        const inBar = ((pos % r.beats) + r.beats) % r.beats;
+        r.hits.forEach((h, i) => {
+          if (h.hand !== hand) return;
+          let d = inBar - h.at; if (d > r.beats / 2) d -= r.beats; if (d < -r.beats / 2) d += r.beats;
+          if (!near || Math.abs(d) < Math.abs(near.d)) near = { i, d, h };
+        });
+        if (near && Math.abs(near.d) < 0.45) {
+          r.taps[hand].push(near.d);
+          const el = $("ptStrip")?.querySelector(`.pt-hit[data-hit="${near.i}"]`);
+          if (el) { el.classList.remove("got", "early", "late"); void el.offsetWidth; el.classList.add("got", near.d < -0.12 ? "early" : near.d > 0.12 ? "late" : "on"); }
+        }
+      }
+    }
+    if (midi == null) {
+      const h = (near && near.h) || b.hits.find(x => x.hand === hand);
+      if (h && ac) h.notes.forEach((m, k) => tone(m, ac.currentTime + k * 0.008, 0.35, h.vel * 1.1));
+    }
+    const pad = $("sheetBody").querySelector(`.pt-pad.${hand}`);
+    if (pad) { pad.classList.remove("hit"); void pad.offsetWidth; pad.classList.add("hit"); }
+  }
+  function patSay(t) { pat.said = t; const el = $("ptSay"); if (el) el.textContent = t; }
+  // how it felt, in words: steady, rushing or dragging, hand by hand
+  function patFeedback(r) {
+    const feel = xs => { if (xs.length < 3) return null; const m = xs.reduce((a, b) => a + b, 0) / xs.length; return m < -0.08 ? "rushed a little" : m > 0.08 ? "dragged a little" : "sat right in the pocket"; };
+    const Lf = feel(r.taps.L), Rf = feel(r.taps.R), who = B().name.replace("Captain ", "");
+    const want = { L: r.hits.some(h => h.hand === "L"), R: r.hits.some(h => h.hand === "R") };
+    let t;
+    if (!r.taps.L.length && !r.taps.R.length) t = "Round it goes. Try tapping along next time, even just one hand.";
+    else if (Lf && Rf) t = `Left hand ${Lf}, right hand ${Rf}.${Lf === Rf && Lf.startsWith("sat") ? " That's it. Try it without the slow switch." : ""}`;
+    else if (Lf || Rf) t = `${Lf ? `Left hand ${Lf}` : `Right hand ${Rf}`}. ${want.L && want.R ? `Now add the ${Lf ? "right" : "left"} hand.` : ""}`;
+    else t = "A few taps in. Keep going, it comes quickly.";
+    patSay(`${who}: ${t}`);
+  }
+  function patternClick(e) {
+    const ps = e.target.closest("[data-patstyle]");
+    if (ps) { patStop(true); pat.style = ps.dataset.patstyle; pat.said = ""; renderSheet(); patStart(true); return true; }
+    const a = e.target.closest("[data-patact]");
+    if (!a) return false;
+    const k = a.dataset.patact;
+    if (k === "along") patStart(false);
+    else if (k === "stop") patStop();
+    else if (k === "hear") patStart(true);
+    else if (k === "slow") { pat.slow = !pat.slow; renderSheet(); }
+    else if (k === "guide") { pat.guide = !pat.guide; renderSheet(); }
+    else if (k === "use") { setStyle(patStyle()); pat.style = null; renderDeck(); renderSheet(); toast(`the ${sec().name.toLowerCase()} plays ${STYLES[styleOf(secIdx)]} now`, true); }
+    return true;
+  }
+  // pads answer on press, not on click, so they're in time
+  document.addEventListener("pointerdown", e => {
+    const p = e.target.closest("[data-pad]");
+    if (!p || sheetMode !== "pattern") return;
+    e.preventDefault();
+    if (!ac) { audioReady(); return; }
+    patTap(p.dataset.pad);
+  });
+  // a real keyboard: below middle C is the left hand
+  kb.hooks.push((type, m) => {
+    if (type !== "on" || sheetMode !== "pattern") return false;
+    patTap(m < 60 ? "L" : "R", m);
+    return false;
+  });
 
   // =========================================================
   // App state
@@ -10510,7 +10772,7 @@
     $("deckTitle").textContent = (prefs.wholeSong ? (song.title || "untitled") : sec().name).toLowerCase();
     renderScope();
     $("deckInfo").textContent = `${S().bpm} bpm · ${Mtr.id} · ${pretty(keyName(K))}`;
-    $("style").textContent = STYLES[S().style];
+    $("style").textContent = STYLES[styleOf(secIdx)];
     document.body.style.setProperty("--beat", (60 / S().bpm).toFixed(3) + "s");
     renderLights(Mtr.n);
   }
@@ -10650,7 +10912,7 @@
     if (playLog.length > 48) playLog.shift();
     const withDemo = demoOn() && !previewing, band = !(withDemo && demoMode() === "alone");
     if (withDemo) { demoPlayChord(c, nextT, cl, M, playSec, playPos, demoFirst); demoFirst = false; }
-    if (band) playChord(c.v, nextT, c.beats, cl, S().style, { M, pos0: c.pos0 });
+    if (band) playChord(c.v, nextT, c.beats, cl, styleOf(playSec), { M, pos0: c.pos0 });
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") && !withDemo ? melodyChain(playSec).get(c.i) : null;
     if (band) playRiff(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
@@ -10767,7 +11029,7 @@
     if (!c || playing || !(await audioReady())) return;
     const cl = countSec(Mtr, S().bpm), t = ac.currentTime + 0.05;
     const mel = melodyChain(secIdx).get(c.i);
-    playChord(c.v, t, c.beats, cl, S().style, { M: Mtr, pos0: c.pos0 });
+    playChord(c.v, t, c.beats, cl, styleOf(secIdx), { M: Mtr, pos0: c.pos0 });
     playRiff(sec(), c, current, K, t, cl, mel);
     if (mel) singChord(c, mel, t, cl, secIdx, true);
     if (c === current[sel]) fx(c);
@@ -10968,6 +11230,9 @@
     renderAll();
   }
   function setting(k, v) { S()[k] = v; saveSongs(); }
+  // each part can play its own way; most follow the song
+  const styleOf = i => { const x = song.sections[i]; return (x && STYLES[x.style]) ? x.style : S().style; };
+  function setStyle(k) { if (sec().style) sec().style = k; else setting("style", k); saveSongs(); }
   function openEntry() {
     document.body.classList.add("entry-open");
     input.focus();
@@ -11291,7 +11556,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -11333,6 +11598,7 @@
     storyPlay = null; echo = null;
     if (sheetMode === "along") { cancelAnimationFrame(alongRaf); alongHold = null; }
     if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
+    if (sheetMode === "pattern") patStop(true);
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
@@ -11439,6 +11705,7 @@
     if (sheetMode === "along") { $("sheetTitle").textContent = `words · ${sec().name.toLowerCase()}`; body.innerHTML = wordsTabs() + alongHTML(); alongFrame(); return; }
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
+    if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
@@ -11474,7 +11741,10 @@
           <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
           <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
         <div class="knob"><span class="lbl">the piano plays</span>
-          <div class="presets">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${S().style === k}">${esc(v)}</button>`).join("")}</div></div>
+          <div class="seg-row" role="group" aria-label="Which parts this changes"><button type="button" class="seg-btn" data-stylescope="song" aria-pressed="${!sec().style}">the whole song</button><button type="button" class="seg-btn" data-stylescope="part" aria-pressed="${!!sec().style}">just the ${esc(sec().name.toLowerCase())}</button></div>
+          <div class="presets style-picks">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${styleOf(secIdx) === k}">${esc(v)}<small>${"●".repeat(STYLE_INFO[k].lvl)}${"○".repeat(3 - STYLE_INFO[k].lvl)}${STYLE_INFO[k].fan === prefs.buddy ? ` · ${esc(B().name.replace("Captain ", ""))}'s favourite` : ""}</small></button>`).join("")}</div>
+          <p class="note">${esc(STYLES[styleOf(secIdx)])}: ${esc(STYLE_INFO[styleOf(secIdx)].note)} The dots are how tricky it is to play yourself.</p>
+          <div class="row"><button class="btn" type="button" data-open="pattern">🎹 play the pattern yourself</button></div></div>
         <div class="knob"><span class="lbl">piano sound</span>
           <div class="presets">${Object.entries(VOICES).map(([k, v]) => { const own = BUDDY_ORDER.find(id => BUDDIES[id].voice === k); return `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}<small>${own ? `${esc(BUDDIES[own].name)}'s${own === prefs.buddy ? " · playing with you" : ""}` : ""}</small></button>`; }).join("")}</div></div>
         <span class="lbl">the beat</span>
@@ -11681,12 +11951,12 @@
   // Wiring
   // =========================================================
   $("style").addEventListener("click", async () => {
-    const keys = Object.keys(STYLES);
-    setting("style", keys[(keys.indexOf(S().style) + 1) % keys.length]);
+    const keys = Object.keys(STYLES), cur = styleOf(secIdx);
+    setStyle(keys[(keys.indexOf(cur) + 1) % keys.length]);
     renderDeck();
-    toast(`playing it ${STYLES[S().style]}`);
+    toast(`${sec().style ? `the ${sec().name.toLowerCase()} plays` : "playing it"} ${STYLES[styleOf(secIdx)]}`);
     const c = current[sel];
-    if (c && !playing && await audioReady()) playChord(c.v, ac.currentTime + 0.03, c.beats, countSec(Mtr, S().bpm), S().style, { M: Mtr, pos0: c.pos0 });
+    if (c && !playing && await audioReady()) playChord(c.v, ac.currentTime + 0.03, c.beats, countSec(Mtr, S().bpm), styleOf(secIdx), { M: Mtr, pos0: c.pos0 });
   });
   $("openBeat").addEventListener("click", () => openSheet("beat"));
   $("buddyHit").addEventListener("click", () => openSheet("band"));
@@ -12168,6 +12438,7 @@
     if (sheetMode === "playin" && playinClick(e)) return;
     if (sheetMode === "street" && streetClick(e)) return;
     if (sheetMode === "play" && playClick(e)) return;
+    if (sheetMode === "pattern" && patternClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
@@ -12343,11 +12614,19 @@
       playOne(0);
       return;
     }
+    const scopeB = e.target.closest("[data-stylescope]");
+    if (scopeB) {
+      if (scopeB.dataset.stylescope === "part") { if (!sec().style) sec().style = styleOf(secIdx); }
+      else delete sec().style;
+      saveSongs(); renderDeck(); renderSheet();
+      toast(sec().style ? `the ${sec().name.toLowerCase()} can play its own way now` : `the ${sec().name.toLowerCase()} follows the song again`);
+      return;
+    }
     const styleB = e.target.closest("[data-style]");
     if (styleB) {
-      setting("style", styleB.dataset.style); renderDeck(); renderSheet();
+      setStyle(styleB.dataset.style); renderDeck(); renderSheet();
       const c = current[sel];
-      if (c && !playing && await audioReady()) playChord(c.v, ac.currentTime + 0.03, c.beats, countSec(Mtr, S().bpm), S().style, { M: Mtr, pos0: c.pos0 });
+      if (c && !playing && await audioReady()) playChord(c.v, ac.currentTime + 0.03, c.beats, countSec(Mtr, S().bpm), styleOf(secIdx), { M: Mtr, pos0: c.pos0 });
       return;
     }
     const voice = e.target.closest("[data-voice]"), buddy = e.target.closest(".buddy-card[data-buddy]"), mood = e.target.closest("[data-mood]");
