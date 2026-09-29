@@ -1801,6 +1801,7 @@
   .pt-pad.hit { animation: ptPad .18s ease; }
   @keyframes ptPad { 0% { transform: scale(.94); } 100% { transform: scale(1); } }
   .style-picks .choice small { letter-spacing: 1px; }
+  .sm-own { background: color-mix(in srgb, var(--lamp) 40%, transparent); border-radius: 6px; padding: 0 5px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7465,7 +7466,7 @@
     const hasWords = current.some(c => (words()[c.i] || "").trim()), timed = isTimed(x);
     const tabs = `<div class="tabs" role="tablist"><button type="button" role="tab" data-tunetab="sing" aria-selected="${tuneTab === "sing"}">the sung line</button><button type="button" role="tab" data-tunetab="riff" aria-selected="${tuneTab === "riff"}">the lead riff</button></div>`;
     const top = `<div class="knob tune-focus"><span class="lbl">listen to</span><div class="seg-row four" role="group" aria-label="What you hear while shaping">${[["all", "the whole band"], ["sing", `${esc(B().name.replace("Captain ", ""))} alone`], ["riff", "the riff alone"], ["both", "voice + riff"]].map(([v, n]) => `<button type="button" class="seg-btn" data-tunefocus="${v}" aria-pressed="${tuneFocus === v}">${n}</button>`).join("")}</div></div>
-      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>`;
+      <div class="row"><button class="btn surprise" type="button" data-tuneact="hear">▶ hear the ${esc(x.name.toLowerCase())}</button><button class="btn" type="button" data-tuneact="chorus">${x.big ? "↶ not a chorus" : "✦ make it a chorus"}</button><button class="btn" type="button" data-open="lessons">✦ how tunes & riffs work</button></div>`;
     let body;
     if (tuneTab === "sing") {
       const rows = TUNE_ROWS.filter(r => !(timed && (r[0] === "enter" || r[0] === "breath")));
@@ -7535,6 +7536,7 @@
     }
     const a = t.dataset.tuneact;
     if (a === "hear") previewPart(64, { sing: true, lead: tuneFocus === "riff" || tuneFocus === "both" });
+    else if (a === "chorus") { makeChorus(x, !x.big); renderSheet(); renderStage(); toast(x.big ? `the ${x.name.toLowerCase()} is a chorus now` : `the ${x.name.toLowerCase()} is back how it was`); previewPart(16, { sing: true, lead: tuneFocus === "riff" || tuneFocus === "both" }); }
     else if (a === "leadon") { prefs.layers.lead = true; savePrefs(); applyView(); renderSheet(); previewPart(); }
     else if (a === "newhook") { x.hook = ((x.hook ?? (x.seed || 1)) + 1) % HOOKS.length; saveSongs(); previewPart(); }
     else if (a === "reset") { delete x.sing; delete x.riff; delete x.nudge; delete x.leadTake; delete x.tuneTake; saveSongs(); renderSheet(); renderStage(); previewPart(); }
@@ -9694,7 +9696,7 @@
       return `<li class="sm-row${p === ordPos ? " on" : ""}${copies > 1 ? " linked" : ""}" data-p="${p}">
         <button class="sm-grip" type="button" data-map="grip" data-p="${p}" aria-label="Part ${p + 1}. Drag to move it">${p + 1}</button>
         <button class="sm-main" type="button" data-map="open" data-p="${p}" aria-label="Open the ${esc(x.name)}">
-          <span class="sm-name">${esc(x.name.toLowerCase())}${again ? `<small>↻ ${again}</small>` : ""}${p === ordPos ? `<small class="sm-here">open now</small>` : ""}</span>
+          <span class="sm-name">${esc(x.name.toLowerCase())}${again ? `<small>↻ ${again}</small>` : ""}${x.big ? `<small class="sm-own">✦ big</small>` : ""}${x.keyShift ? `<small class="sm-own">key ${x.keyShift > 0 ? "+" : ""}${x.keyShift}</small>` : ""}${x.ownMeter ? `<small class="sm-own">${esc(x.meter)}</small>` : ""}${x.style ? `<small class="sm-own">${esc(STYLES[x.style] || "")}</small>` : ""}${p === ordPos ? `<small class="sm-here">open now</small>` : ""}</span>
           <span class="sm-strip">${strip}</span>
         </button>
         <div class="sm-acts">${acts}</div>
@@ -10183,7 +10185,8 @@
     const valid = its.filter(x => x.ch);
     // a part with only a chord or two takes its key from the whole song
     const songChords = () => song.sections.flatMap(x => tokenize(x.prog).map(t => parseChord(splitBeats(t).chord)).filter(Boolean));
-    const key = parseKeySetting(settings.key) || detectKey(valid.length >= 3 || !song ? valid.map(x => x.ch) : songChords());
+    // a part with its own key sits a few steps from the song's; everything else shares it
+    const key = section.keyShift && song ? shiftKey(songBaseKey(), section.keyShift) : (parseKeySetting(settings.key) || detectKey(valid.length >= 3 || !song ? valid.map(x => x.ch) : songChords()));
     const cfg = { trim: settings.level === "starter", oneHand: settings.oneHand };
     const opts = valid.map(x => options(x.ch, cfg));
     const ovr = valid.map(x => overrides.get(x.key));
@@ -10205,6 +10208,24 @@
     }
     return { items: its, current: cur, key, M, total: at };
   }
+  const shiftKey = (k, n) => ({ tonic: mod(k.tonic + n), minor: k.minor });
+  // the song's own key: pinned, or heard from the parts that don't have a key of their own
+  function songBaseKey() {
+    const k = parseKeySetting(S().key);
+    if (k) return k;
+    const chs = song.sections.filter(x => !x.keyShift).flatMap(x => tokenize(x.prog).map(t => parseChord(splitBeats(t).chord)).filter(Boolean));
+    return detectKey(chs.length ? chs : song.sections.flatMap(x => tokenize(x.prog).map(t => parseChord(splitBeats(t).chord)).filter(Boolean)));
+  }
+  // move one part's chords by n half steps and remember how far it sits from the song
+  function shiftPart(x, n) {
+    NAMES = namesFor(shiftKey(songBaseKey(), mod((x.keyShift || 0) + n)));
+    x.prog = x.prog.replace(/[^\s,|]+/g, t => shiftTok(t, n));
+    let k = (x.keyShift || 0) + n; k = ((k % 12) + 12) % 12; if (k > 6) k -= 12;
+    if (k) x.keyShift = k; else delete x.keyShift;
+    if (x === sec()) input.value = x.prog;
+    saveSongs(); renderAll();
+  }
+  const stepWords = n => { const a = Math.abs(n); return `${a === 1 ? "a half step" : a === 2 ? "a whole step" : a + " half steps"} ${n > 0 ? "up" : "down"}`; };
   function sectionData(sIdx) {
     if (sIdx === secIdx) return { list: current, key: K, M: Mtr, T: total };
     const r = compute(song.sections[sIdx], S(), sIdx);
@@ -10870,7 +10891,28 @@
     for (let m = hi - 2; m > lo; m--) if (pcs.has(mod(m))) return m;
     return hi - 3;
   }
-  function drumsFor(c, t0, M, T, cl, pass, sung) {
+  // a part made into a chorus: sung higher, doubled with a harmony, fuller piano and drums
+  const chorusLike = x => !!x && (!!x.big || /chorus|hook/i.test(x.name || ""));
+  const STYLE_LIFT = { block: "ballad", ballad: "pop", broken: "cascade", alberti: "cascade", stride: "stride", waltz: "waltz" };
+  function makeChorus(x, on) {
+    if (on) {
+      if (x.big) return;
+      x.bigWas = { style: x.style ?? null, reg: (x.sing || {}).reg ?? null };
+      x.big = true;
+      x.sing = { ...(x.sing || {}), reg: "high" };
+      const st = x.style || S().style, lift = STYLE_LIFT[st];
+      if (lift && lift !== st) x.style = lift;
+    } else {
+      if (!x.big) return;
+      const w = x.bigWas || {};
+      delete x.big; delete x.bigWas;
+      if (w.style) x.style = w.style; else delete x.style;
+      x.sing = { ...(x.sing || {}) };
+      if (w.reg) x.sing.reg = w.reg; else delete x.sing.reg;
+    }
+    saveSongs(); renderAll();
+  }
+  function drumsFor(c, t0, M, T, cl, pass, sung, big) {
     const b = B(), rows = beatFor(M.id).rows, snds = b.sounds, n = M.n, sp = stepsPer(M);
     const lvl = fillsFor(), fl = fillCounts(M, lvl);
     for (let k = 0; k < c.beats; k++) {
@@ -10878,12 +10920,17 @@
       const inFill = lvl > 0 && fillBar(bar, last, lvl) && a >= barEnd - fl;
       const t = t0 + k * cl;
       if (pos === 0 && lvl > 0 && (a === 0 ? pass > 0 : fillBar(bar - 1, false, lvl))) drumHit(b.crash, t, 0.8);
+      else if (big && pos === 0) drumHit(b.crash, t, 0.5);
       for (let q = 0; q < sp; q++) {
         const tq = t + q * cl / sp;
         if (inFill) {
           const N = fl * sp, i = (a - (barEnd - fl)) * sp + q;
           FILLS[b.fill](i, N).forEach(([kind, v, off = 0, p = 1]) => drumHit(kind, tq + off * cl / sp, v, p));
-        } else rows.forEach((row, r) => { if (row[pos * sp + q]) drumHit(snds[r][1], tq, q === 0 ? 1 : 0.72); });
+        } else {
+          rows.forEach((row, r) => { if (row[pos * sp + q]) drumHit(snds[r][1], tq, (q === 0 ? 1 : 0.72) * (big && r < 2 ? 1.12 : 1)); });
+          // a chorus keeps the third row going on every step
+          if (big && rows[2] && !rows[2][pos * sp + q]) drumHit(snds[2][1], tq, 0.45);
+        }
       }
       // a shout going into the loop's last fill
       if (inFill && last && lvl >= 3 && a === T - fl && L("sing") && !sung) singWord(b.adlib, adlibNote(c), t, Math.min(0.55, fl * cl * 0.9), prefs.buddy);
@@ -10916,7 +10963,7 @@
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") && !withDemo ? melodyChain(playSec).get(c.i) : null;
     if (band) playRiff(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
-    if (band && L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel);
+    if (band && L("drums")) drumsFor(c, nextT, M, d.T, cl, passNo, !!mel, !!(song.sections[playSec] || {}).big);
     for (let k = 0; k < c.beats; k++) {
       const pos = (c.at + k) % M.n;
       later(() => { if (playing) beatLight(pos, M); }, (nextT + k * cl - ac.currentTime) * 1000);
@@ -10971,7 +11018,7 @@
   function singChord(c, mel, t0, cl, sIdx = secIdx, alone = false) {
     const who = prefs.buddy;
     const moodOf = x => ({ minor: ["min", "dim"].includes(baseQuality(x.ch.ivs)), fn: x.a.fn });
-    const chorus = /chorus|hook/i.test((song.sections[sIdx] || {}).name || "");
+    const chorus = chorusLike(song.sections[sIdx]);
     const lns = alone ? [{ sy: mel.sy, notes: mel.notes.map(n => ({ ...n, ci: 0, s: n.s })), chords: [c] }] : mel.lines || (mel.line ? [mel.line] : []);
     lns.forEach(ln => {
     if (ln && ln.notes.length) {
@@ -11861,10 +11908,16 @@
       body.innerHTML = `
         <div class="knob"><span class="lbl">call it</span>
           <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
+        <div class="knob"><span class="lbl">feel</span>
+          <div class="row"><button class="btn${x.big ? "" : " surprise"}" type="button" data-chorus="${x.big ? "off" : "on"}">${x.big ? "↶ back to how it was" : "✦ make it a chorus"}</button></div>
+          <p class="note">${x.big ? `Sung higher with a harmony on top, ${esc(STYLES[x.style || S().style])} piano, and the drums open up.` : `One tap: ${esc(B().name.replace("Captain ", ""))} sings it higher with a harmony, the piano plays fuller, and the drums open up. Tap again to undo.`}</p></div>
+        <div class="knob"><span class="lbl">key</span>
+          <div class="seg-row" role="group" aria-label="This part's key"><button type="button" class="seg-btn" data-partkey="follow" aria-pressed="${!x.keyShift}">same as the song<small>${esc(pretty(keyName(songBaseKey())))}</small></button><button type="button" class="seg-btn" data-partkey="own" aria-pressed="${!!x.keyShift}">its own key<small>${x.keyShift ? `${esc(pretty(keyName(shiftKey(songBaseKey(), x.keyShift))))} · ${stepWords(x.keyShift)}` : "a key change"}</small></button></div>
+          ${x.keyShift ? `<div class="row key-steps"><button class="btn" type="button" data-partshift="-1">− half step</button><button class="btn" type="button" data-partshift="1">half step +</button><button class="btn" type="button" data-partshift="2">whole step +</button></div>` : ""}
+          ${copies > 1 ? `<p class="note">The ${esc(x.name.toLowerCase())} plays ${copies} times, and a key change moves every one. <button class="link" type="button" data-partkey="lastlift">lift just the last one a whole step</button>, the classic big finish.</p>` : `<p class="note">Most songs stay in one key. A part in its own key is a key change: the whole part moves up or down, and its house changes with it.</p>`}</div>
         <div class="knob"><span class="lbl">time signature</span>
-          ${x.ownMeter ? `<div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-partmeter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>
-          <button class="link" type="button" data-partmeter="follow">go back to the song's ${esc(songMeter())}</button>`
-          : `<div class="row"><span class="note">same as the song, ${esc(songMeter())}</span><button class="chip" type="button" data-partmeter="own">give the ${esc(x.name.toLowerCase())} its own</button></div>`}</div>
+          <div class="seg-row" role="group" aria-label="This part's time signature"><button type="button" class="seg-btn" data-partmeter="follow" aria-pressed="${!x.ownMeter}">same as the song<small>${esc(songMeter())}</small></button><button type="button" class="seg-btn" data-partmeter="own" aria-pressed="${!!x.ownMeter}">its own timing<small>${x.ownMeter ? esc(x.meter) : "a change of feel"}</small></button></div>
+          ${x.ownMeter ? `<div class="presets">${METER_ORDER.map(m => `<button class="choice" type="button" data-partmeter="${m}" aria-pressed="${x.meter === m}">${m}<small>${esc(METERS[m].name)}</small></button>`).join("")}</div>` : ""}</div>
         <div class="knob"><span class="lbl">place in the song</span>
           <div class="row"><button class="btn" type="button" data-move="-1"${ordPos ? "" : " disabled"}>‹ earlier</button><button class="btn" type="button" data-move="1"${ordPos < song.order.length - 1 ? "" : " disabled"}>later ›</button><button class="btn" type="button" data-repeat="${x.id}">↻ play it again after this</button></div></div>
         ${song.order.length > 1 ? `<div class="row"><button class="btn" type="button" data-secact="remove">${copies > 1 ? "remove this copy" : "remove this part"}</button></div>` : ""}`;
@@ -12531,6 +12584,33 @@
     if (secAct) { removeOccurrence(); closeSheet(); return; }
     const meterB = e.target.closest("[data-meter]"), lenB = e.target.closest("[data-len]"), viewB = e.target.closest("[data-view]"), openB = e.target.closest("[data-open]");
     if (meterB) { setSongMeter(meterB.dataset.meter); renderSheet(); return; }
+    const chB = e.target.closest("[data-chorus]");
+    if (chB) {
+      makeChorus(sec(), chB.dataset.chorus === "on");
+      renderSheet();
+      toast(sec().big ? `the ${sec().name.toLowerCase()} is a chorus now` : `the ${sec().name.toLowerCase()} is back how it was`);
+      if (sec().big && !playing) previewPart(16);
+      return;
+    }
+    const pk = e.target.closest("[data-partkey]"), psh = e.target.closest("[data-partshift]");
+    if (pk || psh) {
+      const x = sec();
+      songSnap();
+      if (psh) shiftPart(x, +psh.dataset.partshift);
+      else if (pk.dataset.partkey === "own") { if (!x.keyShift) shiftPart(x, 2); }
+      else if (pk.dataset.partkey === "follow") { if (x.keyShift) shiftPart(x, -x.keyShift); }
+      else if (pk.dataset.partkey === "lastlift") {
+        // the last time this part plays becomes its own copy, a whole step up
+        const last = song.order.lastIndexOf(x.id), cp = JSON.parse(JSON.stringify(x));
+        cp.id = uid(); cp.name = twinName(x.name);
+        song.sections.push(cp); song.order[last] = cp.id;
+        switchSection(song.sections.length - 1, last);
+        shiftPart(sec(), 2);
+      }
+      renderSheet(); if (current[sel]) playOne(sel);
+      toast(sec().keyShift ? `the ${sec().name.toLowerCase()} is in ${pretty(keyName(K))}, ${stepWords(sec().keyShift)} from the song` : `the ${sec().name.toLowerCase()} is back in the song's key`, true);
+      return;
+    }
     const pm = e.target.closest("[data-partmeter]");
     if (pm) {
       const v = pm.dataset.partmeter, x = sec();
