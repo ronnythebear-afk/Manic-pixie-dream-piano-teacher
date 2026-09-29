@@ -1092,7 +1092,7 @@
   .dbtn[aria-pressed="true"]:not(.play) { background: rgba(239, 231, 220, .2); color: #efe7dc; box-shadow: inset 0 -3px 0 var(--lh); }
   .reels { background: rgba(239, 231, 220, .08); border-radius: 12px; }
   /* short phones with the lyric lane open: the keyboard gives up a little height */
-  @media (max-width: 520px) and (max-height: 900px) { .stage:has(.lane-row) .kbd svg { max-height: 128px; } }
+
 
   /* ---------- type: one face for the app, one for voices ---------- */
   body { font-feature-settings: "tnum" 1; }
@@ -1829,7 +1829,7 @@
   .path-step.done { opacity: .72; }
   .path-step.next { border-color: var(--ink); box-shadow: var(--shadow); }
   /* piano first: the keys fill the card; lyrics and the rest are the add-ons */
-  @media (max-height: 720px) and (max-width: 700px) { .stage .kbd svg { height: 66px; width: auto; max-width: 100%; display: block; margin: 0 auto; } }
+  @media (max-width: 700px) { .stage .kbd svg { width: 100%; height: auto; max-height: none; } }
   @media (min-width: 700px) {
     .stage .kbd svg { width: 100%; height: auto; max-height: min(46vh, 430px); }
     .lane { height: 58px; }
@@ -1898,6 +1898,17 @@
     .stage .shape-row { padding-top: 2px; padding-bottom: 0; }
     .stage .kbd .oct, .stage .kbd text.oct { display: none; }
   }
+  /* the piano plays: one button under the keys, the style and each hand's rhythm */
+  .how-row { display: flex; align-items: center; gap: 12px; width: 100%; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card-2); color: var(--ink); padding: 6px 12px; cursor: pointer; text-align: left; }
+  .how-row:hover { border-color: var(--ink); }
+  .how-name { display: grid; flex: none; }
+  .how-name small { font: 700 10.5px var(--body); color: var(--soft); text-transform: uppercase; letter-spacing: .05em; }
+  .how-name b { font: 900 15px var(--body); }
+  .how-strip { flex: 1; min-width: 0; height: 42px; max-width: 320px; }
+  .hw-lane { stroke: var(--line); stroke-width: .6; stroke-dasharray: 2 2; }
+  .hw-lbl { font: 700 8.5px var(--body); fill: var(--soft); }
+  .hw-num { font: 800 8px var(--body); fill: var(--soft); text-anchor: middle; }
+  .shape-row .how-row { flex: 1 1 300px; justify-content: flex-start; margin: 2px 0 0; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -9986,7 +9997,7 @@
         <button class="pt-pad R" type="button" data-pad="R"><b>right hand</b><small>the chord up top</small></button>
       </div>
       <p class="game-say" id="ptSay">${esc(pat.said || (keysOn() ? "Play along on your keyboard, or tap the pads. One bar of clicks counts you in." : "Tap the pads in time with the dots. One bar of clicks counts you in."))}</p>
-      <div class="row">${sec().style === st || (!sec().style && S().style === st) ? `<span class="note">This is how the ${esc(sec().name.toLowerCase())} plays now.</span>` : `<button class="btn" type="button" data-patact="use">use it for the ${esc(sec().name.toLowerCase())}</button>`}<button class="btn" type="button" data-open="beat">the band</button></div>
+      <div class="row"><span class="note">Tap a style and the ${esc(sec().style ? sec().name.toLowerCase() : "song")} plays it. <button class="link" type="button" data-open="beat">${sec().style ? "back to one style for the whole song" : "give just this part its own style"}</button></span></div>
     </div>`;
   }
   // count in one bar, then go round the bar four times
@@ -10075,7 +10086,7 @@
   }
   function patternClick(e) {
     const ps = e.target.closest("[data-patstyle]");
-    if (ps) { patStop(true); pat.style = ps.dataset.patstyle; pat.said = ""; renderSheet(); patStart(true); return true; }
+    if (ps) { patStop(true); setStyle(ps.dataset.patstyle); pat.style = null; pat.said = ""; renderDeck(); renderStage(); renderSheet(); patStart(true); return true; }
     const a = e.target.closest("[data-patact]");
     if (!a) return false;
     const k = a.dataset.patact;
@@ -11085,15 +11096,16 @@
   // how the piano plays this chord, right under the keys: the style, and each hand's rhythm for a bar
   function howRowHTML(c) {
     const st = styleOf(secIdx), beats = Math.min(c.beats, Mtr.n) || Mtr.n, hits = styleHits(c.v, beats, st, { M: Mtr, pos0: c.pos0 });
-    const x = at => (4 + at / beats * 192).toFixed(1);
-    let ticks = "";
-    for (let k = 0; k <= beats; k++) ticks += `<path d="M${x(k)} 2V26" class="hw-tick${k % Mtr.n ? "" : " bar"}"/>`;
-    const dots = hits.map(h => `<circle class="hw-${h.hand}" cx="${x(h.at)}" cy="${h.hand === "R" ? 8 : 20}" r="${h.notes.length > 1 ? 3.4 : 2.6}"/>`).join("");
-    return `<div class="how-row">
-      <button class="how-style" type="button" data-act="stylecycle" title="How the piano plays. Tap for the next style">♬ <b>${esc(STYLES[st])}</b></button>
-      <svg class="how-strip" viewBox="0 0 200 28" aria-label="${esc(STYLES[st])}: what each hand plays"><text x="0" y="10" class="hw-lbl">R</text><text x="0" y="22" class="hw-lbl">L</text>${ticks}${dots}</svg>
-      <button class="how-go" type="button" data-open="pattern">play it yourself ›</button>
-    </div>`;
+    const x = at => (32 + at / beats * 160).toFixed(1);
+    let nums = "";
+    for (let k = 0; k < beats; k++) nums += `<text x="${x(k)}" y="39" class="hw-num">${k + 1}</text>`;
+    const dots = hits.map(h => `<circle class="hw-${h.hand}" cx="${x(h.at)}" cy="${h.hand === "R" ? 9 : 23}" r="${h.notes.length > 1 ? 4 : 3}"/>`).join("");
+    return `<button class="how-row" type="button" data-open="pattern" aria-label="The piano plays ${esc(STYLES[st])}. Tap to change it or play it yourself">
+      <span class="how-name"><small>the piano plays</small><b>${esc(STYLES[st])} ▾</b></span>
+      <svg class="how-strip" viewBox="0 0 200 42" aria-hidden="true">
+        <text x="0" y="12" class="hw-lbl">right</text><text x="0" y="26" class="hw-lbl">left</text>
+        <path d="M30 9H196M30 23H196" class="hw-lane"/>${dots}${nums}</svg>
+    </button>`;
   }
   function laneRow(c) {
     const m = laneModel(c), editing = editingLyric;
@@ -12563,7 +12575,6 @@
     if (e.target.closest('[data-act="moods"]')) { openSheet("moods"); return; }
     if (e.target.closest('[data-act="more"]')) { openSheet("add"); return; }
     if (e.target.closest('[data-act="arrange"]')) { setArranging(!arranging); return; }
-    if (e.target.closest('[data-act="stylecycle"]')) { $("style").click(); setTimeout(renderStage, 30); return; }
     if (e.target.closest('[data-act="stories"]')) { storyAt = null; openSheet("stories"); return; }
     if (e.target.closest('[data-act="songsheet"]')) { openSheet("songsheet"); return; }
     if (e.target.closest('[data-act="words"]')) { openSheet("along"); return; }
@@ -12743,6 +12754,8 @@
     renderStage();
   }
   stageEl.addEventListener("click", e => {
+    const op = e.target.closest("[data-open]");
+    if (op) { openSheet(op.dataset.open); return; }
     const sy = !editingLyric && e.target.closest("#lane .syl:not(.tie)");
     if (sy && current[sel]) { nudgeSel = { i: current[sel].i, s: +sy.dataset.s }; renderStage(); previewSing(current[sel]); return; }
     const hb = e.target.closest("[data-held]");
