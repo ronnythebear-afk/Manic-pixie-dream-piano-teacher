@@ -1809,6 +1809,9 @@
   .mh-win.party .mh-name { opacity: .35; }
   .mh-win.now.party .mh-name { opacity: .15; }
   @media (prefers-reduced-motion: reduce) { #mhPeek .peek { animation: none; } }
+  .duet .friend-row .solo b { display: grid; place-items: center; width: 44px; height: 44px; font-size: 22px; }
+  .duet .friend-row, .knob > .friend-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; gap: 6px; }
+  .duet .friend-row .buddy-mini, .knob > .friend-row .buddy-mini { width: auto; min-width: 0; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7502,6 +7505,7 @@
       const main = TUNE_MAIN.map(k => rows.find(r => r[0] === k)).filter(Boolean), more = rows.filter(r => !TUNE_MAIN.includes(r[0]));
       body = `${hasWords ? "" : `<p class="note"><button class="link" type="button" data-open="along">Write some words for this part</button> to hear the tune. The settings work either way.</p>`}
         ${main.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("")}
+        ${duetHTML(x)}
         ${tuneTakeHTML()}
         ${fold("sing", "more shaping", more.map(([k, label, opts]) => row(k, label, opts, T, "tuneset")).join("") + (timed ? `<p class="note">Your lines are timed by hand, so they come in and breathe where you held them.</p>` : ""))}
         <p class="note">Tap a word in the lyric lane to nudge one syllable up or down, or hold it longer.</p>`;
@@ -7815,7 +7819,7 @@
       leanIn(notes, sy, g, who, seed);
       applyNudges(section, g, S2, notes, d.key, who);
       applyPlayed(section, g, notes);
-      const line = { sy, notes, chords: g };
+      const line = { sy, notes, chords: g, no: lineNo };
       S2.forEach((seg, ci) => add(seg.c, { sy: seg.sy, notes: notes.filter(n => n.ci === ci).map(n => ({ ...n, start: n.start - seg.off, s: n.local })), scat: false, line: ci ? null : line, lines: ci ? [] : [line], inLine: ci > 0, noReply: false }));
       prev = { note: notes[notes.length - 1].midi, rhTop: Math.max(...g[g.length - 1].v.rh) };
       lineNo++;
@@ -9725,7 +9729,7 @@
       return `<li class="sm-row${p === ordPos ? " on" : ""}${copies > 1 ? " linked" : ""}" data-p="${p}">
         <button class="sm-grip" type="button" data-map="grip" data-p="${p}" aria-label="Part ${p + 1}. Drag to move it">${p + 1}</button>
         <button class="sm-main" type="button" data-map="open" data-p="${p}" aria-label="Open the ${esc(x.name)}">
-          <span class="sm-name">${esc(x.name.toLowerCase())}${again ? `<small>↻ ${again}</small>` : ""}${x.big ? `<small class="sm-own">✦ big</small>` : ""}${x.keyShift ? `<small class="sm-own">key ${x.keyShift > 0 ? "+" : ""}${x.keyShift}</small>` : ""}${x.ownMeter ? `<small class="sm-own">${esc(x.meter)}</small>` : ""}${x.style ? `<small class="sm-own">${esc(STYLES[x.style] || "")}</small>` : ""}${p === ordPos ? `<small class="sm-here">open now</small>` : ""}</span>
+          <span class="sm-name">${esc(x.name.toLowerCase())}${again ? `<small>↻ ${again}</small>` : ""}${x.big ? `<small class="sm-own">✦ big</small>` : ""}${x.duet && BUDDIES[x.duet.who] ? `<small class="sm-own">♪ with ${esc(BUDDIES[x.duet.who].name.replace("Captain ", ""))}</small>` : ""}${x.keyShift ? `<small class="sm-own">key ${x.keyShift > 0 ? "+" : ""}${x.keyShift}</small>` : ""}${x.ownMeter ? `<small class="sm-own">${esc(x.meter)}</small>` : ""}${x.style ? `<small class="sm-own">${esc(STYLES[x.style] || "")}</small>` : ""}${p === ordPos ? `<small class="sm-here">open now</small>` : ""}</span>
           <span class="sm-strip">${strip}</span>
         </button>
         <div class="sm-acts">${acts}</div>
@@ -10254,6 +10258,26 @@
     if (x === sec()) input.value = x.prog;
     saveSongs(); renderAll();
   }
+  // the duet picker, in the part sheet and the tune sheet
+  const DUET_HOW = [["harmony", "in harmony"], ["trade", "trade lines"], ["together", "together"]];
+  function duetHTML(x) {
+    const d = x.duet && BUDDIES[x.duet.who] && x.duet.who !== prefs.buddy ? x.duet : null, me = B().name.replace("Captain ", "");
+    return `<div class="knob duet"><span class="lbl">duet</span>
+      <div class="friend-row">${[null, ...BUDDY_ORDER.filter(id => id !== prefs.buddy)].map(id => id ? `<button class="buddy-card buddy-mini" type="button" data-duet="${id}" aria-pressed="${!!d && d.who === id}" aria-label="Sing it with ${esc(BUDDIES[id].name)}">${portrait(id)}<span>${esc(BUDDIES[id].name.replace("Captain ", "Capt. "))}</span></button>` : `<button class="buddy-card buddy-mini solo" type="button" data-duet="" aria-pressed="${!d}"><b>♪</b><span>${esc(me)} alone</span></button>`).join("")}</div>
+      ${d ? `<div class="seg-row three" role="group" aria-label="How they sing it">${DUET_HOW.map(([id, n]) => `<button type="button" class="seg-btn" data-duethow="${id}" aria-pressed="${d.how === id}">${n}</button>`).join("")}</div>
+        <p class="note">${d.how === "trade" ? `${esc(me)} sings the first line, ${esc(BUDDIES[d.who].name)} the next, back and forth.` : d.how === "together" ? `Both sing every word, each in their own range.` : `${esc(BUDDIES[d.who].name)} sings a harmony over ${esc(me)}'s tune.`}</p>` : `<p class="note">Bring in a friend for this part. Each part can have its own duet.</p>`}</div>`;
+  }
+  function duetClick(e) {
+    const dB = e.target.closest("[data-duet]"), hB = e.target.closest("[data-duethow]");
+    if (!dB && !hB) return false;
+    const x = sec();
+    if (dB) { if (dB.dataset.duet) x.duet = { who: dB.dataset.duet, how: (x.duet && x.duet.how) || "harmony" }; else delete x.duet; }
+    else if (x.duet) x.duet.how = hB.dataset.duethow;
+    saveSongs(); renderSheet(); renderSections();
+    toast(x.duet ? `${BUDDIES[x.duet.who].name} joins the ${x.name.toLowerCase()}, ${(DUET_HOW.find(h => h[0] === x.duet.how) || DUET_HOW[0])[1]}` : `${B().name} sings the ${x.name.toLowerCase()} alone`);
+    if (!playing) previewPart(16);
+    return true;
+  }
   const stepWords = n => { const a = Math.abs(n); return `${a === 1 ? "a half step" : a === 2 ? "a whole step" : a + " half steps"} ${n > 0 ? "up" : "down"}`; };
   function sectionData(sIdx) {
     if (sIdx === secIdx) return { list: current, key: K, M: Mtr, T: total };
@@ -10374,7 +10398,7 @@
       // your own touches: a syllable moved up or down the scale, held longer or cut short
       applyNudges(section, g, segs, notes, d.key, who);
       applyPlayed(section, g, notes);
-      const line = { sy, notes, chords: g };
+      const line = { sy, notes, chords: g, no: lineNo };
       g.forEach((c, ci) => {
         const seg = segs[ci];
         if (!seg.sy.length && ci) return;
@@ -11050,15 +11074,26 @@
     const moodOf = x => ({ minor: ["min", "dim"].includes(baseQuality(x.ch.ivs)), fn: x.a.fn });
     const chorus = chorusLike(song.sections[sIdx]);
     const lns = alone ? [{ sy: mel.sy, notes: mel.notes.map(n => ({ ...n, ci: 0, s: n.s })), chords: [c] }] : mel.lines || (mel.line ? [mel.line] : []);
+    // a duet partner for this part: in harmony, trading lines, or singing it together
+    const du = (song.sections[sIdx] || {}).duet, who2 = du && BUDDIES[du.who] && du.who !== who ? du.who : null;
+    // move a line into a singer's own range, an octave at a time
+    const fitTo = (notes, w) => { const [lo, hi] = (SING_STYLES[w] || SING_STYLES.wren).range, mid = notes.reduce((a, n) => a + n.midi, 0) / Math.max(1, notes.length); let sh = 0; while (mid + sh > hi) sh -= 12; while (mid + sh < lo) sh += 12; return sh ? notes.map(n => ({ ...n, midi: n.midi + sh })) : notes; };
     lns.forEach(ln => {
     if (ln && ln.notes.length) {
-      const t = t0 + (FEEL[who] || 0);
+      const above = n => { const ch = ln.chords[n.ci].ch, pcs = new Set(ch.ivs.map(iv => mod(ch.rootPc + iv))); for (let x = n.midi + 3; x <= n.midi + 9; x++) if (pcs.has(mod(x))) return x; return n.midi + 4; };
       // each note leans into the chord under it
       const L1 = { sy: ln.sy, notes: ln.notes.map(n => ({ ...n, mood: moodOf(ln.chords[n.ci]) })) };
-      singPhrase(L1, t, cl, who, moodOf(c));
+      const lead = who2 && du.how === "trade" && (ln.no || 0) % 2 ? who2 : who;
+      const t = t0 + (FEEL[lead] || 0);
+      singPhrase(lead === who ? L1 : { ...L1, notes: fitTo(L1.notes, lead) }, t, cl, lead, moodOf(c), who2 && du.how === "trade" ? { pan: lead === who ? -0.2 : 0.2 } : {});
+      if (who2 && du.how === "harmony") {
+        const hn = L1.notes.filter((n, k) => !n.light || k === L1.notes.length - 1);
+        singPhrase({ ...L1, notes: fitTo(hn.map(n => ({ ...n, midi: above(n) })), who2) }, t0 + (FEEL[who2] || 0), cl, who2, moodOf(c), { pan: 0.45, gain: 0.72, quiet: true, delay: 0.01 });
+      } else if (who2 && du.how === "together") {
+        singPhrase({ ...L1, notes: fitTo(L1.notes, who2) }, t0 + (FEEL[who2] || 0), cl, who2, moodOf(c), { pan: 0.4, gain: 0.78, quiet: true, delay: 0.014, cents: 4 });
+      }
       // choruses open up: a double-tracked lead and a harmony above on the words that matter
-      if (chorus) {
-        const above = n => { const ch = ln.chords[n.ci].ch, pcs = new Set(ch.ivs.map(iv => mod(ch.rootPc + iv))); for (let x = n.midi + 3; x <= n.midi + 9; x++) if (pcs.has(mod(x))) return x; return n.midi + 4; };
+      if (chorus && !(who2 && du.how === "harmony")) {
         singPhrase(L1, t, cl, who, moodOf(c), { delay: 0.021, cents: 7, pan: -0.55, gain: 0.5, quiet: true });
         const hn = L1.notes.filter((n, k) => !n.light || k === L1.notes.length - 1);
         singPhrase({ ...L1, notes: hn.map(n => ({ ...n, midi: above(n) })) }, t, cl, who, moodOf(c), { delay: 0.012, cents: -6, pan: 0.55, gain: 0.4, quiet: true });
@@ -11938,6 +11973,7 @@
       body.innerHTML = `
         <div class="knob"><span class="lbl">call it</span>
           <div class="presets">${SECTION_NAMES.concat(SECTION_NAMES.includes(x.name) ? [] : [x.name]).map(n => `<button class="choice" type="button" data-rename="${esc(n)}" aria-pressed="${n === x.name}">${esc(n.toLowerCase())}</button>`).join("")}</div></div>
+        ${duetHTML(x)}
         <div class="knob"><span class="lbl">feel</span>
           <div class="row"><button class="btn${x.big ? "" : " surprise"}" type="button" data-chorus="${x.big ? "off" : "on"}">${x.big ? "↶ back to how it was" : "✦ make it a chorus"}</button></div>
           <p class="note">${x.big ? `Sung higher with a harmony on top, ${esc(STYLES[x.style || S().style])} piano, and the drums open up.` : `One tap: ${esc(B().name.replace("Captain ", ""))} sings it higher with a harmony, the piano plays fuller, and the drums open up. Tap again to undo.`}</p></div>
@@ -12614,6 +12650,7 @@
     if (secAct) { removeOccurrence(); closeSheet(); return; }
     const meterB = e.target.closest("[data-meter]"), lenB = e.target.closest("[data-len]"), viewB = e.target.closest("[data-view]"), openB = e.target.closest("[data-open]");
     if (meterB) { setSongMeter(meterB.dataset.meter); renderSheet(); return; }
+    if (duetClick(e)) return;
     const chB = e.target.closest("[data-chorus]");
     if (chB) {
       makeChorus(sec(), chB.dataset.chorus === "on");
