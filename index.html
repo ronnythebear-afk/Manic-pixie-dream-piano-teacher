@@ -8019,7 +8019,7 @@
     if (!filled(sec())) return `<p class="note">Nothing to sing yet.</p><div class="row"><button class="btn surprise" type="button" data-wstep="write">‹ write the words</button></div>`;
     const lines = alongLines(), wait = lines.filter(l => hasText(l) && l.a == null).length;
     return `<div class="words-sing">
-      <div class="row"><button class="btn surprise" type="button" data-alact="play">${playing ? "■ stop" : `▶ hear the ${esc(sec().name.toLowerCase())}`}</button><button class="btn" type="button" data-alact="again">↻ ${esc(B().name)} sings it another way</button></div>
+      <div class="row"><button class="btn surprise" type="button" data-alact="play">${playing ? "■ stop" : `▶ hear the ${esc(sec().name.toLowerCase())}`}</button><button class="btn" type="button" data-alact="again">↻ ${esc(B().name)} sings it another way</button><button class="btn" type="button" data-alact="duet">♪ ${sec().duet ? `duet with ${esc((BUDDIES[sec().duet.who] || {}).name || "a friend")}` : "sing it as a duet"}</button></div>
       <div class="sing-lines">${lines.map((l, k) => !hasText(l) ? "" : `<button type="button" class="sing-line${l.a == null ? " wait" : ""}" data-singline="${k}"${l.a == null ? " disabled" : ""}><i>${l.a == null ? "·" : "▶"}</i><span>${esc(l.t)}</span></button>`).join("")}</div>
       ${wait ? `<p class="note">${wait === 1 ? "One line isn't" : wait + " lines aren't"} placed yet. <button class="link" type="button" data-wstep="place">place ${wait === 1 ? "it" : "them"}</button></p>` : ""}
       <div class="row"><button class="btn" type="button" data-alact="tune">♪ shape the tune</button>${keysOn() ? `<button class="btn" type="button" data-alact="playtune">🎹 play the tune yourself</button>` : ""}<button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
@@ -8125,7 +8125,8 @@
         const r = act.getBoundingClientRect(); flourish(r.left + r.width / 2, r.top, ["♪", "♩", "♪"], "var(--lh)");
         if (playing) stop();
         previewPart(16);
-      } else if (a === "hearline") { const l = alongLines()[alongSel]; if (l && l.a != null) lineSing(l); }
+      } else if (a === "duet") { tuneTab = "sing"; openSheet("tune"); setTimeout(() => $("sheetBody").querySelector(".duet")?.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" }), 60); }
+      else if (a === "hearline") { const l = alongLines()[alongSel]; if (l && l.a != null) lineSing(l); }
       else if (a === "nextline") { const n = nextText(alongLines(), alongSel); if (n >= 0) { alongSel = n; alongRefresh(); $("sheetBody").querySelector(".al-line.on")?.scrollIntoView({ block: "nearest", behavior: reduceMotion ? "auto" : "smooth" }); } }
       else if (a === "tune") { tuneTab = "sing"; openSheet("tune"); }
       else if (a === "playtune") { tuneTab = "sing"; openSheet("tune"); tuneRecStart(); }
@@ -12095,6 +12096,7 @@
         <div class="knob"><span class="lbl">who's playing</span>
           <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
           <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
+        ${duetHTML(sec()).replace('<span class="lbl">duet</span>', `<span class="lbl">duet in the ${esc(sec().name.toLowerCase())}</span>`)}
         <div class="knob"><span class="lbl">the piano plays</span>
           <div class="seg-row" role="group" aria-label="Which parts this changes"><button type="button" class="seg-btn" data-stylescope="song" aria-pressed="${!sec().style}">the whole song</button><button type="button" class="seg-btn" data-stylescope="part" aria-pressed="${!!sec().style}">just the ${esc(sec().name.toLowerCase())}</button></div>
           <div class="presets style-picks">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${styleOf(secIdx) === k}">${esc(v)}<small>${"●".repeat(STYLE_INFO[k].lvl)}${"○".repeat(3 - STYLE_INFO[k].lvl)}${STYLE_INFO[k].fan === prefs.buddy ? ` · ${esc(B().name.replace("Captain ", ""))}'s favourite` : ""}</small></button>`).join("")}</div>
