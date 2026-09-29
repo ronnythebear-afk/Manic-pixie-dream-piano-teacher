@@ -1802,6 +1802,13 @@
   @keyframes ptPad { 0% { transform: scale(.94); } 100% { transform: scale(1); } }
   .style-picks .choice small { letter-spacing: 1px; }
   .sm-own { background: color-mix(in srgb, var(--lamp) 40%, transparent); border-radius: 6px; padding: 0 5px; }
+  /* the house party: a friend leans out of the window of the chord that's playing */
+  #mhPeek .peek { animation: peekIn .32s cubic-bezier(.3, 1.4, .5, 1) both; }
+  @keyframes peekIn { from { transform: translateY(var(--from)); } to { transform: none; } }
+  .mh-win.party > rect:first-child { fill: #ffe7a0; }
+  .mh-win.party .mh-name { opacity: .35; }
+  .mh-win.now.party .mh-name { opacity: .15; }
+  @media (prefers-reduced-motion: reduce) { #mhPeek .peek { animation: none; } }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -5854,10 +5861,32 @@
     const svg = document.querySelector(".mini-house");
     if (!svg) return;
     svg.querySelectorAll(".mh-win.now").forEach(el => el.classList.remove("now"));
-    if (!playing && c === current[sel]) return void svg.querySelector(`.mh-win[data-paint]`)?.classList.add("now");
-    if (!c || !c.a.inKey || c.a.fn === "surprise") return;
+    if (!playing && c === current[sel]) { partyPeek(null); return void svg.querySelector(`.mh-win[data-paint]`)?.classList.add("now"); }
+    if (!c || !c.a.inKey || c.a.fn === "surprise") { partyPeek(null); return; }
     const d = scaleOf(K).steps.indexOf(mod(c.ch.rootPc - K.tonic));
     svg.querySelector(`.mh-win[data-mroom="${d}"]`)?.classList.add("now");
+    if (playing) partyPeek(d);
+  }
+  // every song is a house party: as each chord plays, the friend who keeps that room
+  // leans out of its window, and the rooms the song has visited stay lit
+  const partySeen = new Set();
+  function partyPeek(d) {
+    const svg = document.querySelector(".mini-house");
+    if (!svg) return;
+    let g = svg.querySelector("#mhPeek");
+    if (!g) { svg.insertAdjacentHTML("beforeend", `<defs><clipPath id="mhClip"><rect x="0" y="0" width="0" height="0"/></clipPath></defs><g id="mhPeek" clip-path="url(#mhClip)"></g>`); g = svg.querySelector("#mhPeek"); }
+    if (d == null || d < 0 || !playing) { g.innerHTML = ""; if (!playing) { partySeen.clear(); svg.querySelectorAll(".mh-win.party").forEach(el => el.classList.remove("party")); } return; }
+    partySeen.add(d);
+    partySeen.forEach(x => svg.querySelector(`.mh-win[data-mroom="${x}"]`)?.classList.add("party"));
+    const f = floorOf(d), [x, y, w, h] = MINI.box(f, FLOORS[f].degs.indexOf(d)), id = ROOM_KEEPERS[d];
+    const r = svg.querySelector("#mhClip rect");
+    r.setAttribute("x", x + 1.2); r.setAttribute("y", y + 0.8); r.setAttribute("width", w - 2.4); r.setAttribute("height", h - 1.6);
+    // friends are drawn at different heights: measure this one, then fit head and shoulders in the window
+    g.innerHTML = `<g class="peek-fit"><g class="peek" style="--from:${(h * 2).toFixed(1)}px">${CHAR_SVG[id](0, 0, 1)}</g></g>`;
+    const fit = g.firstElementChild, bb = fit.firstElementChild.getBBox();
+    if (!bb.height) return;
+    const k = h * 1.55 / bb.height, cx = x + w / 2;
+    fit.setAttribute("transform", `translate(${(cx - (bb.x + bb.width / 2) * k).toFixed(2)} ${(y + 0.12 * h - bb.y * k).toFixed(2)}) scale(${k.toFixed(4)})`);
   }
 
   // walk the tenant into a room (stop-motion hops, not a glide)
@@ -10865,6 +10894,7 @@
   }
   function stop() {
     demoStopAll();
+    setTimeout(() => partyPeek(null), 0);
     clearTimeout(previewTimer);
     previewing = null;
     lessonEnd();
