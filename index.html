@@ -1812,6 +1812,10 @@
   .duet .friend-row .solo b { display: grid; place-items: center; width: 44px; height: 44px; font-size: 22px; }
   .duet .friend-row, .knob > .friend-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: visible; gap: 6px; }
   .duet .friend-row .buddy-mini, .knob > .friend-row .buddy-mini { width: auto; min-width: 0; }
+  .roll { display: grid; gap: 10px; }
+  .roll-card { display: grid; gap: 4px; padding: 12px 14px; }
+  .roll-card b { font: 700 24px/1.1 var(--hand); }
+  .roll-card span { font-size: 13px; color: var(--soft); font-weight: 700; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -9739,6 +9743,7 @@
       <div class="sm-top"><p class="note">${n} part${n === 1 ? "" : "s"} · about ${mmss(songSeconds())} · ${esc(pretty(keyName(K)))}</p><button class="btn surprise" type="button" data-map="play">▶ play the whole song</button></div>
       <ol class="sm-list" id="smList">${rows}</ol>
       <p class="note"><b>↻ again</b> plays the same part once more: change one and both change, like a chorus that comes back. <b>⧉ copy</b> makes a twin you can change on its own. Drag a number to move a part.</p>
+      ${shapesHTML()}
       <div class="knob" id="smAdd"><span class="lbl">add a part on the end</span>
         <div class="presets">${SECTION_NAMES.map(nm => `<button class="choice" type="button" data-map="add" data-name="${nm}">+ ${nm.toLowerCase()}<small>${esc(roleOf(nm).note)}</small></button>`).join("")}</div></div>
     </div>`;
@@ -10012,6 +10017,147 @@
     patTap(m < 60 ? "L" : "R", m);
     return false;
   });
+
+  // =========================================================
+  // Song shapes: the classic layouts, one tap in the song map.
+  // Rolling a song: pick a mood (or don't) and Pixie chooses the rest,
+  // a friend, key, tempo, piano style, shape and chords for every part.
+  // =========================================================
+  const SONG_SHAPES = [
+    { id: "vc", name: "verse, chorus", parts: ["Verse", "Chorus", "Verse", "Chorus"], note: "the simplest song there is" },
+    { id: "pop", name: "the pop classic", parts: ["Verse", "Chorus", "Verse", "Chorus", "Bridge", "Chorus"], note: "a bridge to break it up before the last chorus" },
+    { id: "pre", name: "with a pre-chorus", parts: ["Verse", "Pre-chorus", "Chorus", "Verse", "Pre-chorus", "Chorus", "Bridge", "Chorus"], note: "a ramp that builds into every chorus" },
+    { id: "aaba", name: "AABA", parts: ["Verse", "Verse", "Bridge", "Verse"], note: "the old songbook shape: the same verse, a detour, and home" },
+    { id: "full", name: "intro to outro", parts: ["Intro", "Verse", "Chorus", "Verse", "Chorus", "Bridge", "Chorus", "Outro"], note: "the whole show, with a way in and a way out" }
+  ];
+  // lay the song out in a shape: parts with the same name are the same part played again;
+  // parts you've already written keep their chords, and anything the shape doesn't use goes at the end
+  function applyShape(id) {
+    const sh = SONG_SHAPES.find(x => x.id === id);
+    if (!sh) return;
+    songSnap();
+    const byName = {};
+    song.sections.forEach(x => { const k = x.name.toLowerCase(); if (!byName[k]) byName[k] = x; });
+    const order = sh.parts.map(n => {
+      const k = n.toLowerCase();
+      if (!byName[k]) { const x = newSection(n, "", songMeter()); song.sections.push(x); byName[k] = x; }
+      return byName[k].id;
+    });
+    const used = new Set(order);
+    song.sections.forEach(x => { if (!used.has(x.id)) order.push(x.id); });
+    song.order = order;
+    ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); input.value = sec().prog; sel = 0;
+    saveSongs(); renderAll();
+    if (sheetMode === "map") renderSheet();
+    toast(`laid out as ${sh.name}`, true);
+  }
+  function shapesHTML() {
+    return `<div class="knob"><span class="lbl">lay the song out in a shape</span>
+      <div class="presets">${SONG_SHAPES.map(s => `<button class="choice" type="button" data-shape="${s.id}">${esc(s.name)}<small>${esc(s.parts.map(p => p === "Pre-chorus" ? "pre" : p.toLowerCase()).join(" · "))}</small></button>`).join("")}</div>
+      <p class="note">Parts you've written keep their chords and words. New ones start empty, and anything the shape doesn't use waits at the end.</p></div>`;
+  }
+
+  // ---------- rolling a song ----------
+  // what each mood brings: who plays it, how fast, how the piano plays, which shapes suit it
+  const ROLL_MOODS = {
+    hopeful: { who: "dusty", bpm: 100, style: "pop", shapes: ["pop", "vc", "pre"], words: ["open road", "first light", "good news", "sunny side"] },
+    wistful: { who: "oona", bpm: 76, style: "ballad", shapes: ["pop", "aaba"], words: ["bus stop", "old letters", "grey harbour", "last train"] },
+    cozy: { who: "wren", bpm: 84, style: "broken", shapes: ["vc", "aaba"], words: ["kettle on", "blanket fort", "lamp light", "slow sunday"] },
+    dreamy: { who: "ghost", bpm: 80, style: "cascade", shapes: ["pop", "full"], words: ["neon moon", "cloud static", "sleepwalk", "far signal"] },
+    bittersweet: { who: "wren", bpm: 72, style: "broken", shapes: ["pop", "aaba"], words: ["almost spring", "paper boats", "goodbye porch", "empty swing"] },
+    brave: { who: "lulu", bpm: 112, style: "push", shapes: ["pre", "pop", "full"], words: ["main character", "big hill", "lights up", "no looking back"] },
+    spooky: { who: "mort", bpm: 70, style: "alberti", shapes: ["pop", "aaba"], words: ["midnight stair", "candle out", "the old organ", "knock twice"] },
+    lullaby: { who: "wren", bpm: 66, style: "waltz", meter: "3/4", shapes: ["aaba", "vc"], words: ["hush now", "little star", "moon boat", "sleepy owl"] },
+    hearty: { who: "cap", bpm: 108, style: "stride", shapes: ["vc", "pop"], words: ["haul away", "home port", "salt and rope", "harbour light"] },
+    dramatic: { who: "mort", bpm: 96, style: "push", shapes: ["pop", "pre"], words: ["midnight tango", "the masquerade", "black velvet", "last dance"] },
+    grand: { who: "mort", bpm: 72, style: "alberti", shapes: ["full", "pop"], words: ["grand staircase", "the ballroom", "chandelier", "curtain call"] }
+  };
+  // chords for the other parts, as steps from home: [half steps up, chord quality]
+  const PART_PROGS = {
+    major: {
+      Chorus: [[[5, ""], [0, ""], [7, ""], [9, "m"]], [[0, ""], [7, ""], [9, "m"], [5, ""]], [[5, ""], [7, ""], [0, ""], [0, ""]], [[9, "m"], [5, ""], [0, ""], [7, ""]]],
+      Bridge: [[[9, "m"], [5, ""], [0, ""], [7, ""]], [[5, ""], [7, ""], [9, "m"], [7, ""]], [[10, ""], [5, ""], [0, ""], [7, ""]], [[2, "m"], [9, "m"], [5, ""], [7, ""]]],
+      "Pre-chorus": [[[2, "m"], [5, ""], [7, ""], [7, ""]], [[9, "m"], [2, "m"], [5, ""], [7, ""]]],
+      Intro: null, Outro: [[[5, ""], [7, ""], [0, ""], [0, ""]], [[5, ""], [5, "m"], [0, ""], [0, ""]]]
+    },
+    minor: {
+      Chorus: [[[8, ""], [3, ""], [10, ""], [0, "m"]], [[5, "m"], [8, ""], [7, ""], [0, "m"]], [[3, ""], [10, ""], [8, ""], [7, ""]]],
+      Bridge: [[[8, ""], [10, ""], [3, ""], [7, ""]], [[5, "m"], [0, "m"], [8, ""], [7, "7"]]],
+      "Pre-chorus": [[[5, "m"], [8, ""], [7, ""], [7, ""]]],
+      Intro: null, Outro: [[[8, ""], [7, ""], [0, "m"], [0, "m"]]]
+    }
+  };
+  const pickOf = (xs, r) => xs[Math.floor(r() * xs.length)];
+  let lastRoll = null; // the song Pixie just rolled, until you keep it or roll again
+  // what you'd have changed in a rolled song: its parts, chords, words and settings
+  const rollSig = s => JSON.stringify([s.order, s.title, s.settings && [s.settings.key, s.settings.bpm, s.settings.style], s.sections.map(x => [x.name, x.prog, (x.words || []).filter(Boolean).join("|"), (x.lines || []).map(l => l.t || "").filter(Boolean).join("|"), x.style || "", x.keyShift || 0, x.duet ? x.duet.who + x.duet.how : "", !!x.big, x.meter])]);
+  function rollSong(moodId) {
+    const r = Math.random, m = moodId ? MOODS.find(x => x.id === moodId) : pickOf(MOODS, r), cfg = ROLL_MOODS[m.id] || ROLL_MOODS.hopeful;
+    const minor = !!m.minor, tonic = minor ? pickOf([9, 4, 2, 0, 7], r) : pickOf([0, 7, 2, 5, 9, 4], r);
+    const key = { tonic, minor }, meter = cfg.meter || "4/4", shapeId = pickOf(cfg.shapes, r), shape = SONG_SHAPES.find(s => s.id === shapeId) || SONG_SHAPES[0];
+    const progOf = steps => steps.map(([iv, q]) => scaleNote(key, iv) + q).join(" ");
+    const verse = minor ? moodProg(m, key) : moodProg(m, key);
+    const P = PART_PROGS[minor ? "minor" : "major"], made = {};
+    const title = `${pickOf(cfg.words, r)}`;
+    const sg = newSong(title, verse, { key: tonic + (minor ? "m" : "M"), bpm: cfg.bpm, style: cfg.style }, meter);
+    sg.sections[0].meter = meter;
+    made.Verse = sg.sections[0];
+    const order = shape.parts.map(n => {
+      if (!made[n]) {
+        const opts = P[n];
+        const x = newSection(n, opts ? progOf(pickOf(opts, r)) : verse, meter);
+        sg.sections.push(x); made[n] = x;
+      }
+      return made[n].id;
+    });
+    sg.order = order;
+    // choruses come out big: higher, with a harmony, fuller piano and drums
+    if (made.Chorus) {
+      const x = made.Chorus, lift = STYLE_LIFT[cfg.style];
+      x.bigWas = { style: null, reg: null }; x.big = true; x.sing = { reg: "high" };
+      if (lift && lift !== cfg.style) x.style = lift;
+    }
+    sg.roll = { mood: m.id, shape: shape.id };
+    // rolling again replaces the last roll, as long as nothing in it has changed
+    if (lastRoll) { const i = songs.findIndex(s => s.id === lastRoll && s.roll && s.roll.sig === rollSig(s)); if (i >= 0 && songs.length > 1) songs.splice(i, 1); }
+    sg.roll.sig = rollSig(sg);
+    songs.push(sg);
+    lastRoll = sg.id;
+    prefs.buddy = cfg.who; savePrefs();
+    openSong(sg);
+    renderScene(true);
+    return { sg, m, shape, key };
+  }
+  function rollHTML() {
+    const cur = lastRoll && song.id === lastRoll && song.roll ? song : null;
+    const m = cur && MOODS.find(x => x.id === cur.roll.mood), sh = cur && SONG_SHAPES.find(s => s.id === cur.roll.shape);
+    return `<div class="roll">
+      ${cur ? `<div class="card roll-card"><b>“${esc(cur.title)}”</b>
+        <span>${m ? `${m.face} ${esc(m.name)}` : ""} · ${esc(pretty(keyName(K)))} · ${S().bpm} bpm · ${esc(STYLES[S().style])} piano · with ${esc(B().name)}</span>
+        <span>${esc(song.order.map(id => (song.sections.find(x => x.id === id) || {}).name || "").map(n => n.toLowerCase()).join(" · "))}</span></div>
+        <div class="row"><button class="btn surprise" type="button" data-roll="hear">▶ hear it</button><button class="btn" type="button" data-roll="again">🎲 roll again</button><button class="btn" type="button" data-roll="keep">keep it</button></div>
+        <p class="note">Rolling again replaces this one, unless you've changed it. Keep it and it's yours to write words for and change.</p>` : `<p class="note">Pick a mood and Pixie picks the rest: a friend, a key, a tempo, a piano style, a song shape and chords for every part. Or roll it all.</p>`}
+      <div class="knob"><span class="lbl">${cur ? "or try another mood" : "a mood"}</span>
+        <div class="moods">${MOODS.map(x => `<button class="mood-btn" type="button" data-roll="mood" data-mood-id="${x.id}"><b>${x.face} ${esc(x.name)}</b><span>with ${esc(BUDDIES[(ROLL_MOODS[x.id] || ROLL_MOODS.hopeful).who].name)}</span></button>`).join("")}</div></div>
+      <div class="row"><button class="btn${cur ? "" : " surprise"}" type="button" data-roll="any">🎲 roll it all</button></div>
+    </div>`;
+  }
+  function rollClick(e) {
+    const sb = e.target.closest("[data-shape]");
+    if (sb) { applyShape(sb.dataset.shape); return true; }
+    const b = e.target.closest("[data-roll]");
+    if (!b) return false;
+    const a = b.dataset.roll;
+    if (a === "mood" || a === "any" || a === "again") {
+      const mood = a === "mood" ? b.dataset.moodId : a === "again" && song.roll ? song.roll.mood : null;
+      const res = rollSong(mood);
+      renderSheet();
+      tipOverride = `${B().mood(res.m.name)} ${res.m.why}`; renderStage();
+      playAll();
+    } else if (a === "hear") { if (playing) stop(); prefs.wholeSong = true; savePrefs(); ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); playAll(); }
+    else if (a === "keep") { lastRoll = null; saveSongs(); closeSheet(); toast(`“${song.title}” is yours. Tap ☰ the song to see every part`); }
+    return true;
+  }
 
   // =========================================================
   // App state
@@ -11668,7 +11814,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -11818,6 +11964,7 @@
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
     if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); return; }
+    if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
@@ -11921,7 +12068,7 @@
         <div class="wiz-step${wiz.minor == null ? " dim" : ""}"><h3>3 · pick a vibe</h3>
           <div class="moods">${list.map(({ m, prog }) => `<button class="mood-btn" type="button" data-wizmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(prog))}</span></button>`).join("") || `<p class="note">choose sunny or moody first</p>`}</div></div>
         ${wiz.minor != null ? `<div class="row"><button class="choice" type="button" data-wizblank>or just start in ${esc(pretty(keyName({ tonic: t, minor: wiz.minor })))}, no chords yet</button></div>` : ""}
-        ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
+        ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="roll">🎲 or let Pixie roll a whole song</button><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
     } else if (sheetMode === "lyrics") {
       $("sheetTitle").textContent = "lyric sheet";
       body.innerHTML = `<div class="row"><button class="btn" type="button" data-song="copy">copy the whole song</button></div>
@@ -12045,7 +12192,7 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
         <p class="note">${storageOK ? "Songs save in this browser as you go." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
@@ -12558,6 +12705,7 @@
     if (sheetMode === "street" && streetClick(e)) return;
     if (sheetMode === "play" && playClick(e)) return;
     if (sheetMode === "pattern" && patternClick(e)) return;
+    if ((sheetMode === "roll" || sheetMode === "map") && rollClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
