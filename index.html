@@ -1816,6 +1816,19 @@
   .roll-card { display: grid; gap: 4px; padding: 12px 14px; }
   .roll-card b { font: 700 24px/1.1 var(--hand); }
   .roll-card span { font-size: 13px; color: var(--soft); font-weight: 700; }
+  /* the song path */
+  .tabs.five button { padding: 9px 1px; font-size: 12px; }
+  .path-stones { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 6px; }
+  .ps-stone { width: 18px; height: 12px; border-radius: 50%; background: var(--card-2); border: 1.5px solid var(--line); }
+  .ps-stone.done { background: var(--lamp); border-color: var(--ink); }
+  .ps-stone.next { border-color: var(--ink); border-style: dashed; }
+  .path-step { display: grid; grid-template-columns: 42px 1fr; gap: 4px 10px; align-items: center; border: 1.5px solid var(--line); border-radius: 14px; background: var(--card); padding: 8px 10px; margin-bottom: 8px; }
+  .path-step .cast-face { width: 42px; height: 44px; grid-row: span 2; }
+  .path-step .ps-text b { display: block; font-weight: 800; font-size: 15px; }
+  .path-step .ps-text span { display: block; font-size: 13px; color: var(--soft); }
+  .path-step .btn { grid-column: 2; justify-self: start; }
+  .path-step.done { opacity: .72; }
+  .path-step.next { border-color: var(--ink); box-shadow: var(--shadow); }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7619,7 +7632,7 @@
   ];
   let lessonAt = null, lessonRestore = null;
   // chord stories and tune lessons: two tabs of one sheet
-  const learnTabs = on => `<div class="tabs four" role="tablist">${[["stories", "✦ stories"], ["lessons", "♪ tunes"], ["street", "⌂ street"], ["play", "▶ play"]].map(([id, n]) => `<button type="button" role="tab" data-open="${id}" aria-selected="${on === id}">${n}</button>`).join("")}</div>`;
+  const learnTabs = on => `<div class="tabs four five" role="tablist">${[["path", "✦ path"], ["stories", "stories"], ["lessons", "♪ tunes"], ["street", "⌂ street"], ["play", "▶ play"]].map(([id, n]) => `<button type="button" role="tab" data-open="${id}" aria-selected="${on === id}">${n}</button>`).join("")}</div>`;
   function lessonsHTML() {
     if (lessonAt == null) return `<p class="note">Short lessons about what goes on top of your chords. Every example plays in the part you're working on.</p>
       <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card lesson-card" type="button" data-lesson="${i}"><i class="ln-n">${i + 1}</i><span><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></span></button>`).join("")}</div>`;
@@ -9910,6 +9923,7 @@
   const PAT_LOOPS = 4;
   async function patStart(listenOnly) {
     patStop(true);
+    if (!listenOnly) pathFlag("pattern");
     const b = patBar();
     if (!b || !(await audioReady())) return;
     if (playing) stop();
@@ -10155,7 +10169,88 @@
       tipOverride = `${B().mood(res.m.name)} ${res.m.why}`; renderStage();
       playAll();
     } else if (a === "hear") { if (playing) stop(); prefs.wholeSong = true; savePrefs(); ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); playAll(); }
-    else if (a === "keep") { lastRoll = null; saveSongs(); closeSheet(); toast(`“${song.title}” is yours. Tap ☰ the song to see every part`); }
+    else if (a === "keep") { lastRoll = null; pathFlag("roll"); saveSongs(); closeSheet(); toast(`“${song.title}” is yours. Tap ☰ the song to see every part`); }
+    return true;
+  }
+
+  // =========================================================
+  // The song path: learning threaded toward finished songs.
+  // Each step opens the part of Pixie that teaches it, and ticks itself
+  // off when you've really done the thing. Nothing is locked or scored;
+  // the stories, tunes, street and playground are all still there alone.
+  // =========================================================
+  const pathFlags = () => (prefs.path && typeof prefs.path === "object" ? prefs.path : (prefs.path = {}));
+  function pathFlag(k) { const f = pathFlags(); if (!f[k]) { f[k] = Date.now(); savePrefs(); } }
+  const anyPart = fn => song.sections.some(fn);
+  const partChords = x => tokenize(x.prog).map(t => parseChord(splitBeats(t).chord)).filter(Boolean);
+  // does this song have a chord from outside its key? (a garden visitor)
+  function hasVisitor() {
+    return song.sections.some((x, i) => sectionData(i).list.some(c => !c.a.inKey || c.a.fn === "surprise"));
+  }
+  // open a part by name, if the song has one
+  function openPartNamed(re) { const p = song.order.findIndex(id => re.test((song.sections[idxOf(id)] || {}).name || "")); if (p >= 0) switchSection(idxOf(song.order[p]), p); return p >= 0; }
+  const PATH = [
+    { ch: 1, title: "Meet the house", why: "Every key is a house with seven rooms. Home is downstairs; the attic pulls you back down.", who: "wren",
+      done: () => !!prefs.sawHouse, go: () => openSheet("house"), btn: "⌂ open the house" },
+    { ch: 1, title: "Home and away", why: "Read how Dusty's truck broke down on Pixie Street, and hear the four chords half the radio uses.", who: "dusty",
+      done: () => readStories().includes(0), go: () => { storyAt = 0; openSheet("stories"); }, btn: "read chapter 1" },
+    { ch: 1, title: "Four chords of your own", why: "Put four chords in your verse. Tap windows in the house; the ✦ marks what your friend would try next.", who: "ghost",
+      done: () => anyPart(x => partChords(x).length >= 4), go: () => { openPartNamed(/verse/i); openSheet("add"); }, btn: "+ add chords" },
+    { ch: 1, title: "Play the pattern", why: "See what each hand plays, then tap it along. Start with block chords, slowly.", who: "oona",
+      done: () => !!pathFlags().pattern, go: () => { pat.style = "block"; pat.slow = true; openSheet("pattern"); }, btn: "♬ play the pattern" },
+    { ch: 1, title: "A chorus that lifts", why: "Add a chorus to the song map, give it chords, then make it a chorus: higher, fuller, bigger drums.", who: "lulu",
+      done: () => anyPart(x => x.big && partChords(x).length), go: () => { if (!openPartNamed(/chorus/i)) { openSheet("map"); return; } openSheet("secedit"); }, btn: "✦ the chorus" },
+    { ch: 1, title: "Words to sing", why: "Write two lines for the verse, one per row. Your friend sings them straight away.", who: "wren",
+      done: () => anyPart(x => (x.lines || []).filter(l => (l.t || "").trim()).length >= 2 || (x.words || []).filter(Boolean).length >= 2), go: () => { openPartNamed(/verse/i); wStep = "write"; openSheet("along"); }, btn: "✎ write words" },
+    { ch: 1, title: "Give it a shape", why: "Lay the parts out: verse, chorus, verse, chorus, maybe a bridge. One tap in the song map.", who: "cap",
+      done: () => song.order.length >= 4, go: () => openSheet("map"), btn: "☰ the song map" },
+    { ch: 1, title: "The whole song, top to bottom", why: "Play every part in order. Watch the house: each room's friend leans out when their chord plays.", who: "mort",
+      done: () => !!pathFlags().whole, go: () => { closeSheet(); prefs.wholeSong = true; savePrefs(); ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); playAll(); }, btn: "▶ play the whole song" },
+    { ch: 2, title: "A visitor from another key", why: "Borrow a chord that isn't in the house. Try ♭VII or the minor iv from the chords sheet's visitors.", who: "dusty",
+      done: () => hasVisitor(), go: () => { openSheet("add"); }, btn: "+ visitors" },
+    { ch: 2, title: "Somewhere darker", why: "Minor keys are the same street after dark. Read the midnight elevator, then try a spooky or dramatic mood.", who: "mort",
+      done: () => readStories().includes(6) || (K && K.minor), go: () => { storyAt = 6; openSheet("stories"); }, btn: "read chapter 7" },
+    { ch: 2, title: "The big finish", why: "Lift the last chorus a whole step. It's the oldest trick in pop, and it still works.", who: "lulu",
+      done: () => anyPart(x => !!x.keyShift), go: () => { if (!openPartNamed(/chorus/i)) { openSheet("map"); return; } openSheet("secedit"); }, btn: "↑ key change" },
+    { ch: 2, title: "A different feel", why: "Let one part play its own way: stride, boogie-woogie, Alberti. Practise it in play the pattern.", who: "oona",
+      done: () => anyPart(x => !!x.style && !x.big), go: () => openSheet("beat"), btn: "the piano styles" },
+    { ch: 2, title: "Bring in a friend", why: "Give a part a duet: a harmony, trading lines, or both singing together.", who: "ghost",
+      done: () => anyPart(x => !!x.duet), go: () => { tuneTab = "sing"; openSheet("tune"); }, btn: "♪ duets" },
+    { ch: 2, title: "Roll one and make it yours", why: "Let Pixie roll a whole song from a mood, keep it, and change one thing: a chord, a word, a style.", who: "cap",
+      done: () => !!pathFlags().roll, go: () => openSheet("roll"), btn: "🎲 roll a song" }
+  ];
+  const CHAPTERS = { 1: "your first song", 2: "a song with a twist" };
+  // a step stays done once you've done it, even in another song
+  function pathDone() {
+    const f = pathFlags(), done = f.steps || (f.steps = {});
+    let changed = false;
+    PATH.forEach((s, i) => { if (!done[i]) { try { if (s.done()) { done[i] = Date.now(); changed = true; } } catch {} } });
+    if (changed) savePrefs();
+    return done;
+  }
+  function pathHTML() {
+    const done = pathDone(), n = PATH.filter((s, i) => done[i]).length, next = PATH.findIndex((s, i) => !done[i]);
+    const face = id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, TALL[id] ? 8 : 4, TALL[id] ? 1.04 : 1.15)}</svg>`;
+    const stones = PATH.map((s, i) => `<i class="ps-stone${done[i] ? " done" : ""}${i === next ? " next" : ""}" title="${esc(s.title)}"></i>`).join("");
+    let h = `<p class="h-lead">From an empty house to a finished song, one step at a time. Each step opens the part of Pixie that teaches it, and ticks itself off when you've done it.</p>
+      <div class="path-stones" aria-label="${n} of ${PATH.length} steps done">${stones}</div>`;
+    let ch = 0;
+    PATH.forEach((s, i) => {
+      if (s.ch !== ch) { ch = s.ch; h += `<h3 class="subhead">chapter ${ch} · ${esc(CHAPTERS[ch])}</h3>`; }
+      h += `<div class="path-step${done[i] ? " done" : ""}${i === next ? " next" : ""}">
+        ${face(s.who)}
+        <div class="ps-text"><b>${done[i] ? "✓ " : ""}${esc(s.title)}</b><span>${esc(s.why)}</span></div>
+        <button class="btn${i === next ? " surprise" : ""}" type="button" data-path="${i}">${esc(s.btn)}</button>
+      </div>`;
+    });
+    h += next < 0 ? `<p class="game-say">Every step walked. ${esc(B().name)} says you're a songwriter now. Roll another, or start one from a note.</p>` : "";
+    return h;
+  }
+  function pathClick(e) {
+    const b = e.target.closest("[data-path]");
+    if (!b) return false;
+    const s = PATH[+b.dataset.path];
+    if (s) s.go();
     return true;
   }
 
@@ -10605,7 +10700,7 @@
     const chordsPill = `<button class="pal chords-pill${arranging ? " on" : ""}" type="button" data-act="arrange" aria-pressed="${arranging}">${arranging ? "✓ done" : "⇄ arrange"}</button>`;
     const side = {
       simple: chordsPill + inside,
-      learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-act="stories">✦ stories</button>`,
+      learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-open="path">✦ the path</button>`,
       write: chordsPill + `<button class="pal mh-in" type="button" data-act="along">✎ words</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button>`,
       studio: `<button class="pal vu" type="button" data-act="rack" aria-label="The rack: pedals, mute and solo, two mixes to compare">${vuSVG()}<small>rack</small></button><button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button>`
     }[mode] || inside;
@@ -11145,7 +11240,7 @@
     while (step >= d.list.length) {
       if (whole) {
         playPos++;
-        if (playPos >= song.order.length) { if (!loopOn && !keepGoing) return finish(); playPos = 0; }
+        if (playPos >= song.order.length) { pathFlag("whole"); if (!loopOn && !keepGoing) return finish(); playPos = 0; }
         playSec = Math.max(0, idxOf(song.order[playPos]));
       } else if ((!loopOn && !keepGoing) || !d.list.length) return finish();
       step = 0;
@@ -11813,8 +11908,8 @@
   let sheetMode = null, confirmDel = null;
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
-  const SHEET_GROUP = { stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -11964,6 +12059,7 @@
     if (sheetMode === "lessons") { $("sheetTitle").textContent = lessonAt == null ? "learning" : `lesson ${lessonAt + 1} of ${LESSONS.length}`; body.innerHTML = learnTabs("lessons") + lessonsHTML(); return; }
     if (sheetMode === "street") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("street") + streetHTML(); return; }
     if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); return; }
+    if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
     if (sheetMode === "knobs") {
@@ -12706,6 +12802,7 @@
     if (sheetMode === "play" && playClick(e)) return;
     if (sheetMode === "pattern" && patternClick(e)) return;
     if ((sheetMode === "roll" || sheetMode === "map") && rollClick(e)) return;
+    if (sheetMode === "path" && pathClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
