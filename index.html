@@ -1763,6 +1763,18 @@
   .seg-row.four { grid-template-columns: repeat(4, 1fr); }
   .seg-row.four .seg-btn { font-size: 12.5px; padding: 8px 3px; }
   @media (max-width: 380px) { .seg-row.four { grid-template-columns: repeat(2, 1fr); } }
+  /* the song's parts: a door to the whole song first, then every part */
+  .blk.map-door { width: auto; justify-content: center; gap: 1px; padding: 4px 9px; border-style: solid; border-color: var(--ink); background: var(--ink); color: var(--card); }
+  .blk.map-door b { font-family: var(--body); font-weight: 800; font-size: 12px; }
+  .blk.map-door small { font: 700 9.5px/1 var(--body); opacity: .8; white-space: nowrap; }
+  .blk.map-door b::after { content: none !important; }
+  /* on a phone the parts get their own row under the title and wrap, so every part shows */
+  @media (max-width: 640px) {
+    .songline { flex-wrap: wrap; row-gap: 6px; }
+    .songline .song-title { flex: 1 1 auto; max-width: calc(100% - 56px); }
+    .songline .sections { flex: 1 0 100%; flex-wrap: wrap; overflow: visible; row-gap: 7px; margin-top: 8px; }
+    .songline .sections .blk { width: auto !important; min-width: 58px; }
+  }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10091,7 +10103,9 @@
       const d = i === secIdx ? { list: current, T: total } : sectionData(i);
       looks.set(x.id, d);
     });
-    $("sections").innerHTML = song.order.map((id, p) => {
+    // the whole song, first in the row: where you see, move, repeat and add parts
+    const n = song.order.length;
+    $("sections").innerHTML = `<button class="blk map-door" type="button" data-act="addsec" aria-label="The whole song: ${n} part${n === 1 ? "" : "s"}. Arrange, repeat or add parts"><b>☰ the song</b><small>${n} part${n === 1 ? "" : "s"} · arrange</small></button>` + song.order.map((id, p) => {
       const x = song.sections[idxOf(id)], d = looks.get(id), T = Math.max(1, d.T);
       const strip = d.list.length ? d.list.map(c => `<i style="flex:${c.beats};background:var(--${c.a.fn})"></i>`).join("") : `<i class="none"></i>`;
       const on = p === ordPos, same = !on && id === sec().id;
