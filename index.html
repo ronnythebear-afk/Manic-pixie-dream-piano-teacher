@@ -2003,6 +2003,16 @@
     .pr-opts { gap: 5px; }
   }
   @media (max-width: 430px) { .learn-pill .lp-t { display: none; } .learn-pill { padding: 5px 8px; } }
+  /* the performance */
+  .perf { position: fixed; inset: 0; z-index: 90; background: #0d0e16; display: grid; place-items: center; }
+  .perf-frame { height: min(100dvh - 76px, (100vw - 24px) * 16 / 9); aspect-ratio: 9 / 16; margin-bottom: 64px; }
+  .perf canvas { width: 100%; height: 100%; display: block; border-radius: 18px; box-shadow: 0 20px 60px -20px #000; }
+  .perf-ui { position: fixed; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); flex-wrap: wrap; }
+  .perf-btn { border: 0; border-radius: 999px; background: #fdf7ee; color: #2f2a3d; font: 800 14px var(--body); padding: 10px 16px; cursor: pointer; min-width: 44px; }
+  .perf-btn[data-perf="close"] { position: fixed; top: 12px; right: 12px; font-size: 22px; line-height: 1; padding: 8px 14px; }
+  .perf-rec { background: var(--tension); color: #fff; }
+  .perf-status { color: #fdf7ee; font: 800 13px var(--body); opacity: .8; min-width: 120px; text-align: center; }
+  .perf-done { display: inline-flex; gap: 8px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10544,7 +10554,7 @@
       </div>
     </div>
     <div class="row gift-row">
-      <button class="btn surprise" type="button" data-gift="play">${playing ? "■ stop" : "▶ play the whole song"}</button>
+      <button class="btn surprise" type="button" data-gift="play">▶ watch it</button>
       ${kept ? `<button class="btn" type="button" data-gift="close">it's in your songs ✓</button>` : `<button class="btn" type="button" data-gift="keep">♥ keep it</button><button class="btn" type="button" data-gift="yours">✎ make your own version</button>`}
     </div>
     <p class="note">${kept ? "It's saved in your songs." : "Nothing is saved until you keep it. Change anything and it's kept for you, as your own copy."}</p>`;
@@ -10555,8 +10565,7 @@
     const a = b.dataset.gift;
     if (a === "play") {
       if (playing) stop();
-      else { prefs.wholeSong = true; savePrefs(); ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); playAll(); }
-      setTimeout(renderSheet, 60);
+      else perfOpen(false);
     } else if (a === "keep") { keepGift(); saveSongs(); toast(`“${song.title}” is in your songs`); renderSheet(); }
     else if (a === "yours") { keepGift(); song.title = (song.title + " (my version)").slice(0, 60); applySettings(); saveSongs(); closeSheet(); toast("it's yours now. change anything"); }
     else if (a === "close") closeSheet();
@@ -11089,6 +11098,393 @@
     // from the top of the part, or of the song
     if (prefs.wholeSong) { ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); }
     playAll().then(() => renderStage());
+  }
+
+  // =========================================================
+  // The performance: the whole song played like a little music video.
+  // Your friend in their world, the words lighting up as they're sung and
+  // scrolling up line by line, the chord and the keys at the bottom. It's
+  // drawn on a canvas, so the same picture can be saved as a real video.
+  // =========================================================
+  const PERF_W = 720, PERF_H = 1280;
+  let perf = null;
+  const perfSvgImg = (svg, w, h) => new Promise(ok => {
+    const img = new Image();
+    img.onload = () => ok(img); img.onerror = () => ok(null);
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg.replace("<svg ", `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" `));
+  });
+  const perfText = sy => sy.reduce((s, x, i) => s + (x.first && i ? " " : "") + x.show, "");
+  // every sung line of the song, in the order it will be sung
+  function perfScript() {
+    const out = [];
+    song.order.forEach((id, pos) => {
+      const i = idxOf(id); if (i < 0) return;
+      const seen = new Set();
+      melodyChain(i).forEach(m => (m.lines || (m.line ? [m.line] : [])).forEach(ln => {
+        if (!ln || seen.has(ln) || !ln.sy || !ln.sy.length) return;
+        seen.add(ln);
+        out.push({ pos, sIdx: i, text: perfText(ln.sy), sy: ln.sy, t: null, times: null });
+      }));
+    });
+    return out;
+  }
+  function perfLength() {
+    let s = 0;
+    song.order.forEach(id => { const i = idxOf(id); if (i < 0) return; const d = sectionData(i); s += d.T * countSec(d.M, S().bpm); });
+    return s;
+  }
+  // the band just scheduled a sung line: pin it to the clock
+  function perfSung(ln, t0, cl, sIdx) {
+    if (!perf || !ln || !ln.sy) return;
+    const text = perfText(ln.sy), L = perf.lines;
+    let k = L.findIndex((x, j) => j >= perf.ptr && x.sIdx === sIdx && x.text === text && x.t == null);
+    if (k < 0) { L.push({ pos: -1, sIdx, text, sy: ln.sy, t: null, times: null }); k = L.length - 1; }
+    L[k].t = t0; L[k].end = t0 + Math.max(...ln.notes.map(n => n.start + n.dur)) * cl;
+    L[k].times = ln.notes.map(n => ({ s: n.s, a: t0 + n.start * cl, b: t0 + (n.start + n.dur) * cl }));
+    perf.ptr = k + 1;
+  }
+  function perfChord(c, sIdx) {
+    if (!perf) return;
+    const d = sectionData(sIdx);
+    perf.chord = { c, sIdx, name: pretty(c.tok.replace(/:\d+$/, "")), key: d.key, at: ac.currentTime };
+    if (perf.part !== sIdx) { perf.part = sIdx; perf.partAt = ac.currentTime; }
+    if (!perf.t0) perf.t0 = ac.currentTime;
+  }
+
+  // ---------- opening and closing ----------
+  async function perfOpen(record) {
+    if (perf) perfClose();
+    if (!song.sections.some(x => tokenize(x.prog).length)) { toast("add some chords first, then it can play"); return; }
+    if (!(await audioReady())) return;
+    if (sheetMode) closeSheet();
+    if (playing) stop();
+    if (prac.on) pracToggle(false);
+    const who = prefs.buddy;
+    const el = document.createElement("div");
+    el.id = "perf"; el.className = "perf";
+    el.innerHTML = `<div class="perf-frame"><canvas width="${PERF_W}" height="${PERF_H}" aria-label="${esc(song.title)}, played by ${esc(B().name)}"></canvas></div>
+      <div class="perf-ui">
+        <button class="perf-btn" type="button" data-perf="close" aria-label="Close">×</button>
+        <span class="perf-status" id="perfStatus"></span>
+        <button class="perf-btn perf-play" type="button" data-perf="play">■</button>
+        <button class="perf-btn perf-rec" type="button" data-perf="video">🎬 save as a video</button>
+      </div>`;
+    document.body.appendChild(el);
+    el.addEventListener("click", perfClick);
+    const cv = el.querySelector("canvas");
+    perf = { el, cv, g: cv.getContext("2d"), who, lines: perfScript(), ptr: 0, chord: null, part: null, partAt: 0, t0: 0, len: perfLength(), scroll: 0, raf: 0, rec: null, done: false, doneAt: 0, was: { whole: prefs.wholeSong, loop: loopOn }, imgs: {} };
+    const sky = skyFor(hourFor(K));
+    [perf.imgs.friend, perf.imgs.scene] = await Promise.all([
+      perfSvgImg(`<svg viewBox="-8 -58 72 76">${CHAR_SVG[who](26, TALL[who] ? 8 : 4, TALL[who] ? 1.04 : 1.15)}</svg>`, 432, 456),
+      perfSvgImg(scene(who, sky).replace(/ class="scene"/, ""), 2400, 168)
+    ]);
+    if (!perf) return;
+    perf.stars = Array.from({ length: 70 }, (_, i) => ({ x: (i * 7919) % PERF_W, y: (i * 104729) % 760, r: 0.6 + (i % 3) * 0.5, p: i * 1.7 }));
+    perfFrame();
+    if (record) perfRecord(); else perfPlay();
+  }
+  function perfPlay() {
+    if (!perf) return;
+    if (playing) stop();
+    perf.lines.forEach(l => { l.t = null; l.times = null; });
+    perf.ptr = 0; perf.t0 = 0; perf.chord = null; perf.part = null; perf.done = false; perf.scroll = 0;
+    prefs.wholeSong = true; loopOn = false;
+    ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll();
+    perf.started = true;
+    playAll();
+  }
+  function perfClose() {
+    if (!perf) return;
+    const p = perf;
+    if (p.rec && p.rec.r.state === "recording") { p.rec.cancel = true; p.rec.r.stop(); }
+    cancelAnimationFrame(p.raf);
+    if (playing) stop();
+    prefs.wholeSong = p.was.whole; loopOn = p.was.loop;
+    p.el.remove();
+    perf = null;
+    renderAll();
+  }
+  function perfClick(e) {
+    const b = e.target.closest("[data-perf]");
+    if (!b) return;
+    const a = b.dataset.perf;
+    if (a === "close") perfClose();
+    else if (a === "play") { if (playing) { stop(); perf.started = false; } else perfPlay(); }
+    else if (a === "video") { if (perf.rec) return; perfRecord(); }
+    else if (a === "share") perfDeliver(true);
+    else if (a === "save") perfDeliver(false);
+  }
+
+  // ---------- recording it as a video ----------
+  function perfRecord() {
+    if (!perf) return;
+    const cv = perf.cv;
+    if (!cv.captureStream || !window.MediaRecorder) { toast("this browser can't make videos, sorry. Try Chrome, Safari or Firefox"); return; }
+    if (playing) stop();
+    const vs = cv.captureStream(30), dest = ac.createMediaStreamDestination(), tap = tapOut;
+    tap.connect(dest);
+    const stream = new MediaStream([...vs.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+    // H.264 in an mp4 plays everywhere, phones included; then webm; a plain mp4 last (that's Safari's own H.264)
+    const types = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4;codecs=avc1,mp4a", "video/mp4;codecs=avc1.42E01E,opus", "video/mp4;codecs=avc1", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"];
+    const type = types.find(t => MediaRecorder.isTypeSupported(t)) || "";
+    let r;
+    try { r = type ? new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 3500000 }) : new MediaRecorder(stream); }
+    catch { toast("this browser can't make videos, sorry"); return; }
+    const chunks = [];
+    perf.rec = { r, chunks, type: r.mimeType || type, cancel: false, file: null };
+    r.ondataavailable = e => e.data.size && chunks.push(e.data);
+    r.onstop = () => {
+      try { tap.disconnect(dest); } catch {}
+      vs.getTracks().forEach(t => t.stop());
+      if (!perf || perf.rec.cancel) return;
+      const ext = /mp4/.test(perf.rec.type) ? "mp4" : "webm";
+      const name = `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"}.${ext}`;
+      const blob = new Blob(chunks, { type: perf.rec.type.split(";")[0] || "video/" + ext }), ms = (performance.now() - perf.rec.began);
+      (ext === "webm" ? webmWithDuration(blob, ms) : Promise.resolve(blob)).then(bl => {
+        if (!perf || !perf.rec) return;
+        perf.rec.file = new File([bl], name, { type: "video/" + ext });
+        perfUI();
+      });
+    };
+    r.start(500);
+    perf.rec.began = performance.now();
+    perfPlay();
+    perfUI();
+  }
+  async function perfDeliver(share) {
+    const f = perf && perf.rec && perf.rec.file;
+    if (!f) return;
+    if (share && navigator.canShare && navigator.canShare({ files: [f] })) {
+      try { await navigator.share({ files: [f], title: song.title, text: `${song.title}, a song I made in Pixie Chords` }); return; }
+      catch (err) { if (err && err.name === "AbortError") return; }
+    }
+    const dl = window.claude?.use ? await Promise.race([window.claude.use("downloads").catch(() => null), new Promise(r => setTimeout(() => r(null), 2500))]) : null;
+    if (dl) { try { await dl.save({ filename: f.name, data: f }); toast("video saved"); return; } catch (err) { if (err?.code === "declined") return; } }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(f); a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    toast("video saved to your downloads");
+  }
+  function perfUI() {
+    if (!perf) return;
+    const st = perf.el.querySelector("#perfStatus"), pl = perf.el.querySelector(".perf-play"), rb = perf.el.querySelector(".perf-rec");
+    const rec = perf.rec, recording = rec && rec.r.state === "recording";
+    pl.textContent = playing ? "■" : "▶"; pl.setAttribute("aria-label", playing ? "Stop" : "Play from the top");
+    pl.hidden = recording;
+    if (rec && rec.file) {
+      if (rb) rb.outerHTML = `<span class="perf-done">${navigator.canShare && navigator.canShare({ files: [rec.file] }) ? `<button class="perf-btn perf-rec" type="button" data-perf="share">send the video</button>` : ""}<button class="perf-btn" type="button" data-perf="save">save it</button></span>`;
+      st.textContent = "your video is ready";
+    } else if (recording) { rb.hidden = true; }
+    else if (rb) rb.hidden = false;
+    perf.wasPlaying = playing;
+  }
+
+  // ---------- drawing ----------
+  function perfWrap(g, words, maxW) {
+    const rows = [[]]; let w = 0;
+    words.forEach(wd => {
+      const ww = g.measureText(wd.text + " ").width;
+      if (w + ww > maxW && rows[rows.length - 1].length) { rows.push([]); w = 0; }
+      rows[rows.length - 1].push({ ...wd, w: ww }); w += ww;
+    });
+    return rows;
+  }
+  // a line as words, each word as its syllables (so the sung ones can light up)
+  function perfWords(line) {
+    const words = [];
+    line.sy.forEach((x, i) => { if (x.first || !words.length) words.push({ text: "", syl: [] }); const w = words[words.length - 1]; w.syl.push({ s: i, show: x.show }); w.text += x.show; });
+    return words;
+  }
+  function perfLineNow(now) {
+    const L = perf.lines;
+    let k = -1;
+    L.forEach((l, i) => { if (l.t != null && l.t - 0.25 <= now) k = i; });
+    return k;
+  }
+  function perfFrame() {
+    if (!perf) return;
+    perf.raf = requestAnimationFrame(perfFrame);
+    const g = perf.g, now = ac ? ac.currentTime : 0, who = perf.who;
+    const key = perf.chord ? perf.chord.key : K, sky = skyFor(hourFor(key));
+    const css = getComputedStyle(document.documentElement), col = n => css.getPropertyValue(n).trim() || "#fff";
+    const RH = col("--rh"), LH = col("--lh"), HOME = col("--home");
+    // sky
+    const bg = g.createLinearGradient(0, 0, 0, PERF_H);
+    bg.addColorStop(0, sky.top); bg.addColorStop(0.75, sky.bot); bg.addColorStop(1, sky.bot);
+    g.fillStyle = bg; g.fillRect(0, 0, PERF_W, PERF_H);
+    if (sky.night > 0.05) perf.stars.forEach(s => { g.globalAlpha = sky.night * (0.45 + 0.4 * Math.sin(now * 1.3 + s.p)); g.fillStyle = "#fff"; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.fill(); });
+    g.globalAlpha = 1;
+    const dark = sky.night > 0.35, ink = dark ? "#fdf7ee" : "#2f2a3d", soft = dark ? "rgba(253,247,238,.55)" : "rgba(47,42,61,.55)";
+    // title and the part you're in
+    g.textAlign = "center"; g.textBaseline = "alphabetic";
+    g.fillStyle = soft; g.font = "800 22px Nunito, system-ui, sans-serif";
+    g.fillText("pixie chords", PERF_W / 2, 58);
+    g.fillStyle = ink; g.font = "700 58px Gaegu, 'Comic Sans MS', cursive";
+    perfFit(g, song.title || "untitled", PERF_W - 80, 58, "700 %px Gaegu, 'Comic Sans MS', cursive");
+    g.fillText(song.title || "untitled", PERF_W / 2, 118);
+    if (perf.part != null) {
+      const nm = (song.sections[perf.part] || {}).name || "", a = Math.min(1, (now - perf.partAt) / 0.4);
+      g.globalAlpha = a; g.font = "800 22px Nunito, system-ui, sans-serif";
+      const tw = g.measureText(nm.toLowerCase()).width + 30;
+      g.fillStyle = HOME; perfRound(g, PERF_W / 2 - tw / 2, 138, tw, 34, 17); g.fill();
+      g.fillStyle = "#2f2a3d"; g.fillText(nm.toLowerCase(), PERF_W / 2, 162);
+      g.globalAlpha = 1;
+    }
+    // the words: the line being sung, big, with the one before and the ones after
+    const k = perfLineNow(now), L = perf.lines;
+    // each line takes the room its wrapped rows need, so long ones never crowd their neighbors
+    g.font = "700 50px Gaegu, 'Comic Sans MS', cursive";
+    const tops = []; let acc = 0;
+    L.forEach((l, i) => { if (l.rows == null) l.rows = perfWrap(g, perfWords(l), PERF_W - 90).length; tops[i] = acc + (l.rows * 56) / 2; acc += l.rows * 56 + 64; });
+    const want = k < 0 ? -120 : tops[k];
+    perf.scroll += (want - perf.scroll) * 0.12;
+    const cy = 470;
+    g.textBaseline = "middle";
+    if (!L.length) {
+      // no words: the part's chords in a row, the one playing lit up
+      g.font = "700 34px Gaegu, cursive"; g.fillStyle = soft;
+      g.fillText("♪ " + (B().name) + " plays ♪", PERF_W / 2, cy - 110);
+      const ch0 = perf.chord, list = ch0 ? sectionData(ch0.sIdx).list : [];
+      if (list.length) {
+        g.font = "900 44px Nunito, system-ui, sans-serif";
+        const names = list.map(x => pretty(x.tok.replace(/:\d+$/, ""))), ws = names.map(n => g.measureText(n).width + 34);
+        const rowsOf = []; let row = [], w = 0;
+        names.forEach((n, i) => { if (w + ws[i] > PERF_W - 80 && row.length) { rowsOf.push(row); row = []; w = 0; } row.push(i); w += ws[i]; });
+        rowsOf.push(row);
+        rowsOf.forEach((r, ri) => {
+          let x = PERF_W / 2 - r.reduce((a2, i) => a2 + ws[i], 0) / 2;
+          const y = cy + (ri - (rowsOf.length - 1) / 2) * 70;
+          r.forEach(i => {
+            const on = list[i].j === ch0.c.j;
+            g.fillStyle = on ? HOME : "rgba(255,255,255,.12)"; perfRound(g, x + 4, y - 28, ws[i] - 8, 56, 14); g.fill();
+            g.fillStyle = on ? "#2f2a3d" : soft; g.fillText(names[i], x + ws[i] / 2, y + 2);
+            x += ws[i];
+          });
+        });
+      }
+    }
+    for (let i = 0; i < L.length; i++) {
+      const y = cy + tops[i] - perf.scroll, d = (tops[i] - perf.scroll) / 120, cur = i === k;
+      if (y < 200 || y > 810) continue;
+      const size = cur ? 50 : 38;
+      g.font = `700 ${size}px Gaegu, 'Comic Sans MS', cursive`;
+      const rows = perfWrap(g, perfWords(L[i]), PERF_W - 90), lh = size * 1.12;
+      const fade = cur ? 1 : Math.max(0.12, 0.62 - Math.abs(d) * 0.18);
+      rows.forEach((row, ri) => {
+        const rw = row.reduce((s, w) => s + w.w, 0);
+        let x = PERF_W / 2 - rw / 2;
+        const ry = y + (ri - (rows.length - 1) / 2) * lh;
+        g.textAlign = "left";
+        row.forEach(w => {
+          w.syl.forEach(sl => {
+            const t = cur && L[i].times ? L[i].times.find(n => n.s === sl.s) : null, sung = t && now >= t.a;
+            g.globalAlpha = fade;
+            g.fillStyle = sung ? RH : cur ? ink : soft;
+            if (cur && t && now >= t.a && now < t.b) { g.save(); g.shadowColor = RH; g.shadowBlur = 18; g.fillText(sl.show, x, ry - 3); g.restore(); }
+            else g.fillText(sl.show, x, ry);
+            x += g.measureText(sl.show).width;
+          });
+          x += g.measureText(" ").width;
+        });
+      });
+    }
+    g.globalAlpha = 1; g.textAlign = "center";
+    // your friend in their world
+    if (perf.imgs.scene) { const sh = 250, sw = sh * 1200 / 84; g.drawImage(perf.imgs.scene, (PERF_W - sw) / 2, PERF_H - sh, sw, sh); }
+    if (perf.imgs.friend) {
+      const singing = L.some(l => l.times && l.times.some(n => now >= n.a && now < n.b));
+      const bob = singing ? Math.sin(now * 9) * 4 : Math.sin(now * 2) * 2, fw = 250, fh = 264;
+      g.drawImage(perf.imgs.friend, 30, PERF_H - fh - 52 + bob, fw, fh);
+    }
+    // the chord and the keys
+    const ch = perf.chord;
+    const kx = 40, kw = PERF_W - 80, ky = 890, kh = 120;
+    const whites = []; for (let m = 40; m <= 79; m++) if (![1, 3, 6, 8, 10].includes(mod(m))) whites.push(m);
+    const ww = kw / whites.length, lit = ch ? { lh: new Set(ch.c.v.lh), rh: new Set(ch.c.v.rh) } : { lh: new Set(), rh: new Set() };
+    g.fillStyle = "rgba(20,18,30,.35)"; perfRound(g, kx - 10, ky - 72, kw + 20, kh + 84, 18); g.fill();
+    if (ch) {
+      g.font = "900 46px Nunito, system-ui, sans-serif"; g.fillStyle = "#fdf7ee"; g.textAlign = "left";
+      g.fillText(ch.name, kx + 4, ky - 34);
+      g.font = "800 20px Nunito, system-ui, sans-serif"; g.fillStyle = "rgba(253,247,238,.7)"; g.textAlign = "right";
+      g.fillText(`${ch.c.a.num} · ${pretty(keyName(ch.key))}`, kx + kw - 4, ky - 34);
+      g.textAlign = "center";
+    }
+    whites.forEach((m, i) => {
+      g.fillStyle = lit.lh.has(m) ? LH : lit.rh.has(m) ? RH : "#fbf8f3";
+      g.fillRect(kx + i * ww + 1, ky, ww - 2, kh);
+    });
+    for (let m = 40; m <= 79; m++) {
+      if (![1, 3, 6, 8, 10].includes(mod(m))) continue;
+      const i = whites.indexOf(m - 1); if (i < 0) continue;
+      g.fillStyle = lit.lh.has(m) ? LH : lit.rh.has(m) ? RH : "#2f2a3d";
+      g.fillRect(kx + (i + 1) * ww - ww * 0.32, ky, ww * 0.64, kh * 0.62);
+    }
+    // how far through
+    const el = perf.t0 ? Math.max(0, now - perf.t0) : 0, frac = perf.len ? Math.min(1, el / perf.len) : 0;
+    g.fillStyle = "rgba(255,255,255,.25)"; g.fillRect(40, PERF_H - 26, PERF_W - 80, 5);
+    g.fillStyle = HOME; g.fillRect(40, PERF_H - 26, (PERF_W - 80) * frac, 5);
+    // the end card
+    if (perf.started && !playing && perf.t0) {
+      if (!perf.done) { perf.done = true; perf.doneAt = now; perfEnded(); }
+      const a = Math.min(1, (now - perf.doneAt) / 0.8);
+      g.globalAlpha = a * 0.95; g.fillStyle = "#1c1e2b"; g.fillRect(0, 0, PERF_W, PERF_H);
+      g.globalAlpha = a;
+      if (perf.imgs.friend) g.drawImage(perf.imgs.friend, PERF_W / 2 - 125, 190, 250, 264);
+      g.fillStyle = "#fdf7ee"; g.textBaseline = "middle";
+      g.font = "700 64px Gaegu, cursive"; perfFit(g, song.title || "untitled", PERF_W - 80, 64, "700 %px Gaegu, cursive"); g.fillText(song.title || "untitled", PERF_W / 2, 520);
+      g.font = "800 26px Nunito, system-ui, sans-serif"; g.fillStyle = "rgba(253,247,238,.75)";
+      g.fillText(`played by ${B().name}`, PERF_W / 2, 590);
+      g.fillText("made in pixie chords", PERF_W / 2, 632);
+      g.globalAlpha = 1;
+    }
+    perfStatus(el);
+    if (perf.wasPlaying !== playing) perfUI();
+  }
+  function perfStatus(el) {
+    const st = perf.el.querySelector("#perfStatus");
+    if (!st) return;
+    const mm = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+    const rec = perf.rec;
+    const txt = rec && rec.r.state === "recording" ? `● recording ${mm(el)} / ${mm(perf.len)}` : rec && rec.file ? "your video is ready" : rec ? "finishing the video…" : playing ? `${mm(el)} / ${mm(perf.len)}` : "";
+    if (st.textContent !== txt) st.textContent = txt;
+  }
+  function perfEnded() {
+    perfUI();
+    const rec = perf.rec;
+    // let the last chord ring and the end card show, then close the file
+    if (rec && rec.r.state === "recording") setTimeout(() => { if (perf && perf.rec === rec && rec.r.state === "recording") rec.r.stop(); }, 2600);
+  }
+  function perfFit(g, text, maxW, size, font) {
+    let s = size;
+    g.font = font.replace("%", s);
+    while (g.measureText(text).width > maxW && s > 24) { s -= 2; g.font = font.replace("%", s); }
+  }
+  function perfRound(g, x, y, w, h, r) {
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+  }
+
+  // browsers write webm without a length, so players can't show a seek bar: write it in
+  async function webmWithDuration(blob, ms) {
+    try {
+      const u = new Uint8Array(await blob.arrayBuffer());
+      const find = (id, from, to) => { for (let i = from; i < Math.min(to, u.length) - id.length; i++) if (id.every((b, k) => u[i + k] === b)) return i; return -1; };
+      const vint = p => { const b = u[p]; let len = 1; while (len <= 8 && !(b & (0x80 >> (len - 1)))) len++; let v = b & (0xff >> len); for (let k = 1; k < len; k++) v = v * 256 + u[p + k]; return { len, v }; };
+      const at = find([0x15, 0x49, 0xa9, 0x66], 0, 4096);
+      if (at < 0) return blob;
+      const sz = vint(at + 4), start = at + 4 + sz.len, end = start + sz.v;
+      const d = find([0x44, 0x89], start, end);
+      const f64 = new DataView(new ArrayBuffer(8)); f64.setFloat64(0, ms);
+      if (d >= 0) {
+        const ds = vint(d + 2);
+        if (ds.v === 8) { u.set(new Uint8Array(f64.buffer), d + 2 + ds.len); return new Blob([u], { type: blob.type }); }
+        if (ds.v === 4) { const f = new DataView(new ArrayBuffer(4)); f.setFloat32(0, ms); u.set(new Uint8Array(f.buffer), d + 2 + ds.len); return new Blob([u], { type: blob.type }); }
+        return blob;
+      }
+      const el = new Uint8Array([0x44, 0x89, 0x88, ...new Uint8Array(f64.buffer)]), n = sz.v + el.length;
+      const size = new Uint8Array(8); size[0] = 0x01; let x = n; for (let k = 7; k >= 1; k--) { size[k] = x & 255; x = Math.floor(x / 256); }
+      return new Blob([u.subarray(0, at + 4), size, u.subarray(start, end), el, u.subarray(end)], { type: blob.type });
+    } catch { return blob; }
   }
 
   // =========================================================
@@ -12125,6 +12521,7 @@
     const at = nextT, j = c.j, sIdx = playSec, pos = playPos;
     later(() => {
       if (!playing) return;
+      perfChord(c, sIdx);
       if ((sIdx !== secIdx || pos !== ordPos) && !busy()) switchSection(sIdx, pos);
       if (sIdx !== secIdx) return;
       stripEl.querySelectorAll(".tile.now").forEach(el => el.classList.remove("now"));
@@ -12174,6 +12571,7 @@
     const moodOf = x => ({ minor: ["min", "dim"].includes(baseQuality(x.ch.ivs)), fn: x.a.fn });
     const chorus = chorusLike(song.sections[sIdx]);
     const lns = alone ? [{ sy: mel.sy, notes: mel.notes.map(n => ({ ...n, ci: 0, s: n.s })), chords: [c] }] : mel.lines || (mel.line ? [mel.line] : []);
+    if (perf && !alone) lns.forEach(ln => perfSung(ln, t0, cl, sIdx));
     // a duet partner for this part: in harmony, trading lines, or singing it together
     const du = (song.sections[sIdx] || {}).duet, who2 = du && BUDDIES[du.who] && du.who !== who ? du.who : null;
     // move a line into a singer's own range, an octave at a time
@@ -13012,7 +13410,7 @@
       $("sheetTitle").textContent = "song sheet";
       body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
         <p class="note">Your words with the chords over them, signed by ${esc(B().name)}. Good for keeping by a real piano.</p>
-        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button><button class="btn" type="button" data-song="send">🔗 send it as a link</button></div>${shareBoxHTML()}`;
+        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button><button class="btn" type="button" data-song="send">🔗 send it as a link</button><button class="btn" type="button" data-song="video">🎬 make a video</button></div>${shareBoxHTML()}`;
       makeSongSheet();
     } else if (sheetMode === "start") {
       const t = wiz.tonic, nm = t == null ? null : pretty(FALLBACK[t]);
@@ -13152,7 +13550,7 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="hum">🎤 hum a tune</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button><button class="btn" type="button" data-song="send">🔗 send “${esc((song.title || "this song").slice(0, 24))}” as a link</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="hum">🎤 hum a tune</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button><button class="btn" type="button" data-song="send">🔗 send “${esc((song.title || "this song").slice(0, 24))}” as a link</button><button class="btn" type="button" data-song="watch">▶ watch it</button><button class="btn" type="button" data-song="video">🎬 make a video</button></div>
         ${shareBoxHTML()}
         ${gift && song === gift.song ? `<p class="note gift-note">“${esc(song.title)}” came from a link and isn't kept yet. <button class="link" type="button" data-open="gift">keep it or play it</button></p>` : ""}
         <p class="note">${storageOK ? "Songs save in this browser as you go." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
@@ -13958,6 +14356,8 @@
     const act = b.dataset.song, id = b.dataset.id;
     if (act === "pack") { packSongs(); return; }
     if (act === "send") { sendSong(); return; }
+    if (act === "watch") { perfOpen(false); return; }
+    if (act === "video") { perfOpen(true); return; }
     if (act === "unpack") { const f = $("packFile"); f.value = ""; f.onchange = () => f.files[0] && unpackSongs(f.files[0]); f.click(); return; }
     if (act === "new") { wiz = { mode: "new", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
     else if (act === "lyrics") { sheetMode = "lyrics"; renderSheet(); }
@@ -14088,6 +14488,7 @@
       if (!e.repeat) alongDown();
       return;
     }
+    if (perf) { if (e.key === "Escape") perfClose(); else if (e.key === " " && e.target.tagName !== "BUTTON") { e.preventDefault(); perf.el.querySelector('[data-perf="play"]')?.click(); } return; }
     if (e.key === "Escape" && !$("egg").hidden) { closeEgg(); return; }
     if (e.key === "Escape" && sheetMode) { closeSheet(); return; }
     const tag = e.target.tagName;
