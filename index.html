@@ -2020,6 +2020,7 @@
   @media (max-width: 480px) { .toplinks { gap: 4px; } .toplinks .link, #openView { padding: 0 9px; } .toplinks .lp-t { display: none; } #openShare { font-size: 15px; padding: 0 10px; } }
   @media (max-width: 420px) { .top .logo { font-size: 20px; } }
   @media (max-width: 370px) { .top .logo { font-size: 17px; } .toplinks .link, #openView { padding: 0 7px; } }
+  .hum-why-err { display: block; margin-top: 4px; font-size: 11px; opacity: .75; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10752,15 +10753,33 @@
   function humFeed(frames, bars) { hm.frames = frames; hm.bars = bars || hm.bars; hm.buf = null; humAnalyse(); if (sheetMode === "hum") renderSheet(); return { notes: hm.notes, key: hm.key, n: Mtr.n, W: Array.from({ length: hm.bars }, (_, j) => barWeights(hm.notes, j, Mtr.n).map(x => +x.toFixed(2))), opts: hm.opts.map(o => o.chords.map(c => c.tok).join(" ")) }; }
 
   // ---------- recording ----------
+  // why the mic said no, in words you can act on
+  function humMicErr(err) {
+    const n = (err && err.name) || "", m = (err && err.message) || "";
+    hm.errWhy = n ? `${n}${m ? ": " + m : ""}` : String(err || "");
+    if (n === "NotAllowedError" && /policy|not allowed in this document/i.test(m)) return "blocked";
+    if (n === "NotAllowedError" || n === "PermissionDeniedError") return "denied";
+    if (n === "NotFoundError" || n === "DevicesNotFoundError") return "nomic";
+    if (n === "NotReadableError" || n === "AbortError" || n === "TrackStartError") return "busy";
+    if (n === "SecurityError") return "blocked";
+    return "other";
+  }
   async function humStart() {
-    if (humRec || !(await audioReady())) return;
-    if (playing) stop();
-    humStopPlay();
-    if (!navigator.mediaDevices?.getUserMedia) { hm.stage = hm.notes.length && hm.key ? "done" : "idle"; hm.err = "blocked"; renderSheet(); return; }
+    if (humRec) return;
+    const back = () => { hm.stage = hm.notes.length && hm.key ? "done" : "idle"; renderSheet(); };
+    if (!navigator.mediaDevices?.getUserMedia) { hm.err = "blocked"; hm.errWhy = window.isSecureContext ? "no microphone access in this browser" : "this page isn't on a secure (https) address"; back(); return; }
+    // ask for the mic first, straight from the tap: iPhones only allow it while the tap is fresh
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true } }); }
-    catch (err) { hm.stage = hm.notes.length && hm.key ? "done" : "idle"; hm.err = err && err.name === "NotAllowedError" && !/policy|not allowed in this document/i.test(err.message || "") ? "denied" : "blocked"; renderSheet(); return; }
-    hm.err = ""; hm.key = null; hm.pick = 0;
+    catch (err) {
+      // some phones don't like the fine-tuning: ask for any mic at all
+      if (err && /Overconstrained|TypeError/.test(err.name)) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e2) { err = e2; } }
+      if (!stream) { hm.err = humMicErr(err); back(); return; }
+    }
+    if (!(await audioReady())) { stream.getTracks().forEach(t => t.stop()); return; }
+    if (playing) stop();
+    humStopPlay();
+    hm.err = ""; hm.errWhy = ""; hm.key = null; hm.pick = 0;
     const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser(), sp = ac.createScriptProcessor(4096, 1, 1), mute = ac.createGain();
     an.fftSize = 2048; mute.gain.value = 0;
     src.connect(an); src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
@@ -10906,7 +10925,15 @@
   function humHTML() {
     const who = B().name, part = sec().name.toLowerCase();
     const blocked = hm.err === "blocked" || hm.err === "denied";
-    const errLine = !hm.err ? "" : !blocked ? `<p class="note hum-err">${esc(hm.err)}</p>` : `<p class="note hum-err">${hm.err === "denied" ? "The microphone is switched off for Pixie. Allow it in your browser's site settings and try again." : `This page can't reach the microphone. Open Pixie on its own page and it will: <a href="${SHARE_HOME}" target="_blank" rel="noopener">pixie chords</a>.`}</p>`;
+    const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const MIC_SAY = {
+      denied: iOS ? "The microphone is switched off for Pixie. In Safari, tap the “aA” (or the page menu) in the address bar, then Website Settings, and set Microphone to Allow. Then tap hum again." : "The microphone is switched off for Pixie. Allow it in your browser's site settings (the icon by the address), then try again.",
+      nomic: "I can't find a microphone on this device.",
+      busy: "The microphone is busy, maybe with a call or another app. Close that and try again.",
+      other: "The microphone didn't start. Try once more; if it keeps happening, reload the page.",
+      blocked: /github\.io/.test(location.hostname) ? "This browser isn't letting the page use the microphone." : `This page can't reach the microphone. Open Pixie on its own page and it will: <a href="${SHARE_HOME}" target="_blank" rel="noopener">pixie chords</a>.`
+    };
+    const errLine = !hm.err ? "" : MIC_SAY[hm.err] ? `<p class="note hum-err">${MIC_SAY[hm.err]}${hm.errWhy ? `<small class="hum-why-err">${esc(hm.errWhy)}</small>` : ""}</p>` : `<p class="note hum-err">${esc(hm.err)}</p>`;
     const barsRow = `<div class="seg-row three hum-bars" role="group" aria-label="How long to hum">${[2, 4, 8].map(b => `<button class="seg-btn" type="button" data-hum="bars" data-n="${b}" aria-pressed="${hm.bars === b}">${b} bars</button>`).join("")}</div>`;
     if (hm.stage === "rec") {
       return `<p class="hum-say"><span class="hum-count" id="humCount">${Mtr.n}</span> ${esc(who)} counts you in, then hum or sing on “doo” or “la”. Keep going till the bar fills.</p>
