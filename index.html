@@ -6007,14 +6007,15 @@
   }
 
   // the street, kept small: next door either way, across the street, the back door
-  function streetHTML(k) {
+  function houseStreetHTML(k) {
     const sel = houseSel && houseSel.kind === "street" ? houseSel : null;
     const flat = { tonic: mod(k.tonic + 5), minor: k.minor, n: -1 }, sharp = { tonic: mod(k.tonic + 7), minor: k.minor, n: 1 };
     const chip = (h, label, extra = "") => `<button class="st-link${sel && sel.tonic === h.tonic && sel.minor === h.minor ? " sel" : ""}" type="button" data-street="${h.tonic}${h.minor ? "m" : "M"}"${extra}>${label} <b>${esc(shortKey(h))}</b></button>`;
     return `<div class="street2"><span class="lbl">the neighbors</span>
       ${chip(flat, "←")}${chip(sharp, "→")}
       ${chip(parOf(k), "across the street", ` data-across="1"`)}
-      <button class="st-link" type="button" data-backdoor="1">${houseRel ? "front door" : "back door"} <b>${esc(shortKey(relOf(k)))}</b></button></div>`;
+      <button class="st-link" type="button" data-backdoor="1">${houseRel ? "front door" : "back door"} <b>${esc(shortKey(relOf(k)))}</b></button>
+      <button class="st-link" type="button" data-open="street">the whole street ›</button></div>`;
   }
   function detailHTML(k) {
     const rooms = roomsOf(k), b = B(), { guests } = songUse(k);
@@ -6060,7 +6061,7 @@
     return `<div class="house">
       <div class="house-wrap" id="houseWrap">${houseSVG(k)}</div>
       <div class="h-detail" id="houseDetail">${detailHTML(k)}</div>
-      ${streetHTML(k)}
+      ${houseStreetHTML(k)}
     </div>`;
   }
 
@@ -6172,6 +6173,9 @@
     const scale = (kk, at, stress) => scaleOf(kk).steps.concat(12).forEach((iv, i) => tone(60 + kk.tonic - (kk.tonic > 6 ? 12 : 0) + iv, at + i * 0.2, 0.22, stress && stress.includes(mod(kk.tonic + iv)) ? 0.26 : 0.14));
     if (what === "room") chordAt(rooms[houseSel.d].midis, t);
     else if (what === "home") { chordAt(rooms[houseSel.d].midis, t); chordAt(rooms[0].midis, t + 1.1); }
+    // next door: your home chord, then theirs, so you hear how close they live
+    else if (what === "neighbor") { const nk = { tonic: houseSel.tonic, minor: houseSel.minor }; chordAt(rooms[0].midis, t); chordAt(roomsOf(nk)[0].midis, t + 1.1); }
+    else if (what === "homechord") chordAt(rooms[0].midis, t);
     else if (what === "stone") { tone(60 + houseSel.pc - (houseSel.pc > 7 ? 12 : 0), t, 0.9, 0.2); }
     else if (what === "scale") scale(k, t);
     else if (what === "compare") {
@@ -6195,7 +6199,7 @@
       houseSel = { kind: "street", tonic: nk.tonic, minor: nk.minor, n: 0 }; houseRel = false;
       renderSheet(); toast(`the song moved into ${keyLabel(nk)}`); return true;
     }
-    if (back) { houseRel = !houseRel; houseSel = null; renderSheet(); return true; }
+    if (back) { houseRel = !houseRel; houseSel = null; renderSheet(); housePlay("homechord"); return true; }
     if (room) { const d = +room.dataset.room; houseSel = houseSel && houseSel.kind === "room" && houseSel.d === d ? null : { kind: "room", d }; houseRefresh(); if (houseSel) housePlay("room"); return true; }
     if (stone) { const pc = +stone.dataset.stone; houseSel = houseSel && houseSel.kind === "stone" && houseSel.pc === pc ? null : { kind: "stone", pc }; houseRefresh(); if (houseSel) housePlay("stone"); return true; }
     if (guest) { houseSel = { kind: "guest", tok: guest.dataset.guest }; houseRefresh(); housePlay("guest"); return true; }
@@ -6203,7 +6207,7 @@
       const nk = parseKeySetting(street.dataset.street), k = houseKey();
       let n = 0; for (let j = -2; j <= 2; j++) if (mod(k.tonic + j * 7) === nk.tonic) n = j;
       houseSel = { kind: "street", tonic: nk.tonic, minor: nk.minor, n, across: !!street.dataset.across };
-      renderSheet(); return true;
+      renderSheet(); housePlay("neighbor"); return true;
     }
     return false;
   }
