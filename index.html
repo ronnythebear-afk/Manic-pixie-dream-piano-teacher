@@ -3817,9 +3817,13 @@
     return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
   }
 
+  // iPhones: "playback" plays through the silent switch but shuts the mic out,
+  // so while the mic is listening the session asks to play and record
+  let sessionWants = "playback";
+  function setSession(t) { sessionWants = t; try { if (navigator.audioSession) navigator.audioSession.type = t; } catch {} }
   // Must run inside a tap or click, before any await.
   function ensureAudio() {
-    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch {}
+    setSession(sessionWants);
     if (!silentEl) {
       try {
         silentEl = new Audio(silentWavURL());
@@ -10770,13 +10774,14 @@
     if (!navigator.mediaDevices?.getUserMedia) { hm.err = "blocked"; hm.errWhy = window.isSecureContext ? "no microphone access in this browser" : "this page isn't on a secure (https) address"; back(); return; }
     // ask for the mic first, straight from the tap: iPhones only allow it while the tap is fresh
     let stream;
+    setSession("play-and-record");
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true } }); }
     catch (err) {
       // some phones don't like the fine-tuning: ask for any mic at all
       if (err && /Overconstrained|TypeError/.test(err.name)) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e2) { err = e2; } }
-      if (!stream) { hm.err = humMicErr(err); back(); return; }
+      if (!stream) { setSession("playback"); hm.err = humMicErr(err); back(); return; }
     }
-    if (!(await audioReady())) { stream.getTracks().forEach(t => t.stop()); return; }
+    if (!(await audioReady())) { stream.getTracks().forEach(t => t.stop()); setSession("playback"); return; }
     if (playing) stop();
     humStopPlay();
     hm.err = ""; hm.errWhy = ""; hm.key = null; hm.pick = 0;
@@ -10811,6 +10816,7 @@
     r.sp.onaudioprocess = null;
     try { r.src.disconnect(); r.sp.disconnect(); r.mute.disconnect(); } catch {}
     r.stream.getTracks().forEach(t => t.stop());
+    setSession("playback");
     humRec = null;
     return r;
   }
