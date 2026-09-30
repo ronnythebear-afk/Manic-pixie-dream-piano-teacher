@@ -11731,18 +11731,16 @@
     mute.gain.value = 0; src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
     const chunks = [];
     sp.onaudioprocess = e => chunks.push({ t: e.playbackTime - 4096 / ac.sampleRate, d: new Float32Array(e.inputBuffer.getChannelData(0)) });
-    const n = Mtr.n, cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.15;
-    // a bar of count-in, then the part plays and you sing
-    for (let k = 0; k < n; k++) tone(k ? 91 : 96, t0 + k * cl, 0.05, 0.1);
-    stk.rec = { stream, src, sp, mute, chunks, cl, n, t0, bandAt: null, lat: micLatency(stream) + (ac.outputLatency || ac.baseLatency || 0), timer: null, bars: stk.bars };
+    const n = Mtr.n, cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.15, bars = stk.bars;
+    // the band stays quiet so only you end up on the sample: a bar of count-in, then a soft click to keep time
+    for (let k = 0; k < n + (prefs.stkClick !== false ? bars * n : 0); k++) tone(k % n ? 91 : 96, t0 + k * cl, 0.04, k < n ? 0.1 : 0.04);
+    stk.rec = { stream, src, sp, mute, chunks, cl, n, t0, bandAt: t0 + n * cl, lat: micLatency(stream) + (ac.outputLatency || ac.baseLatency || 0), timer: null, bars };
     renderSheet();
     const r = stk.rec;
-    r.kick = setTimeout(() => { if (stk.rec !== r) return; sel = 0; playAll(); }, Math.max(0, (t0 + n * cl - ac.currentTime - 0.1) * 1000));
     r.timer = setInterval(() => {
       if (stk.rec !== r) return;
       const lbl = $("stkCount"), now = ac.currentTime;
-      if (r.bandAt == null && playing && playLog.length) r.bandAt = playLog.find(e => e.t >= r.t0)?.t ?? null;
-      if (r.bandAt == null) { if (lbl) lbl.textContent = String(Math.max(1, r.n - Math.floor((now - r.t0) / r.cl))); return; }
+      if (now < r.bandAt) { if (lbl) lbl.textContent = String(Math.max(1, r.n - Math.floor((now - r.t0) / r.cl))); return; }
       if (lbl && lbl.textContent !== "sing!") lbl.textContent = "sing!";
       const len = r.bars * r.n * r.cl, bar = $("stkBar");
       if (bar) bar.style.width = Math.min(100, (now - r.bandAt) / len * 100).toFixed(1) + "%";
@@ -11791,7 +11789,7 @@
   function stkHTML() {
     const list = stickers(), x = sec(), hold = stk.hold && stkById(stk.hold);
     if (stk.rec) {
-      return `<p class="hum-say"><span class="hum-count" id="stkCount">${Mtr.n}</span> A bar to count you in, then sing, clap or play over the ${esc(x.name.toLowerCase())}: ${stk.rec.bars} bar${stk.rec.bars > 1 ? "s" : ""}.</p>
+      return `<p class="hum-say"><span class="hum-count" id="stkCount">${Mtr.n}</span> A bar to count you in, then sing, clap or play for ${stk.rec.bars} bar${stk.rec.bars > 1 ? "s" : ""}. The band stays quiet so the mic only hears you.</p>
         <div class="hum-prog"><i id="stkBar"></i></div>
         <div class="row"><button class="btn" type="button" data-stk="cancel">cancel</button></div>`;
     }
@@ -11799,7 +11797,8 @@
     return `<p class="h-lead">Record a little bit over the beat. Sing a hook, clap, tap a glass, anything at all. It becomes a sample sticker you can drop on any chord.</p>
       ${err}
       <div class="seg-row three" role="group" aria-label="How long">${[1, 2, 4].map(b => `<button class="seg-btn" type="button" data-stk="bars" data-n="${b}" aria-pressed="${stk.bars === b}">${b} bar${b > 1 ? "s" : ""}</button>`).join("")}</div>
-      <div class="row"><button class="btn surprise" type="button" data-stk="rec">🎤 record a sample</button></div>
+      <div class="row"><button class="btn surprise" type="button" data-stk="rec">🎤 record a sample</button><label class="hum-tune"><input type="checkbox" data-stk="click"${prefs.stkClick !== false ? " checked" : ""}> click while I record</label></div>
+      <p class="note">${esc(S().bpm)} beats a minute, so it lines up with the song. The band stays quiet while you record.</p>
       ${list.length ? `<h3 class="subhead">your sample stickers</h3><div class="stk-shelf">${list.map(s => stkChip(s, s.id === stk.hold)).join("")}</div>` : ""}
       ${hold ? `<div class="knob stk-hold">
           ${stk.naming === hold.id ? `<label class="stk-name"><span>name it</span><input id="stkName" value="${esc(hold.name)}" maxlength="24"></label>` : ""}
@@ -11815,6 +11814,7 @@
     if (!b) return false;
     const a = b.dataset.stk, x = sec(), hold = stk.hold && stkById(stk.hold);
     if (a === "gain") return true;
+    if (a === "click") { prefs.stkClick = b.checked; savePrefs(); return true; }
     if (a === "bars") { stk.bars = +b.dataset.n; renderSheet(); }
     else if (a === "rec") stkRecord();
     else if (a === "cancel") stkFinish(true);
