@@ -1921,6 +1921,88 @@
   .pt-kbd rect.pt-lit.pt-R { fill: var(--rh) !important; }
   .pt-kbd rect.pt-lit.pt-L { fill: var(--lh) !important; }
   .pt-kbd-note { margin-top: -4px; }
+  /* a song that came from a link */
+  .gift { display: flex; gap: 14px; align-items: center; margin: 4px 0 14px; }
+  .gift .gift-face { flex: none; width: 84px; height: 88px; border-radius: 16px; transform: rotate(-3deg); }
+  .gift-card { flex: 1; min-width: 0; background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob-s); padding: 12px 14px; box-shadow: var(--shadow); }
+  .gift-kicker { font: 800 12px/1.2 var(--body); color: var(--soft); text-transform: lowercase; }
+  .gift-card h3 { font: 400 30px/1.05 var(--voice); margin: 2px 0 6px; overflow-wrap: anywhere; }
+  .gift-parts { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; }
+  .gift-parts i { font: 800 11px/1 var(--body); font-style: normal; padding: 4px 7px; border-radius: 99px; background: color-mix(in srgb, var(--home) 35%, var(--card)); }
+  .gift-words { font: 400 18px/1.25 var(--voice); margin: 8px 0 0; color: var(--soft); }
+  .gift-row { flex-wrap: wrap; }
+  .share-box { display: grid; gap: 4px; margin: 8px 0; font: 800 12px var(--body); color: var(--soft); }
+  .share-box input { font: 600 12px var(--body); padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); min-width: 0; }
+  /* hum a tune */
+  .hum-say { font: 700 15px/1.4 var(--body); margin: 2px 0 10px; }
+  .hum-count { display: inline-grid; place-items: center; min-width: 44px; height: 44px; padding: 0 8px; margin-right: 6px; border-radius: 99px; background: var(--tension); color: #fff; font: 900 20px/1 var(--body); vertical-align: middle; }
+  .hum-roll { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--wob-s); padding: 6px; margin: 6px 0 8px; }
+  .hum-roll svg { display: block; width: 100%; height: 150px; }
+  .hum-roll .hr-bar { stroke: var(--ink); stroke-width: 1; opacity: .5; vector-effect: non-scaling-stroke; }
+  .hum-roll .hr-beat { stroke: var(--ink); stroke-width: 1; opacity: .12; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; }
+  .hum-roll .hr-dot { fill: var(--tension); }
+  .hum-roll .hr-note { fill: var(--rh); stroke: var(--line); stroke-width: .8; vector-effect: non-scaling-stroke; }
+  .hum-roll .hr-nm { font: 900 5.5px var(--body); fill: #fff; pointer-events: none; }
+  .hum-roll .hr-ch rect { fill: color-mix(in srgb, var(--home) 40%, var(--card)); transition: fill .15s; }
+  .hum-roll .hr-ch.on rect { fill: var(--home); }
+  .hum-roll .hr-ch text { font: 900 7.5px var(--body); fill: var(--ink); }
+  .hum-prog { height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; margin-bottom: 10px; }
+  .hum-prog i { display: block; height: 100%; width: 0; background: var(--tension); transition: width .1s linear; }
+  .hum-opts { display: grid; gap: 8px; margin: 4px 0 10px; }
+  .hum-opt { display: flex; gap: 8px; align-items: stretch; }
+  .hum-pick { flex: 1; min-width: 0; text-align: left; display: grid; gap: 4px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); color: var(--ink); font: 800 14px var(--body); cursor: pointer; }
+  .hum-opt.on .hum-pick { background: color-mix(in srgb, var(--home) 30%, var(--card)); box-shadow: var(--shadow); }
+  .hum-chords { display: flex; flex-wrap: wrap; gap: 5px; }
+  .hum-chords i { font: 900 16px/1 var(--body); font-style: normal; display: inline-flex; align-items: baseline; gap: 3px; padding: 5px 8px; border-radius: 9px; background: var(--key-w); border: 1px solid color-mix(in srgb, var(--ink) 25%, transparent); }
+  .hum-chords small { font: 800 10px var(--body); color: var(--soft); }
+  .hum-why { font: 600 12px/1.3 var(--body); color: var(--soft); }
+  .hum-hear { flex: none; width: 52px; font-size: 18px; }
+  .hum-tune { display: inline-flex; gap: 6px; align-items: center; font: 700 13px var(--body); color: var(--soft); margin: 4px 0 10px; }
+  .hum-err { color: var(--tension); }
+  .hum-bars { margin: 6px 0; }
+  /* lit black keys: every friend paints their black keys, and that paint must never hide a lit key */
+  :root .kb.lh, :root[data-buddy] .kb.lh { fill: var(--lh); stroke: color-mix(in srgb, var(--lh) 55%, var(--key-edge)); }
+  :root .kb.rh, :root[data-buddy] .kb.rh { fill: var(--rh); stroke: color-mix(in srgb, var(--rh) 55%, var(--key-edge)); }
+  /* keys you're holding down: black ones light as brightly as white ones */
+  .kbd rect.kb.pressed { fill: var(--surprise) !important; stroke: color-mix(in srgb, var(--surprise) 55%, #fff) !important; filter: drop-shadow(0 0 2px var(--surprise)); }
+  .kbd rect.kb.echo-target { fill: var(--lamp) !important; stroke: color-mix(in srgb, var(--lamp) 55%, #fff) !important; }
+  /* learn your own song */
+  .learn-pill { border: 1.5px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--lh) 30%, var(--card)); color: var(--ink); font: 800 12.5px var(--body); padding: 5px 11px; cursor: pointer; white-space: nowrap; }
+  .learn-pill:hover { background: color-mix(in srgb, var(--lh) 50%, var(--card)); }
+  .prac-bar { display: grid; gap: 6px; margin: 2px 0 8px; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: color-mix(in srgb, var(--lh) 14%, var(--card)); }
+  .pr-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .pr-title { font: 900 13px var(--body); white-space: nowrap; }
+  .pr-ladder { display: flex; gap: 4px; flex: 1; min-width: 0; flex-wrap: wrap; }
+  .pr-step { display: inline-flex; align-items: center; gap: 5px; border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent); border-radius: 999px; background: var(--card); color: var(--ink); font: 800 12px var(--body); padding: 3px 9px 3px 3px; cursor: pointer; white-space: nowrap; }
+  .pr-step i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 12%, transparent); font: 900 10.5px var(--body); font-style: normal; }
+  .pr-step.done i { background: var(--lh); color: #fff; }
+  .pr-step.on { border-color: var(--ink); background: color-mix(in srgb, var(--home) 45%, var(--card)); }
+  .pr-go { padding: 6px 14px; }
+  .pr-x { border: 0; background: none; color: var(--soft); font: 900 20px/1 var(--body); cursor: pointer; padding: 0 4px; }
+  .pr-opts { display: flex; flex-wrap: wrap; gap: 6px 12px; }
+  .pr-grp { display: inline-flex; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); border-radius: 999px; overflow: hidden; }
+  .pr-opt { border: 0; background: transparent; color: var(--soft); font: 800 11.5px var(--body); padding: 4px 10px; cursor: pointer; }
+  .pr-opt + .pr-opt { border-left: 1px solid color-mix(in srgb, var(--ink) 18%, transparent); }
+  .pr-opt.on { background: var(--ink); color: var(--card); }
+  .pr-say { margin: 0; font: 700 12px/1.35 var(--body); color: var(--soft); }
+  /* the hand the band plays fades back, so your hand's keys stand out */
+  body.prac-R .stage .kbd rect.lh, body.prac-L .stage .kbd rect.rh { opacity: .38; }
+  .tile.pr-ok::after { content: "✓"; position: absolute; top: 2px; right: 4px; font: 900 11px var(--body); color: var(--lh); }
+  .tile.pr-ok { position: relative; }
+  .pr-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; }
+  .pr-ladder { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 1px 0; }
+  .pr-ladder::-webkit-scrollbar { display: none; }
+  .prac-bar { padding: 7px 10px; gap: 5px; }
+  .pr-opts { align-items: center; gap: 5px 8px; }
+  .pr-say { flex: 1 1 220px; font-size: 11.5px; }
+  @media (max-width: 700px) {
+    .pr-top { grid-template-columns: 1fr auto auto; grid-template-areas: "t g x" "l l l"; }
+    .pr-title { grid-area: t; } .pr-go { grid-area: g; } .pr-x { grid-area: x; } .pr-ladder { grid-area: l; }
+    .pr-say { flex-basis: 100%; }
+    .pr-opt { padding: 4px 8px; font-size: 11px; }
+    .pr-opts { gap: 5px; }
+  }
+  @media (max-width: 430px) { .learn-pill .lp-t { display: none; } .learn-pill { padding: 5px 8px; } }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10343,7 +10425,9 @@
     { ch: 2, title: "Bring in a friend", why: "Give a part a duet: a harmony, trading lines, or both singing together.", who: "ghost",
       done: () => anyPart(x => !!x.duet), go: () => { tuneTab = "sing"; openSheet("tune"); }, btn: "♪ duets" },
     { ch: 2, title: "Roll one and make it yours", why: "Let Pixie roll a whole song from a mood, keep it, and change one thing: a chord, a word, a style.", who: "cap",
-      done: () => !!pathFlags().roll, go: () => openSheet("roll"), btn: "🎲 roll a song" }
+      done: () => !!pathFlags().roll, go: () => openSheet("roll"), btn: "🎲 roll a song" },
+    { ch: 2, title: "Play it yourself", why: "Learn your own song at the piano: right hand, left hand, both slowly, then full speed. The band plays the hand you're not learning.", who: "wren",
+      done: () => !!pathFlags().practiced, go: () => { closeSheet(); pracToggle(true); }, btn: "🎹 learn it" }
   ];
   const CHAPTERS = { 1: "your first song", 2: "a song with a twist" };
   // a step stays done once you've done it, even in another song
@@ -10378,6 +10462,633 @@
     const s = PATH[+b.dataset.path];
     if (s) s.go();
     return true;
+  }
+
+  // =========================================================
+  // Send a song as a link. The whole song rides in the address after the #,
+  // squeezed small, so there's no server: whoever opens it hears it straight
+  // away, and it only joins their songs once they keep it or change it.
+  // =========================================================
+  const SHARE_HOME = "https://ronnythebear-afk.github.io/Manic-pixie-dream-piano-teacher/";
+  let gift = null; // { song, from } while a shared song is open and not kept yet
+  const b64u = u8 => { let s = ""; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+  const unb64u = t => { const s = atob(t.replace(/-/g, "+").replace(/_/g, "/")); const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+  async function squeeze(u8, how) {
+    const st = new Blob([u8]).stream().pipeThrough(how === "in" ? new CompressionStream("deflate-raw") : new DecompressionStream("deflate-raw"));
+    return new Uint8Array(await new Response(st).arrayBuffer());
+  }
+  // just what's needed to hear and remake the song (no tapes, no private ids)
+  function packForLink(s) {
+    const o = { v: 1, from: prefs.buddy, title: s.title, meter: s.meter, settings: s.settings, beats: s.beats, mix: s.mix, fx: s.fx, chan: s.chan };
+    o.sections = s.sections.map(x => { const y = { ...x }; delete y.takes; return y; });
+    o.order = s.order.slice();
+    return JSON.stringify(o);
+  }
+  async function songLink(s) {
+    const raw = new TextEncoder().encode(packForLink(s));
+    let tag = "j", body = raw;
+    if (window.CompressionStream) { try { body = await squeeze(raw, "in"); tag = "z"; } catch { body = raw; tag = "j"; } }
+    const here = /^https?:$/.test(location.protocol) && !/claude\.ai|claudeusercontent|localhost|127\.0/.test(location.hostname) ? location.origin + location.pathname : SHARE_HOME;
+    return `${here}#song=${tag}${b64u(body)}`;
+  }
+  async function readLink(hash) {
+    const m = /[#&]song=([jz])([A-Za-z0-9_-]+)/.exec(hash || "");
+    if (!m) return null;
+    let u8 = unb64u(m[2]);
+    if (m[1] === "z") u8 = await squeeze(u8, "out");
+    const o = JSON.parse(new TextDecoder().decode(u8));
+    if (!o || !Array.isArray(o.sections) || !o.sections.length) return null;
+    const s = newSong(String(o.title || "a song for you").slice(0, 60), "", o.settings || {}, METERS[o.meter] ? o.meter : "4/4");
+    s.sections = o.sections.filter(x => x && typeof x === "object").map(x => ({ ...x, prog: typeof x.prog === "string" ? x.prog : "", words: Array.isArray(x.words) ? x.words : [], melody: Array.isArray(x.melody) ? x.melody : [], meter: METERS[x.meter] ? x.meter : s.meter }));
+    s.order = Array.isArray(o.order) ? o.order : [];
+    ["mix", "fx", "chan"].forEach(k => { if (o[k] && typeof o[k] === "object") s[k] = o[k]; });
+    if (o.beats && typeof o.beats === "object" && !Array.isArray(o.beats)) {
+      s.beats = {};
+      Object.keys(o.beats).forEach(mk => { const bt = o.beats[mk], M = METERS[mk]; if (M && bt && Array.isArray(bt.rows) && bt.rows.length === 4 && bt.rows.every(r => Array.isArray(r) && r.length === M.n * stepsPer(M))) s.beats[mk] = bt; });
+    }
+    if (!STYLES[s.settings.style]) s.settings.style = "ballad";
+    if (!LENGTHS[s.settings.beats]) s.settings.beats = "bar";
+    fixOrder(s);
+    return { song: s, from: BUDDIES[o.from] ? o.from : null };
+  }
+  // opening a link: play it for them first, keep it only if they want it
+  async function shareBoot() {
+    if (!/song=/.test(location.hash)) return;
+    let g = null;
+    try { g = await readLink(location.hash); } catch {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch {}
+    if (!g) { toast("that song link got scrambled on the way. ask for it again?"); return; }
+    gift = g;
+    openSong(g.song);
+    openSheet("gift");
+  }
+  function keepGift() {
+    if (!gift) return false;
+    if (!songs.includes(gift.song)) songs.push(gift.song);
+    gift = null;
+    return true;
+  }
+  function giftHTML() {
+    const s = song, who = (gift && gift.from) || prefs.buddy, bd = BUDDIES[who] || B();
+    const face = `<svg class="cast-face gift-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[who](26, TALL[who] ? 8 : 4, TALL[who] ? 1.04 : 1.15)}</svg>`;
+    const parts = s.order.map(id => s.sections.find(x => x.id === id)).filter(Boolean);
+    const lines = parts.flatMap(x => (x.lines || []).map(l => l.t).concat(x.words || [])).filter(t => t && String(t).trim()).slice(0, 2);
+    const kept = !gift;
+    return `<div class="gift">
+      ${face}
+      <div class="gift-card">
+        <span class="gift-kicker">${gift && gift.from ? `sent over, played by ${esc(bd.name)}` : "sent over from a friend"}</span>
+        <h3>${esc(s.title || "untitled")}</h3>
+        <p class="gift-parts">${parts.map(x => `<i>${esc(x.name.toLowerCase())}</i>`).join("")}</p>
+        ${lines.length ? `<p class="gift-words">${lines.map(l => esc(String(l))).join("<br>")}</p>` : ""}
+      </div>
+    </div>
+    <div class="row gift-row">
+      <button class="btn surprise" type="button" data-gift="play">${playing ? "■ stop" : "▶ play the whole song"}</button>
+      ${kept ? `<button class="btn" type="button" data-gift="close">it's in your songs ✓</button>` : `<button class="btn" type="button" data-gift="keep">♥ keep it</button><button class="btn" type="button" data-gift="yours">✎ make your own version</button>`}
+    </div>
+    <p class="note">${kept ? "It's saved in your songs." : "Nothing is saved until you keep it. Change anything and it's kept for you, as your own copy."}</p>`;
+  }
+  function giftClick(e) {
+    const b = e.target.closest("[data-gift]");
+    if (!b) return false;
+    const a = b.dataset.gift;
+    if (a === "play") {
+      if (playing) stop();
+      else { prefs.wholeSong = true; savePrefs(); ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); playAll(); }
+      setTimeout(renderSheet, 60);
+    } else if (a === "keep") { keepGift(); saveSongs(); toast(`“${song.title}” is in your songs`); renderSheet(); }
+    else if (a === "yours") { keepGift(); song.title = (song.title + " (my version)").slice(0, 60); applySettings(); saveSongs(); closeSheet(); toast("it's yours now. change anything"); }
+    else if (a === "close") closeSheet();
+    return true;
+  }
+  // the send button: the phone's share sheet when there is one, else copy
+  async function sendSong() {
+    let url;
+    try { url = await songLink(song); } catch { toast("couldn't make a link for this one"); return; }
+    shareURL = url;
+    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+      try { await navigator.share({ title: song.title, text: `${song.title}, a song I made in Pixie Chords`, url }); return; }
+      catch (err) { if (err && err.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(url); toast("link copied. anyone who opens it hears the song"); }
+    catch { toast("here's the link, copy it from the box"); }
+    if (sheetMode === "songs") renderSheet();
+  }
+  let shareURL = "";
+  function shareBoxHTML() {
+    return shareURL ? `<label class="share-box"><span>the link for “${esc(song.title)}”</span><input id="shareURL" readonly value="${esc(shareURL)}" onfocus="this.select()"></label>` : "";
+  }
+
+  // =========================================================
+  // Hum it: sing or hum a tune over a click, and Pixie hears the notes,
+  // guesses the key, and offers a few ways to put chords under it. You hear
+  // each one under your own voice before it goes into the song.
+  // =========================================================
+  let hm = { stage: "idle", bars: 4, frames: [], notes: [], keys: [], key: null, opts: [], pick: 0, tune: true, err: "" };
+  let humRec = null, humPlay = null;
+  // one pitch from a short slice of sound (autocorrelation), as a MIDI number with cents
+  function humPitch(buf, sr) {
+    let e = 0;
+    for (let i = 0; i < buf.length; i++) e += buf[i] * buf[i];
+    if (Math.sqrt(e / buf.length) < 0.012) return null;
+    const minLag = Math.floor(sr / 900), maxLag = Math.min(Math.floor(sr / 75), buf.length >> 1), n = buf.length - maxLag;
+    const corr = new Float32Array(maxLag + 2);
+    let best = 0, lagB = 0;
+    for (let lag = minLag; lag <= maxLag; lag++) {
+      let s = 0, e1 = 0, e2 = 0;
+      for (let i = 0; i < n; i++) { const a = buf[i], b = buf[i + lag]; s += a * b; e1 += a * a; e2 += b * b; }
+      const r = s / (Math.sqrt(e1 * e2) || 1);
+      corr[lag] = r;
+      if (r > best) { best = r; lagB = lag; }
+    }
+    if (best < 0.8) return null;
+    // the first strong peak is the real pitch; later ones are octaves below
+    for (let lag = minLag + 1; lag < lagB; lag++) if (corr[lag] > 0.9 * best && corr[lag] >= corr[lag - 1] && corr[lag] >= corr[lag + 1]) { lagB = lag; break; }
+    const y0 = corr[lagB - 1] || corr[lagB], y1 = corr[lagB], y2 = corr[lagB + 1] || corr[lagB];
+    const d = y0 - 2 * y1 + y2, shift = d ? (y0 - y2) / (2 * d) : 0;
+    return 69 + 12 * Math.log2(sr / (lagB + shift) / 440);
+  }
+  const median = a => { const s = a.slice().sort((x, y) => x - y); return s.length ? s[s.length >> 1] : null; };
+  // pitch over time → notes you'd write down
+  function humNotes(frames) {
+    const f = frames.map((x, i) => {
+      if (x.m == null) return x;
+      const near = frames.slice(Math.max(0, i - 2), i + 3).map(y => y.m).filter(m => m != null);
+      return { b: x.b, m: median(near) };
+    });
+    const notes = [];
+    let cur = null, gap = 0;
+    const end = breath => { if (cur && cur.b1 - cur.b0 >= 0.18) notes.push({ b0: cur.b0, b1: cur.b1, midi: Math.round(median(cur.ms)), breath }); cur = null; };
+    f.forEach(x => {
+      if (x.m == null) { if (++gap >= 2) end(true); return; }
+      gap = 0;
+      const mid = cur ? median(cur.ms.slice(-8)) : null;
+      if (cur && Math.abs(x.m - mid) < 0.75) { cur.ms.push(x.m); cur.b1 = x.b + 0.05; }
+      else { end(false); cur = { b0: x.b, b1: x.b + 0.05, ms: [x.m] }; }
+    });
+    end(true);
+    // octave slips: fold stray notes back toward the rest of the tune
+    const mid = median(notes.map(n => n.midi));
+    notes.forEach(n => { while (n.midi - mid > 9) n.midi -= 12; while (mid - n.midi > 9) n.midi += 12; });
+    // a wobble that split one note in two is still one note (a breath between means two)
+    const out = [];
+    notes.forEach(n => { const p = out[out.length - 1]; if (p && !p.breath && p.midi === n.midi && n.b0 - p.b1 < 0.15) { p.b1 = n.b1; p.breath = n.breath; } else out.push(n); });
+    return out;
+  }
+  // which key the tune lives in (Krumhansl's listening profiles)
+  const HUM_MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+  const HUM_MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+  function humKeys(notes) {
+    const h = new Array(12).fill(0);
+    notes.forEach(n => { h[mod(n.midi)] += n.b1 - n.b0; });
+    if (notes.length) { h[mod(notes[notes.length - 1].midi)] += 0.6; h[mod(notes[0].midi)] += 0.3; }
+    const corr = (p, t) => {
+      const xs = h.map((_, i) => h[mod(i + t)]), mx = xs.reduce((a, b) => a + b, 0) / 12, my = p.reduce((a, b) => a + b, 0) / 12;
+      let s = 0, sx = 0, sy = 0;
+      for (let i = 0; i < 12; i++) { s += (xs[i] - mx) * (p[i] - my); sx += (xs[i] - mx) ** 2; sy += (p[i] - my) ** 2; }
+      return s / (Math.sqrt(sx * sy) || 1);
+    };
+    const all = [];
+    for (let t = 0; t < 12; t++) { all.push({ tonic: t, minor: false, r: corr(HUM_MAJ, t) }); all.push({ tonic: t, minor: true, r: corr(HUM_MIN, t) - 0.01 }); }
+    return all.sort((a, b) => b.r - a.r).slice(0, 4);
+  }
+  // the chords that could sit under each bar, and three ways through them
+  const HUM_SETS = {
+    major: { fit: [[0, "", "I"], [2, "m", "ii"], [4, "m", "iii"], [5, "", "IV"], [7, "", "V"], [9, "m", "vi"]],
+      simple: [[0, "", "I"], [5, "", "IV"], [7, "", "V"]],
+      color: [[9, "m", "vi"], [2, "m", "ii"], [4, "m", "iii"], [5, "", "IV"], [0, "", "I"], [7, "", "V"], [10, "", "♭VII"], [5, "m", "iv"]] },
+    minor: { fit: [[0, "m", "i"], [3, "", "III"], [5, "m", "iv"], [7, "", "V"], [8, "", "VI"], [10, "", "VII"]],
+      simple: [[0, "m", "i"], [5, "m", "iv"], [7, "", "V"]],
+      color: [[3, "", "III"], [8, "", "VI"], [10, "", "VII"], [0, "m", "i"], [5, "m", "iv"], [7, "", "V"]] }
+  };
+  const HUM_WAYS = [
+    { id: "fit", name: "closest fit", why: "the chords that hold the most of your notes" },
+    { id: "simple", name: "three chords", why: "home, away and the pull back. Easy to play, easy to sing over" },
+    { id: "color", name: "a moodier way", brighter: "a brighter way", why: "starts somewhere other than home, so the same tune feels different" }
+  ];
+  const humPcs = (iv, q) => [iv, iv + (q === "m" || q === "dim" ? 3 : 4), iv + (q === "dim" ? 6 : 7)].map(x => mod(x));
+  function barWeights(notes, j, n) {
+    const w = new Array(12).fill(0), a = j * n, b = a + n;
+    notes.forEach(x => {
+      const o = Math.min(b, x.b1) - Math.max(a, x.b0);
+      if (o <= 0) return;
+      const pos = x.b0 - a, onBeat = Math.abs(pos - Math.round(pos)) < 0.25;
+      const k = x.b0 < a ? 0.8 : onBeat && Math.round(pos) === 0 ? 1.6 : onBeat && n === 4 && Math.round(pos) === 2 ? 1.25 : 1;
+      w[mod(x.midi)] += o * k;
+    });
+    return w;
+  }
+  function chordFit(w, key, iv, q) {
+    const tot = w.reduce((s, x) => s + x, 0);
+    if (!tot) return 0;
+    const pcs = humPcs(iv, q).map(p => mod(p + key.tonic)), scale = (key.minor ? [0, 2, 3, 5, 7, 8, 10, 11] : [0, 2, 4, 5, 7, 9, 11]).map(p => mod(p + key.tonic));
+    let s = 0;
+    w.forEach((x, pc) => { if (!x) return; s += x * (pc === pcs[0] ? 1 : pc === pcs[1] ? 0.85 : pc === pcs[2] ? 0.7 : scale.includes(pc) ? -0.1 : -0.45); });
+    return s / tot;
+  }
+  function humWay(way, key, notes, bars, n) {
+    const set = HUM_SETS[key.minor ? "minor" : "major"][way];
+    const W = Array.from({ length: bars }, (_, j) => barWeights(notes, j, n));
+    const home = key.minor ? "i" : "I", five = "V", four = key.minor ? "iv" : "IV", two = key.minor ? "ii°" : "ii";
+    const move = (a, b) => {
+      if (a[2] === b[2]) return -0.14;
+      if (a[2] === five && b[2] === home) return 0.16;
+      if ((a[2] === four || a[2] === two) && b[2] === five) return 0.11;
+      if (a[2] === four && b[2] === home) return 0.06;
+      return 0.02;
+    };
+    const edge = (c, j) => {
+      let s = 0;
+      if (way === "color") { if (j === 0 && c === set[0]) s += 0.22; if (j === 0 && c[2] === home) s -= 9; if (j === bars - 1 && (c[2] === four || c[2] === home || c[2] === "VI")) s += 0.08; }
+      else { if (j === 0 && c[2] === home) s += 0.14; if (j === bars - 1 && c[2] === home) s += way === "simple" ? 0.26 : 0.18; if (j === bars - 1 && c[2] === five) s += 0.05; }
+      return s;
+    };
+    // best path through the bars (Viterbi): good fits, good moves, a good start and end
+    let prev = set.map(c => ({ s: chordFit(W[0], key, c[0], c[1]) + edge(c, 0), path: [c] }));
+    for (let j = 1; j < bars; j++) {
+      prev = set.map(c => {
+        const here = chordFit(W[j], key, c[0], c[1]) + edge(c, j);
+        let best = null;
+        prev.forEach(p => { const s = p.s + move(p.path[p.path.length - 1], c) + here; if (!best || s > best.s) best = { s, path: p.path.concat([c]) }; });
+        return best;
+      });
+    }
+    const win = prev.reduce((a, b) => (b.s > a.s ? b : a));
+    return win.path.map(c => ({ tok: scaleNote(key, c[0]) + c[1], num: c[2] }));
+  }
+  function humAnalyse() {
+    hm.notes = humNotes(hm.frames);
+    if (hm.notes.length < 3) { hm.stage = "idle"; hm.err = "I only caught a note or two. Try again a little louder, close to the mic, with a clear “doo” or “la”."; return; }
+    hm.keys = humKeys(hm.notes);
+    hm.key = hm.key && hm.keys.some(k => k.tonic === hm.key.tonic && k.minor === hm.key.minor) ? hm.key : { tonic: hm.keys[0].tonic, minor: hm.keys[0].minor };
+    humWays();
+    hm.stage = "done"; hm.err = "";
+  }
+  function humWays() {
+    const n = Mtr.n, seen = new Set();
+    hm.opts = HUM_WAYS.map(w => ({ ...w, name: w.id === "color" && hm.key.minor ? w.brighter : w.name, chords: humWay(w.id, hm.key, hm.notes, hm.bars, n) }))
+      .filter(o => { const k = o.chords.map(c => c.tok).join(" "); if (seen.has(k)) return false; seen.add(k); return true; });
+    hm.pick = Math.min(hm.pick, hm.opts.length - 1);
+  }
+  // for checks: skip the microphone and hand in pitches directly
+  function humFeed(frames, bars) { hm.frames = frames; hm.bars = bars || hm.bars; hm.buf = null; humAnalyse(); if (sheetMode === "hum") renderSheet(); return { notes: hm.notes, key: hm.key, n: Mtr.n, W: Array.from({ length: hm.bars }, (_, j) => barWeights(hm.notes, j, Mtr.n).map(x => +x.toFixed(2))), opts: hm.opts.map(o => o.chords.map(c => c.tok).join(" ")) }; }
+
+  // ---------- recording ----------
+  async function humStart() {
+    if (humRec || !(await audioReady())) return;
+    if (playing) stop();
+    humStopPlay();
+    if (!navigator.mediaDevices?.getUserMedia) { hm.stage = hm.notes.length && hm.key ? "done" : "idle"; hm.err = "blocked"; renderSheet(); return; }
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true } }); }
+    catch (err) { hm.stage = hm.notes.length && hm.key ? "done" : "idle"; hm.err = err && err.name === "NotAllowedError" && !/policy|not allowed in this document/i.test(err.message || "") ? "denied" : "blocked"; renderSheet(); return; }
+    hm.err = ""; hm.key = null; hm.pick = 0;
+    const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser(), sp = ac.createScriptProcessor(4096, 1, 1), mute = ac.createGain();
+    an.fftSize = 2048; mute.gain.value = 0;
+    src.connect(an); src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
+    const n = Mtr.n, cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.2, tStart = t0 + n * cl, tEnd = tStart + hm.bars * n * cl;
+    // a count-in, then a quiet click to hum against
+    for (let k = 0; k < n + hm.bars * n; k++) { const t = t0 + k * cl; if (k < n || prefs.humClick !== false) tone(k % n ? 91 : 96, t, 0.04, k < n ? 0.1 : 0.05); }
+    const chunks = [];
+    sp.onaudioprocess = e => { chunks.push({ t: e.playbackTime - 4096 / ac.sampleRate, d: new Float32Array(e.inputBuffer.getChannelData(0)) }); };
+    humRec = { stream, src, an, sp, mute, chunks, cl, n, t0, tStart, tEnd, buf: new Float32Array(an.fftSize), timer: null, drawn: 0 };
+    hm.frames = []; hm.stage = "rec"; hm.notes = [];
+    renderSheet();
+    humRec.timer = setInterval(() => {
+      const r = humRec; if (!r) return;
+      const now = ac.currentTime, lbl = $("humCount");
+      if (now < r.tStart) { if (lbl) lbl.textContent = String(r.n - Math.floor((now - r.t0) / r.cl)); return; }
+      if (lbl && lbl.textContent !== "hum!") lbl.textContent = "hum!";
+      r.an.getFloatTimeDomainData(r.buf);
+      const b = (now - r.tStart) / r.cl, m = humPitch(r.buf, ac.sampleRate);
+      hm.frames.push({ b, m });
+      const bar = $("humBar");
+      if (bar) bar.style.width = Math.min(100, b / (hm.bars * r.n) * 100).toFixed(1) + "%";
+      if (++r.drawn % 5 === 0) { const roll = $("humRoll"); if (roll) roll.innerHTML = humRollInner(true); }
+      if (now >= r.tEnd) humFinish();
+    }, 25);
+  }
+  function humMicOff() {
+    const r = humRec; if (!r) return null;
+    clearInterval(r.timer);
+    r.sp.onaudioprocess = null;
+    try { r.src.disconnect(); r.sp.disconnect(); r.mute.disconnect(); } catch {}
+    r.stream.getTracks().forEach(t => t.stop());
+    humRec = null;
+    return r;
+  }
+  function humFinish(cancel) {
+    const r = humMicOff(); if (!r) return;
+    if (cancel) { hm.stage = hm.notes.length ? "done" : "idle"; renderSheet(); return; }
+    // stopped early: keep the bars you actually hummed
+    const last = hm.frames.reduce((a, f) => (f.m != null ? f.b : a), 0);
+    hm.bars = Math.max(1, Math.min(hm.bars, Math.ceil((last + 0.1) / r.n)));
+    // your voice, lined up to the first beat, for hearing chords under it
+    const sr = ac.sampleRate, len = Math.ceil((hm.bars * r.n * r.cl + 0.5) * sr), out = new Float32Array(len);
+    r.chunks.forEach(c => { const at = Math.round((c.t - r.tStart) * sr); for (let i = 0; i < c.d.length; i++) { const k = at + i; if (k >= 0 && k < len) out[k] = c.d[i]; } });
+    try { hm.buf = ac.createBuffer(1, len, sr); hm.buf.getChannelData(0).set(out); } catch { hm.buf = null; }
+    humAnalyse();
+    renderSheet();
+  }
+
+  // ---------- hearing it ----------
+  function humStopPlay() {
+    if (!humPlay) return;
+    humPlay.timers.forEach(clearTimeout);
+    try { humPlay.src && humPlay.src.stop(); } catch {}
+    humPlay = null;
+  }
+  async function humHear(which) {
+    if (humPlay) { const was = humPlay.which; humStopPlay(); if (was === which) { renderSheet(); return; } }
+    if (!(await audioReady())) return;
+    if (playing) stop();
+    const n = Mtr.n, cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.25, timers = [];
+    humPlay = { which, timers, src: null };
+    const withChords = which !== "notes";
+    if (hm.buf && which !== "notes") {
+      const s = ac.createBufferSource(), g = ac.createGain();
+      s.buffer = hm.buf; g.gain.value = 1.4; s.connect(g); g.connect(master); s.start(t0);
+      humPlay.src = s;
+    } else {
+      // no recording to hand (or you asked for the notes): the piano plays what it heard
+      hm.notes.forEach(x => tone(x.midi + 12 * (x.midi < 55 ? 1 : 0), t0 + x.b0 * cl, (x.b1 - x.b0) * cl * 0.95, 0.24));
+    }
+    if (withChords) {
+      const o = hm.opts[which] || hm.opts[0];
+      const r = compute({ prog: o.chords.map(c => c.tok).join(" "), meter: song.sections[secIdx].meter || "4/4" }, { ...S(), key: "auto", beats: "bar" }, -1);
+      r.current.forEach((c, j) => {
+        const t = t0 + j * n * cl;
+        timers.push(setTimeout(() => { if (humPlay && humPlay.timers === timers) playChord(c.v, t, c.beats, cl, styleOf(secIdx), { M: Mtr, pos0: 0, gain: 0.8 }); }, Math.max(0, (t - ac.currentTime - 0.12) * 1000)));
+        timers.push(setTimeout(() => { document.querySelectorAll(`[data-humbar="${j}"]`).forEach(e => e.classList.add("on")); document.querySelectorAll(`[data-humbar="${j - 1}"]`).forEach(e => e.classList.remove("on")); }, Math.max(0, (t - ac.currentTime) * 1000)));
+      });
+    }
+    const endMs = (hm.bars * n * cl + 0.6) * 1000;
+    timers.push(setTimeout(() => { if (humPlay && humPlay.timers === timers) { humPlay = null; renderSheet(); } }, endMs));
+    renderSheet();
+  }
+
+  // ---------- putting it in the song ----------
+  // the hummed line becomes the singer's shape over each chord, so they sing your tune
+  function humContours(bars, n) {
+    const v = hm.frames.filter(f => f.m != null);
+    if (v.length < 6) return null;
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range, span = hi - lo, mid = median(v.map(f => f.m));
+    return Array.from({ length: bars }, (_, j) => {
+      const inBar = v.filter(f => f.b >= j * n && f.b < (j + 1) * n);
+      if (inBar.length < 3) return null;
+      return Array.from({ length: CONTOUR_N }, (_, k) => {
+        const b = j * n + k / (CONTOUR_N - 1) * n, near = inBar.filter(f => Math.abs(f.b - b) < n / CONTOUR_N + 0.1);
+        const m = near.length ? median(near.map(f => f.m)) : inBar.reduce((a, f) => (Math.abs(f.b - b) < Math.abs(a.b - b) ? f : a), inBar[0]).m;
+        return +Math.max(0, Math.min(1, 0.5 + (m - mid) / span)).toFixed(2);
+      });
+    });
+  }
+  function humUse(where) {
+    const o = hm.opts[hm.pick]; if (!o) return;
+    humStopPlay();
+    const prog = o.chords.map(c => c.tok).join(" "), shapes = hm.tune ? humContours(hm.bars, Mtr.n) : null;
+    const keyTok = `${hm.key.tonic}${hm.key.minor ? "m" : "M"}`;
+    if (where === "new") {
+      const s = newSong("hummed song", prog, { key: keyTok }, song.sections[secIdx].meter || "4/4");
+      s.settings.bpm = S().bpm;
+      if (shapes) s.sections[0].melody = shapes.map(x => x || undefined);
+      songs.push(s); openSong(s); saveSongs(); closeSheet();
+      toast("a new song, from your hum");
+      return;
+    }
+    if (!songHasChords()) setting("key", keyTok);
+    setProg(prog, true);
+    if (shapes) { sec().melody = shapes.map(x => x || undefined); saveSongs(); renderAll(); }
+    closeSheet();
+    toast(`your hum is the ${sec().name.toLowerCase()} now`, true);
+  }
+
+  // ---------- the sheet ----------
+  function humRollInner(live) {
+    const n = Mtr.n, bars = hm.bars, W = 320, H = 96, L = 4, R = 4, T = 16, Bt = 8;
+    const ms = live ? hm.frames.filter(f => f.m != null).map(f => f.m) : hm.notes.map(x => x.midi);
+    const lo = ms.length ? Math.floor(Math.min(...ms)) - 2 : 55, hi = ms.length ? Math.ceil(Math.max(...ms)) + 2 : 72;
+    const x = b => L + b / (bars * n) * (W - L - R), y = m => T + (1 - (m - lo) / Math.max(6, hi - lo)) * (H - T - Bt);
+    let s = "";
+    for (let j = 0; j <= bars; j++) s += `<path class="hr-bar" d="M${x(j * n).toFixed(1)} ${T - 2}V${H - Bt + 2}"/>`;
+    for (let j = 0; j < bars * n; j++) if (j % n) s += `<path class="hr-beat" d="M${x(j).toFixed(1)} ${T}V${H - Bt}"/>`;
+    if (live) {
+      s += hm.frames.filter(f => f.m != null).map(f => `<circle class="hr-dot" cx="${x(f.b).toFixed(1)}" cy="${y(f.m).toFixed(1)}" r="1.6"/>`).join("");
+    } else {
+      const o = hm.opts[hm.pick];
+      if (o) o.chords.forEach((c, j) => { s += `<g class="hr-ch" data-humbar="${j}"><rect x="${(x(j * n) + 1).toFixed(1)}" y="1" width="${(x(n) - x(0) - 2).toFixed(1)}" height="12" rx="3"/><text x="${(x(j * n) + 5).toFixed(1)}" y="10.5">${esc(pretty(c.tok))}</text></g>`; });
+      s += hm.notes.map(nt => {
+        const x0 = x(nt.b0), w = Math.max(5, x(nt.b1) - x0 - 1), yy = y(nt.midi);
+        const nm = pretty(scaleNote(hm.key, mod(nt.midi - hm.key.tonic))).replace(/♯/, "#").replace(/♭/, "b");
+        return `<rect class="hr-note" x="${x0.toFixed(1)}" y="${(yy - 4).toFixed(1)}" width="${w.toFixed(1)}" height="8" rx="3"/>${w > 9 ? `<text class="hr-nm" x="${(x0 + 2.5).toFixed(1)}" y="${(yy + 2.3).toFixed(1)}">${esc(nm)}</text>` : ""}`;
+      }).join("");
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${s}</svg>`;
+  }
+  function humHTML() {
+    const who = B().name, part = sec().name.toLowerCase();
+    const blocked = hm.err === "blocked" || hm.err === "denied";
+    const errLine = !hm.err ? "" : !blocked ? `<p class="note hum-err">${esc(hm.err)}</p>` : `<p class="note hum-err">${hm.err === "denied" ? "The microphone is switched off for Pixie. Allow it in your browser's site settings and try again." : `This page can't reach the microphone. Open Pixie on its own page and it will: <a href="${SHARE_HOME}" target="_blank" rel="noopener">pixie chords</a>.`}</p>`;
+    const barsRow = `<div class="seg-row three hum-bars" role="group" aria-label="How long to hum">${[2, 4, 8].map(b => `<button class="seg-btn" type="button" data-hum="bars" data-n="${b}" aria-pressed="${hm.bars === b}">${b} bars</button>`).join("")}</div>`;
+    if (hm.stage === "rec") {
+      return `<p class="hum-say"><span class="hum-count" id="humCount">${Mtr.n}</span> ${esc(who)} counts you in, then hum or sing on “doo” or “la”. Keep going till the bar fills.</p>
+        <div class="hum-roll live" id="humRoll">${humRollInner(true)}</div>
+        <div class="hum-prog"><i id="humBar"></i></div>
+        <div class="row"><button class="btn surprise" type="button" data-hum="stop">■ done</button><button class="btn" type="button" data-hum="cancel">cancel</button></div>`;
+    }
+    if (hm.stage === "done") {
+      const kn = k => pretty(keyName(k));
+      const alts = hm.keys.filter(k => !(k.tonic === hm.key.tonic && k.minor === hm.key.minor)).slice(0, 2);
+      const hearing = humPlay ? humPlay.which : null;
+      return `${errLine}<p class="hum-say">${esc(who)} heard ${hm.notes.length} notes. It sounds like <b>${esc(kn(hm.key))}</b>${alts.length ? `, or maybe ${alts.map(k => `<button class="link" type="button" data-hum="key" data-t="${k.tonic}" data-m="${k.minor ? 1 : 0}">${esc(kn(k))}</button>`).join(" or ")}` : ""}.</p>
+        <div class="hum-roll" id="humRoll">${humRollInner(false)}</div>
+        <div class="row hum-mini"><button class="btn" type="button" data-hum="notes">${hearing === "notes" ? "■ stop" : "▶ just the notes I heard"}</button><button class="btn" type="button" data-hum="again">● hum it again</button></div>
+        <h3 class="subhead">chords that fit</h3>
+        <div class="hum-opts">${hm.opts.map((o, i) => `<div class="hum-opt${i === hm.pick ? " on" : ""}">
+          <button class="hum-pick" type="button" data-hum="pick" data-i="${i}" aria-pressed="${i === hm.pick}"><b>${esc(o.name)}</b><span class="hum-chords">${o.chords.map(c => `<i>${esc(pretty(c.tok))}<small>${esc(c.num)}</small></i>`).join("")}</span><small class="hum-why">${esc(o.why)}</small></button>
+          <button class="btn hum-hear" type="button" data-hum="hear" data-i="${i}" aria-label="Hear ${esc(o.name)} under ${hm.buf ? "your voice" : "the tune"}">${hearing === i ? "■" : "▶"}</button>
+        </div>`).join("")}</div>
+        <label class="hum-tune"><input type="checkbox" data-hum="tune"${hm.tune ? " checked" : ""}> ${esc(who)} sings your tune when the part has words</label>
+        <div class="row"><button class="btn surprise" type="button" data-hum="use">put it in the ${esc(part)}</button><button class="btn" type="button" data-hum="new">start a new song with it</button></div>`;
+    }
+    return `<p class="hum-say">Got a tune in your head? Hum it or sing it on “doo”, and ${esc(who)} will find chords to go under it.</p>
+      ${errLine}
+      ${barsRow}
+      <p class="note">${esc(S().bpm)} beats a minute, ${Mtr.n} to a bar. There's a count-in and a soft click. Headphones help, but aren't needed.</p>
+      <div class="row"><button class="btn surprise hum-go" type="button" data-hum="go">● hum a tune</button><label class="hum-tune"><input type="checkbox" data-hum="click"${prefs.humClick !== false ? " checked" : ""}> click while I hum</label></div>`;
+  }
+  function humClick(e) {
+    const b = e.target.closest("[data-hum]");
+    if (!b) return false;
+    const a = b.dataset.hum;
+    if (a === "bars") { hm.bars = +b.dataset.n; renderSheet(); }
+    else if (a === "go" || a === "again") humStart();
+    else if (a === "stop") humFinish();
+    else if (a === "cancel") humFinish(true);
+    else if (a === "key") { hm.key = { tonic: +b.dataset.t, minor: b.dataset.m === "1" }; humStopPlay(); humWays(); renderSheet(); }
+    else if (a === "pick") { hm.pick = +b.dataset.i; renderSheet(); }
+    else if (a === "hear") { hm.pick = +b.dataset.i; humHear(+b.dataset.i); }
+    else if (a === "notes") humHear("notes");
+    else if (a === "tune") { hm.tune = b.checked; return true; }
+    else if (a === "click") { prefs.humClick = b.checked; savePrefs(); return true; }
+    else if (a === "use") humUse("here");
+    else if (a === "new") humUse("new");
+    return true;
+  }
+  function humLeave() { humFinish(true); humStopPlay(); }
+
+  // =========================================================
+  // Learn your own song: the song you wrote becomes the lesson. One hand,
+  // then the other, slowly, then together at full speed. The band plays
+  // the hand you're not learning, and your hand plays softly as a guide.
+  // With a keyboard you can ask it to wait for you at every chord.
+  // =========================================================
+  const PRAC_LADDER = [
+    { hand: "R", rate: 0.6, name: "right hand, slow" },
+    { hand: "L", rate: 0.6, name: "left hand, slow" },
+    { hand: "B", rate: 0.6, name: "both hands, slow" },
+    { hand: "B", rate: 1, name: "both, full speed" }
+  ];
+  const PRAC_RATES = [[0.6, "slow"], [0.8, "steady"], [1, "full"]];
+  let prac = { on: false, hand: "R", rate: 0.6, wait: false, going: false, j: 0, heard: new Set(), ok: new Set(), last: null };
+  const playBpm = () => S().bpm * (prac.on ? prac.rate : 1);
+  const pracDone = () => { const p = prefs.practice && typeof prefs.practice === "object" ? prefs.practice : (prefs.practice = {}); return p[song.id] || (p[song.id] = {}); };
+  const pracStep = () => PRAC_LADDER.findIndex(s => s.hand === prac.hand && s.rate === prac.rate);
+  // which notes are yours to play right now
+  const pracNotes = v => (prac.hand === "R" ? v.rh : prac.hand === "L" ? v.lh : allNotes(v));
+  const pracPcs = v => new Set((pracNotes(v).length ? pracNotes(v) : allNotes(v)).map(m => mod(m)));
+  function pracToggle(on) {
+    prac.on = on ?? !prac.on;
+    if (!prac.on) { pracStopWait(); prac.ok.clear(); }
+    else {
+      // pick up where you left off on this song's ladder
+      const d = pracDone(), next = PRAC_LADDER.findIndex((s, i) => !d[i]);
+      if (next >= 0) { prac.hand = PRAC_LADDER[next].hand; prac.rate = PRAC_LADDER[next].rate; }
+      if (!keysOn()) prac.wait = false;
+    }
+    if (playing) stop();
+    document.body.classList.toggle("practicing", prac.on);
+    pracBodyClass();
+    renderStage();
+  }
+  function pracBodyClass() {
+    document.body.classList.toggle("prac-R", prac.on && prac.hand === "R");
+    document.body.classList.toggle("prac-L", prac.on && prac.hand === "L");
+  }
+  // the band during practice: the other hand full, your hand as a soft guide
+  function pracPlayChord(v, t, beats, cl, style, ctx) {
+    if (prac.hand === "B") { playChord(v, t, beats, cl, style, { ...ctx, gain: 0.35 }); return; }
+    const mine = prac.hand === "R" ? { ...v, lh: [] } : { ...v, rh: [] }, theirs = prac.hand === "R" ? { ...v, rh: [] } : { ...v, lh: [] };
+    if (allNotes(theirs).length) playChord(theirs, t, beats, cl, style, ctx);
+    if (allNotes(mine).length) playChord(mine, t, beats, cl, style, { ...ctx, gain: 0.3 });
+  }
+  const tileOf = (j) => stripEl.querySelector(`.tile[data-j="${j}"]`);
+  function pracMark() { stripEl.querySelectorAll(".tile[data-j]").forEach(el => el.classList.toggle("pr-ok", prac.ok.has(`${secIdx}:${el.dataset.j}`))); }
+  // a new chord just started: did you catch the one before?
+  function pracAt(sIdx, j, c) {
+    if (!prac.on) return;
+    const was = prac.last;
+    if (was && keysOn()) {
+      const want = pracPcs(was.c.v);
+      if ([...want].every(p => prac.heard.has(p))) prac.ok.add(`${was.sIdx}:${was.j}`);
+    }
+    prac.heard = new Set([...kb.held.keys()].map(m => mod(m)));
+    prac.last = { sIdx, j, c };
+    pracMark();
+  }
+  // one time through the part (or the song): that rung of the ladder is done
+  function pracPassed() {
+    if (!prac.on) return;
+    const i = pracStep();
+    if (i >= 0 && !pracDone()[i]) {
+      pracDone()[i] = Date.now(); savePrefs();
+      const next = PRAC_LADDER[i + 1];
+      toast(next ? `✓ ${PRAC_LADDER[i].name}. Next: ${next.name}` : `✓ you can play “${song.title}”`);
+      if (!next) pathFlag("practiced");
+      later(() => renderStage(), 60);
+    }
+  }
+  // ---------- wait for me: no clock, the song moves when you play ----------
+  function pracStartWait() {
+    if (!current.length) return;
+    prac.going = true; prac.j = 0; prac.ok.clear();
+    sel = 0; renderStage(); pracMark();
+  }
+  function pracStopWait() { prac.going = false; }
+  onKeys((type, m) => {
+    if (!prac.on) return false;
+    if (type === "on") prac.heard.add(mod(m));
+    if (!prac.wait || !prac.going || type !== "on" || sheetMode) return false;
+    const c = current[prac.j]; if (!c) return false;
+    const want = pracPcs(c.v), have = new Set([...kb.held.keys()].map(x => mod(x)));
+    if (![...want].every(p => have.has(p))) return false;
+    prac.ok.add(`${secIdx}:${prac.j}`);
+    pracMark();
+    // got it: the band answers with the whole chord, then on to the next
+    const cl = countSec(Mtr, playBpm());
+    pracPlayChord(c.v, ac.currentTime + 0.02, Math.min(c.beats, Mtr.n), cl, styleOf(secIdx), { M: Mtr, pos0: c.pos0 });
+    const j = prac.j;
+    setTimeout(() => {
+      if (!prac.going || prac.j !== j) return;
+      prac.j++;
+      if (prac.j >= current.length) { pracPassed(); prac.j = 0; prac.ok.clear(); }
+      sel = prac.j; renderStage(); pracMark();
+    }, 380);
+    return false;
+  });
+  // ---------- the bar above the keys ----------
+  function pracBarHTML() {
+    if (!prac.on) return "";
+    const d = pracDone(), step = pracStep(), whole = !!prefs.wholeSong, nK = keysOn();
+    const ladder = PRAC_LADDER.map((s, i) => `<button class="pr-step${i === step ? " on" : ""}${d[i] ? " done" : ""}" type="button" data-prac="step" data-i="${i}" aria-pressed="${i === step}"><i>${d[i] ? "✓" : i + 1}</i>${esc(s.name)}</button>`).join("");
+    const seg = (k, v, label, on) => `<button class="pr-opt${on ? " on" : ""}" type="button" data-prac="${k}" data-v="${v}" aria-pressed="${on}">${label}</button>`;
+    const go = prac.wait ? prac.going : playing;
+    return `<div class="prac-bar" role="group" aria-label="Learn to play ${esc(song.title)}">
+      <div class="pr-top">
+        <span class="pr-title">🎹 learn it</span>
+        <div class="pr-ladder">${ladder}</div>
+        <button class="btn surprise pr-go" type="button" data-prac="go">${go ? "■ stop" : "▶ start"}</button>
+        <button class="pr-x" type="button" data-prac="off" aria-label="Stop learning">×</button>
+      </div>
+      <div class="pr-opts">
+        <span class="pr-grp">${seg("hand", "L", "left", prac.hand === "L")}${seg("hand", "R", "right", prac.hand === "R")}${seg("hand", "B", "both", prac.hand === "B")}</span>
+        <span class="pr-grp">${PRAC_RATES.map(([r, n]) => seg("rate", r, n, prac.rate === r)).join("")}</span>
+        <span class="pr-grp">${seg("whole", 0, "this part", !whole || prac.wait)}${seg("whole", 1, "whole song", whole && !prac.wait)}</span>
+        ${nK ? `<span class="pr-grp">${seg("wait", prac.wait ? 0 : 1, prac.wait ? "✓ waits for me" : "wait for me", prac.wait)}</span>` : ""}
+        <p class="pr-say">${esc(pracSay())}</p>
+      </div>
+    </div>`;
+  }
+  function pracSay() {
+    const h = prac.hand === "R" ? "your right hand" : prac.hand === "L" ? "your left hand" : "both hands";
+    if (prac.wait) return prac.going ? `Play the lit ${prac.hand === "B" ? "keys" : "keys for " + h}. ${B().name} waits, then answers.` : `No clock: ${B().name} waits at every chord until you play it.`;
+    if (!keysOn()) return `Play along on a real piano with ${h}. The band plays ${prac.hand === "B" ? "quietly under you" : "the other hand"}, and the glow shows the next chord's keys a moment early.`;
+    return `Play ${h} on your keyboard. Chords you catch get a ✓ up top.`;
+  }
+  function pracClick(e) {
+    const b = e.target.closest("[data-prac]");
+    if (!b) return false;
+    const a = b.dataset.prac;
+    const again = () => { const was = playing || prac.going; if (playing) stop(); pracStopWait(); pracBodyClass(); renderStage(); if (was) later(pracGo, 80); };
+    if (a === "off") pracToggle(false);
+    else if (a === "step") { const s = PRAC_LADDER[+b.dataset.i]; prac.hand = s.hand; prac.rate = s.rate; again(); }
+    else if (a === "hand") { prac.hand = b.dataset.v; again(); }
+    else if (a === "rate") { prac.rate = +b.dataset.v; again(); }
+    else if (a === "whole") { prefs.wholeSong = b.dataset.v === "1"; if (prefs.wholeSong) prac.wait = false; savePrefs(); again(); }
+    else if (a === "wait") { prac.wait = b.dataset.v === "1"; if (playing) stop(); pracStopWait(); renderStage(); }
+    else if (a === "go") {
+      if (prac.wait) { if (prac.going) pracStopWait(); else pracStartWait(); renderStage(); }
+      else pracGo();
+    }
+    return true;
+  }
+  function pracGo() {
+    if (playing) { stop(); renderStage(); return; }
+    prac.ok.clear(); prac.last = null;
+    // from the top of the part, or of the song
+    if (prefs.wholeSong) { ordPos = 0; secIdx = Math.max(0, idxOf(song.order[0])); renderAll(); }
+    playAll().then(() => renderStage());
   }
 
   // =========================================================
@@ -10555,6 +11266,8 @@
 
   let saveTimer = null;
   function saveSongs() {
+    // a shared song becomes yours the moment you change it
+    if (gift && song === gift.song) keepGift();
     song.updated = Date.now();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushSongs, 350);
@@ -10896,6 +11609,7 @@
         ${words()[it.i] ? `<span class="t-words">${esc(words()[it.i])}</span>` : ""}
       </button>`;
     }).join("") + `<button class="tile plus" type="button" data-act="plus" aria-label="Add chords">+</button>`;
+    if (prac.on) pracMark();
   }
 
   // the ribbon: each chord as long as it lasts, bar lines, a meter chip
@@ -11023,7 +11737,9 @@
         <div class="role"><i></i>${esc(c.a.num)} <span>${FN_INFO[c.a.fn].label.toLowerCase()}</span></div>
         <button class="key-pill" type="button" data-act="keypick" aria-label="Key: ${esc(pretty(keyName(K)))}. Tap to change it."><small>key</small>${esc(pretty(keyName(K)))}<span class="caret" aria-hidden="true">▾</span></button>
         ${undo ? `<button class="undo-btn" type="button" data-act="undo" title="Undo" aria-label="Undo">↶</button>` : ""}
+        ${prac.on || prefs.view === "studio" ? "" : `<button class="learn-pill" type="button" data-prac="on" title="Learn to play this song, one hand at a time" aria-label="Learn to play this song">🎹<span class="lp-t"> learn it</span></button>`}
       </div>
+      ${pracBarHTML()}
       <div class="held-chip" id="heldChip" hidden></div>
       ${L("lyrics") ? laneRow(c) : ""}
       <div class="kbd" data-act="play" title="Tap to hear it"${L("lens") ? " data-lens" : ""}>${keyboard(c.v, range[0], range[1], { tall: true, label: (m, on) => pretty(on ? noteName(c.ch, m) : NAMES_IN(K)[mod(m)]), nextV: look ? nextC.v : null, arrows, quiet: !L("names"), band: guideOn(), friends })}</div>
@@ -11382,21 +12098,21 @@
     while (step >= d.list.length) {
       if (whole) {
         playPos++;
-        if (playPos >= song.order.length) { pathFlag("whole"); if (!loopOn && !keepGoing) return finish(); playPos = 0; }
+        if (playPos >= song.order.length) { pathFlag("whole"); pracPassed(); if (!loopOn && !keepGoing) return finish(); playPos = 0; }
         playSec = Math.max(0, idxOf(song.order[playPos]));
-      } else if ((!loopOn && !keepGoing) || !d.list.length) return finish();
+      } else { if (d.list.length) pracPassed(); if ((!loopOn && !keepGoing) || !d.list.length) return finish(); }
       step = 0;
       passNo++;
       if (passNo === 1 && prefs.view === "learn") later(noticeSong, (nextT - ac.currentTime) * 1000 + 200);
       d = sectionData(playSec);
       if (++guard > song.order.length + 1) return finish();
     }
-    const c = d.list[step], M = d.M, cl = countSec(M, S().bpm), dur = c.beats * cl;
+    const c = d.list[step], M = d.M, cl = countSec(M, playBpm()), dur = c.beats * cl;
     playLog.push({ t: nextT, sIdx: playSec, at: c.at, beats: c.beats, cl, T: d.T });
     if (playLog.length > 48) playLog.shift();
-    const withDemo = demoOn() && !previewing, band = !(withDemo && demoMode() === "alone");
+    const withDemo = demoOn() && !previewing && !prac.on, band = !(withDemo && demoMode() === "alone");
     if (withDemo) { demoPlayChord(c, nextT, cl, M, playSec, playPos, demoFirst); demoFirst = false; }
-    if (band) playChord(c.v, nextT, c.beats, cl, styleOf(playSec), { M, pos0: c.pos0 });
+    if (band) (prac.on ? pracPlayChord : playChord)(c.v, nextT, c.beats, cl, styleOf(playSec), { M, pos0: c.pos0 });
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") && !withDemo ? melodyChain(playSec).get(c.i) : null;
     if (band) playRiff(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
@@ -11420,6 +12136,7 @@
         renderStage();
         arrowsSoon(dur);
       }
+      pracAt(sIdx, j, c);
       movePlayhead(c, dur);
       weather(c);
       fx(c);
@@ -12051,7 +12768,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", path: "learning", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", gift: "a song for you", hum: "hum a tune", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -12065,6 +12782,7 @@
     }
     closeEgg();
     if (mode !== "listen") hearStop();
+    if (sheetMode === "hum" && mode !== "hum") humLeave();
     // the songbook opens on the page for the chord you're on, or the cover
     if (mode === "stories" && sheetMode !== "stories" && !(mode === "stories" && storyAt === 0 && sheetMode === "keys")) storyAt = null;
     if (mode === "street" && sheetMode !== "street") streetLit = null;
@@ -12094,6 +12812,7 @@
     if (sheetMode === "along") { cancelAnimationFrame(alongRaf); alongHold = null; }
     if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
     if (sheetMode === "pattern") patStop(true);
+    if (sheetMode === "hum") humLeave();
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
@@ -12203,6 +12922,8 @@
     if (sheetMode === "pattern") { $("sheetTitle").textContent = "play the pattern"; body.innerHTML = patternHTML(); patMarkUsed(); return; }
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
+    if (sheetMode === "hum") { $("sheetTitle").textContent = "hum a tune"; body.innerHTML = humHTML(); return; }
+    if (sheetMode === "gift") { $("sheetTitle").textContent = "a song for you"; body.innerHTML = giftHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
     if (sheetMode === "knobs") {
       $("sheetTitle").textContent = "settings";
@@ -12291,7 +13012,7 @@
       $("sheetTitle").textContent = "song sheet";
       body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
         <p class="note">Your words with the chords over them, signed by ${esc(B().name)}. Good for keeping by a real piano.</p>
-        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button></div>`;
+        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button><button class="btn" type="button" data-song="send">🔗 send it as a link</button></div>${shareBoxHTML()}`;
       makeSongSheet();
     } else if (sheetMode === "start") {
       const t = wiz.tonic, nm = t == null ? null : pretty(FALLBACK[t]);
@@ -12307,7 +13028,7 @@
         <div class="wiz-step${wiz.minor == null ? " dim" : ""}"><h3>3 · pick a vibe</h3>
           <div class="moods">${list.map(({ m, prog }) => `<button class="mood-btn" type="button" data-wizmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(prog))}</span></button>`).join("") || `<p class="note">choose sunny or moody first</p>`}</div></div>
         ${wiz.minor != null ? `<div class="row"><button class="choice" type="button" data-wizblank>or just start in ${esc(pretty(keyName({ tonic: t, minor: wiz.minor })))}, no chords yet</button></div>` : ""}
-        ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="roll">🎲 or let Pixie roll a whole song</button><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
+        ${wiz.mode === "new" ? `<div class="row"><button class="link" type="button" data-open="hum">🎤 or hum a tune and find its chords</button><button class="link" type="button" data-open="roll">🎲 or let Pixie roll a whole song</button><button class="link" type="button" data-open="listen">♫ or learn a song you love from a recording</button></div>` : ""}`;
     } else if (sheetMode === "lyrics") {
       $("sheetTitle").textContent = "lyric sheet";
       body.innerHTML = `<div class="row"><button class="btn" type="button" data-song="copy">copy the whole song</button></div>
@@ -12344,7 +13065,7 @@
           <div class="moods">${STORIES.map(st => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
         </div>
         <div class="knob"><span class="lbl">more ways in</span>
-          <div class="presets ways"><button class="choice" type="button" data-open="library">▤ from the library</button><button class="choice" type="button" data-addact="wizard">♪ start from a note</button><button class="choice" type="button" data-addact="type">⌨ type chords</button><button class="choice" type="button" data-addact="find">? name a chord from its keys</button></div></div>`;
+          <div class="presets ways"><button class="choice" type="button" data-open="hum">🎤 hum a tune</button><button class="choice" type="button" data-open="library">▤ from the library</button><button class="choice" type="button" data-addact="wizard">♪ start from a note</button><button class="choice" type="button" data-addact="type">⌨ type chords</button><button class="choice" type="button" data-addact="find">? name a chord from its keys</button></div></div>`;
     } else if (sheetMode === "addsec") {
       $("sheetTitle").textContent = "add a part";
       body.innerHTML = `
@@ -12431,7 +13152,9 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button></div>
+        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="hum">🎤 hum a tune</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button><button class="btn" type="button" data-song="send">🔗 send “${esc((song.title || "this song").slice(0, 24))}” as a link</button></div>
+        ${shareBoxHTML()}
+        ${gift && song === gift.song ? `<p class="note gift-note">“${esc(song.title)}” came from a link and isn't kept yet. <button class="link" type="button" data-open="gift">keep it or play it</button></p>` : ""}
         <p class="note">${storageOK ? "Songs save in this browser as you go." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
           const n = s.sections.reduce((a, x) => a + tokenize(x.prog).length, 0);
@@ -12800,6 +13523,8 @@
     renderStage();
   }
   stageEl.addEventListener("click", e => {
+    if (e.target.closest('[data-prac="on"]')) { pracToggle(true); return; }
+    if (pracClick(e)) return;
     const op = e.target.closest("[data-open]");
     if (op) { openSheet(op.dataset.open); return; }
     const sy = !editingLyric && e.target.closest("#lane .syl:not(.tie)");
@@ -12948,6 +13673,8 @@
     if (sheetMode === "pattern" && patternClick(e)) return;
     if ((sheetMode === "roll" || sheetMode === "map") && rollClick(e)) return;
     if (sheetMode === "path" && pathClick(e)) return;
+    if (sheetMode === "gift" && giftClick(e)) return;
+    if (sheetMode === "hum" && humClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
@@ -13230,6 +13957,7 @@
     }
     const act = b.dataset.song, id = b.dataset.id;
     if (act === "pack") { packSongs(); return; }
+    if (act === "send") { sendSong(); return; }
     if (act === "unpack") { const f = $("packFile"); f.value = ""; f.onchange = () => f.files[0] && unpackSongs(f.files[0]); f.click(); return; }
     if (act === "new") { wiz = { mode: "new", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
     else if (act === "lyrics") { sheetMode = "lyrics"; renderSheet(); }
@@ -13389,9 +14117,11 @@
   savePrefs();
   store.set("songs", JSON.stringify(songs));
   store.set("current", song.id);
+  shareBoot();
+  addEventListener("hashchange", shareBoot);
   // a door for automated checks (not used by the app itself)
   window.__pixie = {
-    openSheet, closeSheet,
+    openSheet, closeSheet, humFeed, songLink, readLink, _hum: { chordFit, barWeights, humWay, hm: () => hm },
     // sing one line alone (no band) and hand back the recording, for listening tests
     async singTest(text, who = "wren", cl = 0.5) {
       if (!(await audioReady())) return null;
