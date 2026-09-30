@@ -2058,6 +2058,9 @@
   .wel-line { font: 400 22px var(--voice); padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); width: 100%; box-sizing: border-box; }
   .welcome .mood-btn.on { outline: 3px solid var(--home); outline-offset: 1px; }
   .wel-skip { justify-self: start; color: var(--soft); }
+  /* the learning menu */
+  .learn-cards .learn-card { display: grid; gap: 3px; align-content: start; }
+  .learn-card .lc-where { font: 800 11px var(--body); color: var(--lh); margin-top: 2px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7870,7 +7873,7 @@
   ];
   let lessonAt = null, lessonRestore = null;
   // chord stories and tune lessons: two tabs of one sheet
-  const learnTabs = on => `<div class="tabs four five" role="tablist">${[["path", "✦ path"], ["stories", "stories"], ["lessons", "♪ tunes"], ["street", "⌂ street"], ["play", "▶ play"]].map(([id, n]) => `<button type="button" role="tab" data-open="${id}" aria-selected="${on === id}">${n}</button>`).join("")}</div>`;
+  const learnTabs = on => `<div class="tabs four five" role="tablist">${[["path", "path"], ["stories", "stories"], ["lessons", "lessons"], ["street", "street"], ["play", "games"]].map(([id, n]) => `<button type="button" role="tab" data-open="${id}" aria-selected="${on === id}">${n}</button>`).join("")}</div>`;
   function lessonsHTML() {
     if (lessonAt == null) return `<p class="note">Short lessons about what goes on top of your chords. Every example plays in the part you're working on.</p>
       <div class="story-list">${LESSONS.map((l, i) => `<button class="story-card lesson-card" type="button" data-lesson="${i}"><i class="ln-n">${i + 1}</i><span><b>${esc(l.title)}</b><small>${esc(l.text[0].split(". ")[0])}.</small></span></button>`).join("")}</div>`;
@@ -11960,6 +11963,40 @@
   }
 
   // =========================================================
+  // The learning menu: every kind of learning in one place, each with
+  // a line about what's inside and how far you've come.
+  // =========================================================
+  function learnHubHTML() {
+    const done = Object.keys(pathDone()).length, read = readStories().length, who = B().name;
+    const card = (open, face, title, what, where, extra = "") => `<button class="mood-btn learn-card" type="button" ${open}${extra}><b>${face} ${title}</b><span>${what}</span>${where ? `<small class="lc-where">${where}</small>` : ""}</button>`;
+    return `<p class="h-lead">Pick what you feel like. It all feeds back into your songs.</p>
+      <h3 class="subhead first">make a song, step by step</h3>
+      <div class="moods learn-cards">
+        ${card('data-open="path"', "✦", "the song path", "From an empty house to a finished song, one small step at a time.", `${done} of ${PATH.length} steps done`)}
+        ${card('data-learnhub="practice"', "🎹", "learn your song", `Play what you wrote: one hand, then the other, slowly. ${esc(who)} plays the rest.`, "")}
+      </div>
+      <h3 class="subhead">how music works</h3>
+      <div class="moods learn-cards">
+        ${card('data-open="stories"', "📖", "street stories", "Short chapters, each a mood and the chords that make it.", `${read} of ${STORIES.length} read`)}
+        ${card('data-open="lessons"', "♪", "tune & riff lessons", "The sung line and the riff that sit on top of your chords.", `${LESSONS.length} lessons`)}
+        ${card('data-open="street"', "⌂", "Pixie Street", "All twelve keys as houses in a ring. Neighbors sound close.", "")}
+      </div>
+      <h3 class="subhead">play and listen</h3>
+      <div class="moods learn-cards">
+        ${card('data-open="play"', "▶", "games", "Small ear and hand games. Nothing is scored.", `${GAMES.length} games`)}
+        ${card('data-open="listen"', "♫", "learn a song by ear", "Bring a recording of a song you love and find its chords.", "")}
+      </div>
+      <p class="note">New here? <button class="link" type="button" data-learnhub="tour">take the first tour</button></p>`;
+  }
+  function learnHubClick(e) {
+    const b = e.target.closest("[data-learnhub]");
+    if (!b) return false;
+    if (b.dataset.learnhub === "practice") { closeSheet(); pracToggle(true); }
+    else if (b.dataset.learnhub === "tour") { closeSheet(); welcomeStart(); }
+    return true;
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -12410,7 +12447,7 @@
     const chordsPill = `<button class="pal chords-pill${arranging ? " on" : ""}" type="button" data-act="arrange" aria-pressed="${arranging}">${arranging ? "✓ done" : "⇄ arrange"}</button>`;
     const side = {
       simple: chordsPill + inside,
-      learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-open="path">✦ the path</button>`,
+      learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-open="learn">✦ learning</button>`,
       write: chordsPill + `<button class="pal mh-in" type="button" data-act="along">✎ words</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-open="stickers">🎤 samples</button>`,
       studio: `<button class="pal vu" type="button" data-act="rack" aria-label="The rack: pedals, mute and solo, two mixes to compare">${vuSVG()}<small>rack</small></button><button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button>`
     }[mode] || inside;
@@ -13653,7 +13690,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", stickers: "sample stickers", welcome: "welcome", path: "learning", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", stickers: "sample stickers", welcome: "welcome", learn: "learning", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -13814,6 +13851,7 @@
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "hum") { $("sheetTitle").textContent = "hum a tune"; body.innerHTML = humHTML(); return; }
+    if (sheetMode === "learn") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnHubHTML(); return; }
     if (sheetMode === "welcome") { $("sheetTitle").textContent = "welcome"; body.innerHTML = welcomeHTML(); return; }
     if (sheetMode === "stickers") { $("sheetTitle").textContent = "sample stickers"; body.innerHTML = stkHTML(); return; }
     if (sheetMode === "share") {
@@ -14595,6 +14633,7 @@
     if (sheetMode === "hum" && humClick(e)) return;
     if (sheetMode === "stickers" && stkClick(e)) return;
     if (sheetMode === "welcome" && welcomeClick(e)) return;
+    if (sheetMode === "learn" && learnHubClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
