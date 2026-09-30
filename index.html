@@ -9571,12 +9571,22 @@
   function applyPlayed(section, g, notes) {
     const take = section.tuneTake;
     if (!take) return;
+    let off = 0;
     g.forEach((c, ci) => {
-      const row = take[c.i];
+      const row = take[c.i], at = off;
+      off += c.beats;
       if (!row) return;
       let k = 0;
-      notes.forEach(n => { if (n.ci !== ci) return; if (!n.tie && row[k] != null) n.midi = row[k]; if (!n.tie) k++; });
+      notes.forEach(n => {
+        if (n.ci !== ci) return;
+        const v = !n.tie ? row[k] : null;
+        // a played note is just a pitch; a hummed one also brings its own timing
+        if (typeof v === "number") n.midi = v;
+        else if (v && typeof v === "object") { n.midi = v.m; if (v.s != null) { n.start = at + v.s; n.dur = v.d; } }
+        if (!n.tie) k++;
+      });
     });
+    notes.sort((x, y) => x.start - y.start);
   }
 
   // ---------- the panels in the tune & riff sheet ----------
@@ -11087,7 +11097,7 @@
       if (!playing) { humTakeEnd(h.pass >= 1 && h.frames.length > 20 ? false : true); return; }
       let b = beatNow();
       if (b == null) return;
-      if (b < h.lastB - 1) { h.pass++; if (h.pass === 1) { h.stage = "hum"; const st = $("hkStage"); if (st) st.textContent = "hum now!"; } }
+      if (b < h.lastB - 1) { h.pass++; if (h.pass === 1) { h.stage = "hum"; const st = $("hkStage"); if (st) st.textContent = "hum now!"; humDuck(h, b); } }
       h.lastB = b;
       if (h.pass >= 2) { humTakeEnd(false); return; }
       if (h.pass === 1) {
@@ -11101,10 +11111,24 @@
     }, 25);
   }
   let hkErr = null;
+  // the humming pass: the band drops to a whisper so the mic hears you, and a soft
+  // click (straight to the speakers, not through the band) keeps the time
+  function humDuck(h, b) {
+    if (!master || !ac) return;
+    const now = ac.currentTime, cl = countSec(Mtr, S().bpm);
+    try { master.gain.setTargetAtTime(master.gain.value * 0.06, now, 0.06); } catch {}
+    h.clicks = [];
+    for (let k = Math.ceil(b); k < total; k++) {
+      const t = now + (k - b) * cl, o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = k % Mtr.n ? 1500 : 2000; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(k % Mtr.n ? 0.05 : 0.08, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.06); h.clicks.push(o);
+    }
+  }
   function humTakeEnd(cancel) {
     const h = hk; if (!h) return;
     hk = null;
     clearInterval(h.timer);
+    (h.clicks || []).forEach(o => { try { o.stop(); } catch {} });
     try { h.src.disconnect(); } catch {}
     micDrop(h.stream);
     prefs.layers.lead = h.was.lead; prefs.layers.sing = h.was.sing;
@@ -11128,29 +11152,50 @@
     x.riff = { ...(x.riff || {}), kind: "mine" };
     return true;
   }
+  // your hummed line: each sung syllable takes the hummed note nearest it in time,
+  // with that note's pitch, start and length, even across a bar line
   function humToTune(x, frames) {
     const v = frames.filter(f => f.m != null);
     if (v.length < 8) return false;
     const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range, sh = octaveFit(v.map(f => f.m), lo + 2, hi - 2);
-    const chain = melodyChain(secIdx), take = {};
-    let got = 0, last = null;
+    const H = humNotes(frames).map(n => ({ ...n, midi: n.midi + sh }));
+    const chain = melodyChain(secIdx), syl = [];
     current.forEach(c => {
       const e = chain.get(c.i); if (!e) return;
       let k = 0;
-      e.notes.forEach(n => {
-        if (n.tie) return;
-        const a = c.at + n.start, bnd = a + Math.max(0.2, n.dur), near = v.filter(f => f.b >= a - 0.05 && f.b <= bnd);
-        if (near.length >= 2) { const m = inRange(Math.round(median(near.map(f => f.m)) + sh), lo - 2, hi + 2, last ?? undefined); (take[c.i] = take[c.i] || {})[k] = m; last = m; got++; }
-        k++;
-      });
+      e.notes.forEach(n => { if (n.tie) return; syl.push({ c, k, a: c.at + n.start, d: n.dur }); k++; });
+    });
+    if (!syl.length) return false;
+    syl.sort((p, q) => p.a - q.a);
+    const q = b => Math.round(b * 4) / 4;
+    let j = 0, got = 0, last = null;
+    syl.forEach(y => {
+      // the nearest unused hummed note a little ahead, never going back in time
+      let best = -1;
+      for (let x = j; x < Math.min(H.length, j + 5); x++) if (Math.abs(H[x].b0 - y.a) <= 2 && (best < 0 || Math.abs(H[x].b0 - y.a) < Math.abs(H[best].b0 - y.a))) best = x;
+      if (best >= 0) { const h = H[best]; y.t = q(h.b0); y.len = Math.max(0.25, q(h.b1 - h.b0)); y.m = inRange(h.midi, lo - 2, hi + 2, last ?? h.midi); j = best + 1; got++; }
+      else {
+        // no hummed note near this syllable: keep its place, take the pitch you were on
+        const near = v.filter(f => f.b >= y.a - 0.05 && f.b <= y.a + Math.max(0.2, y.d));
+        y.t = y.a; y.len = y.d;
+        if (near.length >= 2) y.m = inRange(Math.round(median(near.map(f => f.m)) + sh), lo - 2, hi + 2, last ?? undefined);
+      }
+      if (y.m != null) last = y.m;
     });
     if (!got) return false;
-    x.tuneTake = { ...(x.tuneTake || {}), ...take };
+    // keep the words in order, each ending before the next begins
+    for (let i = 1; i < syl.length; i++) if (syl[i].t < syl[i - 1].t + 0.25) syl[i].t = syl[i - 1].t + 0.25;
+    for (let i = 0; i < syl.length - 1; i++) syl[i].len = Math.max(0.2, Math.min(syl[i].len, syl[i + 1].t - syl[i].t - 0.05));
+    const take = {};
+    syl.forEach(y => { const row = take[y.c.i] = take[y.c.i] || {}; row[y.k] = y.m != null ? { m: y.m, s: +(y.t - y.c.at).toFixed(3), d: +y.len.toFixed(3) } : { m: null, s: +(y.t - y.c.at).toFixed(3), d: +y.len.toFixed(3) }; });
+    // a syllable with no pitch keeps the friend's note but moves with the timing
+    Object.values(take).forEach(row => Object.keys(row).forEach(k => { if (row[k].m == null) delete row[k]; }));
+    x.tuneTake = take;
     return true;
   }
   function humTakeHTML(kind) {
     if (hk && hk.kind === kind) return `<div class="take-box rec"><b id="hkStage">${hk.stage === "hum" ? "hum now!" : "listen once… then hum it"}</b><div class="hum-prog"><i id="hkBar"></i></div>
-      <p class="note">${kind === "riff" ? `The ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)} sits out. Hum your riff the second time round.` : `${esc(B().name)} sits out. Sing or hum the words' tune the second time round; the rhythm stays.`}</p>
+      <p class="note">${kind === "riff" ? `The ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)} sits out. Hum your riff the second time round, when the band goes quiet and a click keeps time.` : `${esc(B().name)} sits out. Sing the words' tune the second time round: the band goes quiet and a click keeps time. Your timing carries across the bars.`}</p>
       <div class="row"><button class="btn" type="button" data-hk="stop">stop</button></div></div>`;
     return "";
   }
