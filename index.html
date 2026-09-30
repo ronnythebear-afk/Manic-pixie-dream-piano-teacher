@@ -2039,6 +2039,25 @@
   .stk-chord i { position: absolute; top: -9px; right: -7px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--stk); color: #fff; font: 900 12px var(--body); font-style: normal; transform: rotate(8deg); border: 1.5px solid var(--line); }
   .tile { position: relative; }
   .t-stk { position: absolute; top: -7px; right: -5px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 99px; background: var(--stk); color: #fff; font: 900 11px var(--body); border: 1.5px solid #2f2a3d; transform: rotate(8deg); pointer-events: none; }
+  /* the duet picker: one line until opened */
+  .duet-pick > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; padding: 6px 10px 6px 6px; border: 1.5px solid color-mix(in srgb, var(--ink) 25%, transparent); border-radius: 14px; background: var(--card); }
+  .duet-pick > summary::-webkit-details-marker { display: none; }
+  .dp-now { display: grid; grid-template-columns: 36px auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; min-width: 0; }
+  .dp-now .portrait, .dp-now .dp-solo { grid-row: span 2; width: 36px; height: 38px; border-radius: 9px; background: #2a2144; display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 900; }
+  .dp-now b { font: 800 14px var(--body); } .dp-now small { font: 700 12px var(--body); color: var(--soft); }
+  .dp-cta { font: 800 12px var(--body); color: var(--soft); white-space: nowrap; }
+  .dp-cta::after { content: " ▾"; } .duet-pick[open] .dp-cta::after { content: " ▴"; }
+  .duet-pick[open] > summary { margin-bottom: 8px; }
+  /* the first visit */
+  .welcome { display: grid; gap: 10px; }
+  .wel-dots { display: flex; gap: 6px; }
+  .wel-dots i { width: 26px; height: 6px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 15%, transparent); }
+  .wel-dots i.done { background: var(--lh); } .wel-dots i.now { background: var(--home); }
+  .wel-big { font: 400 26px/1.15 var(--voice); margin: 2px 0 0; }
+  .wel-who { margin-top: -2px; }
+  .wel-line { font: 400 22px var(--voice); padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: var(--card); color: var(--ink); width: 100%; box-sizing: border-box; }
+  .welcome .mood-btn.on { outline: 3px solid var(--home); outline-offset: 1px; }
+  .wel-skip { justify-self: start; color: var(--soft); }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10474,7 +10493,7 @@
     { ch: 2, title: "The big finish", why: "Lift the last chorus a whole step. It's the oldest trick in pop, and it still works.", who: "lulu",
       done: () => anyPart(x => !!x.keyShift), go: () => { if (!openPartNamed(/chorus/i)) { openSheet("map"); return; } openSheet("secedit"); }, btn: "↑ key change" },
     { ch: 2, title: "A different feel", why: "Let one part play its own way: stride, boogie-woogie, Alberti. Practise it in play the pattern.", who: "oona",
-      done: () => anyPart(x => !!x.style && !x.big), go: () => openSheet("beat"), btn: "the piano styles" },
+      done: () => anyPart(x => !!x.style && !x.big), go: () => { bandTab = "piano"; openSheet("beat"); }, btn: "the piano styles" },
     { ch: 2, title: "Bring in a friend", why: "Give a part a duet: a harmony, trading lines, or both singing together.", who: "ghost",
       done: () => anyPart(x => !!x.duet), go: () => { tuneTab = "sing"; openSheet("tune"); }, btn: "♪ duets" },
     { ch: 2, title: "Roll one and make it yours", why: "Let Pixie roll a whole song from a mood, keep it, and change one thing: a chord, a word, a style.", who: "cap",
@@ -10496,7 +10515,8 @@
     const face = id => `<svg class="cast-face" viewBox="-8 -58 72 76" aria-hidden="true">${CHAR_SVG[id](26, TALL[id] ? 8 : 4, TALL[id] ? 1.04 : 1.15)}</svg>`;
     const stones = PATH.map((s, i) => `<i class="ps-stone${done[i] ? " done" : ""}${i === next ? " next" : ""}" title="${esc(s.title)}"></i>`).join("");
     let h = `<p class="h-lead">From an empty house to a finished song, one step at a time. Each step opens the part of Pixie that teaches it, and ticks itself off when you've done it.</p>
-      <div class="path-stones" aria-label="${n} of ${PATH.length} steps done">${stones}</div>`;
+      <div class="path-stones" aria-label="${n} of ${PATH.length} steps done">${stones}</div>
+      <p class="note path-tour">New here, or want the quick version? <button class="link" type="button" data-path="tour">take the first tour again</button></p>`;
     let ch = 0;
     PATH.forEach((s, i) => {
       if (s.ch !== ch) { ch = s.ch; h += `<h3 class="subhead">chapter ${ch} · ${esc(CHAPTERS[ch])}</h3>`; }
@@ -10512,6 +10532,7 @@
   function pathClick(e) {
     const b = e.target.closest("[data-path]");
     if (!b) return false;
+    if (b.dataset.path === "tour") { closeSheet(); welcomeStart(); return true; }
     const s = PATH[+b.dataset.path];
     if (s) s.go();
     return true;
@@ -11843,6 +11864,98 @@
   }
 
   // =========================================================
+  // The first visit: four small steps from an empty page to a song you
+  // can hear and play. Skippable at every step, and waiting on the
+  // learning path whenever you want to walk it again.
+  // =========================================================
+  let wel = { step: 0, line: "" };
+  const WEL_MOODS = ["hopeful", "dreamy", "bittersweet", "brave"];
+  const WEL_STEPS = 4;
+  // a song that's still just the starter can be used; otherwise the tour makes its own
+  const isStarter = s => s.sections.length === 1 && !s.sections[0].words.some(Boolean) && !(s.sections[0].lines || []).length && /^my first song/.test(s.title || "");
+  function welcomeStart() {
+    if (!isStarter(song)) { const s = newSong("my first song", ""); songs.push(s); openSong(s); saveSongs(); }
+    wel = { step: 0, line: "" };
+    prefs.wholeSong = false;
+    openSheet("welcome");
+  }
+  function welcomeEnd(done) {
+    prefs.welcomed = Date.now(); savePrefs();
+    if (playing) stop();
+    closeSheet();
+    if (done) toast("that's your first song. The learning path keeps going whenever you like");
+  }
+  function welcomeHTML() {
+    const who = B().name, dots = `<div class="wel-dots" aria-label="step ${wel.step + 1} of ${WEL_STEPS}">${Array.from({ length: WEL_STEPS }, (_, i) => `<i class="${i < wel.step ? "done" : i === wel.step ? "now" : ""}"></i>`).join("")}</div>`;
+    const skip = `<button class="link wel-skip" type="button" data-wel="skip">skip the tour</button>`;
+    const next = (label = "next ›", ok = true) => `<button class="btn surprise" type="button" data-wel="next"${ok ? "" : " disabled"}>${label}</button>`;
+    let h = "";
+    if (wel.step === 0) {
+      h = `<p class="wel-big">Hi! Let's make a song together, then play it on the keys.</p>
+        <p class="note">First, pick a friend to make music with. Each one plays and sings in their own way, and you can swap any time.</p>
+        <div class="friend-row">${BUDDY_ORDER.map(id => `<button class="buddy-card buddy-mini" type="button" data-wel="buddy" data-id="${id}" aria-pressed="${prefs.buddy === id}">${portrait(id)}<span>${esc(BUDDIES[id].name.replace("Captain ", "Capt. "))}</span></button>`).join("")}</div>
+        <p class="note wel-who">${esc(who)}: ${esc(B().who)}.</p>
+        <div class="row">${next(`${esc(who)} it is ›`)}</div>`;
+    } else if (wel.step === 1) {
+      const chosen = tokenize(sec().prog).length > 0 && wel.mood;
+      h = `<p class="wel-big">Every song starts with a few chords.</p>
+        <p class="note">Pick a mood and ${esc(who)} puts four chords in your verse. Listen to how each one feels.</p>
+        <div class="moods">${WEL_MOODS.map(id => MOODS.find(m => m.id === id)).filter(Boolean).map(m => `<button class="mood-btn${wel.mood === m.id ? " on" : ""}" type="button" data-wel="mood" data-id="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`).join("")}</div>
+        <div class="row">${next("next ›", !!chosen)}</div>`;
+    } else if (wel.step === 2) {
+      h = `<p class="wel-big">Now a line for ${esc(who)} to sing.</p>
+        <p class="note">Anything works, even what you had for breakfast. Four to ten words is plenty.</p>
+        <input id="welLine" class="wel-line" type="text" maxlength="80" placeholder="the kettle sings before I do" value="${esc(wel.line)}">
+        <div class="row"><button class="btn" type="button" data-wel="sing">♪ sing it</button>${next("next ›", !!wel.line)}</div>`;
+    } else {
+      h = `<p class="wel-big">Last thing: play it yourself.</p>
+        <p class="note">Your right hand plays the lit keys while ${esc(who)} plays the rest, slowly. A keyboard or a real piano both work, and so does just watching. Each new key glows a moment early so you can get ready.</p>
+        <div class="row"><button class="btn surprise" type="button" data-wel="learn">🎹 play it</button><button class="btn" type="button" data-wel="done">I'll look around first</button></div>`;
+    }
+    return `<div class="welcome">${dots}${h}${wel.step < 3 ? skip : ""}</div>`;
+  }
+  function welcomeClick(e) {
+    const b = e.target.closest("[data-wel]");
+    if (!b) return false;
+    const a = b.dataset.wel;
+    if (a === "skip") welcomeEnd(false);
+    else if (a === "done") welcomeEnd(true);
+    else if (a === "next") { if (playing) stop(); wel.step = Math.min(WEL_STEPS - 1, wel.step + 1); renderSheet(); }
+    else if (a === "buddy") { chooseBuddy(b.dataset.id); renderSheet(); }
+    else if (a === "mood") {
+      const m = MOODS.find(x => x.id === b.dataset.id); if (!m) return true;
+      wel.mood = m.id;
+      if (playing) stop();
+      overrides.clear();
+      setProg(moodProg(m, K), false);
+      renderSheet();
+      playAll();
+    } else if (a === "sing") {
+      const t = (($("welLine") || {}).value || "").trim();
+      if (!t) { toast("type a few words first"); return true; }
+      wel.line = t;
+      // the same way the words sheet saves a line: Pixie spreads it over the chords
+      setLineTexts(sec(), [t]);
+      if (!L("sing")) { prefs.layers.sing = true; applyView(); }
+      saveSongs(); renderAll(); renderSheet();
+      if (playing) stop();
+      playAll();
+    } else if (a === "learn") {
+      welcomeEnd(false);
+      pracToggle(true);
+      prac.hand = "R"; prac.rate = 0.6; pracBodyClass(); renderStage();
+      toast("tap ▶ start when you're ready");
+    }
+    return true;
+  }
+  // first time here (and not a test run): start the tour
+  function welcomeBoot() {
+    if (prefs.welcomed || navigator.webdriver || location.hash) return;
+    if (songs.length !== 1 || !isStarter(songs[0])) { prefs.welcomed = Date.now(); savePrefs(); return; }
+    setTimeout(welcomeStart, 400);
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -12093,10 +12206,13 @@
   const DUET_HOW = [["harmony", "in harmony"], ["trade", "trade lines"], ["together", "together"]];
   function duetHTML(x) {
     const d = x.duet && BUDDIES[x.duet.who] && x.duet.who !== prefs.buddy ? x.duet : null, me = B().name.replace("Captain ", "");
+    // one line until you open it: who sings, and how
+    const now = d ? `${portrait(d.who)}<b>${esc(me)} + ${esc(BUDDIES[d.who].name.replace("Captain ", "Capt. "))}</b><small>${esc((DUET_HOW.find(h => h[0] === d.how) || DUET_HOW[0])[1])}</small>` : `<i class="dp-solo">♪</i><b>${esc(me)} alone</b><small>bring in a friend</small>`;
     return `<div class="knob duet"><span class="lbl">duet</span>
+      <details class="duet-pick" data-fold="duet"${folds.duet ? " open" : ""}><summary><span class="dp-now">${now}</span><span class="dp-cta">change</span></summary>
       <div class="friend-row">${[null, ...BUDDY_ORDER.filter(id => id !== prefs.buddy)].map(id => id ? `<button class="buddy-card buddy-mini" type="button" data-duet="${id}" aria-pressed="${!!d && d.who === id}" aria-label="Sing it with ${esc(BUDDIES[id].name)}">${portrait(id)}<span>${esc(BUDDIES[id].name.replace("Captain ", "Capt. "))}</span></button>` : `<button class="buddy-card buddy-mini solo" type="button" data-duet="" aria-pressed="${!d}"><b>♪</b><span>${esc(me)} alone</span></button>`).join("")}</div>
       ${d ? `<div class="seg-row three" role="group" aria-label="How they sing it">${DUET_HOW.map(([id, n]) => `<button type="button" class="seg-btn" data-duethow="${id}" aria-pressed="${d.how === id}">${n}</button>`).join("")}</div>
-        <p class="note">${d.how === "trade" ? `${esc(me)} sings the first line, ${esc(BUDDIES[d.who].name)} the next, back and forth.` : d.how === "together" ? `Both sing every word, each in their own range.` : `${esc(BUDDIES[d.who].name)} sings a harmony over ${esc(me)}'s tune.`}</p>` : `<p class="note">Bring in a friend for this part. Each part can have its own duet.</p>`}</div>`;
+        <p class="note">${d.how === "trade" ? `${esc(me)} sings the first line, ${esc(BUDDIES[d.who].name)} the next, back and forth.` : d.how === "together" ? `Both sing every word, each in their own range.` : `${esc(BUDDIES[d.who].name)} sings a harmony over ${esc(me)}'s tune.`}</p>` : `<p class="note">Bring in a friend for this part. Each part can have its own duet.</p>`}</details></div>`;
   }
   function duetClick(e) {
     const dB = e.target.closest("[data-duet]"), hB = e.target.closest("[data-duethow]");
@@ -13200,6 +13316,16 @@
   // each part can play its own way; most follow the song
   const styleOf = i => { const x = song.sections[i]; return (x && STYLES[x.style]) ? x.style : S().style; };
   function setStyle(k) { if (sec().style) sec().style = k; else setting("style", k); saveSongs(); }
+  // a new friend brings their own piano and beat
+  function chooseBuddy(id) {
+    prefs.buddy = id; savePrefs();
+    setting("voice", null);
+    Object.keys(song.beats).forEach(m => { if (!song.beats[m].custom) delete song.beats[m]; });
+    tipOverride = B().hello;
+    renderAll();
+    renderScene(true);
+    toast(`${B().name} brought the ${VOICES[B().voice].name}`);
+  }
   function openEntry() {
     document.body.classList.add("entry-open");
     input.focus();
@@ -13519,11 +13645,11 @@
   // =========================================================
   // Sheets: knobs, beat box, view, songs, library
   // =========================================================
-  let sheetMode = null, confirmDel = null;
+  let sheetMode = null, confirmDel = null, bandTab = "who";
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", stickers: "sample stickers", path: "learning", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", stickers: "sample stickers", welcome: "welcome", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -13539,6 +13665,8 @@
     if (mode !== "listen") hearStop();
     if (sheetMode === "hum" && mode !== "hum") humLeave();
     if (stk.rec && mode !== "stickers") stkFinish(true);
+    // the pattern sheet's "its own style" link goes straight to the piano tab
+    if (mode === "beat" && sheetMode === "pattern") bandTab = "piano";
     // the songbook opens on the page for the chord you're on, or the cover
     if (mode === "stories" && sheetMode !== "stories" && !(mode === "stories" && storyAt === 0 && sheetMode === "keys")) storyAt = null;
     if (mode === "street" && sheetMode !== "street") streetLit = null;
@@ -13571,6 +13699,7 @@
     if (sheetMode === "hum") humLeave();
     if (hk) humTakeEnd(true);
     if (stk.rec) stkFinish(true);
+    if (sheetMode === "welcome" && !prefs.welcomed) { prefs.welcomed = Date.now(); savePrefs(); }
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
@@ -13681,6 +13810,7 @@
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "hum") { $("sheetTitle").textContent = "hum a tune"; body.innerHTML = humHTML(); return; }
+    if (sheetMode === "welcome") { $("sheetTitle").textContent = "welcome"; body.innerHTML = welcomeHTML(); return; }
     if (sheetMode === "stickers") { $("sheetTitle").textContent = "sample stickers"; body.innerHTML = stkHTML(); return; }
     if (sheetMode === "share") {
       $("sheetTitle").textContent = "share";
@@ -13722,14 +13852,8 @@
     } else if (sheetMode === "beat") {
       const b = B(), M = Mtr, bt = beatFor(M.id), sp = stepsPer(M), presets = beatPresets(prefs.buddy, M.id);
       $("sheetTitle").textContent = "the band";
-      body.innerHTML = `
-        <div class="knob"><span class="lbl">who you play with · ${esc(b.name)}</span>
-          <div class="friend-row">${BUDDY_ORDER.map(id => `<button class="buddy-card buddy-mini" type="button" data-buddy="${id}" aria-pressed="${prefs.buddy === id}" aria-label="${esc(BUDDIES[id].name)}">${portrait(id)}<span>${esc(BUDDIES[id].name)}</span></button>`).join("")}</div>
-          <p class="note">${esc(b.who)}. <button class="link" type="button" data-open="band">meet everyone</button></p></div>
-        <div class="knob"><span class="lbl">who's playing</span>
-          <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
-          <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
-        ${duetHTML(sec()).replace('<span class="lbl">duet</span>', `<span class="lbl">duet in the ${esc(sec().name.toLowerCase())}</span>`)}
+      const tabsB = `<div class="tabs" role="tablist">${[["who", "friends"], ["piano", "the piano"], ["beat", "the beat"]].map(([k, n]) => `<button type="button" role="tab" data-bandtab="${k}" aria-selected="${bandTab === k}">${n}</button>`).join("")}</div>`;
+      body.innerHTML = tabsB + (bandTab === "piano" ? `
         <div class="knob"><span class="lbl">the piano plays</span>
           <div class="seg-row" role="group" aria-label="Which parts this changes"><button type="button" class="seg-btn" data-stylescope="song" aria-pressed="${!sec().style}">the whole song</button><button type="button" class="seg-btn" data-stylescope="part" aria-pressed="${!!sec().style}">just the ${esc(sec().name.toLowerCase())}</button></div>
           <div class="presets style-picks">${Object.entries(STYLES).map(([k, v]) => `<button class="choice" type="button" data-style="${k}" aria-pressed="${styleOf(secIdx) === k}">${esc(v)}<small>${"●".repeat(STYLE_INFO[k].lvl)}${"○".repeat(3 - STYLE_INFO[k].lvl)}${STYLE_INFO[k].fan === prefs.buddy ? ` · ${esc(B().name.replace("Captain ", ""))}'s favourite` : ""}</small></button>`).join("")}</div>
@@ -13737,6 +13861,7 @@
           <div class="row"><button class="btn" type="button" data-open="pattern">🎹 play the pattern yourself</button></div></div>
         <div class="knob"><span class="lbl">piano sound</span>
           <div class="presets">${Object.entries(VOICES).map(([k, v]) => { const own = BUDDY_ORDER.find(id => BUDDIES[id].voice === k); return `<button class="choice" type="button" data-voice="${k}" aria-pressed="${VOICE === k}">${v.name}<small>${own ? `${esc(BUDDIES[own].name)}'s${own === prefs.buddy ? " · playing with you" : ""}` : ""}</small></button>`; }).join("")}</div></div>
+` : bandTab === "beat" ? `
         <span class="lbl">the beat</span>
         <p class="note">Pick a groove for the ${esc(sec().name.toLowerCase())} in <button class="link" type="button" data-act="meter">${M.id}</button>, or build your own.</p>
         <div class="presets">${Object.keys(presets).map(n => `<button class="choice" type="button" data-preset="${esc(n)}" aria-pressed="${!bt.custom && bt.name === n}">${esc(n)}</button>`).join("")}
@@ -13748,7 +13873,15 @@
             ${Array.from({ length: M.n }, (_, g) => `<div class="bgroup${g && M.groups.includes(g) ? " grp" : ""}">${Array.from({ length: sp }, (_, q) => { const i = g * sp + q; return `<button class="pad${bt.rows[r][i] ? " on" : ""}" type="button" data-r="${r}" data-i="${i}" aria-label="${esc(label)} step ${i + 1}" aria-pressed="${bt.rows[r][i]}"></button>`; }).join("")}</div>`).join("")}
           </div>`).join("")}</div>
         `)}
-        <p class="note">${esc(B().name)} picks the drum fills.</p>`;
+        <p class="note">${esc(B().name)} picks the drum fills.</p>` : `
+        <div class="knob"><span class="lbl">who you play with · ${esc(b.name)}</span>
+          <div class="friend-row">${BUDDY_ORDER.map(id => `<button class="buddy-card buddy-mini" type="button" data-buddy="${id}" aria-pressed="${prefs.buddy === id}" aria-label="${esc(BUDDIES[id].name)}">${portrait(id)}<span>${esc(BUDDIES[id].name)}</span></button>`).join("")}</div>
+          <p class="note">${esc(b.who)}. <button class="link" type="button" data-open="band">meet everyone</button></p></div>
+        <div class="knob"><span class="lbl">who's playing</span>
+          <div class="presets">${[["sing", `${esc(b.name)} sings`], ["lead", `the ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)}`], ["drums", "the beat"], ["crackle", "vinyl crackle"]].map(([k, n]) => `<button class="choice" type="button" data-layertog="${k}" aria-pressed="${L(k)}">${n}</button>`).join("")}</div>
+          <p class="note">The piano always plays. <button class="link" type="button" data-open="tune">shape the tune and the riff</button></p></div>
+        ${duetHTML(sec()).replace('<span class="lbl">duet</span>', `<span class="lbl">duet in the ${esc(sec().name.toLowerCase())}</span>`)}
+`);
     } else if (sheetMode === "view") {
       $("sheetTitle").textContent = "mode & view";
       const chip = l => `<button class="choice" type="button" data-layertog="${l}" aria-pressed="${L(l)}">${LAYER_NAMES[l]}</button>`;
@@ -13831,10 +13964,10 @@
           <p class="note">${esc(current.length ? `✦ marks what ${B().name} would try next.` : role.hint)} <label class="mini-switch"><input type="checkbox" id="sev"${prefs.sevenths ? " checked" : ""}> with 7ths</label></p></div>
         <div class="knob"><span class="lbl">visitors from other keys</span>
           <div class="add-row">${ideas.borrowed.map(c => chip(c)).join("")}</div></div>
-        <div class="knob"><span class="lbl">or start from a ready-made one</span>
+        <details class="fold ready-fold" data-fold="ready"${current.length ? (folds.ready ? " open" : "") : " open"}><summary>${current.length ? "start over from a ready-made one" : "or start from a ready-made one"}</summary><div class="fold-in">
           <p class="note">${current.length ? `These replace what's in the ${esc(nm)}. You can undo.` : "Four chords at once, each from a street story."}</p>
           <div class="moods">${STORIES.map(st => { const m = MOODS.find(x => x.id === st.mood); return `<button class="mood-btn" type="button" data-addmood="${m.id}"><b>${m.face} ${m.name}</b><span>${esc(pretty(moodProg(m, K)))}</span></button>`; }).join("")}</div>
-        </div>
+        </div></details>
         <div class="knob"><span class="lbl">more ways in</span>
           <div class="presets ways"><button class="choice" type="button" data-open="hum">🎤 hum a tune</button><button class="choice" type="button" data-open="library">▤ from the library</button><button class="choice" type="button" data-addact="wizard">♪ start from a note</button><button class="choice" type="button" data-addact="type">⌨ type chords</button><button class="choice" type="button" data-addact="find">? name a chord from its keys</button></div></div>`;
     } else if (sheetMode === "addsec") {
@@ -14453,8 +14586,11 @@
     if ((sheetMode === "roll" || sheetMode === "map") && rollClick(e)) return;
     if (sheetMode === "path" && pathClick(e)) return;
     if (sheetMode === "gift" && giftClick(e)) return;
+    const btab = e.target.closest("[data-bandtab]");
+    if (btab) { bandTab = btab.dataset.bandtab; renderSheet(); $("sheetBody").scrollTop = 0; return; }
     if (sheetMode === "hum" && humClick(e)) return;
     if (sheetMode === "stickers" && stkClick(e)) return;
+    if (sheetMode === "welcome" && welcomeClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
@@ -14687,17 +14823,7 @@
       if (current[sel]) playOne(sel);
       return;
     }
-    if (buddy) {
-      prefs.buddy = buddy.dataset.buddy; savePrefs();
-      setting("voice", null);
-      Object.keys(song.beats).forEach(m => { if (!song.beats[m].custom) delete song.beats[m]; });
-      tipOverride = B().hello;
-      renderAll();
-      renderScene(true);
-      renderSheet();
-      toast(`${B().name} brought the ${VOICES[B().voice].name}`);
-      return;
-    }
+    if (buddy) { chooseBuddy(buddy.dataset.buddy); renderSheet(); return; }
     if (mood) {
       const m = MOODS.find(x => x.id === mood.dataset.mood);
       const prog = moodProg(m, K);
@@ -14909,10 +15035,11 @@
   store.set("songs", JSON.stringify(songs));
   store.set("current", song.id);
   shareBoot();
+  welcomeBoot();
   addEventListener("hashchange", shareBoot);
   // a door for automated checks (not used by the app itself)
   window.__pixie = {
-    openSheet, closeSheet, humFeed, songLink, readLink, _hum: { chordFit, barWeights, humWay, hm: () => hm },
+    openSheet, closeSheet, welcomeStart, humFeed, songLink, readLink, _hum: { chordFit, barWeights, humWay, hm: () => hm },
     // sing one line alone (no band) and hand back the recording, for listening tests
     async singTest(text, who = "wren", cl = 0.5) {
       if (!(await audioReady())) return null;
