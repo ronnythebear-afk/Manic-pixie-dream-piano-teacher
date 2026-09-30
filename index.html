@@ -9636,13 +9636,20 @@
   // Pack up your songs: everything (songs, settings, demos and
   // tapes) in one file you can carry to another copy of Pixie
   // =========================================================
+  // sample stickers are raw sound, not files: pack them as 16-bit samples
+  const i16b64 = f => { const a = new Int16Array(f.length); for (let i = 0; i < f.length; i++) a[i] = Math.max(-32767, Math.min(32767, Math.round(f[i] * 32767))); const u = new Uint8Array(a.buffer); let s = ""; for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return btoa(s); };
+  const b64f32 = t => { const s = atob(t), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); const a = new Int16Array(u.buffer), f = new Float32Array(a.length); for (let i = 0; i < a.length; i++) f[i] = a[i] / 32767; return f; };
   const blobToURL = b => new Promise(ok => { const f = new FileReader(); f.onload = () => ok(f.result); f.onerror = () => ok(null); f.readAsDataURL(b); });
   async function packSongs() {
     flushSongs();
     const pack = { pixie: "songs", v: 1, at: Date.now(), songs, prefs, blobs: {} };
     try {
       const keys = await demoTx("readonly", st => st.getAllKeys());
-      for (const k of keys || []) { const b = await demoTx("readonly", st => st.get(k)); if (b) pack.blobs[k] = await blobToURL(b); }
+      for (const k of keys || []) {
+        const b = await demoTx("readonly", st => st.get(k));
+        if (b instanceof Blob) pack.blobs[k] = await blobToURL(b);
+        else if (b && b.data && b.sr) pack.blobs[k] = { sample: 1, sr: b.sr, pcm: i16b64(b.data) };
+      }
     } catch {}
     const blob = new Blob([JSON.stringify(pack)], { type: "application/json" });
     const name = `pixie songs ${new Date().toISOString().slice(0, 10)}.json`;
@@ -9674,13 +9681,16 @@
     if (fresh && added) songs = songs.filter(x => pack.songs.some(s => s.id === x.id) || x !== songs[0]);
     let recs = 0;
     for (const [k, url] of Object.entries(pack.blobs || {})) {
-      try { const b = await (await fetch(url)).blob(); await demoTx("readwrite", st => st.put(b, k)); recs++; } catch {}
+      try {
+        if (url && typeof url === "object" && url.sample) { const v = { sr: url.sr, data: b64f32(url.pcm) }; await demoTx("readwrite", st => st.put(v, k)); stkBufs.delete(k.replace(/^stk:/, "")); recs++; continue; }
+        const b = await (await fetch(url)).blob(); await demoTx("readwrite", st => st.put(b, k)); recs++;
+      } catch {}
     }
     if (fresh && pack.prefs && typeof pack.prefs === "object") { Object.assign(prefs, pack.prefs, { midi: prefs.midi }); savePrefs(); applyView(); }
     saveSongs(); flushSongs();
     if (fresh && added) openSong(songs.find(s => s.id === (pack.songs[0] || {}).id) || songs[0]);
     renderSheet(); renderAll();
-    toast(added || updated ? `unpacked: ${added} new song${added === 1 ? "" : "s"}${updated ? `, ${updated} updated` : ""}${recs ? `, ${recs} recording${recs === 1 ? "" : "s"}` : ""}` : "those songs are already here");
+    toast(added || updated ? `unpacked: ${added} new song${added === 1 ? "" : "s"}${updated ? `, ${updated} updated` : ""}${recs ? `, ${recs} recording${recs === 1 ? "" : "s"}` : ""}` : recs ? `those songs were already here; put back ${recs} recording${recs === 1 ? "" : "s"} and stickers` : "those songs are already here");
   }
 
   // =========================================================
@@ -13678,10 +13688,10 @@
         <div class="moods share-ways">
           <button class="mood-btn primary" type="button" data-song="watch"><b>▶ watch it</b><span>the whole song, full screen, the words scrolling as ${esc(B().name)} sings</span></button>
           <button class="mood-btn" type="button" data-song="video"><b>🎬 make a video</b><span>the same thing as a video file, to text or post. It records as it plays</span></button>
-          <button class="mood-btn" type="button" data-song="send"><b>🔗 send a link</b><span>they hear it right away and can keep their own copy</span></button>
+          <button class="mood-btn" type="button" data-song="record"><b>🎧 save a recording</b><span>the whole song as a sound file, stickers and all, to keep or send</span></button>
           <button class="mood-btn" type="button" data-open="songsheet"><b>▤ song sheet</b><span>your words with the chords over them, to print or keep by the piano</span></button>
         </div>
-        ${shareBoxHTML()}`;
+        <p class="note">Videos and recordings carry everything you made, sample stickers included. They play as they record, so a song takes as long as it lasts.</p>`;
       return;
     }
     if (sheetMode === "gift") { $("sheetTitle").textContent = "a song for you"; body.innerHTML = giftHTML(); return; }
@@ -13860,7 +13870,7 @@
       body.innerHTML = `<div class="tape">
         <svg class="cass" viewBox="0 0 180 110" aria-hidden="true"><rect x="3" y="3" width="174" height="104" rx="10" fill="#2f2a3d"/><rect x="18" y="14" width="144" height="46" rx="4" fill="#f7f1e6"/><text x="90" y="34" text-anchor="middle" font-family="Gaegu, cursive" font-weight="700" font-size="17" fill="#2f2a3d">${esc((song.title || "untitled").slice(0, 22))}</text><text x="90" y="52" text-anchor="middle" font-family="Nunito, sans-serif" font-size="10" fill="#6f6782">${esc(B().name.toLowerCase())} · ${esc(pretty(keyName(K)))}</text><circle cx="56" cy="80" r="13" fill="#f7f1e6"/><circle cx="124" cy="80" r="13" fill="#f7f1e6"/><circle cx="56" cy="80" r="4" fill="#2f2a3d"/><circle cx="124" cy="80" r="4" fill="#2f2a3d"/><rect x="72" y="74" width="36" height="12" rx="3" fill="#4a4458"/></svg>
         ${tapeURL ? `<audio controls src="${tapeURL}"></audio>` : (song.takes || [])[0] ? `<audio controls data-takeaudio="${song.takes[0].id}"></audio>` : `<p class="note">No tape yet. The band plays and the tape rolls; play along on your keyboard and you're on it too.</p>`}
-        <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn${tapeURL || (song.takes || [])[0] ? "" : " surprise"}" type="button" data-tape="again">${tapeURL || (song.takes || [])[0] ? "● record another" : "● record"}</button></div>
+        <div class="row">${tapeURL ? `<button class="btn surprise" type="button" data-tape="save">save the tape</button>${tapeBlob && navigator.canShare && navigator.canShare({ files: [new File([tapeBlob], "t." + tapeExt, { type: tapeBlob.type })] }) ? `<button class="btn" type="button" data-tape="send">send it</button>` : ""}` : (song.takes || [])[0] ? `<button class="btn surprise" type="button" data-takeact="save" data-id="${song.takes[0].id}">save the tape</button>` : ""}<button class="btn${tapeURL || (song.takes || [])[0] ? "" : " surprise"}" type="button" data-tape="again">${tapeURL || (song.takes || [])[0] ? "● record another" : "● record"}</button></div>
         </div>${tapeLenHTML()}${takesHTML()}`;
       requestAnimationFrame(fillTakes);
     } else if (sheetMode === "house") {
@@ -13934,7 +13944,7 @@
         }).join("")}
         <div class="knob"><span class="lbl">back up or move</span>
           <div class="row"><button class="btn" type="button" data-song="pack">⬇ pack up all my songs</button><button class="btn" type="button" data-song="unpack">⬆ unpack songs</button></div>
-          <p class="note">One file with every song, your settings, and your demos and tapes. Unpack it in another copy of Pixie.</p>
+          <p class="note">One file with every song, your settings, your demos and tapes, and your sample stickers. Unpack it in another copy of Pixie.</p>
           <input type="file" id="packFile" accept=".json,application/json" hidden></div>
         ${fold("astext", "songs as text", `<div class="row"><button class="btn" type="button" data-song="copy">copy “${esc(song.title || "untitled")}” as text</button></div>
           <textarea id="songPaste" placeholder="Paste a song here, like:&#10;Title: moon song&#10;[Verse]&#10;C Am F G&#10;[Chorus · 3/4]&#10;F G C C" aria-label="Paste a song as text"></textarea>
@@ -14506,7 +14516,13 @@
     const tl = e.target.closest("[data-tapelen]");
     if (tl) { prefs.tapeLen = tl.dataset.tapelen; savePrefs(); renderSheet(); if (sheetMode === "tape") fillTakes(); return; }
     const tapeB = e.target.closest("[data-tape]");
-    if (tapeB) { if (tapeB.dataset.tape === "save") saveTape(); else { closeSheet(); record(); } return; }
+    if (tapeB) {
+      const a = tapeB.dataset.tape;
+      if (a === "save") saveTape();
+      else if (a === "send" && tapeBlob) { const f = new File([tapeBlob], `${(song.title || "pixie song").replace(/[^\w\- ]+/g, "").trim() || "pixie song"}.${tapeExt}`, { type: tapeBlob.type }); navigator.share({ files: [f], title: song.title }).catch(() => {}); }
+      else { closeSheet(); record(); }
+      return;
+    }
     if (sheetMode === "tape" && await takesClick(e)) return;
     if (sheetMode === "rack" && rackClick(e)) return;
     const rmB = e.target.closest("[data-rmchord]");
@@ -14729,6 +14745,7 @@
     if (act === "pack") { packSongs(); return; }
     if (act === "send") { sendSong(); return; }
     if (act === "watch") { perfOpen(false); return; }
+    if (act === "record") { closeSheet(); const was = prefs.tapeLen; prefs.tapeLen = "song"; record().finally(() => { prefs.tapeLen = was; savePrefs(); }); return; }
     if (act === "video") { perfOpen(true); return; }
     if (act === "unpack") { const f = $("packFile"); f.value = ""; f.onchange = () => f.files[0] && unpackSongs(f.files[0]); f.click(); return; }
     if (act === "new") { wiz = { mode: "new", tonic: null, minor: null }; sheetMode = "start"; renderSheet(); }
