@@ -2021,6 +2021,24 @@
   @media (max-width: 420px) { .top .logo { font-size: 20px; } }
   @media (max-width: 370px) { .top .logo { font-size: 17px; } .toplinks .link, #openView { padding: 0 7px; } }
   .hum-why-err { display: block; margin-top: 4px; font-size: 11px; opacity: .75; }
+  /* sample stickers */
+  .stk-shelf { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; }
+  .stk { display: inline-grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: 7px; align-items: center; padding: 7px 12px 6px 8px; border: 1.5px solid var(--line); border-radius: 14px 18px 12px 16px; background: color-mix(in srgb, var(--stk) 30%, var(--card)); color: var(--ink); cursor: pointer; transform: rotate(-1.5deg); box-shadow: var(--shadow); }
+  .stk:nth-child(even) { transform: rotate(1.5deg); }
+  .stk i { grid-row: span 2; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 99px; background: var(--stk); color: #fff; font: 900 16px var(--body); font-style: normal; }
+  .stk b { font: 800 13px var(--body); text-align: left; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stk-wave { width: 56px; height: 14px; fill: color-mix(in srgb, var(--ink) 55%, transparent); }
+  .stk.on { outline: 3px solid var(--stk); outline-offset: 2px; transform: rotate(0) scale(1.04); }
+  .stk-hold { display: grid; gap: 8px; }
+  .stk-name, .stk-vol { display: flex; align-items: center; gap: 8px; font: 800 12px var(--body); color: var(--soft); }
+  .stk-name input { flex: 1; min-width: 0; font: 700 15px var(--body); padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); }
+  .stk-vol input { flex: 1; }
+  .stk-chords { display: flex; flex-wrap: wrap; gap: 6px; }
+  .stk-chord { position: relative; min-width: 54px; padding: 10px 12px; border: 1.5px dashed color-mix(in srgb, var(--ink) 40%, transparent); border-radius: 12px; background: var(--card); color: var(--ink); font: 900 16px var(--body); cursor: pointer; }
+  .stk-chord.has { border-style: solid; border-color: var(--line); background: color-mix(in srgb, var(--stk) 28%, var(--card)); }
+  .stk-chord i { position: absolute; top: -9px; right: -7px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 99px; background: var(--stk); color: #fff; font: 900 12px var(--body); font-style: normal; transform: rotate(8deg); border: 1.5px solid var(--line); }
+  .tile { position: relative; }
+  .t-stk { position: absolute; top: -7px; right: -5px; z-index: 2; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 99px; background: var(--stk); color: #fff; font: 900 11px var(--body); border: 1.5px solid #2f2a3d; transform: rotate(8deg); pointer-events: none; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -9539,8 +9557,9 @@
   function riffTakeHTML() {
     const x = sec(), has = (x.leadTake || []).length, lead = (LEADS[prefs.buddy] || LEADS.dusty).name;
     if (riffRec) return `<div class="take-box rec"><b>● recording</b><p class="note">Play over the ${esc(x.name.toLowerCase())}. It stops by itself after one time round.</p>${tapKbHTML(Math.max(48, (LEADS[prefs.buddy] || LEADS.dusty).low - 5), Math.max(48, (LEADS[prefs.buddy] || LEADS.dusty).low - 5) + 24)}<div class="row"><button class="btn" type="button" data-take="riffstop">stop</button></div></div>`;
-    return `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-take="riff">● play your own riff</button>${has ? `<button class="btn" type="button" data-take="riffclear">clear it</button>` : ""}</div>
-      <p class="note">${has ? `Your riff: ${has} notes, played on the ${esc(lead)}. ` : ""}The part loops once while you play; your notes become the lead line. ${keysOn() ? "" : "Connect a keyboard in settings, or tap the keys that show up."}</p>
+    if (hk && hk.kind === "riff") return humTakeHTML("riff");
+    return `<div class="take-box">${hk ? "" : hkErrHTML()}<div class="row"><button class="btn surprise" type="button" data-take="riff">● play your own riff</button><button class="btn" type="button" data-hk="riff">🎤 hum it</button>${has ? `<button class="btn" type="button" data-take="riffclear">clear it</button>` : ""}</div>
+      <p class="note">${has ? `Your riff: ${has} notes, played on the ${esc(lead)}. ` : ""}The part loops once while you play (or listen once, then hum it on the second time round); your notes become the lead line. ${keysOn() ? "" : "Connect a keyboard in settings, or tap the keys that show up."}</p>
       <label class="tog"><input type="checkbox" data-take="tidy"${x.riffTidy === false ? "" : " checked"}> tidy the timing (snap to sixteenths)</label></div>`;
   }
   function tuneTakeHTML() {
@@ -9553,8 +9572,9 @@
         <p class="note">Play one note for each syllable. The rhythm stays; the notes are yours.</p>
         <div class="row"><button class="btn surprise" type="button" data-take="tunekeep">keep what I played</button><button class="btn" type="button" data-take="tunestop">never mind</button></div></div>`;
     }
-    return `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-take="tune">🎹 play the tune yourself</button>${has ? `<button class="btn" type="button" data-take="tuneclear">back to ${esc(B().name)}'s notes</button>` : ""}</div>
-      <p class="note">Play a note for each sung syllable, one at a time. Same words and rhythm, your melody.</p></div>`;
+    if (hk && hk.kind === "tune") return humTakeHTML("tune");
+    return `<div class="take-box"><div class="row"><button class="btn surprise" type="button" data-take="tune">🎹 play the tune yourself</button><button class="btn" type="button" data-hk="tune">🎤 hum the tune</button>${has ? `<button class="btn" type="button" data-take="tuneclear">back to ${esc(B().name)}'s notes</button>` : ""}</div>
+      <p class="note">Play a note for each sung syllable, or hum the whole line over the part. Same words and rhythm, your melody.</p></div>`;
   }
   function takeClick(e) {
     const key = e.target.closest(".take-kbd [data-m]");
@@ -10931,15 +10951,7 @@
   function humHTML() {
     const who = B().name, part = sec().name.toLowerCase();
     const blocked = hm.err === "blocked" || hm.err === "denied";
-    const iOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-    const MIC_SAY = {
-      denied: iOS ? "The microphone is switched off for Pixie. In Safari, tap the “aA” (or the page menu) in the address bar, then Website Settings, and set Microphone to Allow. Then tap hum again." : "The microphone is switched off for Pixie. Allow it in your browser's site settings (the icon by the address), then try again.",
-      nomic: "I can't find a microphone on this device.",
-      busy: "The microphone is busy, maybe with a call or another app. Close that and try again.",
-      other: "The microphone didn't start. Try once more; if it keeps happening, reload the page.",
-      blocked: /github\.io/.test(location.hostname) ? "This browser isn't letting the page use the microphone." : `This page can't reach the microphone. Open Pixie on its own page and it will: <a href="${SHARE_HOME}" target="_blank" rel="noopener">pixie chords</a>.`
-    };
-    const errLine = !hm.err ? "" : MIC_SAY[hm.err] ? `<p class="note hum-err">${MIC_SAY[hm.err]}${hm.errWhy ? `<small class="hum-why-err">${esc(hm.errWhy)}</small>` : ""}</p>` : `<p class="note hum-err">${esc(hm.err)}</p>`;
+    const errLine = !hm.err ? "" : micSay(hm.err) ? `<p class="note hum-err">${micSay(hm.err)}${hm.errWhy ? `<small class="hum-why-err">${esc(hm.errWhy)}</small>` : ""}</p>` : `<p class="note hum-err">${esc(hm.err)}</p>`;
     const barsRow = `<div class="seg-row three hum-bars" role="group" aria-label="How long to hum">${[2, 4, 8].map(b => `<button class="seg-btn" type="button" data-hum="bars" data-n="${b}" aria-pressed="${hm.bars === b}">${b} bars</button>`).join("")}</div>`;
     if (hm.stage === "rec") {
       return `<p class="hum-say"><span class="hum-count" id="humCount">${Mtr.n}</span> ${esc(who)} counts you in, then hum or sing on “doo” or “la”. Keep going till the bar fills.</p>
@@ -10987,6 +10999,132 @@
     return true;
   }
   function humLeave() { humFinish(true); humStopPlay(); }
+
+  // ---------- the microphone, shared by everything that listens ----------
+  const isIOS = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function micSay(code) {
+    return ({
+      denied: isIOS() ? "The microphone is switched off for Pixie. In Safari, tap the “aA” (or the page menu) in the address bar, then Website Settings, and set Microphone to Allow. Then try again." : "The microphone is switched off for Pixie. Allow it in your browser's site settings (the icon by the address), then try again.",
+      nomic: "I can't find a microphone on this device.",
+      busy: "The microphone is busy, maybe with a call or another app. Close that and try again.",
+      other: "The microphone didn't start. Try once more; if it keeps happening, reload the page.",
+      blocked: /github\.io/.test(location.hostname) ? "This browser isn't letting the page use the microphone." : `This page can't reach the microphone. Open Pixie on its own page and it will: <a href="${SHARE_HOME}" target="_blank" rel="noopener">pixie chords</a>.`
+    })[code] || "";
+  }
+  // ask straight from the tap (iPhones only allow it then); throws { code, why }
+  async function micGet() {
+    if (!navigator.mediaDevices?.getUserMedia) throw { code: "blocked", why: window.isSecureContext ? "no microphone access in this browser" : "this page isn't on a secure (https) address" };
+    setSession("play-and-record");
+    let stream = null, err = null;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: true } }); }
+    catch (e) { err = e; if (e && /Overconstrained|TypeError/.test(e.name)) { try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); err = null; } catch (e2) { err = e2; } } }
+    if (!stream) { setSession("playback"); const code = humMicErr(err); throw { code, why: hm.errWhy }; }
+    return stream;
+  }
+  function micDrop(stream) { try { stream.getTracks().forEach(t => t.stop()); } catch {} setSession("playback"); }
+  const micLatency = stream => { try { return Math.min(0.2, Math.max(0.01, stream.getAudioTracks()[0].getSettings().latency || 0.03)); } catch { return 0.03; } };
+
+  // ---------- hum the lead riff, or the sung tune ----------
+  // The part plays once to listen, then you hum the second time round.
+  let hk = null;
+  async function humTakeStart(kind) {
+    if (hk) return;
+    let stream;
+    try { stream = await micGet(); }
+    catch (e) { hkErr = e; renderSheet(); return; }
+    hkErr = null;
+    if (!(await audioReady())) { micDrop(stream); return; }
+    if (playing) stop();
+    const src = ac.createMediaStreamSource(stream), an = ac.createAnalyser();
+    an.fftSize = 2048; src.connect(an);
+    // quiet the part you're replacing, so the mic hears you and not them
+    const was = { lead: prefs.layers.lead, sing: prefs.layers.sing };
+    if (kind === "riff") prefs.layers.lead = false; else prefs.layers.sing = false;
+    hk = { kind, stream, src, an, buf: new Float32Array(an.fftSize), frames: [], pass: 0, lastB: -1, was, lat: micLatency(stream), timer: null, stage: "listen" };
+    sel = 0;
+    await playAll();
+    renderSheet();
+    hk.timer = setInterval(() => {
+      const h = hk; if (!h) return;
+      if (!playing) { humTakeEnd(h.pass >= 1 && h.frames.length > 20 ? false : true); return; }
+      let b = beatNow();
+      if (b == null) return;
+      if (b < h.lastB - 1) { h.pass++; if (h.pass === 1) { h.stage = "hum"; const st = $("hkStage"); if (st) st.textContent = "hum now!"; } }
+      h.lastB = b;
+      if (h.pass >= 2) { humTakeEnd(false); return; }
+      if (h.pass === 1) {
+        h.an.getFloatTimeDomainData(h.buf);
+        const cl = countSec(Mtr, S().bpm);
+        h.frames.push({ b: Math.max(0, b - h.lat / cl), m: humPitch(h.buf, ac.sampleRate) });
+        const bar = $("hkBar"); if (bar) bar.style.width = Math.min(100, b / total * 100).toFixed(1) + "%";
+      } else {
+        const bar = $("hkBar"); if (bar) bar.style.width = Math.min(100, b / total * 100).toFixed(1) + "%";
+      }
+    }, 25);
+  }
+  let hkErr = null;
+  function humTakeEnd(cancel) {
+    const h = hk; if (!h) return;
+    hk = null;
+    clearInterval(h.timer);
+    try { h.src.disconnect(); } catch {}
+    micDrop(h.stream);
+    prefs.layers.lead = h.was.lead; prefs.layers.sing = h.was.sing;
+    if (playing) stop();
+    if (cancel) { renderSheet(); return; }
+    const x = sec(), ok = h.kind === "riff" ? humToRiff(x, h.frames) : humToTune(x, h.frames);
+    if (!ok) { toast("I didn't catch enough. Hum a little louder, close to the mic"); renderSheet(); return; }
+    saveSongs(); renderSheet(); renderStage();
+    if (h.kind === "riff") { if (!L("lead")) { prefs.layers.lead = true; savePrefs(); applyView(); } toast(`kept your hummed riff: ${x.leadTake.length} notes`); previewPart(64, { sing: true, lead: true }); }
+    else { toast(`${B().name} sings your tune now`); previewPart(64, { sing: true }); }
+  }
+  // move a whole take by octaves so it sits where the player lives, keeping its shape
+  function octaveFit(ms, lo, hi) { const mid = median(ms); let sh = 0; while (mid + sh > hi) sh -= 12; while (mid + sh < lo) sh += 12; return sh; }
+  function humToRiff(x, frames) {
+    const notes = humNotes(frames).filter(n => n.b0 < total);
+    if (!notes.length) return false;
+    const L0 = LEADS[prefs.buddy] || LEADS.dusty, lo = L0.low - 5, hi = L0.low + 22, sh = octaveFit(notes.map(n => n.midi), lo + 4, hi - 4);
+    const tidy = x.riffTidy !== false, snap = v => (tidy ? Math.round(v * 4) / 4 : v);
+    let last = null;
+    x.leadTake = notes.map(n => { const m = inRange(n.midi + sh, lo, hi, last ?? n.midi + sh); last = m; return { midi: m, start: Math.max(0, snap(n.b0)), dur: Math.max(0.25, snap(n.b1 - n.b0)) }; });
+    x.riff = { ...(x.riff || {}), kind: "mine" };
+    return true;
+  }
+  function humToTune(x, frames) {
+    const v = frames.filter(f => f.m != null);
+    if (v.length < 8) return false;
+    const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range, sh = octaveFit(v.map(f => f.m), lo + 2, hi - 2);
+    const chain = melodyChain(secIdx), take = {};
+    let got = 0, last = null;
+    current.forEach(c => {
+      const e = chain.get(c.i); if (!e) return;
+      let k = 0;
+      e.notes.forEach(n => {
+        if (n.tie) return;
+        const a = c.at + n.start, bnd = a + Math.max(0.2, n.dur), near = v.filter(f => f.b >= a - 0.05 && f.b <= bnd);
+        if (near.length >= 2) { const m = inRange(Math.round(median(near.map(f => f.m)) + sh), lo - 2, hi + 2, last ?? undefined); (take[c.i] = take[c.i] || {})[k] = m; last = m; got++; }
+        k++;
+      });
+    });
+    if (!got) return false;
+    x.tuneTake = { ...(x.tuneTake || {}), ...take };
+    return true;
+  }
+  function humTakeHTML(kind) {
+    if (hk && hk.kind === kind) return `<div class="take-box rec"><b id="hkStage">${hk.stage === "hum" ? "hum now!" : "listen once… then hum it"}</b><div class="hum-prog"><i id="hkBar"></i></div>
+      <p class="note">${kind === "riff" ? `The ${esc((LEADS[prefs.buddy] || LEADS.dusty).name)} sits out. Hum your riff the second time round.` : `${esc(B().name)} sits out. Sing or hum the words' tune the second time round; the rhythm stays.`}</p>
+      <div class="row"><button class="btn" type="button" data-hk="stop">stop</button></div></div>`;
+    return "";
+  }
+  function humTakeClick(e) {
+    const b = e.target.closest("[data-hk]");
+    if (!b) return false;
+    const a = b.dataset.hk;
+    if (a === "riff" || a === "tune") humTakeStart(a);
+    else if (a === "stop") humTakeEnd(!(hk && hk.pass >= 1 && hk.frames.length > 20));
+    return true;
+  }
+  const hkErrHTML = () => hkErr ? `<p class="note hum-err">${micSay(hkErr.code)}${hkErr.why ? `<small class="hum-why-err">${esc(hkErr.why)}</small>` : ""}</p>` : "";
 
   // =========================================================
   // Learn your own song: the song you wrote becomes the lesson. One hand,
@@ -11529,6 +11667,172 @@
   }
 
   // =========================================================
+  // Sample stickers: record a little bit over the beat (a sung hook, an
+  // "ooh", a clap, the kettle, anything) and it becomes a sticker. Drop it
+  // on any chord and it plays there every time that part comes round, in
+  // tapes and videos too.
+  // =========================================================
+  const STK_FACES = ["★", "♥", "☾", "✿", "☀", "♪", "⚡", "☁", "✦", "❀"];
+  const STK_COLORS = ["#e48fa3", "#6db3a0", "#e9b44c", "#a98bd8", "#8da2cc", "#e07b63"];
+  const stkBufs = new Map(); // sticker id → AudioBuffer
+  let stk = { hold: null, rec: null, bars: 1, err: null, naming: null };
+  const stickers = () => song.stickers || (song.stickers = []);
+  const stkById = id => stickers().find(s => s.id === id);
+  const dropsOf = x => (Array.isArray(x.drops) ? x.drops : (x.drops = []));
+  const dropAt = (x, at) => dropsOf(x).find(d => Math.abs(d.at - at) < 1e-6);
+
+  async function stkLoad(id) {
+    if (stkBufs.has(id)) return stkBufs.get(id);
+    try {
+      const v = await demoTx("readonly", st => st.get("stk:" + id));
+      if (!v || !v.data || !ac) return null;
+      const b = ac.createBuffer(1, v.data.length, v.sr); b.getChannelData(0).set(v.data);
+      stkBufs.set(id, b); return b;
+    } catch { return null; }
+  }
+  // load every sticker the song uses, so playback never waits
+  function stkWarm() { stickers().forEach(s => { if (!stkBufs.has(s.id)) stkLoad(s.id); }); }
+  // the band asks at every chord: is there a sticker here?
+  function stkPlay(x, c, t) {
+    if (!x || !x.drops || !x.drops.length || !ac) return;
+    x.drops.forEach(d => {
+      if (Math.abs(d.at - c.at) > 1e-6) return;
+      const s = stkById(d.id), b = s && stkBufs.get(s.id);
+      if (!b) { if (s) stkLoad(s.id); return; }
+      const src = ac.createBufferSource(), g = ac.createGain();
+      src.buffer = b; g.gain.value = s.gain ?? 1;
+      src.connect(g); g.connect(master); src.start(Math.max(ac.currentTime, t));
+    });
+  }
+  function stkPreview(id) {
+    const b = stkBufs.get(id); if (!b) { stkLoad(id).then(x => x && stkPreview(id)); return; }
+    audioReady().then(ok => { if (!ok) return; const s = ac.createBufferSource(), g = ac.createGain(); s.buffer = b; g.gain.value = (stkById(id) || {}).gain ?? 1; s.connect(g); g.connect(master); s.start(); });
+  }
+
+  // ---------- recording one ----------
+  async function stkRecord() {
+    if (stk.rec) return;
+    let stream;
+    try { stream = await micGet(); } catch (e) { stk.err = e; renderSheet(); return; }
+    stk.err = null;
+    if (!(await audioReady())) { micDrop(stream); return; }
+    if (playing) stop();
+    const src = ac.createMediaStreamSource(stream), sp = ac.createScriptProcessor(4096, 1, 1), mute = ac.createGain();
+    mute.gain.value = 0; src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
+    const chunks = [];
+    sp.onaudioprocess = e => chunks.push({ t: e.playbackTime - 4096 / ac.sampleRate, d: new Float32Array(e.inputBuffer.getChannelData(0)) });
+    const n = Mtr.n, cl = countSec(Mtr, S().bpm), t0 = ac.currentTime + 0.15;
+    // a bar of count-in, then the part plays and you sing
+    for (let k = 0; k < n; k++) tone(k ? 91 : 96, t0 + k * cl, 0.05, 0.1);
+    stk.rec = { stream, src, sp, mute, chunks, cl, n, t0, bandAt: null, lat: micLatency(stream) + (ac.outputLatency || ac.baseLatency || 0), timer: null, bars: stk.bars };
+    renderSheet();
+    const r = stk.rec;
+    r.kick = setTimeout(() => { if (stk.rec !== r) return; sel = 0; playAll(); }, Math.max(0, (t0 + n * cl - ac.currentTime - 0.1) * 1000));
+    r.timer = setInterval(() => {
+      if (stk.rec !== r) return;
+      const lbl = $("stkCount"), now = ac.currentTime;
+      if (r.bandAt == null && playing && playLog.length) r.bandAt = playLog.find(e => e.t >= r.t0)?.t ?? null;
+      if (r.bandAt == null) { if (lbl) lbl.textContent = String(Math.max(1, r.n - Math.floor((now - r.t0) / r.cl))); return; }
+      if (lbl && lbl.textContent !== "sing!") lbl.textContent = "sing!";
+      const len = r.bars * r.n * r.cl, bar = $("stkBar");
+      if (bar) bar.style.width = Math.min(100, (now - r.bandAt) / len * 100).toFixed(1) + "%";
+      if (now >= r.bandAt + len + 0.35) stkFinish();
+    }, 40);
+  }
+  function stkMicOff() {
+    const r = stk.rec; if (!r) return null;
+    clearInterval(r.timer); clearTimeout(r.kick);
+    r.sp.onaudioprocess = null;
+    try { r.src.disconnect(); r.sp.disconnect(); r.mute.disconnect(); } catch {}
+    micDrop(r.stream);
+    stk.rec = null;
+    return r;
+  }
+  async function stkFinish(cancel) {
+    const r = stkMicOff(); if (!r) return;
+    if (playing) stop();
+    if (cancel || r.bandAt == null) { renderSheet(); return; }
+    // cut the take to the bars you sang, lined up with the band's first beat
+    const sr = ac.sampleRate, start = r.bandAt + r.lat, len = Math.ceil((r.bars * r.n * r.cl + 0.25) * sr), out = new Float32Array(len);
+    r.chunks.forEach(c => { const at = Math.round((c.t - start) * sr); for (let i = 0; i < c.d.length; i++) { const k = at + i; if (k >= 0 && k < len) out[k] = c.d[i]; } });
+    let peak = 0; for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(out[i]));
+    if (peak < 0.01) { toast("I didn't hear anything. Try again, a little closer to the mic"); renderSheet(); return; }
+    const k = 0.85 / peak, fade = Math.round(sr * 0.012);
+    for (let i = 0; i < len; i++) out[i] *= k * Math.min(1, i / fade, (len - 1 - i) / fade);
+    const id = "k" + Date.now().toString(36), list = stickers(), n = list.length;
+    const s = { id, name: `sample ${n + 1}`, beats: r.bars * r.n, face: STK_FACES[n % STK_FACES.length], color: STK_COLORS[n % STK_COLORS.length], gain: 1, peaks: stkPeaks(out) };
+    try { await demoTx("readwrite", st => st.put({ sr, data: out }, "stk:" + id)); } catch {}
+    const b = ac.createBuffer(1, len, sr); b.getChannelData(0).set(out); stkBufs.set(id, b);
+    list.push(s); stk.hold = id; stk.naming = id;
+    saveSongs(); renderSheet();
+    stkPreview(id);
+  }
+  // a tiny waveform to draw on the sticker
+  function stkPeaks(d) { const N = 28, step = Math.floor(d.length / N) || 1, p = []; for (let i = 0; i < N; i++) { let m = 0; for (let j = i * step; j < (i + 1) * step && j < d.length; j++) m = Math.max(m, Math.abs(d[j])); p.push(+m.toFixed(2)); } return p; }
+  const stkWave = s => `<svg class="stk-wave" viewBox="0 0 56 16" aria-hidden="true">${(s.peaks || []).map((v, i) => `<rect x="${i * 2}" y="${(8 - v * 7).toFixed(1)}" width="1.3" height="${Math.max(0.8, v * 14).toFixed(1)}" rx=".6"/>`).join("")}</svg>`;
+  const stkChip = (s, on) => `<button class="stk${on ? " on" : ""}" type="button" data-stk="hold" data-id="${s.id}" style="--stk:${s.color}" aria-pressed="${!!on}"><i>${s.face}</i><b>${esc(s.name)}</b>${stkWave(s)}</button>`;
+  // a small badge on the chord tiles that carry one
+  function stkBadge(c) {
+    const d = dropAt(sec(), c.at), s = d && stkById(d.id);
+    return s ? `<span class="t-stk" style="--stk:${s.color}" title="${esc(s.name)}">${s.face}</span>` : "";
+  }
+
+  // ---------- the sheet ----------
+  function stkHTML() {
+    const list = stickers(), x = sec(), hold = stk.hold && stkById(stk.hold);
+    if (stk.rec) {
+      return `<p class="hum-say"><span class="hum-count" id="stkCount">${Mtr.n}</span> A bar to count you in, then sing, clap or play over the ${esc(x.name.toLowerCase())}: ${stk.rec.bars} bar${stk.rec.bars > 1 ? "s" : ""}.</p>
+        <div class="hum-prog"><i id="stkBar"></i></div>
+        <div class="row"><button class="btn" type="button" data-stk="cancel">cancel</button></div>`;
+    }
+    const err = stk.err ? `<p class="note hum-err">${micSay(stk.err.code)}${stk.err.why ? `<small class="hum-why-err">${esc(stk.err.why)}</small>` : ""}</p>` : "";
+    return `<p class="h-lead">Record a little bit over the beat. Sing a hook, clap, tap a glass, anything at all. It becomes a sample sticker you can drop on any chord.</p>
+      ${err}
+      <div class="seg-row three" role="group" aria-label="How long">${[1, 2, 4].map(b => `<button class="seg-btn" type="button" data-stk="bars" data-n="${b}" aria-pressed="${stk.bars === b}">${b} bar${b > 1 ? "s" : ""}</button>`).join("")}</div>
+      <div class="row"><button class="btn surprise" type="button" data-stk="rec">🎤 record a sample</button></div>
+      ${list.length ? `<h3 class="subhead">your sample stickers</h3><div class="stk-shelf">${list.map(s => stkChip(s, s.id === stk.hold)).join("")}</div>` : ""}
+      ${hold ? `<div class="knob stk-hold">
+          ${stk.naming === hold.id ? `<label class="stk-name"><span>name it</span><input id="stkName" value="${esc(hold.name)}" maxlength="24"></label>` : ""}
+          <div class="row"><button class="btn" type="button" data-stk="play">▶ hear it</button><button class="btn" type="button" data-stk="rename">✎ rename</button><button class="btn" type="button" data-stk="del">throw it out</button></div>
+          <label class="stk-vol"><span>loudness</span><input type="range" min="0.2" max="1.6" step="0.05" value="${hold.gain ?? 1}" data-stk="gain"></label>
+          <span class="lbl">tap a chord to drop “${esc(hold.name)}” there · ${esc(x.name.toLowerCase())}</span>
+          <div class="stk-chords">${current.map(c => { const d = dropAt(x, c.at), s = d && stkById(d.id); return `<button class="stk-chord${s ? " has" : ""}" type="button" data-stk="drop" data-at="${c.at}" style="${s ? `--stk:${s.color}` : ""}"><b>${esc(pretty(c.tok.replace(/:\d+$/, "")))}</b>${s ? `<i>${s.face}</i>` : ""}</button>`; }).join("") || `<span class="none">no chords in this part yet</span>`}</div>
+          <p class="note">Tap a chord again to peel the sticker off. It plays every time the ${esc(x.name.toLowerCase())} comes round. Switch parts at the top to drop it somewhere else.</p>
+        </div>` : list.length ? `<p class="note">Tap a sticker to hear it, name it, or drop it on a chord.</p>` : ""}`;
+  }
+  function stkClick(e) {
+    const b = e.target.closest("[data-stk]");
+    if (!b) return false;
+    const a = b.dataset.stk, x = sec(), hold = stk.hold && stkById(stk.hold);
+    if (a === "gain") return true;
+    if (a === "bars") { stk.bars = +b.dataset.n; renderSheet(); }
+    else if (a === "rec") stkRecord();
+    else if (a === "cancel") stkFinish(true);
+    else if (a === "hold") { stk.hold = stk.hold === b.dataset.id ? null : b.dataset.id; stk.naming = null; renderSheet(); if (stk.hold) stkPreview(stk.hold); }
+    else if (a === "play" && hold) stkPreview(hold.id);
+    else if (a === "rename" && hold) { stk.naming = hold.id; renderSheet(); requestAnimationFrame(() => { const i = $("stkName"); if (i) { i.focus(); i.select(); } }); }
+    else if (a === "del" && hold) {
+      song.stickers = stickers().filter(s => s.id !== hold.id);
+      song.sections.forEach(y => { if (y.drops) y.drops = y.drops.filter(d => d.id !== hold.id); });
+      stkBufs.delete(hold.id); demoTx("readwrite", st => st.delete("stk:" + hold.id)).catch(() => {});
+      stk.hold = null; saveSongs(); renderSheet(); renderStrip();
+    } else if (a === "drop" && hold) {
+      const at = +b.dataset.at, d = dropAt(x, at);
+      if (d && d.id === hold.id) x.drops = dropsOf(x).filter(z => z !== d);
+      else { if (d) x.drops = dropsOf(x).filter(z => z !== d); dropsOf(x).push({ id: hold.id, at }); stkPreview(hold.id); }
+      saveSongs(); renderSheet(); renderStrip();
+    }
+    return true;
+  }
+  function stkInput(e) {
+    const t = e.target;
+    const hold = stk.hold && stkById(stk.hold);
+    if (!hold) return;
+    if (t.id === "stkName") { hold.name = t.value.slice(0, 24) || "sample"; saveSongs(); const chip = document.querySelector(`.stk[data-id="${hold.id}"] b`); if (chip) chip.textContent = hold.name; }
+    if (t.dataset && t.dataset.stk === "gain") { hold.gain = +t.value; saveSongs(); }
+  }
+
+  // =========================================================
   // App state
   // =========================================================
   const $ = id => document.getElementById(id);
@@ -11977,7 +12281,7 @@
     const side = {
       simple: chordsPill + inside,
       learn: chordsPill + inside + `<button class="pal mh-story" type="button" data-open="path">✦ the path</button>`,
-      write: chordsPill + `<button class="pal mh-in" type="button" data-act="along">✎ words</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button>`,
+      write: chordsPill + `<button class="pal mh-in" type="button" data-act="along">✎ words</button><button class="pal more" type="button" data-open="tune">♪ tune & riff</button><button class="pal more" type="button" data-open="stickers">🎤 samples</button>`,
       studio: `<button class="pal vu" type="button" data-act="rack" aria-label="The rack: pedals, mute and solo, two mixes to compare">${vuSVG()}<small>rack</small></button><button class="pal mh-in onair" type="button" data-act="taperec" aria-label="Tape a take"><i></i>tape</button>`
     }[mode] || inside;
     palEl.innerHTML = (mode === "studio" ? deskHTML() : miniHouseHTML(ideas) + paintHTML()) + `<div class="mh-side">${side}</div>`;
@@ -12042,7 +12346,7 @@
         </div>`;
       }
       return `<button class="tile${c.j === sel ? " sel" : ""}" type="button" data-j="${c.j}" style="${fnVar(c.a.fn)};--w:${Math.min(c.beats, 8)}" aria-label="${esc(it.raw)}, ${c.a.num}, ${c.beats} counts">
-        ${head}
+        ${head}${stkBadge(c)}
         ${words()[it.i] ? `<span class="t-words">${esc(words()[it.i])}</span>` : ""}
       </button>`;
     }).join("") + `<button class="tile plus" type="button" data-act="plus" aria-label="Add chords">+</button>`;
@@ -12530,7 +12834,7 @@
   function tick() {
     if (!playing) return;
     // writing along: the part goes round and round
-    const along = sheetMode === "along" || !!riffRec, whole = prefs.wholeSong && !along, keepGoing = along || !!recorder;
+    const along = sheetMode === "along" || !!riffRec || !!hk, whole = prefs.wholeSong && !along, keepGoing = along || !!recorder;
     let d = sectionData(playSec), guard = 0;
     while (step >= d.list.length) {
       if (whole) {
@@ -12550,6 +12854,7 @@
     const withDemo = demoOn() && !previewing && !prac.on, band = !(withDemo && demoMode() === "alone");
     if (withDemo) { demoPlayChord(c, nextT, cl, M, playSec, playPos, demoFirst); demoFirst = false; }
     if (band) (prac.on ? pracPlayChord : playChord)(c.v, nextT, c.beats, cl, styleOf(playSec), { M, pos0: c.pos0 });
+    if (band) stkPlay(song.sections[playSec], c, nextT);
     if (playSec === secIdx) later(() => { if (!playing) return; miniFollow(c); if (sheetMode === "house") houseFollow(c); }, (nextT - ac.currentTime) * 1000);
     const mel = L("sing") && !withDemo ? melodyChain(playSec).get(c.i) : null;
     if (band) playRiff(song.sections[playSec], c, d.list, d.key, nextT, cl, mel || melodyChain(playSec).get(c.i));
@@ -12705,6 +13010,7 @@
     if (!(await audioReady())) { setPlaying(false); return; }
     if (song.demo && demoMode() !== "off") await demoBuffer();
     demoFirst = true;
+    stkWarm();
     playSec = secIdx; playPos = ordPos;
     // always from the top: of this part, or (for the whole song) of this part onward
     step = 0;
@@ -13207,7 +13513,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", path: "learning", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", stickers: "sample stickers", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -13222,6 +13528,7 @@
     closeEgg();
     if (mode !== "listen") hearStop();
     if (sheetMode === "hum" && mode !== "hum") humLeave();
+    if (stk.rec && mode !== "stickers") stkFinish(true);
     // the songbook opens on the page for the chord you're on, or the cover
     if (mode === "stories" && sheetMode !== "stories" && !(mode === "stories" && storyAt === 0 && sheetMode === "keys")) storyAt = null;
     if (mode === "street" && sheetMode !== "street") streetLit = null;
@@ -13252,6 +13559,8 @@
     if (sheetMode === "lessons") { lessonEnd(); lessonAt = null; }
     if (sheetMode === "pattern") patStop(true);
     if (sheetMode === "hum") humLeave();
+    if (hk) humTakeEnd(true);
+    if (stk.rec) stkFinish(true);
     $("sheet").hidden = true;
     $("scrim").hidden = true;
     document.body.classList.remove("sheet-open");
@@ -13362,6 +13671,7 @@
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "hum") { $("sheetTitle").textContent = "hum a tune"; body.innerHTML = humHTML(); return; }
+    if (sheetMode === "stickers") { $("sheetTitle").textContent = "sample stickers"; body.innerHTML = stkHTML(); return; }
     if (sheetMode === "share") {
       $("sheetTitle").textContent = "share";
       body.innerHTML = `<p class="h-lead">Ways to share “${esc(song.title || "untitled")}”.</p>
@@ -14119,6 +14429,7 @@
   $("sheetBody").addEventListener("click", async e => {
     if (sheetMode === "house" && houseClick(e)) return;
     if (sheetMode === "listen" && hearClick(e)) return;
+    if (sheetMode === "tune" && humTakeClick(e)) return;
     if (sheetMode === "tune" && tuneSheetClick(e)) return;
     if (sheetMode === "lessons" && lessonsClick(e)) return;
     if (sheetMode === "along" && alongClick(e)) return;
@@ -14133,6 +14444,7 @@
     if (sheetMode === "path" && pathClick(e)) return;
     if (sheetMode === "gift" && giftClick(e)) return;
     if (sheetMode === "hum" && humClick(e)) return;
+    if (sheetMode === "stickers" && stkClick(e)) return;
     const layT = e.target.closest("[data-layertog]");
     if (layT) { const k = layT.dataset.layertog; if (k === "guide") { const on = !guideOn(); prefs.layers.friends = prefs.layers.arrows = on; } else prefs.layers[k] = !prefs.layers[k]; savePrefs(); applyView(); renderAll(); renderSheet(); return; }
     const storyB = e.target.closest("[data-story]"), storyAct = e.target.closest("[data-storyact]"), sheetAct = e.target.closest("[data-sheetact]");
@@ -14532,6 +14844,7 @@
     }
   });
 
+  $("sheetBody").addEventListener("input", e => { if (sheetMode === "stickers") stkInput(e); });
   $("sheetBody").addEventListener("toggle", e => { const d = e.target; if (d.dataset && d.dataset.fold) folds[d.dataset.fold] = d.open; }, true);
   $("sheetBody").addEventListener("pointerdown", e => {
     if (sheetMode !== "along" || wStep !== "place" || !e.target.closest("#alHold")) return;
