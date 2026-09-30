@@ -2013,6 +2013,13 @@
   .perf-rec { background: var(--tension); color: #fff; }
   .perf-status { color: #fdf7ee; font: 800 13px var(--body); opacity: .8; min-width: 120px; text-align: center; }
   .perf-done { display: inline-flex; gap: 8px; }
+  /* songs: starting one, and your list; sharing lives on its own sheet */
+  .subhead.first { margin-top: 2px; }
+  .song-ways .mood-btn.primary, .share-ways .mood-btn.primary { background: var(--ink); color: var(--card); }
+  .song-ways .mood-btn.primary span, .share-ways .mood-btn.primary span { color: color-mix(in srgb, var(--card) 75%, transparent); }
+  @media (max-width: 480px) { .toplinks { gap: 4px; } .toplinks .link, #openView { padding: 0 9px; } .toplinks .lp-t { display: none; } #openShare { font-size: 15px; padding: 0 10px; } }
+  @media (max-width: 420px) { .top .logo { font-size: 20px; } }
+  @media (max-width: 370px) { .top .logo { font-size: 17px; } .toplinks .link, #openView { padding: 0 7px; } }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -2035,6 +2042,7 @@
     <h1 class="logo" aria-label="Pixie Chords"><span class="lg-a">Pixie</span><span class="lg-b">Chords</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .5l1.9 5.6L15.5 8l-5.6 1.9L8 15.5l-1.9-5.6L.5 8l5.6-1.9z"/></svg></h1>
     <nav class="toplinks">
       <button class="link" type="button" id="openSongs">songs</button>
+      <button class="link" type="button" id="openShare" aria-label="Share this song"><span aria-hidden="true">↗</span><span class="lp-t"> share</span></button>
       <button class="link" type="button" id="tabFind" aria-pressed="false" hidden>← back to the song</button>
       <button class="link" type="button" id="openView">view</button>
     </nav>
@@ -10582,7 +10590,7 @@
     }
     try { await navigator.clipboard.writeText(url); toast("link copied. anyone who opens it hears the song"); }
     catch { toast("here's the link, copy it from the box"); }
-    if (sheetMode === "songs") renderSheet();
+    if (sheetMode === "share" || sheetMode === "songs") renderSheet();
   }
   let shareURL = "";
   function shareBoxHTML() {
@@ -13166,7 +13174,7 @@
   // one sheet opened from another remembers the way back (tabs of the same sheet don't count)
   let sheetTrail = [], goingBack = false;
   const SHEET_GROUP = { path: "learn", stories: "learn", lessons: "learn", street: "learn", play: "learn", beat: "band", band: "band" };
-  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", gift: "a song for you", hum: "hum a tune", path: "learning", start: "start", addsec: "parts", moods: "moods" };
+  const SHEET_NAMES = { add: "chords", key: "key", house: "the house", beat: "the band", band: "the band", knobs: "settings", view: "view", songs: "songs", map: "the song", chord: "chord", tune: "tune & riff", along: "words", keys: "keyboard", stories: "learning", lessons: "learning", street: "learning", play: "learning", rack: "rack", tape: "tape", library: "library", listen: "learn by ear", playin: "play in", songsheet: "song sheet", lyrics: "lyrics", secedit: "part", pattern: "the pattern", roll: "roll a song", share: "share", gift: "a song for you", hum: "hum a tune", path: "learning", start: "start", addsec: "parts", moods: "moods" };
   function renderBack() {
     const b = $("sheetBack"), prev = sheetTrail[sheetTrail.length - 1];
     b.hidden = !prev;
@@ -13321,6 +13329,18 @@
     if (sheetMode === "path") { $("sheetTitle").textContent = "learning"; body.innerHTML = learnTabs("path") + pathHTML(); return; }
     if (sheetMode === "roll") { $("sheetTitle").textContent = "roll a song"; body.innerHTML = rollHTML(); return; }
     if (sheetMode === "hum") { $("sheetTitle").textContent = "hum a tune"; body.innerHTML = humHTML(); return; }
+    if (sheetMode === "share") {
+      $("sheetTitle").textContent = "share";
+      body.innerHTML = `<p class="h-lead">Ways to share “${esc(song.title || "untitled")}”.</p>
+        <div class="moods share-ways">
+          <button class="mood-btn primary" type="button" data-song="watch"><b>▶ watch it</b><span>the whole song, full screen, the words scrolling as ${esc(B().name)} sings</span></button>
+          <button class="mood-btn" type="button" data-song="video"><b>🎬 make a video</b><span>the same thing as a video file, to text or post. It records as it plays</span></button>
+          <button class="mood-btn" type="button" data-song="send"><b>🔗 send a link</b><span>they hear it right away and can keep their own copy</span></button>
+          <button class="mood-btn" type="button" data-open="songsheet"><b>▤ song sheet</b><span>your words with the chords over them, to print or keep by the piano</span></button>
+        </div>
+        ${shareBoxHTML()}`;
+      return;
+    }
     if (sheetMode === "gift") { $("sheetTitle").textContent = "a song for you"; body.innerHTML = giftHTML(); return; }
     if (sheetMode === "play") { $("sheetTitle").textContent = playAt == null ? "learning" : GAMES[playAt].title.toLowerCase(); body.innerHTML = learnTabs("play") + playHTML(); return; }
     if (sheetMode === "knobs") {
@@ -13410,7 +13430,7 @@
       $("sheetTitle").textContent = "song sheet";
       body.innerHTML = `<div class="songsheet"><img id="sheetImg" alt="The song sheet for ${esc(song.title || "untitled")}"></div>
         <p class="note">Your words with the chords over them, signed by ${esc(B().name)}. Good for keeping by a real piano.</p>
-        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button><button class="btn" type="button" data-song="send">🔗 send it as a link</button><button class="btn" type="button" data-song="video">🎬 make a video</button></div>${shareBoxHTML()}`;
+        <div class="row"><button class="btn surprise" type="button" data-sheetact="save">save the song sheet</button><button class="btn" type="button" data-song="lyrics">copy the words as text</button></div>`;
       makeSongSheet();
     } else if (sheetMode === "start") {
       const t = wiz.tonic, nm = t == null ? null : pretty(FALLBACK[t]);
@@ -13550,8 +13570,14 @@
       $("sheetTitle").textContent = "songs";
       const sorted = songs.slice().sort((a, b) => b.updated - a.updated);
       body.innerHTML = `
-        <div class="row"><button class="btn surprise" type="button" data-song="new">+ new song</button><button class="btn" type="button" data-open="roll">🎲 roll a song</button><button class="btn" type="button" data-open="hum">🎤 hum a tune</button><button class="btn" type="button" data-open="listen">♫ learn one by ear</button><button class="btn" type="button" data-open="songsheet">▤ song sheet</button><button class="btn" type="button" data-song="send">🔗 send “${esc((song.title || "this song").slice(0, 24))}” as a link</button><button class="btn" type="button" data-song="watch">▶ watch it</button><button class="btn" type="button" data-song="video">🎬 make a video</button></div>
-        ${shareBoxHTML()}
+        <h3 class="subhead first">start a song</h3>
+        <div class="moods song-ways">
+          <button class="mood-btn primary" type="button" data-song="new"><b>+ new song</b><span>pick a home note and a mood</span></button>
+          <button class="mood-btn" type="button" data-open="roll"><b>🎲 roll one</b><span>Pixie writes a whole song from a mood</span></button>
+          <button class="mood-btn" type="button" data-open="hum"><b>🎤 hum a tune</b><span>sing it, and get chords that fit</span></button>
+          <button class="mood-btn" type="button" data-open="listen"><b>♫ learn one by ear</b><span>from a recording of a song you love</span></button>
+        </div>
+        <h3 class="subhead">your songs</h3>
         ${gift && song === gift.song ? `<p class="note gift-note">“${esc(song.title)}” came from a link and isn't kept yet. <button class="link" type="button" data-open="gift">keep it or play it</button></p>` : ""}
         <p class="note">${storageOK ? "Songs save in this browser as you go." : "This browser isn't letting the page save, so songs vanish when you close it. Copy them as text to keep them."}</p>
         ${sorted.map(s => {
@@ -13560,7 +13586,7 @@
             <div class="meta"><b>${esc(s.title || "untitled")}</b><span>${s.sections.length} section${s.sections.length === 1 ? "" : "s"} · ${n} chord${n === 1 ? "" : "s"}${s.id === song.id ? " · open now" : ""}</span></div>
             ${confirmDel === s.id
               ? `<button class="btn" type="button" data-song="del-yes" data-id="${s.id}">delete it</button><button class="btn" type="button" data-song="del-no">keep</button>`
-              : `${s.id === song.id ? "" : `<button class="btn" type="button" data-song="open" data-id="${s.id}">open</button>`}${songs.length > 1 ? `<button class="x" style="color:var(--soft)" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
+              : `${s.id === song.id ? `<button class="btn" type="button" data-open="share">share ↗</button>` : `<button class="btn" type="button" data-song="open" data-id="${s.id}">open</button>`}${songs.length > 1 ? `<button class="x" style="color:var(--soft)" type="button" data-song="del" data-id="${s.id}" aria-label="Delete ${esc(s.title)}">×</button>` : ""}`}
           </article>`;
         }).join("")}
         <div class="knob"><span class="lbl">back up or move</span>
@@ -13618,6 +13644,7 @@
   $("loop").addEventListener("click", e => { loopOn = !loopOn; e.currentTarget.setAttribute("aria-pressed", loopOn); store.set("loop", loopOn ? "1" : "0"); renderAll(); });
   $("openKnobs").addEventListener("click", () => openSheet("knobs"));
   $("openSongs").addEventListener("click", () => openSheet("songs"));
+  $("openShare").addEventListener("click", () => openSheet("share"));
   $("openView").addEventListener("click", () => openSheet("view"));
   $("closeSheet").addEventListener("click", closeSheet);
   $("scrim").addEventListener("click", closeSheet);
