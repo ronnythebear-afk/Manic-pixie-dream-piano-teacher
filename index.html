@@ -7211,6 +7211,11 @@
 
   function hearHTML() {
     const who = `<b>${esc(B().name)}</b>`;
+    if (hear.stage === "video") return `<p class="hear-say">${who} That's a video, so I'll play its sound to myself, quietly and at double speed. It takes about half as long as the song.</p>
+      <div class="row"><button class="btn surprise" type="button" data-hear="video">▶ listen to the video</button><button class="btn" type="button" data-hear="again">choose another file</button></div>
+      <p class="note">You won't hear it; I listen inside the page. It stays on this device.</p>`;
+    if (hear.stage === "videowork") return `<div class="hear-work"><p class="hear-say">${who} <span id="hearMsg">listening to the video…</span></p><div class="lbar"><i id="hearBar" style="width:0%"></i></div>
+      <div class="row"><button class="btn" type="button" data-hear="videostop">stop</button></div></div>`;
     if (hear.stage === "live") return `<p class="hear-say">${who} ${hear.kind === "tab" ? "I'm listening to the other tab. Play the song from the top." : "I'm listening. Play the song out loud, close by."}</p>
       <div class="live-ear"><span class="live-dot"></span><b id="liveTime">0:00</b><div class="live-meter"><i id="liveLevel"></i></div></div>
       <p class="note">Let it play right through, then tap done. The bar should move with the music; if it stays still, I can't hear it.</p>
@@ -7309,10 +7314,61 @@
       const data = await hearWait(hearRead(file), 60000, "I couldn't read that file. Try saving it again, or use an mp3.");
       hearProg(0.03, "opening it up");
       let buf;
-      try { buf = await hearWait(new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }), 90000, "slow"); }
-      catch { throw new Error("I couldn't open that one. Try an mp3, wav or m4a."); }
+      try { if (window.__forceVideoPath) throw 0; buf = await hearWait(new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }), 90000, "slow"); }
+      catch {
+        // Safari can play a video but won't hand over its sound as a file: listen to it instead
+        if (/^video\//.test(file.type) || /\.(mov|mp4|m4v|webm)$/i.test(file.name || "")) { hear = { stage: "video", file, name }; if (sheetMode === "listen") renderSheet(); return; }
+        throw new Error("I couldn't open that one. Try an mp3, wav or m4a.");
+      }
       hearProg(0.04, "getting it ready");
       await hearAnalyse(buf, name, file);
+    } catch (err) {
+      hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try another file." };
+    }
+    if (sheetMode === "listen") renderSheet();
+  }
+  // ---------- a video: played to Pixie at double speed, out of earshot ----------
+  // At twice the speed with pitch correction off, every note is an octave up and
+  // twice as quick; reading it back at half the sample rate gives the song exactly.
+  let hearVid = null;
+  async function hearVideoStart() {
+    if (hearVid || hear.stage !== "video") return;
+    const file = hear.file, name = hear.name;
+    if (!(await audioReady())) return;
+    if (playing) stop();
+    const url = URL.createObjectURL(file), el = document.createElement("video");
+    el.src = url; el.playsInline = true; el.setAttribute("playsinline", ""); el.preload = "auto";
+    el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false;
+    const src = ac.createMediaElementSource(el), sp = ac.createScriptProcessor(4096, 2, 1), mute = ac.createGain();
+    mute.gain.value = 0; src.connect(sp); sp.connect(mute); mute.connect(ac.destination);
+    const chunks = [], rate = 2;
+    sp.onaudioprocess = e => { if (el.paused) return; const a = e.inputBuffer.getChannelData(0), b = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : a, m = new Float32Array(a.length); for (let i = 0; i < a.length; i++) m[i] = (a[i] + b[i]) / 2; chunks.push(m); };
+    hearVid = { el, url, src, sp, mute, chunks, rate, name, file };
+    hear = { stage: "videowork", name, pct: 0, msg: "listening to the video" };
+    renderSheet();
+    const done = () => hearVideoEnd(false);
+    el.addEventListener("ended", done);
+    el.addEventListener("error", () => hearVideoEnd(true, "I couldn't play that video. Try saving it again, or use an mp3."));
+    el.addEventListener("timeupdate", () => { if (el.duration) { hearProg(Math.min(0.99, el.currentTime / el.duration) * 0.5, "listening to the video"); if (el.currentTime > 6 * 60) done(); } });
+    try { el.playbackRate = rate; await el.play(); el.playbackRate = rate; }
+    catch { hearVideoEnd(true, "The video wouldn't play here. Tap the button again, or try an mp3."); }
+  }
+  async function hearVideoEnd(failed, why) {
+    const V = hearVid; if (!V) return;
+    hearVid = null;
+    try { V.el.pause(); } catch {}
+    V.sp.onaudioprocess = null;
+    try { V.src.disconnect(); V.sp.disconnect(); V.mute.disconnect(); } catch {}
+    URL.revokeObjectURL(V.url);
+    if (failed) { hear = { stage: "oops", why: why || "Something went wrong with that video." }; renderSheet(); return; }
+    const n = V.chunks.reduce((a, c) => a + c.length, 0), all = new Float32Array(n);
+    let o = 0; V.chunks.forEach(c => { all.set(c, o); o += c.length; });
+    hear = { stage: "work", name: V.name, pct: 0.5, msg: "finding the chords" };
+    renderSheet();
+    try {
+      const sr = ac.sampleRate / V.rate, buf = ac.createBuffer(1, Math.max(1, n), sr);
+      buf.getChannelData(0).set(all);
+      await hearAnalyse(buf, V.name, wavBlob(all, sr));
     } catch (err) {
       hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try another file." };
     }
@@ -7521,6 +7577,8 @@
     if (a === "play") { if (hear.src) hearStop(); else hearPlay(hear.resumeAt || 0); }
     else if (a === "again") { hearStop(); hear = { stage: "pick" }; renderSheet(); }
     else if (a === "tab" || a === "mic") hearLiveStart(a);
+    else if (a === "video") hearVideoStart();
+    else if (a === "videostop") { if (hearVid) hearVid.el.dispatchEvent(new Event("ended")); }
     else if (a === "livedone") hearLiveEnd(false);
     else if (a === "livecancel") hearLiveEnd(true);
     else if (a === "back") { const p = hearPos(); hearPlay(Math.max(0, (p ?? hear.resumeAt ?? 0) - 5)); }
@@ -13946,6 +14004,7 @@
     if (hk) humTakeEnd(true);
     if (stk.rec) stkFinish(true);
     if (hearLive) hearLiveEnd(true);
+    if (hearVid) hearVideoEnd(true);
     if (sheetMode === "welcome" && !prefs.welcomed) { prefs.welcomed = Date.now(); savePrefs(); }
     $("sheet").hidden = true;
     $("scrim").hidden = true;
