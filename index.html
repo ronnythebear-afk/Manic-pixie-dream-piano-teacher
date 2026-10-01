@@ -2061,6 +2061,13 @@
   /* the learning menu */
   .learn-cards .learn-card { display: grid; gap: 3px; align-content: start; }
   .learn-card .lc-where { font: 800 11px var(--body); color: var(--lh); margin-top: 2px; }
+  /* listening live */
+  .live-ear { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1.5px solid var(--line); border-radius: var(--wob-s); background: var(--card); margin: 6px 0 8px; }
+  .live-dot { width: 14px; height: 14px; border-radius: 99px; background: var(--tension); animation: livepulse 1.2s ease-in-out infinite; }
+  @keyframes livepulse { 50% { opacity: .35; transform: scale(.8); } }
+  .live-ear b { font: 800 20px var(--body); min-width: 52px; }
+  .live-meter { flex: 1; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
+  .live-meter i { display: block; height: 100%; width: 0; background: var(--lh); transition: width .15s; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7035,7 +7042,7 @@
       // too short for phrases: one part with everything
       return { parts: [{ name: "Verse", units: U, n: 1 }], order: [0], starts: [0] };
     }
-    const { off, phr, cl, phLen } = best;
+    let { off, phr, cl, phLen } = best;
     cl.forEach(c => { c.rep = c.members[0].u; });
     // each group's own chords: the most common chord in each slot
     cl.forEach(c => { c.units = c.mode.map((v, i) => c.members.map(p => p.u[i]).find(u => nm(u) === v)); });
@@ -7061,20 +7068,79 @@
         again = true;
       }
     }
-    // real songs vary a little each time round: fold near-twins together so the map stays simple
-    const simU = (x, y) => (x.length === y.length ? x.filter((u, i) => nm(u) === nm(y[i])).length / x.length : 0);
-    while (parts.length > 1) {
-      let bi = -1, bj = -1, bs = 0;
-      for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) { const v = simU(parts[i].units, parts[j].units); if (v > bs) { bs = v; bi = i; bj = j; } }
-      if (bs < 0.8) break;
-      const [keep, drop] = parts[bi].n >= parts[bj].n ? [bi, bj] : [bj, bi];
+    // real songs vary a little each time round, and hearing chords is never exact
+    // (C one time, Cmaj7 the next): fold near-twins together so the map stays simple.
+    // Roots count most; a 4-bar part can match either half of an 8-bar one.
+    const rootOf = u => u.ch.root;
+    const simSame = (x, y) => x.reduce((a, u, i) => a + (nm(u) === nm(y[i]) ? 1 : rootOf(u) === rootOf(y[i]) ? 0.75 : 0), 0) / x.length;
+    const simU = (x, y) => {
+      if (x.length === y.length) return simSame(x, y);
+      const [sh, lg] = x.length < y.length ? [x, y] : [y, x];
+      if (lg.length % sh.length) return 0;
+      let best = 0;
+      for (let o = 0; o + sh.length <= lg.length; o += sh.length) best = Math.max(best, simSame(sh, lg.slice(o, o + sh.length)));
+      return best * 0.92;
+    };
+    const fold = (keep, drop) => {
       parts[keep] = { ...parts[keep], n: parts[keep].n + parts[drop].n, first: Math.min(parts[keep].first, parts[drop].first) };
       order = order.map(v => (v === drop ? keep : v)).map(v => (v > drop ? v - 1 : v));
       parts.splice(drop, 1);
+    };
+    // the part heard more often (or the longer one, on a tie) keeps its chords
+    const pickKeep = (i, j) => (parts[i].n !== parts[j].n ? (parts[i].n > parts[j].n ? [i, j] : [j, i]) : parts[i].units.length >= parts[j].units.length ? [i, j] : [j, i]);
+    while (parts.length > 1) {
+      let bi = -1, bj = -1, bs = 0;
+      for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) { const v = simU(parts[i].units, parts[j].units); if (v > bs) { bs = v; bi = i; bj = j; } }
+      if (bs < 0.62) break;
+      fold(...pickKeep(bi, bj));
     }
-    if (off) { parts.push({ units: U.slice(0, off), n: 1, first: 0, intro: true }); order.unshift(parts.length - 1); starts.unshift(0); }
-    const tailAt = off + phr.length * phLen;
-    if (tailAt < U.length) { parts.push({ units: U.slice(tailAt), n: 1, first: tailAt, outro: true }); order.push(parts.length - 1); starts.push(tailAt); }
+    // most songs have a handful of parts: past five, a part heard only once
+    // joins whichever part it sounds most like
+    while (parts.length > 5) {
+      let bi = -1, bj = -1, bs = -1;
+      const anyOnce = parts.some(p => p.n === 1);
+      for (let i = 0; i < parts.length; i++) for (let j = 0; j < parts.length; j++) {
+        if (i === j || parts[j].n > parts[i].n || (anyOnce && parts[j].n > 1)) continue;
+        const v = simU(parts[i].units, parts[j].units);
+        if (v > bs) { bs = v; bi = i; bj = j; }
+      }
+      if (bj < 0) break;
+      fold(bi, bj);
+    }
+    // a 4-bar part that always comes twice in a row is really one 8-bar part
+    parts.forEach((pt, A) => {
+      if (pt.units.length * 2 > 8 * upb) return;
+      const runs = []; let i = 0;
+      while (i < order.length) { if (order[i] === A) { let j = i; while (j < order.length && order[j] === A) j++; runs.push([i, j - i]); i = j; } else i++; }
+      if (!runs.length || runs.some(([, n]) => n % 2)) return;
+      parts[A] = { ...pt, units: pt.units.concat(pt.units), n: pt.n / 2, bars: (pt.bars || pt.units.length / upb) * 2 };
+      const keep = order.map(() => true);
+      runs.forEach(([at, n]) => { for (let k = 1; k < n; k += 2) keep[at + k] = false; });
+      order = order.filter((_, k) => keep[k]); starts = starts.filter((_, k) => keep[k]);
+    });
+    // a bar or less before the first phrase, or after the last, isn't worth a part of its own
+    const tiny = n => n < 2 * upb;
+    // leftover bars at either end that are just a part's first half again: that part
+    // halves (when its two halves match) and the leftover counts as one more time round
+    const halfMatch = (pi, us) => {
+      const pu = parts[pi].units, h = pu.length / 2;
+      if (pu.length % 2 || us.length > h || us.length < h / 2 || simSame(pu.slice(0, h), pu.slice(h)) < 0.85) return false;
+      // a partial repeat (recording started or stopped mid-way) still counts
+      return simSame(us, pu.slice(0, us.length)) >= 0.7 || simSame(us, pu.slice(h - us.length, h)) >= 0.7;
+    };
+    const halve = pi => {
+      const h = parts[pi].units.length / 2;
+      parts[pi] = { ...parts[pi], units: parts[pi].units.slice(0, h), bars: (parts[pi].bars || h * 2 / upb) / 2, n: parts[pi].n * 2 };
+      const o2 = [], s2 = [];
+      order.forEach((v, k) => { o2.push(v); s2.push(starts[k]); if (v === pi) { o2.push(v); s2.push(starts[k] + h); } });
+      order = o2; starts = s2;
+    };
+    const tailAt0 = off + phr.length * phLen;
+    if (tailAt0 < U.length) { const us = U.slice(tailAt0), pi = parts.findIndex((_, i) => !parts[i].intro && halfMatch(i, us)); if (pi >= 0) { halve(pi); order.push(pi); starts.push(tailAt0); parts[pi].n++; phr.push({ at: tailAt0, u: us }); } }
+    if (off && !tiny(off)) { const us = U.slice(0, off), pi = parts.findIndex((_, i) => halfMatch(i, us)); if (pi >= 0) { halve(pi); order.unshift(pi); starts.unshift(0); parts[pi].n++; off = 0; } }
+    if (off && !tiny(off)) { parts.push({ units: U.slice(0, off), n: 1, first: 0, intro: true }); order.unshift(parts.length - 1); starts.unshift(0); }
+    const tailAt = Math.max(off + phr.length * phLen, ...phr.map(x => x.at + x.u.length));
+    if (tailAt < U.length && !tiny(U.length - tailAt)) { parts.push({ units: U.slice(tailAt), n: 1, first: tailAt, outro: true }); order.push(parts.length - 1); starts.push(tailAt); }
     // names: the part that comes back most is the chorus, the next the verse
     const byN = parts.map((p, i) => i).filter(i => !parts[i].intro && !parts[i].outro).sort((x, y) => parts[y].n - parts[x].n || parts[x].first - parts[y].first);
     const names = new Array(parts.length);
@@ -7143,6 +7209,10 @@
 
   function hearHTML() {
     const who = `<b>${esc(B().name)}</b>`;
+    if (hear.stage === "live") return `<p class="hear-say">${who} ${hear.kind === "tab" ? "I'm listening to the other tab. Play the song from the top." : "I'm listening. Play the song out loud, close by."}</p>
+      <div class="live-ear"><span class="live-dot"></span><b id="liveTime">0:00</b><div class="live-meter"><i id="liveLevel"></i></div></div>
+      <p class="note">Let it play right through, then tap done. The bar should move with the music; if it stays still, I can't hear it.</p>
+      <div class="row"><button class="btn surprise" type="button" data-hear="livedone">■ done, find the chords</button><button class="btn" type="button" data-hear="livecancel">cancel</button></div>`;
     if (hear.stage === "work") return `<div class="hear-work">
         <p class="hear-say">${who} <span id="hearMsg">${esc(hear.msg || "listening")}…</span></p>
         <div class="lbar"><i id="hearBar" style="width:${Math.round((hear.pct || 0.03) * 100)}%"></i></div>
@@ -7181,7 +7251,11 @@
       ${keysOn() ? `<div class="row"><button class="btn" type="button" data-open="playin">🎹 or play it in by ear on your keyboard</button></div>` : ""}
       <label class="hear-drop" id="hearDrop"><input type="file" id="hearFile" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.mp4,.aac,.ogg,.flac,.webm">
         <span class="hear-icon" aria-hidden="true">♫</span><b>choose a song file</b><small>mp3, wav, m4a or mp4</small></label>
-      <p class="note">The file stays on this device; nothing is uploaded. Songs with clear chords, like a guitar or piano and a voice, come out best. Busy mixes mean more guessing.</p>`;
+      <p class="note">The file stays on this device; nothing is uploaded. Songs with clear chords, like a guitar or piano and a voice, come out best. Busy mixes mean more guessing.</p>
+      <h3 class="subhead">or listen while it plays</h3>
+      <p class="note">For a song on YouTube, Spotify or anywhere else: start it from the top, let it play, and tap done when it ends. Pixie can't open a link, but it can listen.</p>
+      <div class="row">${canTab() ? `<button class="btn" type="button" data-hear="tab">🎧 listen to another tab</button>` : ""}<button class="btn" type="button" data-hear="mic">🎤 listen through the mic</button></div>
+      <p class="note">${canTab() ? "With another tab, Chrome asks which tab to share: pick the song and switch on “share tab audio”. " : ""}With the mic, play it out loud nearby. Nothing is uploaded or sent anywhere.</p>`;
   }
 
   function hearProg(p, msg) {
@@ -7228,15 +7302,88 @@
       try { buf = await hearWait(new Promise((ok, no) => { const p = ac.decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }), 90000, "slow"); }
       catch { throw new Error("I couldn't open that one. Try an mp3, wav or m4a."); }
       hearProg(0.04, "getting it ready");
-      if (buf.duration < 8) throw new Error("That's too short for me to find a song in. Try something at least 10 seconds long.");
-      const { mono } = await hearChannels(buf, 6 * 60);
-      const res = await hearSong(mono, hearProg);
-      if (!res) throw new Error("I couldn't find a steady beat or clear chords in that one. Try a different song.");
-      hear = { stage: "done", name, file, buf, res, parts: hearParts(res), along: false, long: buf.duration > 6 * 60 };
+      await hearAnalyse(buf, name, file);
     } catch (err) {
       hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try another file." };
     }
     if (sheetMode === "listen") renderSheet();
+  }
+  // a song's sound, from a file or heard live → beat, key, chords and parts
+  async function hearAnalyse(buf, name, file) {
+    if (buf.duration < 8) throw new Error("That's too short for me to find a song in. Try something at least 10 seconds long.");
+    const { mono } = await hearChannels(buf, 6 * 60);
+    const res = await hearSong(mono, hearProg);
+    if (!res) throw new Error("I couldn't find a steady beat or clear chords in that one. Try a different song.");
+    hear = { stage: "done", name, file, buf, res, parts: hearParts(res), along: false, long: buf.duration > 6 * 60 };
+  }
+
+  // ---------- listening live: a song playing in another tab, or out loud nearby ----------
+  // (a link can't be opened from here, but the song can be heard while it plays)
+  let hearLive = null;
+  const canTab = () => !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !matchMedia("(pointer: coarse)").matches;
+  async function hearLiveStart(kind) {
+    if (hearLive) return;
+    let stream;
+    try {
+      if (kind === "tab") {
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, preferCurrentTab: false, selfBrowserSurface: "exclude" });
+        stream.getVideoTracks().forEach(t => t.stop());
+        if (!stream.getAudioTracks().length) { stream.getTracks().forEach(t => t.stop()); hear = { stage: "oops", why: "I didn't get any sound. When Chrome asks, pick the tab with the song and switch on “share tab audio”." }; renderSheet(); return; }
+      } else stream = await micGet();
+    } catch (e) {
+      if (e && e.code) { hear = { stage: "oops", why: micSay(e.code) }; renderSheet(); return; }
+      if (e && e.name === "NotAllowedError") { hear = { stage: "pick" }; renderSheet(); return; }
+      hear = { stage: "oops", why: "This browser can't listen to another tab. Try Chrome on a computer, or play the song out loud and use the mic." }; renderSheet(); return;
+    }
+    if (!(await audioReady())) { stream.getTracks().forEach(t => t.stop()); return; }
+    if (playing) stop();
+    const src = ac.createMediaStreamSource(stream), sp = ac.createScriptProcessor(4096, 2, 1), mute = ac.createGain(), an = ac.createAnalyser();
+    mute.gain.value = 0; an.fftSize = 1024;
+    src.connect(sp); src.connect(an); sp.connect(mute); mute.connect(ac.destination);
+    const chunks = [];
+    sp.onaudioprocess = e => { const a = e.inputBuffer.getChannelData(0), b = e.inputBuffer.numberOfChannels > 1 ? e.inputBuffer.getChannelData(1) : a, m = new Float32Array(a.length); for (let i = 0; i < a.length; i++) m[i] = (a[i] + b[i]) / 2; chunks.push(m); };
+    hearLive = { kind, stream, src, sp, mute, an, chunks, t0: Date.now(), buf: new Float32Array(an.fftSize) };
+    stream.getAudioTracks().forEach(t => t.addEventListener("ended", () => hearLiveEnd(false)));
+    hear = { stage: "live", kind };
+    renderSheet();
+    hearLive.timer = setInterval(() => {
+      const L = hearLive; if (!L) return;
+      const secs = (Date.now() - L.t0) / 1000, el = document.getElementById("liveTime"), lv = document.getElementById("liveLevel");
+      if (el) el.textContent = `${Math.floor(secs / 60)}:${String(Math.floor(secs % 60)).padStart(2, "0")}`;
+      L.an.getFloatTimeDomainData(L.buf); let e2 = 0; for (const v of L.buf) e2 += v * v;
+      if (lv) lv.style.width = Math.min(100, Math.sqrt(e2 / L.buf.length) * 400).toFixed(0) + "%";
+      if (secs >= 6 * 60) hearLiveEnd(false);
+    }, 200);
+  }
+  async function hearLiveEnd(cancel) {
+    const L = hearLive; if (!L) return;
+    hearLive = null;
+    clearInterval(L.timer);
+    L.sp.onaudioprocess = null;
+    try { L.src.disconnect(); L.sp.disconnect(); L.mute.disconnect(); } catch {}
+    L.stream.getTracks().forEach(t => t.stop());
+    if (L.kind === "mic") setSession("playback");
+    if (cancel) { hear = { stage: "pick" }; renderSheet(); return; }
+    const n = L.chunks.reduce((a, c) => a + c.length, 0), all = new Float32Array(n);
+    let o = 0; L.chunks.forEach(c => { all.set(c, o); o += c.length; });
+    const name = L.kind === "tab" ? "a song from another tab" : "a song I heard";
+    hear = { stage: "work", name, pct: 0.04, msg: "listening back" };
+    renderSheet();
+    try {
+      const buf = ac.createBuffer(1, Math.max(1, n), ac.sampleRate); buf.getChannelData(0).set(all);
+      await hearAnalyse(buf, name, wavBlob(all, ac.sampleRate));
+    } catch (err) {
+      hear = { stage: "oops", why: err && err.message && !/^[A-Z][a-z]+Error/.test(err.message) ? err.message : "Something went wrong while listening. Try again." };
+    }
+    if (sheetMode === "listen") renderSheet();
+  }
+  // the heard song kept as a plain sound file, so it can stay with the song like an imported one
+  function wavBlob(f, sr) {
+    const n = f.length, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) v.setInt16(44 + i * 2, Math.max(-32767, Math.min(32767, Math.round(f[i] * 32767))), true);
+    return new Blob([buf], { type: "audio/wav" });
   }
 
   // ---------- listening along: the recording plays, its chords light up ----------
@@ -7363,6 +7510,9 @@
     const a = b.dataset.hear;
     if (a === "play") { if (hear.src) hearStop(); else hearPlay(hear.resumeAt || 0); }
     else if (a === "again") { hearStop(); hear = { stage: "pick" }; renderSheet(); }
+    else if (a === "tab" || a === "mic") hearLiveStart(a);
+    else if (a === "livedone") hearLiveEnd(false);
+    else if (a === "livecancel") hearLiveEnd(true);
     else if (a === "back") { const p = hearPos(); hearPlay(Math.max(0, (p ?? hear.resumeAt ?? 0) - 5)); }
     else if (a === "make") hearMake();
     return true;
@@ -13785,6 +13935,7 @@
     if (sheetMode === "hum") humLeave();
     if (hk) humTakeEnd(true);
     if (stk.rec) stkFinish(true);
+    if (hearLive) hearLiveEnd(true);
     if (sheetMode === "welcome" && !prefs.welcomed) { prefs.welcomed = Date.now(); savePrefs(); }
     $("sheet").hidden = true;
     $("scrim").hidden = true;
@@ -15127,7 +15278,7 @@
   addEventListener("hashchange", shareBoot);
   // a door for automated checks (not used by the app itself)
   window.__pixie = {
-    openSheet, closeSheet, welcomeStart, humFeed, songLink, readLink, _hum: { chordFit, barWeights, humWay, hm: () => hm },
+    openSheet, closeSheet, welcomeStart, humFeed, _hearParts: res => hearParts(res), songLink, readLink, _hum: { chordFit, barWeights, humWay, hm: () => hm },
     // sing one line alone (no band) and hand back the recording, for listening tests
     async singTest(text, who = "wren", cl = 0.5) {
       if (!(await audioReady())) return null;
