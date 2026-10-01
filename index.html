@@ -2068,6 +2068,8 @@
   .live-ear b { font: 800 20px var(--body); min-width: 52px; }
   .live-meter { flex: 1; height: 10px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 12%, transparent); overflow: hidden; }
   .live-meter i { display: block; height: 100%; width: 0; background: var(--lh); transition: width .15s; }
+  .hear-steps { margin: 4px 0 6px; padding-left: 22px; display: grid; gap: 6px; font: 700 14px/1.4 var(--body); }
+  .hear-steps li::marker { color: var(--tension); font-weight: 900; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -7249,13 +7251,21 @@
     }
     return `<p class="hear-say">${who} ${esc(hearLine("pick"))}</p>
       ${keysOn() ? `<div class="row"><button class="btn" type="button" data-open="playin">🎹 or play it in by ear on your keyboard</button></div>` : ""}
-      <label class="hear-drop" id="hearDrop"><input type="file" id="hearFile" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.mp4,.aac,.ogg,.flac,.webm">
-        <span class="hear-icon" aria-hidden="true">♫</span><b>choose a song file</b><small>mp3, wav, m4a or mp4</small></label>
+      <label class="hear-drop" id="hearDrop"><input type="file" id="hearFile" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov,.aac,.ogg,.flac,.webm">
+        <span class="hear-icon" aria-hidden="true">♫</span><b>choose a song file</b><small>mp3, wav, m4a, or a video like a screen recording</small></label>
       <p class="note">The file stays on this device; nothing is uploaded. Songs with clear chords, like a guitar or piano and a voice, come out best. Busy mixes mean more guessing.</p>
+      ${matchMedia("(pointer: coarse)").matches ? `<h3 class="subhead">a song from YouTube on this phone</h3>
+      <ol class="hear-steps">
+        <li>${isIOS() ? "Open Control Center, long-press Screen Recording, and check the microphone is off. Then start it." : "Start your phone's screen recorder, with sound set to “device audio” (not the mic)."}</li>
+        <li>Play the song in YouTube, or any app, from the top.</li>
+        <li>Stop the recording when the song ends. It saves as a video, with the song's sound.</li>
+        <li>Come back here and choose that video above.</li>
+      </ol>
+      <p class="note">Pixie can't open a link itself, but a recording of the song works just like a song file. It stays on your phone.</p>` : ""}
       <h3 class="subhead">or listen while it plays</h3>
-      <p class="note">For a song on YouTube, Spotify or anywhere else: start it from the top, let it play, and tap done when it ends. Pixie can't open a link, but it can listen.</p>
+      <p class="note">${canTab() ? "For a song on YouTube, Spotify or anywhere in your browser: start it from the top, let it play, and tap done when it ends." : "Play the song out loud on another device (a laptop, a speaker, the TV) and Pixie listens through the mic."}</p>
       <div class="row">${canTab() ? `<button class="btn" type="button" data-hear="tab">🎧 listen to another tab</button>` : ""}<button class="btn" type="button" data-hear="mic">🎤 listen through the mic</button></div>
-      <p class="note">${canTab() ? "With another tab, Chrome asks which tab to share: pick the song and switch on “share tab audio”. " : ""}With the mic, play it out loud nearby. Nothing is uploaded or sent anywhere.</p>`;
+      <p class="note">${canTab() ? "With another tab, Chrome asks which tab to share: pick the song and switch on “share tab audio”. With the mic, play it out loud nearby. " : ""}Nothing is uploaded or sent anywhere.</p>`;
   }
 
   function hearProg(p, msg) {
