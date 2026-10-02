@@ -2070,6 +2070,9 @@
   .live-meter i { display: block; height: 100%; width: 0; background: var(--lh); transition: width .15s; }
   .hear-steps { margin: 4px 0 6px; padding-left: 22px; display: grid; gap: 6px; font: 700 14px/1.4 var(--body); }
   .hear-steps li::marker { color: var(--tension); font-weight: 900; }
+  .hum-grain { margin: 2px 0 8px; }
+  .hum-chords i.short { font-size: 13px; padding: 4px 6px; }
+  .hum-chords i.long { padding-right: 14px; }
 </style>
 <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs>
   <!-- paper cut-out: a white cut edge, a soft shadow underneath, a little grain -->
@@ -10893,7 +10896,7 @@
   // guesses the key, and offers a few ways to put chords under it. You hear
   // each one under your own voice before it goes into the song.
   // =========================================================
-  let hm = { stage: "idle", bars: 4, frames: [], notes: [], keys: [], key: null, opts: [], pick: 0, tune: true, err: "" };
+  let hm = { grain: null, stage: "idle", bars: 4, frames: [], notes: [], keys: [], key: null, opts: [], pick: 0, tune: true, err: "" };
   let humRec = null, humPlay = null;
   // one pitch from a short slice of sound (autocorrelation), as a MIDI number with cents
   function humPitch(buf, sr) {
@@ -10976,13 +10979,15 @@
     { id: "color", name: "a moodier way", brighter: "a brighter way", why: "starts somewhere other than home, so the same tune feels different" }
   ];
   const humPcs = (iv, q) => [iv, iv + (q === "m" || q === "dim" ? 3 : 4), iv + (q === "dim" ? 6 : 7)].map(x => mod(x));
-  function barWeights(notes, j, n) {
-    const w = new Array(12).fill(0), a = j * n, b = a + n;
+  const barWeights = (notes, j, n) => segWeights(notes, j * n, n, n);
+  // which notes are heard over a stretch of beats, weighted by length and by landing on a strong beat
+  function segWeights(notes, a, len, n) {
+    const w = new Array(12).fill(0), b = a + len;
     notes.forEach(x => {
       const o = Math.min(b, x.b1) - Math.max(a, x.b0);
       if (o <= 0) return;
-      const pos = x.b0 - a, onBeat = Math.abs(pos - Math.round(pos)) < 0.25;
-      const k = x.b0 < a ? 0.8 : onBeat && Math.round(pos) === 0 ? 1.6 : onBeat && n === 4 && Math.round(pos) === 2 ? 1.25 : 1;
+      const pos = x.b0 - a, inBar = ((x.b0 % n) + n) % n, onBeat = Math.abs(pos - Math.round(pos)) < 0.25;
+      const k = x.b0 < a ? 0.8 : onBeat && Math.round(pos) === 0 ? (Math.round(inBar) % n === 0 ? 1.6 : 1.35) : onBeat && n === 4 && Math.round(inBar) === 2 ? 1.25 : 1;
       w[mod(x.midi)] += o * k;
     });
     return w;
@@ -10995,12 +11000,17 @@
     w.forEach((x, pc) => { if (!x) return; s += x * (pc === pcs[0] ? 1 : pc === pcs[1] ? 0.85 : pc === pcs[2] ? 0.7 : scale.includes(pc) ? -0.1 : -0.45); });
     return s / tot;
   }
-  function humWay(way, key, notes, bars, n) {
+  // how often chords change: every bar, every half bar, or wherever the tune asks
+  function humWay(way, key, notes, bars, n, grain = "bar") {
     const set = HUM_SETS[key.minor ? "minor" : "major"][way];
-    const W = Array.from({ length: bars }, (_, j) => barWeights(notes, j, n));
+    const half = grain !== "bar" && n % 2 === 0, segLen = half ? n / 2 : n, segs = bars * n / segLen;
+    const W = Array.from({ length: segs }, (_, j) => segWeights(notes, j * segLen, segLen, n));
+    const midBar = j => half && j % 2 === 1; // segment j starts halfway through a bar
     const home = key.minor ? "i" : "I", five = "V", four = key.minor ? "iv" : "IV", two = key.minor ? "ii°" : "ii";
-    const move = (a, b) => {
-      if (a[2] === b[2]) return -0.14;
+    const move = (a, b, j) => {
+      // staying put inside a bar is natural; a change mid-bar has to be earned (unless asked for)
+      if (midBar(j)) return a[2] === b[2] ? 0 : grain === "auto" ? -0.24 : 0.02;
+      if (a[2] === b[2]) return grain === "auto" ? -0.06 : -0.14;
       if (a[2] === five && b[2] === home) return 0.16;
       if ((a[2] === four || a[2] === two) && b[2] === five) return 0.11;
       if (a[2] === four && b[2] === home) return 0.06;
@@ -11008,22 +11018,35 @@
     };
     const edge = (c, j) => {
       let s = 0;
-      if (way === "color") { if (j === 0 && c === set[0]) s += 0.22; if (j === 0 && c[2] === home) s -= 9; if (j === bars - 1 && (c[2] === four || c[2] === home || c[2] === "VI")) s += 0.08; }
-      else { if (j === 0 && c[2] === home) s += 0.14; if (j === bars - 1 && c[2] === home) s += way === "simple" ? 0.26 : 0.18; if (j === bars - 1 && c[2] === five) s += 0.05; }
+      const last = segs - 1;
+      if (way === "color") { if (j === 0 && c === set[0]) s += 0.22; if (j === 0 && c[2] === home) s -= 9; if (j === last && (c[2] === four || c[2] === home || c[2] === "VI")) s += 0.08; }
+      else { if (j === 0 && c[2] === home) s += 0.14; if (j === last && c[2] === home) s += way === "simple" ? 0.26 : 0.18; if (j === last && c[2] === five) s += 0.05; }
       return s;
     };
     // best path through the bars (Viterbi): good fits, good moves, a good start and end
     let prev = set.map(c => ({ s: chordFit(W[0], key, c[0], c[1]) + edge(c, 0), path: [c] }));
-    for (let j = 1; j < bars; j++) {
+    for (let j = 1; j < segs; j++) {
       prev = set.map(c => {
         const here = chordFit(W[j], key, c[0], c[1]) + edge(c, j);
         let best = null;
-        prev.forEach(p => { const s = p.s + move(p.path[p.path.length - 1], c) + here; if (!best || s > best.s) best = { s, path: p.path.concat([c]) }; });
+        prev.forEach(p => { const s = p.s + move(p.path[p.path.length - 1], c, j) + here; if (!best || s > best.s) best = { s, path: p.path.concat([c]) }; });
         return best;
       });
     }
     const win = prev.reduce((a, b) => (b.s > a.s ? b : a));
-    return win.path.map(c => ({ tok: scaleNote(key, c[0]) + c[1], num: c[2] }));
+    let out = win.path.map((c, j) => ({ name: scaleNote(key, c[0]) + c[1], num: c[2], at: j * segLen, beats: segLen }));
+    // "let Pixie choose": the same chord again and again is one chord held longer (up to two bars).
+    // "every half bar": a chord that fills both halves of a bar is written as one bar.
+    if (grain === "auto" || half) {
+      const joined = [];
+      out.forEach(c => {
+        const p = joined[joined.length - 1];
+        const ok = p && p.name === c.name && (grain === "auto" ? p.beats + c.beats <= 2 * n : p.at % n === 0 && p.beats < n && c.at % n !== 0);
+        if (ok) p.beats += c.beats; else joined.push({ ...c });
+      });
+      out = joined;
+    }
+    return out.map(c => ({ ...c, tok: c.name + (c.beats === n ? "" : ":" + c.beats) }));
   }
   function humAnalyse() {
     hm.notes = humNotes(hm.frames);
@@ -11035,7 +11058,7 @@
   }
   function humWays() {
     const n = Mtr.n, seen = new Set();
-    hm.opts = HUM_WAYS.map(w => ({ ...w, name: w.id === "color" && hm.key.minor ? w.brighter : w.name, chords: humWay(w.id, hm.key, hm.notes, hm.bars, n) }))
+    hm.opts = HUM_WAYS.map(w => ({ ...w, name: w.id === "color" && hm.key.minor ? w.brighter : w.name, chords: humWay(w.id, hm.key, hm.notes, hm.bars, n, humGrain()) }))
       .filter(o => { const k = o.chords.map(c => c.tok).join(" "); if (seen.has(k)) return false; seen.add(k); return true; });
     hm.pick = Math.min(hm.pick, hm.opts.length - 1);
   }
@@ -11146,7 +11169,7 @@
       const o = hm.opts[which] || hm.opts[0];
       const r = compute({ prog: o.chords.map(c => c.tok).join(" "), meter: song.sections[secIdx].meter || "4/4" }, { ...S(), key: "auto", beats: "bar" }, -1);
       r.current.forEach((c, j) => {
-        const t = t0 + j * n * cl;
+        const t = t0 + c.at * cl;
         timers.push(setTimeout(() => { if (humPlay && humPlay.timers === timers) playChord(c.v, t, c.beats, cl, styleOf(secIdx), { M: Mtr, pos0: 0, gain: 0.8 }); }, Math.max(0, (t - ac.currentTime - 0.12) * 1000)));
         timers.push(setTimeout(() => { document.querySelectorAll(`[data-humbar="${j}"]`).forEach(e => e.classList.add("on")); document.querySelectorAll(`[data-humbar="${j - 1}"]`).forEach(e => e.classList.remove("on")); }, Math.max(0, (t - ac.currentTime) * 1000)));
       });
@@ -11158,15 +11181,15 @@
 
   // ---------- putting it in the song ----------
   // the hummed line becomes the singer's shape over each chord, so they sing your tune
-  function humContours(bars, n) {
+  function humContours(chords) {
     const v = hm.frames.filter(f => f.m != null);
     if (v.length < 6) return null;
     const [lo, hi] = (SING_STYLES[prefs.buddy] || SING_STYLES.wren).range, span = hi - lo, mid = median(v.map(f => f.m));
-    return Array.from({ length: bars }, (_, j) => {
-      const inBar = v.filter(f => f.b >= j * n && f.b < (j + 1) * n);
+    return chords.map(c => {
+      const a = c.at, len = c.beats, inBar = v.filter(f => f.b >= a && f.b < a + len);
       if (inBar.length < 3) return null;
       return Array.from({ length: CONTOUR_N }, (_, k) => {
-        const b = j * n + k / (CONTOUR_N - 1) * n, near = inBar.filter(f => Math.abs(f.b - b) < n / CONTOUR_N + 0.1);
+        const b = a + k / (CONTOUR_N - 1) * len, near = inBar.filter(f => Math.abs(f.b - b) < len / CONTOUR_N + 0.1);
         const m = near.length ? median(near.map(f => f.m)) : inBar.reduce((a, f) => (Math.abs(f.b - b) < Math.abs(a.b - b) ? f : a), inBar[0]).m;
         return +Math.max(0, Math.min(1, 0.5 + (m - mid) / span)).toFixed(2);
       });
@@ -11175,7 +11198,7 @@
   function humUse(where) {
     const o = hm.opts[hm.pick]; if (!o) return;
     humStopPlay();
-    const prog = o.chords.map(c => c.tok).join(" "), shapes = hm.tune ? humContours(hm.bars, Mtr.n) : null;
+    const prog = o.chords.map(c => c.tok).join(" "), shapes = hm.tune ? humContours(o.chords) : null;
     const keyTok = `${hm.key.tonic}${hm.key.minor ? "m" : "M"}`;
     if (where === "new") {
       const s = newSong("hummed song", prog, { key: keyTok }, song.sections[secIdx].meter || "4/4");
@@ -11205,7 +11228,7 @@
       s += hm.frames.filter(f => f.m != null).map(f => `<circle class="hr-dot" cx="${x(f.b).toFixed(1)}" cy="${y(f.m).toFixed(1)}" r="1.6"/>`).join("");
     } else {
       const o = hm.opts[hm.pick];
-      if (o) o.chords.forEach((c, j) => { s += `<g class="hr-ch" data-humbar="${j}"><rect x="${(x(j * n) + 1).toFixed(1)}" y="1" width="${(x(n) - x(0) - 2).toFixed(1)}" height="12" rx="3"/><text x="${(x(j * n) + 5).toFixed(1)}" y="10.5">${esc(pretty(c.tok))}</text></g>`; });
+      if (o) o.chords.forEach((c, j) => { const w = x(c.beats) - x(0) - 2; s += `<g class="hr-ch" data-humbar="${j}"><rect x="${(x(c.at) + 1).toFixed(1)}" y="1" width="${w.toFixed(1)}" height="12" rx="3"/><text x="${(x(c.at) + (w < 22 ? 2.5 : 5)).toFixed(1)}" y="10.5"${w < 22 ? ' font-size="6"' : ""}>${esc(pretty(c.name))}</text></g>`; });
       s += hm.notes.map(nt => {
         const x0 = x(nt.b0), w = Math.max(5, x(nt.b1) - x0 - 1), yy = y(nt.midi);
         const nm = pretty(scaleNote(hm.key, mod(nt.midi - hm.key.tonic))).replace(/♯/, "#").replace(/♭/, "b");
@@ -11214,7 +11237,10 @@
     }
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${s}</svg>`;
   }
+  // how often chords change; remembered, read once prefs exist
+  const humGrain = () => hm.grain || (hm.grain = prefs.humGrain || "auto");
   function humHTML() {
+    humGrain();
     const who = B().name, part = sec().name.toLowerCase();
     const blocked = hm.err === "blocked" || hm.err === "denied";
     const errLine = !hm.err ? "" : micSay(hm.err) ? `<p class="note hum-err">${micSay(hm.err)}${hm.errWhy ? `<small class="hum-why-err">${esc(hm.errWhy)}</small>` : ""}</p>` : `<p class="note hum-err">${esc(hm.err)}</p>`;
@@ -11233,8 +11259,9 @@
         <div class="hum-roll" id="humRoll">${humRollInner(false)}</div>
         <div class="row hum-mini"><button class="btn" type="button" data-hum="notes">${hearing === "notes" ? "■ stop" : "▶ just the notes I heard"}</button><button class="btn" type="button" data-hum="again">● hum it again</button></div>
         <h3 class="subhead">chords that fit</h3>
+        <div class="seg-row three hum-grain" role="group" aria-label="How often the chords change">${[["bar", "every bar"], ["half", "every half bar"], ["auto", "let Pixie choose"]].map(([k, l]) => `<button class="seg-btn" type="button" data-hum="grain" data-g="${k}" aria-pressed="${hm.grain === k}"${k === "half" && Mtr.n % 2 ? " disabled" : ""}>${l}</button>`).join("")}</div>
         <div class="hum-opts">${hm.opts.map((o, i) => `<div class="hum-opt${i === hm.pick ? " on" : ""}">
-          <button class="hum-pick" type="button" data-hum="pick" data-i="${i}" aria-pressed="${i === hm.pick}"><b>${esc(o.name)}</b><span class="hum-chords">${o.chords.map(c => `<i>${esc(pretty(c.tok))}<small>${esc(c.num)}</small></i>`).join("")}</span><small class="hum-why">${esc(o.why)}</small></button>
+          <button class="hum-pick" type="button" data-hum="pick" data-i="${i}" aria-pressed="${i === hm.pick}"><b>${esc(o.name)}</b><span class="hum-chords">${o.chords.map(c => `<i${c.beats !== Mtr.n ? ` class="${c.beats < Mtr.n ? "short" : "long"}"` : ""}>${esc(pretty(c.name))}<small>${esc(c.num)}${c.beats !== Mtr.n ? ` · ${c.beats < Mtr.n ? "½ bar" : c.beats / Mtr.n + " bars"}` : ""}</small></i>`).join("")}</span><small class="hum-why">${esc(o.why)}</small></button>
           <button class="btn hum-hear" type="button" data-hum="hear" data-i="${i}" aria-label="Hear ${esc(o.name)} under ${hm.buf ? "your voice" : "the tune"}">${hearing === i ? "■" : "▶"}</button>
         </div>`).join("")}</div>
         <label class="hum-tune"><input type="checkbox" data-hum="tune"${hm.tune ? " checked" : ""}> ${esc(who)} sings your tune when the part has words</label>
@@ -11256,6 +11283,7 @@
     else if (a === "cancel") humFinish(true);
     else if (a === "key") { hm.key = { tonic: +b.dataset.t, minor: b.dataset.m === "1" }; humStopPlay(); humWays(); renderSheet(); }
     else if (a === "pick") { hm.pick = +b.dataset.i; renderSheet(); }
+    else if (a === "grain") { hm.grain = b.dataset.g; prefs.humGrain = hm.grain; savePrefs(); humStopPlay(); humWays(); renderSheet(); }
     else if (a === "hear") { hm.pick = +b.dataset.i; humHear(+b.dataset.i); }
     else if (a === "notes") humHear("notes");
     else if (a === "tune") { hm.tune = b.checked; return true; }
